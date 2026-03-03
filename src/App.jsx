@@ -1420,23 +1420,44 @@ function EditSheet({ book, onSave, onClose }) {
   );
 }
 
+const STORAGE_KEY = "theshelf_books";
+
+function loadBooks() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    return saved ? JSON.parse(saved) : SAMPLE;
+  } catch {
+    return SAMPLE;
+  }
+}
+
+function saveBooks(books) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(books));
+}
+
 export default function App() {
-  const [books, setBooks] = useState(SAMPLE);
+  const [books, setBooks] = useState(loadBooks);
   const [tab, setTab] = useState("shelf");
   const [showAdd, setShowAdd] = useState(false);
   const [editBook, setEditBook] = useState(null);
   const [scrollY, setScrollY] = useState(0);
 
   function addBook(form) {
-    setBooks([...books,{ id:Date.now(),...form, pages:parseInt(form.pages)||0, date:new Date().toISOString().slice(0,10) }]);
+    const updated = [...books, { id:Date.now(), ...form, pages:parseInt(form.pages)||0, date:new Date().toISOString().slice(0,10) }];
+    setBooks(updated);
+    saveBooks(updated);
   }
 
   function saveEdit(updated) {
-    setBooks(books.map(b => b.id === updated.id ? { ...b, rating: updated.rating, shelf: updated.shelf } : b));
+    const next = books.map(b => b.id === updated.id ? { ...b, rating: updated.rating, shelf: updated.shelf } : b);
+    setBooks(next);
+    saveBooks(next);
   }
 
   function changeShelf(id, shelf) {
-    setBooks(books.map(b => b.id === id ? { ...b, shelf } : b));
+    const next = books.map(b => b.id === id ? { ...b, shelf } : b);
+    setBooks(next);
+    saveBooks(next);
   }
 
   return (
@@ -1505,7 +1526,7 @@ export default function App() {
         {/* content */}
         <div style={{ flex:1, overflow:"hidden", position:"relative" }}>
           {tab==="shelf"
-            ? <ShelfTab books={books} onAdd={()=>setShowAdd(true)} onRemove={id=>setBooks(books.filter(b=>b.id!==id))} onEdit={setEditBook} onScroll={setScrollY} onShelfChange={changeShelf} />
+            ? <ShelfTab books={books} onAdd={()=>setShowAdd(true)} onRemove={id=>{ const next = books.filter(b=>b.id!==id); setBooks(next); saveBooks(next); }} onEdit={setEditBook} onScroll={setScrollY} onShelfChange={changeShelf} />
             : <StatsTab books={books} />
           }
           {showAdd && <AddSheet onSave={addBook} onClose={()=>setShowAdd(false)} />}
