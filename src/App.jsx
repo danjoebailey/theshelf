@@ -710,7 +710,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
   );
 }
 
-function ShelfTab({ books, onAdd, onRemove, onEdit, onScroll, onShelfChange }) {
+function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelfChange }) {
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("date");
   const [sortAsc, setSortAsc] = useState(false);
@@ -723,6 +723,9 @@ function ShelfTab({ books, onAdd, onRemove, onEdit, onScroll, onShelfChange }) {
   const [filterAuthor, setFilterAuthor] = useState(null);
   const [shelfPickerBook, setShelfPickerBook] = useState(null);
   const [customList, setCustomList] = useState([]);
+  const [apiResults, setApiResults] = useState([]);
+  const [apiSearching, setApiSearching] = useState(false);
+  const searchTimer = useRef(null);
 
   const shelfBooks = useMemo(() => books.filter(b => (b.shelf || "Read") === activeShelf), [books, activeShelf]);
   const years   = useMemo(() => [...new Set(shelfBooks.map(b => b.date?.slice(0,4)).filter(Boolean))].sort((a,b)=>b-a), [shelfBooks]);
@@ -743,6 +746,32 @@ function ShelfTab({ books, onAdd, onRemove, onEdit, onScroll, onShelfChange }) {
   }, [shelfBooks, search, sort, sortAsc, filterYear, filterGenre, filterAuthor]);
 
   const filtered = sort === "custom" ? customList : sortedBooks;
+
+  function handleSearchChange(e) {
+    const q = e.target.value;
+    setSearch(q);
+    clearTimeout(searchTimer.current);
+    setApiResults([]);
+    if (q.trim().length > 1) {
+      setApiSearching(true);
+      searchTimer.current = setTimeout(async () => {
+        try {
+          const res = await fetch("/api/search-books", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ query: q }),
+          });
+          const data = await res.json();
+          setApiResults(Array.isArray(data) ? data : []);
+        } catch {
+          setApiResults([]);
+        }
+        setApiSearching(false);
+      }, 600);
+    } else {
+      setApiSearching(false);
+    }
+  }
 
   function handleSortClick(s) {
     if (s === "custom") {
@@ -790,9 +819,10 @@ function ShelfTab({ books, onAdd, onRemove, onEdit, onScroll, onShelfChange }) {
       <div style={{ padding:"6px 16px 10px" }}>
 
         <div style={{ background:WOOD.card, borderRadius:12, display:"flex", alignItems:"center", padding:"0 12px", gap:8, borderTop:`6px solid #8a5a28`, borderLeft:`6px solid #8a5a28`, borderBottom:`6px solid #8a5a28`, borderRight:"none", backdropFilter:"blur(4px)" }}>
-          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search title or author…"
+          <input value={search} onChange={handleSearchChange} placeholder="Search for a book to add…"
             style={{ flex:1, background:"transparent", border:"none", color:"#1a0900", fontSize:14, padding:"10px 0", fontFamily:"'DM Sans',sans-serif", outline:"none" }}/>
-          {search && <button onClick={()=>setSearch("")} style={{ background:"transparent", color:"#8a5a28", fontSize:13, border:"none", cursor:"pointer" }}>✕</button>}
+          {apiSearching && <span style={{ fontSize:12, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif" }}>Searching…</span>}
+          {search && !apiSearching && <button onClick={()=>{ setSearch(""); setApiResults([]); }} style={{ background:"transparent", color:"#8a5a28", fontSize:13, border:"none", cursor:"pointer" }}>✕</button>}
         </div>
 
         <div style={{ display:"flex", gap:6, marginTop:8, alignItems:"center" }}>
@@ -959,6 +989,37 @@ function ShelfTab({ books, onAdd, onRemove, onEdit, onScroll, onShelfChange }) {
           <div style={{ textAlign:"center", marginTop:60 }}>
             <div style={{ fontSize:44, marginBottom:12 }}>📚</div>
             <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:18, fontStyle:"italic", color:WOOD.textFaint }}>No books found</p>
+          </div>
+        )}
+        {/* Open Library search results */}
+        {apiResults.length > 0 && (
+          <div style={{ marginBottom: 16 }}>
+            <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, textTransform:"uppercase", letterSpacing:"0.1em", color:WOOD.textFaint, marginBottom:8 }}>Results — tap to add</p>
+            <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+              {apiResults.map((book, i) => (
+                <button key={i} onClick={() => onAddBook(book)} style={{
+                  background:"rgba(255,235,195,0.6)", border:`1px solid rgba(160,100,40,0.3)`,
+                  borderRadius:10, padding:"11px 13px", textAlign:"left", cursor:"pointer",
+                  display:"flex", alignItems:"center", gap:10, width:"100%",
+                }}>
+                  <BookSpine title={book.title} genre={book.genre} size={32} />
+                  <div style={{ minWidth:0, flex:1 }}>
+                    <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, color:WOOD.text, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{book.title}</p>
+                    <p style={{ fontSize:12, color:WOOD.textDim, fontStyle:"italic" }}>{book.author}</p>
+                    <div style={{ display:"flex", gap:6, marginTop:3, alignItems:"center" }}>
+                      <span style={{ background:GENRE_COLORS[book.genre]||GENRE_COLORS["Other"], color:"#fff", borderRadius:"20px", padding:"2px 8px", fontSize:10, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em" }}>{book.genre}</span>
+                      {book.pages > 0 && <span style={{ fontSize:11, color:WOOD.textFaint }}>{book.pages} pages</span>}
+                    </div>
+                  </div>
+                  <span style={{ color:WOOD.amber, fontSize:20, flexShrink:0 }}>+</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        {!apiSearching && search.length > 1 && apiResults.length === 0 && filtered.length === 0 && (
+          <div style={{ textAlign:"center", marginTop:40 }}>
+            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:17, fontStyle:"italic", color:WOOD.textFaint }}>No books found for "{search}"</p>
           </div>
         )}
         {filtered.map((book,i)=>(
@@ -1156,12 +1217,12 @@ function StatsTab({ books }) {
   );
 }
 
-function AddSheet({ onSave, onClose }) {
-  const [step, setStep] = useState("search"); // "search" | "confirm"
+function AddSheet({ onSave, onClose, initialBook = null }) {
+  const [step, setStep] = useState(initialBook ? "confirm" : "search");
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [searching, setSearching] = useState(false);
-  const [selected, setSelected] = useState(null);
+  const [selected, setSelected] = useState(initialBook);
   const [rating, setRating] = useState(0);
   const searchTimer = useRef(null);
 
@@ -1415,9 +1476,9 @@ const STORAGE_KEY = "theshelf_books";
 function loadBooks() {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
-    return saved ? JSON.parse(saved) : SAMPLE;
+    return saved ? JSON.parse(saved) : [];
   } catch {
-    return SAMPLE;
+    return [];
   }
 }
 
@@ -1429,6 +1490,7 @@ export default function App() {
   const [books, setBooks] = useState(loadBooks);
   const [tab, setTab] = useState("shelf");
   const [showAdd, setShowAdd] = useState(false);
+  const [addInitialBook, setAddInitialBook] = useState(null);
   const [editBook, setEditBook] = useState(null);
   const [scrollY, setScrollY] = useState(0);
 
@@ -1516,10 +1578,10 @@ export default function App() {
         {/* content */}
         <div style={{ flex:1, overflow:"hidden", position:"relative" }}>
           {tab==="shelf"
-            ? <ShelfTab books={books} onAdd={()=>setShowAdd(true)} onRemove={id=>{ const next = books.filter(b=>b.id!==id); setBooks(next); saveBooks(next); }} onEdit={setEditBook} onScroll={setScrollY} onShelfChange={changeShelf} />
+            ? <ShelfTab books={books} onAdd={()=>setShowAdd(true)} onAddBook={book=>{ setAddInitialBook(book); setShowAdd(true); }} onRemove={id=>{ const next = books.filter(b=>b.id!==id); setBooks(next); saveBooks(next); }} onEdit={setEditBook} onScroll={setScrollY} onShelfChange={changeShelf} />
             : <StatsTab books={books} />
           }
-          {showAdd && <AddSheet onSave={addBook} onClose={()=>setShowAdd(false)} />}
+          {showAdd && <AddSheet onSave={addBook} onClose={()=>{ setShowAdd(false); setAddInitialBook(null); }} initialBook={addInitialBook} />}
           {editBook && <EditSheet book={editBook} onSave={updated=>{ saveEdit(updated); setEditBook(null); }} onClose={()=>setEditBook(null)} />}
         </div>
 
