@@ -605,10 +605,10 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
                 <button onClick={e=>{ e.stopPropagation(); setMenuOpen(m=>!m); }} style={{ background:"transparent", border:"none", cursor:"pointer", padding:"2px 4px 0", color:"rgba(120,70,20,0.6)", fontSize:16, lineHeight:1, letterSpacing:"-1px" }}>⋮</button>
               </div>
             </div>
+            {book.pages>0 && <p style={{ color:WOOD.textFaint, fontSize:10, margin:"4px 0 2px", fontFamily:"'DM Sans',sans-serif" }}>{book.pages.toLocaleString()} pages</p>}
             {(book.shelf || "Read") !== "The List" && (book.shelf || "Read") !== "Curious" && <StarRating value={book.rating} readonly size={18} />}
           </div>
           <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
-            {book.pages>0 && <p style={{ color:WOOD.textFaint, fontSize:10, margin:0, fontFamily:"'DM Sans',sans-serif" }}>{book.pages.toLocaleString()} pages</p>}
             <div style={{ display:"flex", gap:7, alignItems:"center", overflow:"hidden" }}>
             <span style={{ background:GENRE_COLORS[book.genre], color:"#fff", borderRadius:"20px", padding:"3px 10px", fontSize:9, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", flexShrink:0, lineHeight:1 }}>{book.genre}</span>
 
