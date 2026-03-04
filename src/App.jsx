@@ -1371,6 +1371,10 @@ function AddSheet({ onSave, onClose, initialBook = null }) {
             </div>
           </div>
 
+          {selected.description && (
+            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, lineHeight:1.65, fontStyle:"italic", marginBottom:16 }}>{selected.description}</p>
+          )}
+
           <div style={{ background:"rgba(10,5,1,0.5)", border:`1px solid rgba(120,70,20,0.3)`, borderRadius:10, padding:14, marginBottom:16 }}>
             <p style={{ fontSize:11, color:WOOD.textFaint, marginBottom:10, textTransform:"uppercase", letterSpacing:"0.1em" }}>Your Rating</p>
             <div style={{ display:"flex", alignItems:"center", gap:12 }}>
