@@ -1397,6 +1397,7 @@ function AddSheet({ onSave, onClose, initialBook = null }) {
 function EditSheet({ book, onSave, onClose }) {
   const [rating, setRating] = useState(book.rating);
   const [shelf, setShelf] = useState(book.shelf || "Read");
+  const [genre, setGenre] = useState(book.genre || "Other");
 
   return (
     <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.7)", zIndex:50, display:"flex", flexDirection:"column", justifyContent:"flex-end", animation:"fadeIn 0.15s ease" }}
@@ -1478,7 +1479,27 @@ function EditSheet({ book, onSave, onClose }) {
         </div>
         )}
 
-        <button onClick={()=>onSave({ id:book.id, rating, shelf })} style={{
+        {/* genre picker — Read shelf only */}
+        {shelf === "Read" && (
+          <div style={{ background:"rgba(255,245,220,0.85)", border:`1px solid rgba(200,160,80,0.3)`, borderRadius:10, padding:14, marginBottom:12 }}>
+            <p style={{ fontSize:14, color:WOOD.textDim, marginBottom:10, letterSpacing:"0.1em", textAlign:"center" }}>Genre</p>
+            <div style={{ display:"flex", gap:6, flexWrap:"wrap", justifyContent:"center" }}>
+              {GENRES.map(g => (
+                <button key={g} onClick={()=>setGenre(g)} style={{
+                  padding:"5px 12px", borderRadius:20, cursor:"pointer",
+                  background: genre===g ? (GENRE_COLORS[g]||WOOD.amber) : "rgba(138,90,40,0.1)",
+                  color: genre===g ? "#fff" : WOOD.textDim,
+                  border: `1px solid ${genre===g ? (GENRE_COLORS[g]||WOOD.amber) : "rgba(138,90,40,0.25)"}`,
+                  fontSize:12, fontFamily:"'DM Sans',sans-serif", fontWeight: genre===g ? 700 : 400,
+                  textTransform:"uppercase", letterSpacing:"0.06em",
+                  transition:"all 0.15s",
+                }}>{g}</button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <button onClick={()=>onSave({ id:book.id, rating, shelf, genre })} style={{
           width:"100%", padding:"14px",
           background:`linear-gradient(135deg,${WOOD.amber},#f97316)`,
           color:"#1a0900", borderRadius:12, fontSize:15, fontWeight:600,
@@ -1519,7 +1540,7 @@ export default function App() {
   }
 
   function saveEdit(updated) {
-    const next = books.map(b => b.id === updated.id ? { ...b, rating: updated.rating, shelf: updated.shelf } : b);
+    const next = books.map(b => b.id === updated.id ? { ...b, rating: updated.rating, shelf: updated.shelf, genre: updated.genre ?? b.genre } : b);
     setBooks(next);
     saveBooks(next);
   }
