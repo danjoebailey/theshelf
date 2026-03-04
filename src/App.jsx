@@ -394,7 +394,7 @@ function DecorativeShelf({ books }) {
         {displayed.map((book, i) => (
           <RusticSpine key={book.id} book={book} index={i} w={WIDTHS[i]} h={HEIGHTS[i]} tilt={TILTS[i]} />
         ))}
-        <WhiteKing flip={false} />
+        <img src="/knight.png" alt="knight" style={{ height:72, width:"auto", flexShrink:0, filter:"drop-shadow(2px 4px 6px rgba(0,0,0,0.5))", objectFit:"contain", alignSelf:"flex-end" }} />
       </div>
       <div style={{
         position:"absolute", left:0, right:0, bottom:0, height:ledgeH,
