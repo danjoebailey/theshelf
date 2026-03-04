@@ -598,14 +598,14 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
               <div style={{ minWidth:0, flex:1 }}>
                 <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:21, color:WOOD.text, lineHeight:1.2, marginBottom:1, whiteSpace:expanded?"normal":"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{book.title}</p>
-                <p style={{ fontSize:12, color:WOOD.textDim, fontStyle:"italic", marginBottom:6 }}>{book.author}</p>
+                <p style={{ fontSize:12, color:WOOD.textDim, fontStyle:"italic", marginBottom:2 }}>{book.author}</p>
               </div>
               <div style={{ display:"flex", alignItems:"center", gap:6, flexShrink:0 }}>
                 <span style={{ color:WOOD.textFaint, fontSize:12, display:"inline-block", transition:"transform 0.2s", transform:expanded?"rotate(180deg)":"rotate(0deg)" }}>▾</span>
                 <button onClick={e=>{ e.stopPropagation(); setMenuOpen(m=>!m); }} style={{ background:"transparent", border:"none", cursor:"pointer", padding:"2px 4px 0", color:"rgba(120,70,20,0.6)", fontSize:16, lineHeight:1, letterSpacing:"-1px" }}>⋮</button>
               </div>
             </div>
-            {book.pages>0 && <p style={{ color:WOOD.textFaint, fontSize:10, margin:"4px 0 2px", fontFamily:"'DM Sans',sans-serif" }}>{book.pages.toLocaleString()} pages</p>}
+            {book.pages>0 && <p style={{ color:WOOD.textFaint, fontSize:10, margin:"0 0 2px", fontFamily:"'DM Sans',sans-serif" }}>{book.pages.toLocaleString()} pages</p>}
             {(book.shelf || "Read") !== "The List" && (book.shelf || "Read") !== "Curious" && <StarRating value={book.rating} readonly size={18} />}
           </div>
           <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
