@@ -843,7 +843,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
               maxHeight:320, overflowY:"auto",
             }}>
               {apiResults.map((book, i) => (
-                <button key={i} onClick={() => onAddBook(book)} style={{
+                <button key={i} onClick={() => { setSearch(""); setApiResults([]); onAddBook(book); }} style={{
                   background:"transparent",
                   borderBottom: i < apiResults.length-1 ? "1px solid rgba(160,100,40,0.2)" : "none",
                   border:"none", borderBottom: i < apiResults.length-1 ? "1px solid rgba(160,100,40,0.2)" : "none",
