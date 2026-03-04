@@ -586,7 +586,13 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
       position:"relative",
     }} onClick={()=>{ if(menuOpen) setMenuOpen(false); else setExpanded(e=>!e); }}>
       <div style={{ display:"flex", gap:14, alignItems:"stretch" }}>
-        <div style={{ alignSelf:"flex-end" }}><BookSpine title={book.title} genre={book.genre} size={76} /></div>
+        <div style={{ alignSelf:"flex-end", flexShrink:0 }}>
+          {book.coverId
+            ? <img src={`https://covers.openlibrary.org/b/id/${book.coverId}-M.jpg`} alt={book.title}
+                style={{ width:52, height:76, objectFit:"cover", borderRadius:4, boxShadow:"2px 2px 8px rgba(0,0,0,0.35)", display:"block" }} />
+            : <BookSpine title={book.title} genre={book.genre} size={76} />
+          }
+        </div>
         <div style={{ flex:1, minWidth:0, display:"flex", flexDirection:"column", justifyContent:"space-between" }}>
           <div>
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
@@ -1002,7 +1008,11 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
                   borderRadius:10, padding:"11px 13px", textAlign:"left", cursor:"pointer",
                   display:"flex", alignItems:"center", gap:10, width:"100%",
                 }}>
-                  <BookSpine title={book.title} genre={book.genre} size={32} />
+                  {book.coverId
+                    ? <img src={`https://covers.openlibrary.org/b/id/${book.coverId}-M.jpg`} alt={book.title}
+                        style={{ width:32, height:46, objectFit:"cover", borderRadius:3, boxShadow:"1px 1px 4px rgba(0,0,0,0.3)", flexShrink:0 }} />
+                    : <BookSpine title={book.title} genre={book.genre} size={32} />
+                  }
                   <div style={{ minWidth:0, flex:1 }}>
                     <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, color:WOOD.text, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{book.title}</p>
                     <p style={{ fontSize:12, color:WOOD.textDim, fontStyle:"italic" }}>{book.author}</p>
@@ -1318,7 +1328,11 @@ function AddSheet({ onSave, onClose, initialBook = null }) {
                   borderRadius:10, padding:"11px 13px", textAlign:"left", cursor:"pointer",
                   display:"flex", alignItems:"center", gap:10,
                 }}>
-                  <BookSpine title={book.title} genre={book.genre} size={32} />
+                  {book.coverId
+                    ? <img src={`https://covers.openlibrary.org/b/id/${book.coverId}-M.jpg`} alt={book.title}
+                        style={{ width:32, height:46, objectFit:"cover", borderRadius:3, boxShadow:"1px 1px 4px rgba(0,0,0,0.3)", flexShrink:0 }} />
+                    : <BookSpine title={book.title} genre={book.genre} size={32} />
+                  }
                   <div style={{ minWidth:0 }}>
                     <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, color:WOOD.text, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{book.title}</p>
                     <p style={{ fontSize:12, color:WOOD.textDim, fontStyle:"italic" }}>{book.author}</p>
@@ -1340,7 +1354,11 @@ function AddSheet({ onSave, onClose, initialBook = null }) {
         {step === "confirm" && selected && <>
           <button onClick={() => setStep("search")} style={{ background:"transparent", border:"none", color:WOOD.textDim, fontSize:13, cursor:"pointer", marginBottom:12, padding:0, fontFamily:"'DM Sans',sans-serif" }}>← Back</button>
           <div style={{ display:"flex", gap:12, alignItems:"flex-start", marginBottom:18 }}>
-            <BookSpine title={selected.title} genre={selected.genre} size={48} />
+            {selected.coverId
+              ? <img src={`https://covers.openlibrary.org/b/id/${selected.coverId}-M.jpg`} alt={selected.title}
+                  style={{ width:60, height:88, objectFit:"cover", borderRadius:4, boxShadow:"2px 2px 10px rgba(0,0,0,0.35)", flexShrink:0 }} />
+              : <BookSpine title={selected.title} genre={selected.genre} size={48} />
+            }
             <div>
               <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:19, color:WOOD.text, lineHeight:1.2, marginBottom:3 }}>{selected.title}</p>
               <p style={{ fontSize:13, color:WOOD.textDim, fontStyle:"italic", marginBottom:6 }}>{selected.author}</p>
