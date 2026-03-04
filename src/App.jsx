@@ -824,11 +824,46 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
       <div style={{ flexShrink:0, position:"relative", zIndex:100, overflow:"visible" }}>
       <div style={{ padding:"6px 16px 10px" }}>
 
-        <div style={{ background:WOOD.card, borderRadius:12, display:"flex", alignItems:"center", padding:"0 12px", gap:8, borderTop:`6px solid #8a5a28`, borderLeft:`6px solid #8a5a28`, borderBottom:`6px solid #8a5a28`, borderRight:"none", backdropFilter:"blur(4px)" }}>
-          <input value={search} onChange={handleSearchChange} placeholder="Search for a book to add…"
-            style={{ flex:1, background:"transparent", border:"none", color:"#1a0900", fontSize:14, padding:"10px 0", fontFamily:"'DM Sans',sans-serif", outline:"none" }}/>
-          {apiSearching && <span style={{ fontSize:12, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif" }}>Searching…</span>}
-          {search && !apiSearching && <button onClick={()=>{ setSearch(""); setApiResults([]); }} style={{ background:"transparent", color:"#8a5a28", fontSize:13, border:"none", cursor:"pointer" }}>✕</button>}
+        <div style={{ position:"relative" }}>
+          <div style={{ background:WOOD.card, borderRadius:12, display:"flex", alignItems:"center", padding:"0 12px", gap:8, borderTop:`6px solid #8a5a28`, borderLeft:`6px solid #8a5a28`, borderBottom:`6px solid #8a5a28`, borderRight:"none", backdropFilter:"blur(4px)" }}>
+            <input value={search} onChange={handleSearchChange} placeholder="Search for a book to add…"
+              style={{ flex:1, background:"transparent", border:"none", color:"#1a0900", fontSize:14, padding:"10px 0", fontFamily:"'DM Sans',sans-serif", outline:"none" }}/>
+            {apiSearching && <span style={{ fontSize:12, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif" }}>Searching…</span>}
+            {search && !apiSearching && <button onClick={()=>{ setSearch(""); setApiResults([]); }} style={{ background:"transparent", color:"#8a5a28", fontSize:13, border:"none", cursor:"pointer" }}>✕</button>}
+          </div>
+
+          {/* dropdown results */}
+          {apiResults.length > 0 && (
+            <div style={{
+              position:"absolute", top:"calc(100% + 6px)", left:0, right:0, zIndex:200,
+              background:"linear-gradient(180deg, #ddb870 0%, #c89850 100%)",
+              borderRadius:12, overflow:"hidden",
+              boxShadow:"0 8px 32px rgba(0,0,0,0.35)",
+              border:"1px solid rgba(200,150,70,0.4)",
+              maxHeight:320, overflowY:"auto",
+            }}>
+              {apiResults.map((book, i) => (
+                <button key={i} onClick={() => onAddBook(book)} style={{
+                  background:"transparent",
+                  borderBottom: i < apiResults.length-1 ? "1px solid rgba(160,100,40,0.2)" : "none",
+                  border:"none", borderBottom: i < apiResults.length-1 ? "1px solid rgba(160,100,40,0.2)" : "none",
+                  padding:"10px 14px", textAlign:"left", cursor:"pointer",
+                  display:"flex", alignItems:"center", gap:10, width:"100%",
+                }}>
+                  {book.coverId
+                    ? <img src={`https://covers.openlibrary.org/b/id/${book.coverId}-M.jpg`} alt={book.title}
+                        style={{ width:28, height:42, objectFit:"cover", borderRadius:3, boxShadow:"1px 1px 4px rgba(0,0,0,0.25)", flexShrink:0 }} />
+                    : <BookSpine title={book.title} genre={book.genre} size={28} />
+                  }
+                  <div style={{ minWidth:0, flex:1 }}>
+                    <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{book.title}</p>
+                    <p style={{ fontSize:11, color:WOOD.textDim, fontStyle:"italic" }}>{book.author}</p>
+                  </div>
+                  <span style={{ background:GENRE_COLORS[book.genre]||GENRE_COLORS["Other"], color:"#fff", borderRadius:"20px", padding:"2px 8px", fontSize:9, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.06em", flexShrink:0 }}>{book.genre}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <div style={{ display:"flex", gap:6, marginTop:8, alignItems:"center" }}>
@@ -995,41 +1030,6 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
           <div style={{ textAlign:"center", marginTop:60 }}>
             <div style={{ fontSize:44, marginBottom:12 }}>📚</div>
             <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:18, fontStyle:"italic", color:WOOD.textFaint }}>No books found</p>
-          </div>
-        )}
-        {/* Open Library search results */}
-        {apiResults.length > 0 && (
-          <div style={{ marginBottom: 16 }}>
-            <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, textTransform:"uppercase", letterSpacing:"0.1em", color:WOOD.textFaint, marginBottom:8 }}>Results — tap to add</p>
-            <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
-              {apiResults.map((book, i) => (
-                <button key={i} onClick={() => onAddBook(book)} style={{
-                  background:"rgba(255,235,195,0.6)", border:`1px solid rgba(160,100,40,0.3)`,
-                  borderRadius:10, padding:"11px 13px", textAlign:"left", cursor:"pointer",
-                  display:"flex", alignItems:"center", gap:10, width:"100%",
-                }}>
-                  {book.coverId
-                    ? <img src={`https://covers.openlibrary.org/b/id/${book.coverId}-M.jpg`} alt={book.title}
-                        style={{ width:32, height:46, objectFit:"cover", borderRadius:3, boxShadow:"1px 1px 4px rgba(0,0,0,0.3)", flexShrink:0 }} />
-                    : <BookSpine title={book.title} genre={book.genre} size={32} />
-                  }
-                  <div style={{ minWidth:0, flex:1 }}>
-                    <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, color:WOOD.text, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{book.title}</p>
-                    <p style={{ fontSize:12, color:WOOD.textDim, fontStyle:"italic" }}>{book.author}</p>
-                    <div style={{ display:"flex", gap:6, marginTop:3, alignItems:"center" }}>
-                      <span style={{ background:GENRE_COLORS[book.genre]||GENRE_COLORS["Other"], color:"#fff", borderRadius:"20px", padding:"2px 8px", fontSize:10, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em" }}>{book.genre}</span>
-                      {book.pages > 0 && <span style={{ fontSize:11, color:WOOD.textFaint }}>{book.pages} pages</span>}
-                    </div>
-                  </div>
-                  <span style={{ color:WOOD.amber, fontSize:20, flexShrink:0 }}>+</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-        {!apiSearching && search.length > 1 && apiResults.length === 0 && filtered.length === 0 && (
-          <div style={{ textAlign:"center", marginTop:40 }}>
-            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:17, fontStyle:"italic", color:WOOD.textFaint }}>No books found for "{search}"</p>
           </div>
         )}
         {filtered.map((book,i)=>(
