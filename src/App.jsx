@@ -589,7 +589,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
         <div style={{ alignSelf:"stretch", flexShrink:0, display:"flex" }}>
           {book.coverId
             ? <img src={`https://covers.openlibrary.org/b/id/${book.coverId}-M.jpg`} alt={book.title}
-                style={{ width:60, height:"100%", objectFit:"cover", borderRadius:4, boxShadow:"2px 2px 8px rgba(0,0,0,0.35)", display:"block" }} />
+                style={{ height:"100%", aspectRatio:"2/3", objectFit:"cover", borderRadius:4, boxShadow:"2px 2px 8px rgba(0,0,0,0.35)", display:"block" }} />
             : <BookSpine title={book.title} genre={book.genre} size={90} />
           }
         </div>
