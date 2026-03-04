@@ -586,10 +586,10 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
       position:"relative",
     }} onClick={()=>{ if(menuOpen) setMenuOpen(false); else setExpanded(e=>!e); }}>
       <div style={{ display:"flex", gap:14, alignItems:"stretch" }}>
-        <div style={{ alignSelf:"flex-start", flexShrink:0 }}>
+        <div style={{ alignSelf:"stretch", flexShrink:0, display:"flex" }}>
           {book.coverId
             ? <img src={`https://covers.openlibrary.org/b/id/${book.coverId}-M.jpg`} alt={book.title}
-                style={{ width:60, height:90, objectFit:"cover", borderRadius:4, boxShadow:"2px 2px 8px rgba(0,0,0,0.35)", display:"block" }} />
+                style={{ width:60, height:"100%", objectFit:"cover", borderRadius:4, boxShadow:"2px 2px 8px rgba(0,0,0,0.35)", display:"block" }} />
             : <BookSpine title={book.title} genre={book.genre} size={90} />
           }
         </div>
