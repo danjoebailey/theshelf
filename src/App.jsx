@@ -1290,7 +1290,7 @@ function AddSheet({ onSave, onClose, initialBook = null }) {
     borderRadius:"20px 20px 0 0",
     padding:"0 18px 30px",
     maxHeight:"95%",
-    minHeight: step === "confirm" ? "60%" : "auto",
+    minHeight: step === "confirm" ? "80%" : "auto",
     overflowY:"auto",
     borderTop:`1px solid rgba(220,180,100,0.5)`,
     boxShadow:"0 -8px 32px rgba(0,0,0,0.3)",
