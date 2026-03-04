@@ -24,16 +24,17 @@ export default async function handler(req, res) {
   const { query } = req.body;
   if (!query?.trim()) return res.status(400).json({ error: "Missing query" });
 
-  const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=5&fields=title,author_name,number_of_pages_median,subject,cover_i`;
+  const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=5&fields=title,author_name,number_of_pages_median,subject,cover_i,first_sentence`;
   const response = await fetch(url);
   const data = await response.json();
 
   const results = (data.docs || []).map(doc => ({
-    title:   doc.title || "Unknown",
-    author:  (doc.author_name || [])[0] || "Unknown",
-    pages:   doc.number_of_pages_median || 0,
-    genre:   inferGenre(doc.subject),
-    coverId: doc.cover_i || null,
+    title:       doc.title || "Unknown",
+    author:      (doc.author_name || [])[0] || "Unknown",
+    pages:       doc.number_of_pages_median || 0,
+    genre:       inferGenre(doc.subject),
+    coverId:     doc.cover_i || null,
+    description: doc.first_sentence?.value || doc.first_sentence || "",
   }));
 
   res.json(results);

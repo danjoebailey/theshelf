@@ -557,7 +557,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
   const [menuOpen, setMenuOpen] = useState(false);
   const [liked, setLiked] = useState([]);
   const [disliked, setDisliked] = useState([]);
-  const desc = DESCRIPTIONS[book.title] || "No description available for this book yet.";
+  const desc = book.description || DESCRIPTIONS[book.title] || "";
   const isRated = (book.shelf || "Read") !== "The List" && (book.shelf || "Read") !== "Curious";
 
   function toggleAspect(aspect, list, setList, otherList, setOtherList) {
@@ -668,7 +668,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
 
       {expanded && (
         <div style={{ marginTop:10, paddingTop:10, borderTop:"1px solid rgba(138,90,40,0.25)" }} onClick={e=>e.stopPropagation()}>
-          <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, lineHeight:1.65, fontStyle:"italic", marginBottom: isRated ? 14 : 0 }}>{desc}</p>
+          {desc && <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, lineHeight:1.65, fontStyle:"italic", marginBottom: isRated ? 14 : 0 }}>{desc}</p>}
 
           {isRated && (
             <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
