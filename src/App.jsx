@@ -827,7 +827,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
         <div style={{ position:"relative" }}>
           <div style={{ background:WOOD.card, borderRadius:12, display:"flex", alignItems:"center", padding:"0 12px", gap:8, borderTop:`6px solid #8a5a28`, borderLeft:`6px solid #8a5a28`, borderBottom:`6px solid #8a5a28`, borderRight:"none", backdropFilter:"blur(4px)" }}>
             <input value={search} onChange={handleSearchChange} placeholder="Search for a book to add…"
-              style={{ flex:1, background:"transparent", border:"none", color:"#1a0900", fontSize:14, padding:"10px 0", fontFamily:"'DM Sans',sans-serif", outline:"none" }}/>
+              style={{ flex:1, background:"transparent", border:"none", color:"#1a0900", fontSize:16, padding:"10px 0", fontFamily:"'DM Sans',sans-serif", outline:"none" }}/>
             {apiSearching && <span style={{ fontSize:12, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif" }}>Searching…</span>}
             {search && !apiSearching && <button onClick={()=>{ setSearch(""); setApiResults([]); }} style={{ background:"transparent", color:"#8a5a28", fontSize:13, border:"none", cursor:"pointer" }}>✕</button>}
           </div>
@@ -1240,7 +1240,7 @@ function AddSheet({ onSave, onClose, initialBook = null }) {
     display:"block", width:"100%",
     background:"rgba(10,5,1,0.6)", border:`1px solid rgba(120,70,20,0.35)`,
     borderRadius:10, padding:"12px 14px", color:WOOD.text,
-    fontSize:14, fontFamily:"'DM Sans',sans-serif", marginBottom:9, outline:"none",
+    fontSize:16, fontFamily:"'DM Sans',sans-serif", marginBottom:9, outline:"none",
   };
 
   async function searchBooks(q) {
