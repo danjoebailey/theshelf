@@ -468,12 +468,12 @@ function ShelfLedge({ top }) {
   );
 }
 
-function StarRating({ value, onChange, size=22, readonly=false }) {
+function StarRating({ value, onChange, size=22, readonly=false, stretch=false }) {
   const [hovered, setHovered] = useState(null);
   const display = hovered ?? value;
   const uid = useRef(`sr-${Math.random().toString(36).slice(2)}`);
   return (
-    <div style={{ display:"flex", gap:2, cursor:readonly?"default":"pointer" }}
+    <div style={{ display:"flex", gap:stretch?0:2, justifyContent:stretch?"space-between":"flex-start", width:stretch?"100%":"auto", cursor:readonly?"default":"pointer" }}
       onMouseLeave={()=>!readonly&&setHovered(null)}>
       {[1,2,3,4,5].map(star => {
         const full = display >= star, half = !full && display >= star-0.5;
@@ -1377,12 +1377,7 @@ function AddSheet({ onSave, onClose, initialBook = null }) {
 
           <div style={{ background:"rgba(10,5,1,0.5)", border:`1px solid rgba(120,70,20,0.3)`, borderRadius:10, padding:14, marginBottom:16 }}>
             <p style={{ fontSize:11, color:WOOD.textFaint, marginBottom:10, textTransform:"uppercase", letterSpacing:"0.1em" }}>Your Rating</p>
-            <div style={{ display:"flex", alignItems:"center", gap:12 }}>
-              <StarRating value={rating} onChange={setRating} size={28} />
-              <span style={{ color:rating?WOOD.amber:WOOD.textFaint, fontSize:22, fontFamily:"'Crimson Pro',serif" }}>
-                {rating ? rating.toFixed(1) : "—"}
-              </span>
-            </div>
+            <StarRating value={rating} onChange={setRating} size={44} stretch />
           </div>
 
           <button onClick={save} style={{
