@@ -1583,13 +1583,6 @@ export default function App() {
         {/* wood background */}
         <WoodBg />
 
-        {/* status bar */}
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"14px 24px 0", flexShrink:0, position:"relative", zIndex:10 }}>
-          <span style={{ fontSize:13, fontWeight:600, color:WOOD.textDim }}>9:41</span>
-          <div style={{ width:80, height:18, background:"rgba(0,0,0,0.3)", borderRadius:9, border:"1px solid rgba(100,60,20,0.3)" }}/>
-          <span style={{ fontSize:12, color:WOOD.textFaint }}>⚡ 87%</span>
-        </div>
-
         {/* decorative shelf + header */}
         {(() => {
           const SHELF_H = 82;
