@@ -838,17 +838,17 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
           {apiResults.length > 0 && (
             <div style={{
               position:"absolute", top:"calc(100% + 6px)", left:0, right:0, zIndex:200,
-              background:"linear-gradient(180deg, #ddb870 0%, #c89850 100%)",
+              background:"#fff",
               borderRadius:12, overflow:"hidden",
-              boxShadow:"0 8px 32px rgba(0,0,0,0.35)",
-              border:"1px solid rgba(200,150,70,0.4)",
+              boxShadow:"0 8px 32px rgba(0,0,0,0.15)",
+              border:"1px solid #e5e7eb",
               maxHeight:320, overflowY:"auto",
             }}>
               {apiResults.map((book, i) => (
                 <button key={i} onClick={() => { setSearch(""); setApiResults([]); onAddBook(book); }} style={{
                   background:"transparent",
-                  borderBottom: i < apiResults.length-1 ? "1px solid rgba(160,100,40,0.2)" : "none",
-                  border:"none", borderBottom: i < apiResults.length-1 ? "1px solid rgba(160,100,40,0.2)" : "none",
+                  borderBottom: i < apiResults.length-1 ? "1px solid #f3f4f6" : "none",
+                  border:"none", borderBottom: i < apiResults.length-1 ? "1px solid #f3f4f6" : "none",
                   padding:"10px 14px", textAlign:"left", cursor:"pointer",
                   display:"flex", alignItems:"center", gap:10, width:"100%",
                 }}>
