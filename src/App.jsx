@@ -714,8 +714,8 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
     }} onClick={()=>{ if(menuOpen) setMenuOpen(false); else setExpanded(e=>!e); }}>
       <div style={{ display:"flex", gap:14, alignItems:"stretch" }}>
         <div style={{ alignSelf:"stretch", flexShrink:0, display:"flex" }}>
-          {book.coverId
-            ? <img src={`https://covers.openlibrary.org/b/id/${book.coverId}-M.jpg`} alt={book.title}
+          {(book.coverUrl || book.coverId)
+            ? <img src={book.coverUrl || `https://covers.openlibrary.org/b/id/${book.coverId}-M.jpg`} alt={book.title}
                 style={{ height:80, aspectRatio:"2/3", objectFit:"cover", borderRadius:4, boxShadow:"2px 2px 8px rgba(0,0,0,0.35)", display:"block" }} />
             : <BookSpine title={book.title} genre={book.genre} size={90} />
           }
@@ -1521,8 +1521,8 @@ function AddSheet({ onSave, onClose, initialBook = null }) {
                   borderRadius:10, padding:"11px 13px", textAlign:"left", cursor:"pointer",
                   display:"flex", alignItems:"center", gap:10,
                 }}>
-                  {book.coverId
-                    ? <img src={`https://covers.openlibrary.org/b/id/${book.coverId}-M.jpg`} alt={book.title}
+                  {(book.coverUrl || book.coverId)
+                    ? <img src={book.coverUrl || `https://covers.openlibrary.org/b/id/${book.coverId}-M.jpg`} alt={book.title}
                         style={{ width:32, height:46, objectFit:"cover", borderRadius:3, boxShadow:"1px 1px 4px rgba(0,0,0,0.3)", flexShrink:0 }} />
                     : <BookSpine title={book.title} genre={book.genre} size={32} />
                   }
