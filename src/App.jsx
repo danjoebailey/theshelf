@@ -1345,6 +1345,79 @@ function StatsTab({ books }) {
   );
 }
 
+function BookSearchModal({ book, onSave, onClose }) {
+  const [rating, setRating] = useState(0);
+  const [shelf, setShelf] = useState("Read");
+  const noRating = ["Reading", "The List", "DNF"].includes(shelf);
+
+  function save() {
+    if (!noRating && !rating) return;
+    onSave({ ...book, rating: noRating ? 0 : rating, shelf, pages: book.pages || 0 });
+    onClose();
+  }
+
+  return (
+    <div
+      style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.55)", zIndex:100, display:"flex", alignItems:"center", justifyContent:"center", animation:"fadeIn 0.15s ease" }}
+      onClick={onClose}
+    >
+      <div onClick={e=>e.stopPropagation()} style={{
+        background:"#fff", borderRadius:16, padding:24, width:"min(420px, 92vw)",
+        boxShadow:"0 20px 60px rgba(0,0,0,0.35)", position:"relative",
+        maxHeight:"90vh", overflowY:"auto",
+      }}>
+        <button onClick={onClose} style={{ position:"absolute", top:14, right:14, background:"#f3f4f6", border:"none", borderRadius:"50%", width:28, height:28, cursor:"pointer", fontSize:14, color:"#6b7280", display:"flex", alignItems:"center", justifyContent:"center" }}>âœ•</button>
+
+        <div style={{ display:"flex", gap:16, alignItems:"flex-start", marginBottom:20 }}>
+          {book.coverUrl
+            ? <img src={book.coverUrl} alt={book.title} style={{ width:72, height:108, objectFit:"cover", borderRadius:6, boxShadow:"0 4px 12px rgba(0,0,0,0.2)", flexShrink:0 }} />
+            : <BookSpine title={book.title} genre={book.genre} size={72} />
+          }
+          <div style={{ minWidth:0, flex:1 }}>
+            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:20, color:"#1a1a1a", lineHeight:1.2, marginBottom:4 }}>{book.title}</p>
+            <p style={{ fontSize:13, color:"#6b7280", fontStyle:"italic", marginBottom:8 }}>{book.author}</p>
+            <div style={{ display:"flex", gap:6, flexWrap:"wrap", alignItems:"center" }}>
+              <span style={{ background:GENRE_COLORS[book.genre]||"#94a3b8", color:"#fff", borderRadius:20, padding:"3px 10px", fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em" }}>{book.genre}</span>
+              {book.pages > 0 && <span style={{ fontSize:12, color:"#9ca3af" }}>{book.pages} pages</span>}
+            </div>
+          </div>
+        </div>
+
+        <div style={{ marginBottom:16 }}>
+          <p style={{ fontSize:11, color:"#9ca3af", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Add to Shelf</p>
+          <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
+            {SHELVES.map(s => (
+              <button key={s} onClick={()=>setShelf(s)} style={{
+                padding:"5px 12px", borderRadius:20, fontSize:12, fontWeight:600,
+                border: shelf===s ? "2px solid #b07840" : "2px solid #e5e7eb",
+                background: shelf===s ? "#b07840" : "#fff",
+                color: shelf===s ? "#fff" : "#6b7280",
+                cursor:"pointer", transition:"all 0.15s",
+              }}>{s}</button>
+            ))}
+          </div>
+        </div>
+
+        {!noRating && (
+          <div style={{ marginBottom:20 }}>
+            <p style={{ fontSize:11, color:"#9ca3af", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Your Rating</p>
+            <StarRating value={rating} onChange={setRating} size={40} stretch />
+          </div>
+        )}
+
+        <button onClick={save} style={{
+          width:"100%", padding:"13px",
+          background: (noRating || rating) ? "#b07840" : "#f3f4f6",
+          color: (noRating || rating) ? "#fff" : "#9ca3af",
+          borderRadius:10, fontSize:15, fontWeight:600,
+          fontFamily:"'DM Sans',sans-serif",
+          border:"none", cursor:(noRating || rating) ? "pointer" : "default", transition:"all 0.2s",
+        }}>Add to Shelf</button>
+      </div>
+    </div>
+  );
+}
+
 function AddSheet({ onSave, onClose, initialBook = null }) {
   const [step, setStep] = useState(initialBook ? "confirm" : "search");
   const [query, setQuery] = useState("");
@@ -1869,7 +1942,8 @@ export default function App() {
             ? <ShelfTab books={books} onAdd={()=>setShowAdd(true)} onAddBook={book=>{ setAddInitialBook(book); setShowAdd(true); }} onRemove={id=>{ const next = books.filter(b=>b.id!==id); setBooks(next); saveBooks(next); }} onEdit={setEditBook} onScroll={setScrollY} onShelfChange={changeShelf} onImport={()=>setShowImport(true)} />
             : <StatsTab books={books} />
           }
-          {showAdd && <AddSheet onSave={addBook} onClose={()=>{ setShowAdd(false); setAddInitialBook(null); }} initialBook={addInitialBook} />}
+          {showAdd && !addInitialBook && <AddSheet onSave={addBook} onClose={()=>setShowAdd(false)} />}
+          {addInitialBook && <BookSearchModal book={addInitialBook} onSave={addBook} onClose={()=>{ setAddInitialBook(null); setShowAdd(false); }} />}
           {editBook && <EditSheet book={editBook} onSave={updated=>{ saveEdit(updated); setEditBook(null); }} onClose={()=>setEditBook(null)} />}
           {showImport && <GoodreadsImportSheet onImport={importBooks} onClose={()=>setShowImport(false)} />}
         </div>
