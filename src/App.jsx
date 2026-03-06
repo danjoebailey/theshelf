@@ -552,22 +552,119 @@ const DESCRIPTIONS = {
 
 const ASPECTS = ["Prose", "Plot", "Characters", "Dialogue", "Pacing", "World-building", "Ending"];
 
-function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPicker }) {
-  const [expanded, setExpanded] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
+function BookDetailModal({ book, onClose, onEdit, onRemove }) {
   const [liked, setLiked] = useState([]);
   const [disliked, setDisliked] = useState([]);
   const desc = book.description || DESCRIPTIONS[book.title] || "";
-  const isRated = (book.shelf || "Read") !== "The List" && (book.shelf || "Read") !== "Curious" && (book.shelf || "Read") !== "Reading";
+  const shelf = book.shelf || "Read";
+  const isRated = !["The List", "Curious", "Reading"].includes(shelf);
 
   function toggleAspect(aspect, list, setList, otherList, setOtherList) {
-    if (list.includes(aspect)) {
-      setList(list.filter(a => a !== aspect));
-    } else {
-      setOtherList(otherList.filter(a => a !== aspect)); // remove from other if present
-      setList([...list, aspect]);
-    }
+    if (list.includes(aspect)) setList(list.filter(a => a !== aspect));
+    else { setOtherList(otherList.filter(a => a !== aspect)); setList([...list, aspect]); }
   }
+
+  const SHELF_STYLE = {
+    "Read":     { bg:"rgba(138,90,40,0.18)", color:WOOD.textDim },
+    "Reading":  { bg:"rgba(60,120,80,0.15)", color:"#3a7a50" },
+    "The List": { bg:"rgba(138,90,40,0.18)", color:WOOD.textDim },
+    "Curious":  { bg:"rgba(200,144,90,0.15)", color:WOOD.amber },
+    "DNF":      { bg:"rgba(160,50,50,0.12)", color:"#a03232" },
+  };
+  const ss = SHELF_STYLE[shelf] || SHELF_STYLE["Read"];
+
+  return (
+    <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.72)", zIndex:50, display:"flex", flexDirection:"column", justifyContent:"flex-end", animation:"fadeIn 0.15s ease" }}
+      onClick={onClose}>
+      <div onClick={e=>e.stopPropagation()} style={{
+        background:"#fdf6ec",
+        borderRadius:"22px 22px 0 0",
+        maxHeight:"88%",
+        display:"flex",
+        flexDirection:"column",
+        animation:"slideUp 0.28s cubic-bezier(0.34,1.56,0.64,1)",
+        overflow:"hidden",
+        boxShadow:"0 -8px 40px rgba(0,0,0,0.3)",
+      }}>
+        {/* drag handle */}
+        <div style={{ display:"flex", justifyContent:"center", padding:"14px 0 0" }}>
+          <div style={{ width:36, height:4, background:"rgba(0,0,0,0.12)", borderRadius:2 }}/>
+        </div>
+
+        {/* close */}
+        <div style={{ display:"flex", justifyContent:"flex-end", padding:"8px 16px 0" }}>
+          <button onClick={onClose} style={{ background:"rgba(0,0,0,0.07)", border:"none", borderRadius:"50%", width:30, height:30, cursor:"pointer", fontSize:14, display:"flex", alignItems:"center", justifyContent:"center", color:"#555" }}>✕</button>
+        </div>
+
+        {/* scrollable body */}
+        <div style={{ overflowY:"auto", padding:"4px 20px 28px", flex:1 }}>
+
+          {/* cover + meta */}
+          <div style={{ display:"flex", gap:16, alignItems:"flex-start", marginBottom:20 }}>
+            <div style={{ flexShrink:0 }}>
+              {(book.coverUrl || book.coverId)
+                ? <img
+                    src={book.coverUrl || `https://covers.openlibrary.org/b/id/${book.coverId}-M.jpg`}
+                    alt={book.title}
+                    style={{ width:80, height:120, objectFit:"cover", borderRadius:8, boxShadow:"0 6px 20px rgba(0,0,0,0.22)", display:"block" }}/>
+                : <BookSpine title={book.title} genre={book.genre} size={80}/>
+              }
+            </div>
+            <div style={{ flex:1, minWidth:0, paddingTop:2 }}>
+              <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:22, lineHeight:1.2, color:"#1a0900", marginBottom:4 }}>{book.title}</p>
+              <p style={{ fontSize:13, color:WOOD.textDim, fontStyle:"italic", marginBottom:10 }}>{book.author}</p>
+              <div style={{ display:"flex", gap:6, flexWrap:"wrap", alignItems:"center", marginBottom:8 }}>
+                <span style={{ background:GENRE_COLORS[book.genre]||GENRE_COLORS["Other"], color:"#fff", borderRadius:20, padding:"3px 10px", fontSize:10, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.07em" }}>{book.genre}</span>
+                <span style={{ background:ss.bg, color:ss.color, borderRadius:20, padding:"3px 10px", fontSize:10, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.07em", border:`1px solid ${ss.bg}` }}>{shelf}</span>
+              </div>
+              {book.pages > 0 && <p style={{ fontSize:12, color:WOOD.textFaint, marginBottom:6 }}>{book.pages.toLocaleString()} pages</p>}
+              {isRated && <StarRating value={book.rating} readonly size={20}/>}
+            </div>
+          </div>
+
+          {/* description */}
+          {desc && (
+            <div style={{ background:"rgba(138,90,40,0.06)", borderRadius:12, padding:"14px 16px", marginBottom:18, borderLeft:"3px solid rgba(138,90,40,0.22)" }}>
+              <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:"#2a1608", lineHeight:1.72, fontStyle:"italic", margin:0 }}>{desc}</p>
+            </div>
+          )}
+
+          {/* liked / disliked */}
+          {isRated && (
+            <div style={{ display:"flex", flexDirection:"column", gap:14, marginBottom:22 }}>
+              <div>
+                <p style={{ fontSize:10, fontWeight:700, color:"#4a7a5a", textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:8, fontFamily:"'DM Sans',sans-serif" }}>👍 Liked</p>
+                <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
+                  {ASPECTS.map(a => { const on=liked.includes(a); return (
+                    <button key={a} onClick={()=>toggleAspect(a,liked,setLiked,disliked,setDisliked)} style={{ padding:"5px 12px", borderRadius:20, fontSize:12, fontFamily:"'DM Sans',sans-serif", fontWeight:600, cursor:"pointer", background:on?"#4a7a5a":"rgba(74,122,90,0.1)", color:on?"#fff":"#4a7a5a", border:`1px solid ${on?"#4a7a5a":"rgba(74,122,90,0.35)"}` }}>{a}</button>
+                  ); })}
+                </div>
+              </div>
+              <div>
+                <p style={{ fontSize:10, fontWeight:700, color:"#8a4a4a", textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:8, fontFamily:"'DM Sans',sans-serif" }}>👎 Disliked</p>
+                <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
+                  {ASPECTS.map(a => { const on=disliked.includes(a); return (
+                    <button key={a} onClick={()=>toggleAspect(a,disliked,setDisliked,liked,setLiked)} style={{ padding:"5px 12px", borderRadius:20, fontSize:12, fontFamily:"'DM Sans',sans-serif", fontWeight:600, cursor:"pointer", background:on?"#8a4a4a":"rgba(138,74,74,0.1)", color:on?"#fff":"#8a4a4a", border:`1px solid ${on?"#8a4a4a":"rgba(138,74,74,0.35)"}` }}>{a}</button>
+                  ); })}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* actions */}
+          <div style={{ display:"flex", gap:8 }}>
+            <button onClick={()=>{ onEdit(book); onClose(); }} style={{ flex:1, padding:"12px", borderRadius:10, cursor:"pointer", background:"rgba(138,90,40,0.1)", border:"1px solid rgba(138,90,40,0.2)", fontFamily:"'DM Sans',sans-serif", fontSize:14, fontWeight:600, color:WOOD.text }}>Edit</button>
+            <button onClick={()=>{ onRemove(book.id); onClose(); }} style={{ padding:"12px 18px", borderRadius:10, cursor:"pointer", background:"rgba(192,57,43,0.07)", border:"1px solid rgba(192,57,43,0.18)", fontFamily:"'DM Sans',sans-serif", fontSize:14, fontWeight:600, color:"#c0392b" }}>Remove</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPicker, onOpenDetail }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const isRated = (book.shelf || "Read") !== "The List" && (book.shelf || "Read") !== "Curious" && (book.shelf || "Read") !== "Reading";
 
   return (
     <div style={{
@@ -584,7 +681,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
       animation:`fadeUp 0.28s ease ${index*0.05}s both`,
       cursor:"pointer",
       position:"relative",
-    }} onClick={()=>{ if(menuOpen) setMenuOpen(false); else setExpanded(e=>!e); }}>
+    }} onClick={()=>{ if(menuOpen) setMenuOpen(false); else onOpenDetail(book); }}>
       <div style={{ display:"flex", gap:14, alignItems:"stretch" }}>
         <div style={{ alignSelf:"stretch", flexShrink:0, display:"flex" }}>
           {book.coverId
@@ -597,11 +694,10 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
           <div>
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
               <div style={{ minWidth:0, flex:1 }}>
-                <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:21, color:WOOD.text, lineHeight:1.2, marginBottom:1, whiteSpace:expanded?"normal":"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{book.title}</p>
+                <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:21, color:WOOD.text, lineHeight:1.2, marginBottom:1, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{book.title}</p>
                 <p style={{ fontSize:12, color:WOOD.textDim, fontStyle:"italic", marginBottom:2 }}>{book.author}</p>
               </div>
               <div style={{ display:"flex", alignItems:"center", gap:6, flexShrink:0 }}>
-                <span style={{ color:WOOD.textFaint, fontSize:12, display:"inline-block", transition:"transform 0.2s", transform:expanded?"rotate(180deg)":"rotate(0deg)" }}>▾</span>
                 <button onClick={e=>{ e.stopPropagation(); setMenuOpen(m=>!m); }} style={{ background:"transparent", border:"none", cursor:"pointer", padding:"2px 4px 0", color:"rgba(120,70,20,0.6)", fontSize:16, lineHeight:1, letterSpacing:"-1px" }}>⋮</button>
               </div>
             </div>
@@ -668,58 +764,13 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
         </div>
       )}
 
-      {expanded && (
-        <div style={{ marginTop:10, paddingTop:10, borderTop:"1px solid rgba(138,90,40,0.25)" }} onClick={e=>e.stopPropagation()}>
-          {desc && <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, lineHeight:1.65, fontStyle:"italic", marginBottom: isRated ? 14 : 0 }}>{desc}</p>}
-
-          {isRated && (
-            <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-              {/* Liked */}
-              <div>
-                <p style={{ fontSize:10, fontWeight:700, color:"#4a7a5a", textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:6, fontFamily:"'DM Sans',sans-serif" }}>👍 Liked</p>
-                <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
-                  {ASPECTS.map(a => {
-                    const active = liked.includes(a);
-                    return (
-                      <button key={a} onClick={()=>toggleAspect(a, liked, setLiked, disliked, setDisliked)} style={{
-                        padding:"4px 10px", borderRadius:20, fontSize:11, fontFamily:"'DM Sans',sans-serif", fontWeight:600,
-                        cursor:"pointer", transition:"all 0.15s",
-                        background: active ? "#4a7a5a" : "rgba(74,122,90,0.1)",
-                        color: active ? "#fff" : "#4a7a5a",
-                        border: `1px solid ${active ? "#4a7a5a" : "rgba(74,122,90,0.35)"}`,
-                      }}>{a}</button>
-                    );
-                  })}
-                </div>
-              </div>
-              {/* Disliked */}
-              <div>
-                <p style={{ fontSize:10, fontWeight:700, color:"#8a4a4a", textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:6, fontFamily:"'DM Sans',sans-serif" }}>👎 Disliked</p>
-                <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
-                  {ASPECTS.map(a => {
-                    const active = disliked.includes(a);
-                    return (
-                      <button key={a} onClick={()=>toggleAspect(a, disliked, setDisliked, liked, setLiked)} style={{
-                        padding:"4px 10px", borderRadius:20, fontSize:11, fontFamily:"'DM Sans',sans-serif", fontWeight:600,
-                        cursor:"pointer", transition:"all 0.15s",
-                        background: active ? "#8a4a4a" : "rgba(138,74,74,0.1)",
-                        color: active ? "#fff" : "#8a4a4a",
-                        border: `1px solid ${active ? "#8a4a4a" : "rgba(138,74,74,0.35)"}`,
-                      }}>{a}</button>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 }
 
 function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelfChange, onImport }) {
   const [search, setSearch] = useState("");
+  const [detailBook, setDetailBook] = useState(null);
   const [sort, setSort] = useState("date");
   const [sortAsc, setSortAsc] = useState(false);
   const [activeShelf, setActiveShelf] = useState("Read");
@@ -1073,7 +1124,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
               </div>
             )}
             <div style={{ flex:1, minWidth:0 }}>
-              <BookCard book={book} index={i} onRemove={onRemove} onEdit={onEdit} onShelfChange={onShelfChange} onOpenShelfPicker={setShelfPickerBook} />
+              <BookCard book={book} index={i} onRemove={onRemove} onEdit={onEdit} onShelfChange={onShelfChange} onOpenShelfPicker={setShelfPickerBook} onOpenDetail={setDetailBook} />
             </div>
           </div>
         ))}
@@ -1114,6 +1165,16 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
             </div>
           </div>
         </div>
+      )}
+
+      {/* book detail modal */}
+      {detailBook && (
+        <BookDetailModal
+          book={detailBook}
+          onClose={()=>setDetailBook(null)}
+          onEdit={book=>{ setDetailBook(null); onEdit(book); }}
+          onRemove={id=>{ setDetailBook(null); onRemove(id); }}
+        />
       )}
     </div>
   );
