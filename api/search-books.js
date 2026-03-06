@@ -20,8 +20,8 @@ const GENRE_MAP = {
   "non-fiction":      "Non-Fiction",
 };
 
-function inferGenre(categories = []) {
-  const joined = categories.join(" ").toLowerCase();
+function inferGenre(subjects = []) {
+  const joined = subjects.join(" ").toLowerCase();
   for (const [key, genre] of Object.entries(GENRE_MAP)) {
     if (joined.includes(key)) return genre;
   }
@@ -34,22 +34,17 @@ export default async function handler(req, res) {
   const { query } = req.body;
   if (!query?.trim()) return res.status(400).json({ error: "Missing query" });
 
-  const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=5&printType=books`;
+  const url = `https://openlibrary.org/search.json?title=${encodeURIComponent(query)}&limit=7&fields=title,author_name,number_of_pages_median,subject,cover_i`;
   const response = await fetch(url);
   const data = await response.json();
 
-  const results = (data.items || []).map(item => {
-    const info = item.volumeInfo || {};
-    const thumb = info.imageLinks?.thumbnail || info.imageLinks?.smallThumbnail || null;
-    return {
-      title:       info.title || "Unknown",
-      author:      (info.authors || [])[0] || "Unknown",
-      pages:       info.pageCount || 0,
-      genre:       inferGenre(info.categories || []),
-      coverUrl:    thumb ? thumb.replace("http://", "https://") : null,
-      description: info.description || "",
-    };
-  });
+  const results = (data.docs || []).map(doc => ({
+    title:    doc.title || "Unknown",
+    author:   (doc.author_name || [])[0] || "Unknown",
+    pages:    doc.number_of_pages_median || 0,
+    genre:    inferGenre(doc.subject || []),
+    coverUrl: doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg` : null,
+  }));
 
   res.json(results);
 }
