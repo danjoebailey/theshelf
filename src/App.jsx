@@ -6,7 +6,7 @@ const GENRE_COLORS = {
   "Mystery":"#8a5a6a","Biography":"#8a6a4a","History":"#7a7a4a","Romance":"#8a5a5a",
   "Self-Help":"#4a7a5a","Other":"#6a6a6a",
 };
-const SHELVES = ["Read", "The List", "Curious"];
+const SHELVES = ["Read", "Reading", "The List", "Curious", "DNF"];
 
 const SAMPLE = [
   { id:1,  title:"Dune",                          author:"Frank Herbert",        genre:"Sci-Fi",      pages:412, rating:5,   date:"2024-01-15", shelf:"Read" },
@@ -558,7 +558,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
   const [liked, setLiked] = useState([]);
   const [disliked, setDisliked] = useState([]);
   const desc = book.description || DESCRIPTIONS[book.title] || "";
-  const isRated = (book.shelf || "Read") !== "The List" && (book.shelf || "Read") !== "Curious";
+  const isRated = (book.shelf || "Read") !== "The List" && (book.shelf || "Read") !== "Curious" && (book.shelf || "Read") !== "Reading";
 
   function toggleAspect(aspect, list, setList, otherList, setOtherList) {
     if (list.includes(aspect)) {
@@ -606,7 +606,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
               </div>
             </div>
             {book.pages>0 && <p style={{ color:WOOD.textFaint, fontSize:10, margin:"0 0 2px", fontFamily:"'DM Sans',sans-serif" }}>{book.pages.toLocaleString()} pages</p>}
-            {(book.shelf || "Read") !== "The List" && (book.shelf || "Read") !== "Curious" && <StarRating value={book.rating} readonly size={18} />}
+            {(book.shelf || "Read") !== "The List" && (book.shelf || "Read") !== "Curious" && (book.shelf || "Read") !== "Reading" && <StarRating value={book.rating} readonly size={18} />}
           </div>
           <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
             <div style={{ display:"flex", gap:7, alignItems:"center", overflow:"hidden" }}>
@@ -617,8 +617,10 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
               const shelf = book.shelf || "Read";
               const SHELF_META = {
                 "Read":     { label: book.date || "Read", bg:"rgba(138,90,40,0.5)",   color:"rgba(255,255,255,0.7)", border:"rgba(138,90,40,0.4)" },
+                "Reading":  { label: "Reading",           bg:"rgba(60,120,80,0.55)",  color:"rgba(255,255,255,0.9)", border:"rgba(60,120,80,0.4)" },
                 "The List": { label: "The List",          bg:"rgba(138,90,40,0.5)",   color:"rgba(255,255,255,0.7)", border:"rgba(138,90,40,0.4)" },
                 "Curious":  { label: "🧐",                bg:"rgba(200,144,90,0.15)", color:WOOD.amber,              border:"rgba(200,144,90,0.3)" },
+                "DNF":      { label: "DNF",               bg:"rgba(160,50,50,0.55)",  color:"rgba(255,255,255,0.9)", border:"rgba(160,50,50,0.4)" },
               };
               const meta = SHELF_META[shelf];
               return (
@@ -1095,8 +1097,10 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
             <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
               {[
                 { key:"Read",     label:"✅  Read" },
+                { key:"Reading",  label:"📖  Reading" },
                 { key:"The List", label:"📋  The List" },
                 { key:"Curious",  label:"🧐  Curious" },
+                { key:"DNF",      label:"🚫  DNF" },
               ].map(({ key, label }) => (
                 <button key={key} onClick={()=>{ onShelfChange(shelfPickerBook.id, key); setShelfPickerBook(null); }} style={{
                   padding:"12px 16px", borderRadius:12, textAlign:"center",
@@ -1457,7 +1461,7 @@ function EditSheet({ book, onSave, onClose }) {
         </div>
 
         {/* editable rating */}
-        {shelf !== "The List" && shelf !== "Curious" && (
+        {shelf !== "The List" && shelf !== "Curious" && shelf !== "Reading" && (
         <div style={{ background:"rgba(255,245,220,0.85)", border:`1px solid rgba(200,160,80,0.3)`, borderRadius:10, padding:14, marginBottom:16 }}>
           <div style={{ display:"flex", flexDirection:"column", alignItems:"center", marginBottom:12 }}>
             <p style={{ fontSize:14, color:WOOD.textDim, letterSpacing:"0.1em", textAlign:"center", width:"100%", marginBottom:12 }}>Rating</p>
@@ -1554,7 +1558,7 @@ function parseGoodreadsCSV(text) {
   }
   const headers = parseLine(lines[0]).map(h => h.trim());
   const idx = k => headers.indexOf(k);
-  const SHELF_MAP = { "read": "Read", "to-read": "The List", "currently-reading": "Curious" };
+  const SHELF_MAP = { "read": "Read", "to-read": "The List", "currently-reading": "Reading" };
   return lines.slice(1).filter(l => l.trim()).map(line => {
     const f = parseLine(line);
     const get = k => (f[idx(k)] || "").trim();
@@ -1595,8 +1599,10 @@ function GoodreadsImportSheet({ onImport, onClose }) {
 
   const sheetCounts = preview ? {
     Read: preview.filter(b => b.shelf === "Read").length,
+    Reading: preview.filter(b => b.shelf === "Reading").length,
     "The List": preview.filter(b => b.shelf === "The List").length,
     Curious: preview.filter(b => b.shelf === "Curious").length,
+    DNF: preview.filter(b => b.shelf === "DNF").length,
   } : null;
 
   return (
