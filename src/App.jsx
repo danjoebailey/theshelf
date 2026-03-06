@@ -836,6 +836,8 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
   const [filterGenre, setFilterGenre] = useState(null);
   const [filterAuthor, setFilterAuthor] = useState(null);
   const [shelfPickerBook, setShelfPickerBook] = useState(null);
+  const [ratingPromptBook, setRatingPromptBook] = useState(null);
+  const [promptRating, setPromptRating] = useState(0);
   const [customList, setCustomList] = useState([]);
   const [apiResults, setApiResults] = useState([]);
   const [apiSearching, setApiSearching] = useState(false);
@@ -1208,7 +1210,16 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
                 { key:"Curious",  label:"🧐  Curious" },
                 { key:"DNF",      label:"🚫  DNF" },
               ].map(({ key, label }) => (
-                <button key={key} onClick={()=>{ onShelfChange(shelfPickerBook.id, key); setShelfPickerBook(null); }} style={{
+                <button key={key} onClick={()=>{
+                    if (key === "Read" && (shelfPickerBook.shelf || "Read") === "Reading") {
+                      setRatingPromptBook(shelfPickerBook);
+                      setPromptRating(0);
+                      setShelfPickerBook(null);
+                    } else {
+                      onShelfChange(shelfPickerBook.id, key);
+                      setShelfPickerBook(null);
+                    }
+                  }} style={{
                   padding:"12px 16px", borderRadius:12, textAlign:"center",
                   background: (shelfPickerBook.shelf||"Read")===key ? "rgba(138,90,40,0.15)" : "rgba(138,90,40,0.05)",
                   border:`1px solid ${(shelfPickerBook.shelf||"Read")===key ? WOOD.amber : "rgba(138,90,40,0.2)"}`,
@@ -1582,6 +1593,36 @@ function AddSheet({ onSave, onClose, initialBook = null }) {
           }}>Add to Shelf</button>
         </>}
       </div>
+      {ratingPromptBook && (
+        <div onClick={()=>setRatingPromptBook(null)} style={{
+          position:"absolute", inset:0, zIndex:60, background:"rgba(0,0,0,0.55)",
+          display:"flex", alignItems:"center", justifyContent:"center",
+          animation:"fadeIn 0.15s ease",
+        }}>
+          <div onClick={e=>e.stopPropagation()} style={{
+            background:"#fff", borderRadius:16, padding:24, width:"min(340px, 88vw)",
+            boxShadow:"0 20px 60px rgba(0,0,0,0.35)", position:"relative",
+          }}>
+            <button onClick={()=>setRatingPromptBook(null)} style={{ position:"absolute", top:14, right:14, background:"#f3f4f6", border:"none", borderRadius:"50%", width:28, height:28, cursor:"pointer", fontSize:14, color:"#6b7280", display:"flex", alignItems:"center", justifyContent:"center" }}>âœ•</button>
+            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:18, color:"#1a1a1a", marginBottom:4 }}>{ratingPromptBook.title}</p>
+            <p style={{ fontSize:13, color:"#6b7280", marginBottom:20 }}>Rate this book before moving to Read</p>
+            <StarRating value={promptRating} onChange={setPromptRating} size={44} stretch />
+            <button onClick={()=>{
+              if (!promptRating) return;
+              onShelfChange(ratingPromptBook.id, "Read", promptRating);
+              setRatingPromptBook(null);
+            }} style={{
+              marginTop:20, width:"100%", padding:"13px",
+              background: promptRating ? "#b07840" : "#f3f4f6",
+              color: promptRating ? "#fff" : "#9ca3af",
+              borderRadius:10, fontSize:15, fontWeight:600,
+              fontFamily:"'DM Sans',sans-serif",
+              border:"none", cursor: promptRating ? "pointer" : "default", transition:"all 0.2s",
+            }}>Move to Read</button>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
@@ -1866,8 +1907,8 @@ export default function App() {
     saveBooks(next);
   }
 
-  function changeShelf(id, shelf) {
-    const next = books.map(b => b.id === id ? { ...b, shelf } : b);
+  function changeShelf(id, shelf, rating) {
+    const next = books.map(b => b.id === id ? { ...b, shelf, ...(rating != null ? { rating } : {}) } : b);
     setBooks(next);
     saveBooks(next);
   }
