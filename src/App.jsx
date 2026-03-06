@@ -716,7 +716,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
   );
 }
 
-function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelfChange }) {
+function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelfChange, onImport }) {
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("date");
   const [sortAsc, setSortAsc] = useState(false);
@@ -919,6 +919,13 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
               </div>
             )}
           </div>
+
+          <button onClick={e=>{ e.stopPropagation(); onImport(); }} style={{
+            display:"flex", alignItems:"center", gap:4,
+            background:"rgba(15,8,2,0.55)", borderRadius:20, padding:"5px 12px",
+            border:"1px solid rgba(120,70,20,0.3)", backdropFilter:"blur(4px)",
+            cursor:"pointer", color:"#fff", fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:500,
+          }}>Goodreads</button>
 
           <div style={{ display:"flex", gap:6, marginLeft:"auto", position:"relative" }}>
             {/* filter icon button */}
@@ -1526,6 +1533,132 @@ function saveBooks(books) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(books));
 }
 
+function parseGoodreadsCSV(text) {
+  const lines = text.split(/\r?\n/);
+  if (lines.length < 2) return [];
+  // parse a single CSV line respecting quoted fields
+  function parseLine(line) {
+    const fields = [];
+    let cur = "", inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (c === '"') {
+        if (inQ && line[i+1] === '"') { cur += '"'; i++; }
+        else inQ = !inQ;
+      } else if (c === ',' && !inQ) {
+        fields.push(cur); cur = "";
+      } else cur += c;
+    }
+    fields.push(cur);
+    return fields;
+  }
+  const headers = parseLine(lines[0]).map(h => h.trim());
+  const idx = k => headers.indexOf(k);
+  const SHELF_MAP = { "read": "Read", "to-read": "The List", "currently-reading": "Curious" };
+  return lines.slice(1).filter(l => l.trim()).map(line => {
+    const f = parseLine(line);
+    const get = k => (f[idx(k)] || "").trim();
+    const grShelf = get("Exclusive Shelf").toLowerCase();
+    const dateRaw = get("Date Read") || get("Date Added");
+    const date = dateRaw ? dateRaw.replace(/\//g, "-") : new Date().toISOString().slice(0,10);
+    return {
+      id: Date.now() + Math.random(),
+      title: get("Title"),
+      author: get("Author"),
+      genre: "Other",
+      pages: parseInt(get("Number of Pages")) || 0,
+      rating: parseFloat(get("My Rating")) || 0,
+      date,
+      shelf: SHELF_MAP[grShelf] || "Read",
+    };
+  }).filter(b => b.title);
+}
+
+function GoodreadsImportSheet({ onImport, onClose }) {
+  const [preview, setPreview] = useState(null);
+  const [error, setError] = useState("");
+  const fileRef = useRef(null);
+
+  function handleFile(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const parsed = parseGoodreadsCSV(ev.target.result);
+        if (!parsed.length) { setError("No books found — make sure this is a Goodreads export CSV."); setPreview(null); }
+        else { setPreview(parsed); setError(""); }
+      } catch { setError("Couldn't parse the file. Please use the Goodreads export CSV."); }
+    };
+    reader.readAsText(file);
+  }
+
+  const sheetCounts = preview ? {
+    Read: preview.filter(b => b.shelf === "Read").length,
+    "The List": preview.filter(b => b.shelf === "The List").length,
+    Curious: preview.filter(b => b.shelf === "Curious").length,
+  } : null;
+
+  return (
+    <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.7)", zIndex:50, display:"flex", flexDirection:"column", justifyContent:"flex-end", animation:"fadeIn 0.15s ease" }}
+      onClick={onClose}>
+      <div onClick={e=>e.stopPropagation()} style={{
+        background:"linear-gradient(180deg, #ddb870 0%, #c89850 100%)",
+        borderRadius:"20px 20px 0 0",
+        padding:"0 18px 30px",
+        maxHeight:"90%", overflowY:"auto",
+        borderTop:"1px solid rgba(220,180,100,0.5)",
+        boxShadow:"0 -8px 32px rgba(0,0,0,0.3)",
+        animation:"slideUp 0.25s cubic-bezier(0.34,1.56,0.64,1)",
+      }}>
+        <div style={{ height:3, background:"linear-gradient(90deg, rgba(0,0,0,0.3), rgba(255,200,100,0.1) 40%, rgba(0,0,0,0.3))" }}/>
+        <div style={{ display:"flex", justifyContent:"center", paddingTop:12, marginBottom:14 }}>
+          <div style={{ width:34, height:4, background:"rgba(100,60,20,0.5)", borderRadius:2 }}/>
+        </div>
+
+        <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:22, fontWeight:300, marginBottom:6, color:WOOD.text }}>Import from Goodreads</p>
+        <p style={{ fontSize:13, color:WOOD.textDim, marginBottom:18, lineHeight:1.5 }}>
+          In Goodreads, go to <strong>My Books → Import/Export → Export Library</strong>. Then upload the downloaded CSV file below.
+        </p>
+
+        <button onClick={()=>fileRef.current.click()} style={{
+          width:"100%", padding:"12px", borderRadius:10, cursor:"pointer",
+          background:"rgba(255,245,220,0.85)", border:"2px dashed rgba(138,90,40,0.4)",
+          fontFamily:"'DM Sans',sans-serif", fontSize:14, color:WOOD.textDim,
+          marginBottom:12, textAlign:"center",
+        }}>
+          {preview ? `✓ ${preview.length} books loaded — tap to change` : "Choose CSV file"}
+        </button>
+        <input ref={fileRef} type="file" accept=".csv" onChange={handleFile} style={{ display:"none" }}/>
+
+        {error && <p style={{ fontSize:13, color:"#c0392b", marginBottom:12, textAlign:"center" }}>{error}</p>}
+
+        {sheetCounts && (
+          <div style={{ background:"rgba(255,245,220,0.85)", borderRadius:10, padding:"12px 14px", marginBottom:16, border:"1px solid rgba(200,160,80,0.3)" }}>
+            <p style={{ fontSize:12, color:WOOD.textFaint, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8, fontFamily:"'DM Sans',sans-serif" }}>Preview</p>
+            {Object.entries(sheetCounts).map(([shelf, count]) => (
+              <div key={shelf} style={{ display:"flex", justifyContent:"space-between", fontSize:14, color:WOOD.text, fontFamily:"'DM Sans',sans-serif", padding:"2px 0" }}>
+                <span>{shelf}</span><span style={{ fontWeight:600 }}>{count} books</span>
+              </div>
+            ))}
+            <p style={{ fontSize:11, color:WOOD.textFaint, marginTop:8, fontStyle:"italic" }}>Genres will default to "Other" — you can edit them after importing.</p>
+          </div>
+        )}
+
+        {preview && (
+          <button onClick={()=>{ onImport(preview); onClose(); }} style={{
+            width:"100%", padding:"13px", borderRadius:12, cursor:"pointer",
+            background:WOOD.amber, border:"none",
+            fontFamily:"'DM Sans',sans-serif", fontSize:15, fontWeight:600, color:"#1a0900",
+          }}>
+            Import {preview.length} books
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [books, setBooks] = useState(loadBooks);
   const [tab, setTab] = useState("shelf");
@@ -1533,6 +1666,7 @@ export default function App() {
   const [addInitialBook, setAddInitialBook] = useState(null);
   const [editBook, setEditBook] = useState(null);
   const [scrollY, setScrollY] = useState(0);
+  const [showImport, setShowImport] = useState(false);
 
   function addBook(form) {
     const updated = [...books, { id:Date.now(), ...form, pages:parseInt(form.pages)||0, date:new Date().toISOString().slice(0,10) }];
@@ -1550,6 +1684,14 @@ export default function App() {
     const next = books.map(b => b.id === id ? { ...b, shelf } : b);
     setBooks(next);
     saveBooks(next);
+  }
+
+  function importBooks(imported) {
+    const existing = new Set(books.map(b => b.title.toLowerCase() + "|" + b.author.toLowerCase()));
+    const newBooks = imported.filter(b => !existing.has(b.title.toLowerCase() + "|" + b.author.toLowerCase()));
+    const updated = [...books, ...newBooks];
+    setBooks(updated);
+    saveBooks(updated);
   }
 
   return (
@@ -1611,11 +1753,12 @@ export default function App() {
         {/* content */}
         <div style={{ flex:1, overflow:"hidden", position:"relative" }}>
           {tab==="shelf"
-            ? <ShelfTab books={books} onAdd={()=>setShowAdd(true)} onAddBook={book=>{ setAddInitialBook(book); setShowAdd(true); }} onRemove={id=>{ const next = books.filter(b=>b.id!==id); setBooks(next); saveBooks(next); }} onEdit={setEditBook} onScroll={setScrollY} onShelfChange={changeShelf} />
+            ? <ShelfTab books={books} onAdd={()=>setShowAdd(true)} onAddBook={book=>{ setAddInitialBook(book); setShowAdd(true); }} onRemove={id=>{ const next = books.filter(b=>b.id!==id); setBooks(next); saveBooks(next); }} onEdit={setEditBook} onScroll={setScrollY} onShelfChange={changeShelf} onImport={()=>setShowImport(true)} />
             : <StatsTab books={books} />
           }
           {showAdd && <AddSheet onSave={addBook} onClose={()=>{ setShowAdd(false); setAddInitialBook(null); }} initialBook={addInitialBook} />}
           {editBook && <EditSheet book={editBook} onSave={updated=>{ saveEdit(updated); setEditBook(null); }} onClose={()=>setEditBook(null)} />}
+          {showImport && <GoodreadsImportSheet onImport={importBooks} onClose={()=>setShowImport(false)} />}
         </div>
 
         {/* shelf ledge above tab bar */}
