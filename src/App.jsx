@@ -662,9 +662,18 @@ function BookDetailModal({ book, onClose, onEdit, onRemove }) {
   );
 }
 
-function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPicker, onOpenDetail }) {
+function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPicker }) {
+  const [expanded, setExpanded] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [liked, setLiked] = useState([]);
+  const [disliked, setDisliked] = useState([]);
+  const desc = book.description || DESCRIPTIONS[book.title] || "";
   const isRated = (book.shelf || "Read") !== "The List" && (book.shelf || "Read") !== "Curious" && (book.shelf || "Read") !== "Reading";
+
+  function toggleAspect(aspect, list, setList, otherList, setOtherList) {
+    if (list.includes(aspect)) setList(list.filter(a => a !== aspect));
+    else { setOtherList(otherList.filter(a => a !== aspect)); setList([...list, aspect]); }
+  }
 
   return (
     <div style={{
@@ -681,7 +690,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
       animation:`fadeUp 0.28s ease ${index*0.05}s both`,
       cursor:"pointer",
       position:"relative",
-    }} onClick={()=>{ if(menuOpen) setMenuOpen(false); else onOpenDetail(book); }}>
+    }} onClick={()=>{ if(menuOpen) setMenuOpen(false); else setExpanded(e=>!e); }}>
       <div style={{ display:"flex", gap:14, alignItems:"stretch" }}>
         <div style={{ alignSelf:"stretch", flexShrink:0, display:"flex" }}>
           {book.coverId
@@ -694,10 +703,11 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
           <div>
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
               <div style={{ minWidth:0, flex:1 }}>
-                <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:21, color:WOOD.text, lineHeight:1.2, marginBottom:1, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{book.title}</p>
+                <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:21, color:WOOD.text, lineHeight:1.2, marginBottom:1, whiteSpace:expanded?"normal":"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{book.title}</p>
                 <p style={{ fontSize:12, color:WOOD.textDim, fontStyle:"italic", marginBottom:2 }}>{book.author}</p>
               </div>
               <div style={{ display:"flex", alignItems:"center", gap:6, flexShrink:0 }}>
+                <span style={{ color:WOOD.textFaint, fontSize:12, display:"inline-block", transition:"transform 0.2s", transform:expanded?"rotate(180deg)":"rotate(0deg)" }}>▾</span>
                 <button onClick={e=>{ e.stopPropagation(); setMenuOpen(m=>!m); }} style={{ background:"transparent", border:"none", cursor:"pointer", padding:"2px 4px 0", color:"rgba(120,70,20,0.6)", fontSize:16, lineHeight:1, letterSpacing:"-1px" }}>⋮</button>
               </div>
             </div>
@@ -764,13 +774,37 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
         </div>
       )}
 
+      {expanded && (
+        <div style={{ marginTop:10, paddingTop:10, borderTop:"1px solid rgba(138,90,40,0.25)" }} onClick={e=>e.stopPropagation()}>
+          {desc && <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, lineHeight:1.65, fontStyle:"italic", marginBottom: isRated ? 14 : 0 }}>{desc}</p>}
+          {isRated && (
+            <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+              <div>
+                <p style={{ fontSize:10, fontWeight:700, color:"#4a7a5a", textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:6, fontFamily:"'DM Sans',sans-serif" }}>👍 Liked</p>
+                <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
+                  {ASPECTS.map(a => { const active=liked.includes(a); return (
+                    <button key={a} onClick={()=>toggleAspect(a,liked,setLiked,disliked,setDisliked)} style={{ padding:"4px 10px", borderRadius:20, fontSize:11, fontFamily:"'DM Sans',sans-serif", fontWeight:600, cursor:"pointer", transition:"all 0.15s", background:active?"#4a7a5a":"rgba(74,122,90,0.1)", color:active?"#fff":"#4a7a5a", border:`1px solid ${active?"#4a7a5a":"rgba(74,122,90,0.35)"}` }}>{a}</button>
+                  ); })}
+                </div>
+              </div>
+              <div>
+                <p style={{ fontSize:10, fontWeight:700, color:"#8a4a4a", textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:6, fontFamily:"'DM Sans',sans-serif" }}>👎 Disliked</p>
+                <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
+                  {ASPECTS.map(a => { const active=disliked.includes(a); return (
+                    <button key={a} onClick={()=>toggleAspect(a,disliked,setDisliked,liked,setLiked)} style={{ padding:"4px 10px", borderRadius:20, fontSize:11, fontFamily:"'DM Sans',sans-serif", fontWeight:600, cursor:"pointer", transition:"all 0.15s", background:active?"#8a4a4a":"rgba(138,74,74,0.1)", color:active?"#fff":"#8a4a4a", border:`1px solid ${active?"#8a4a4a":"rgba(138,74,74,0.35)"}` }}>{a}</button>
+                  ); })}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
 
 function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelfChange, onImport }) {
   const [search, setSearch] = useState("");
-  const [detailBook, setDetailBook] = useState(null);
   const [sort, setSort] = useState("date");
   const [sortAsc, setSortAsc] = useState(false);
   const [activeShelf, setActiveShelf] = useState("Read");
@@ -1124,7 +1158,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
               </div>
             )}
             <div style={{ flex:1, minWidth:0 }}>
-              <BookCard book={book} index={i} onRemove={onRemove} onEdit={onEdit} onShelfChange={onShelfChange} onOpenShelfPicker={setShelfPickerBook} onOpenDetail={setDetailBook} />
+              <BookCard book={book} index={i} onRemove={onRemove} onEdit={onEdit} onShelfChange={onShelfChange} onOpenShelfPicker={setShelfPickerBook} />
             </div>
           </div>
         ))}
@@ -1167,15 +1201,6 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
         </div>
       )}
 
-      {/* book detail modal */}
-      {detailBook && (
-        <BookDetailModal
-          book={detailBook}
-          onClose={()=>setDetailBook(null)}
-          onEdit={book=>{ setDetailBook(null); onEdit(book); }}
-          onRemove={id=>{ setDetailBook(null); onRemove(id); }}
-        />
-      )}
     </div>
   );
 }
