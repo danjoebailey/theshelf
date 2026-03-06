@@ -1233,6 +1233,35 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
         </div>
       )}
 
+      {ratingPromptBook && (
+        <div onClick={()=>setRatingPromptBook(null)} style={{
+          position:"absolute", inset:0, zIndex:60, background:"rgba(0,0,0,0.55)",
+          display:"flex", alignItems:"center", justifyContent:"center",
+          animation:"fadeIn 0.15s ease",
+        }}>
+          <div onClick={e=>e.stopPropagation()} style={{
+            background:"#fff", borderRadius:16, padding:24, width:"min(340px, 88vw)",
+            boxShadow:"0 20px 60px rgba(0,0,0,0.35)", position:"relative",
+          }}>
+            <button onClick={()=>setRatingPromptBook(null)} style={{ position:"absolute", top:14, right:14, background:"#f3f4f6", border:"none", borderRadius:"50%", width:28, height:28, cursor:"pointer", fontSize:14, color:"#6b7280", display:"flex", alignItems:"center", justifyContent:"center" }}>âœ•</button>
+            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:18, color:"#1a1a1a", marginBottom:4 }}>{ratingPromptBook.title}</p>
+            <p style={{ fontSize:13, color:"#6b7280", marginBottom:20 }}>Rate this book before moving to Read</p>
+            <StarRating value={promptRating} onChange={setPromptRating} size={44} stretch />
+            <button onClick={()=>{
+              if (!promptRating) return;
+              onShelfChange(ratingPromptBook.id, "Read", promptRating);
+              setRatingPromptBook(null);
+            }} style={{
+              marginTop:20, width:"100%", padding:"13px",
+              background: promptRating ? "#b07840" : "#f3f4f6",
+              color: promptRating ? "#fff" : "#9ca3af",
+              borderRadius:10, fontSize:15, fontWeight:600,
+              fontFamily:"'DM Sans',sans-serif",
+              border:"none", cursor: promptRating ? "pointer" : "default", transition:"all 0.2s",
+            }}>Move to Read</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1593,35 +1622,6 @@ function AddSheet({ onSave, onClose, initialBook = null }) {
           }}>Add to Shelf</button>
         </>}
       </div>
-      {ratingPromptBook && (
-        <div onClick={()=>setRatingPromptBook(null)} style={{
-          position:"absolute", inset:0, zIndex:60, background:"rgba(0,0,0,0.55)",
-          display:"flex", alignItems:"center", justifyContent:"center",
-          animation:"fadeIn 0.15s ease",
-        }}>
-          <div onClick={e=>e.stopPropagation()} style={{
-            background:"#fff", borderRadius:16, padding:24, width:"min(340px, 88vw)",
-            boxShadow:"0 20px 60px rgba(0,0,0,0.35)", position:"relative",
-          }}>
-            <button onClick={()=>setRatingPromptBook(null)} style={{ position:"absolute", top:14, right:14, background:"#f3f4f6", border:"none", borderRadius:"50%", width:28, height:28, cursor:"pointer", fontSize:14, color:"#6b7280", display:"flex", alignItems:"center", justifyContent:"center" }}>âœ•</button>
-            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:18, color:"#1a1a1a", marginBottom:4 }}>{ratingPromptBook.title}</p>
-            <p style={{ fontSize:13, color:"#6b7280", marginBottom:20 }}>Rate this book before moving to Read</p>
-            <StarRating value={promptRating} onChange={setPromptRating} size={44} stretch />
-            <button onClick={()=>{
-              if (!promptRating) return;
-              onShelfChange(ratingPromptBook.id, "Read", promptRating);
-              setRatingPromptBook(null);
-            }} style={{
-              marginTop:20, width:"100%", padding:"13px",
-              background: promptRating ? "#b07840" : "#f3f4f6",
-              color: promptRating ? "#fff" : "#9ca3af",
-              borderRadius:10, fontSize:15, fontWeight:600,
-              fontFamily:"'DM Sans',sans-serif",
-              border:"none", cursor: promptRating ? "pointer" : "default", transition:"all 0.2s",
-            }}>Move to Read</button>
-          </div>
-        </div>
-      )}
 
     </div>
   );
