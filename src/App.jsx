@@ -852,8 +852,8 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
                   padding:"10px 14px", textAlign:"left", cursor:"pointer",
                   display:"flex", alignItems:"center", gap:10, width:"100%",
                 }}>
-                  {book.coverId
-                    ? <img src={`https://covers.openlibrary.org/b/id/${book.coverId}-M.jpg`} alt={book.title}
+                  {book.coverUrl
+                    ? <img src={book.coverUrl} alt={book.title}
                         style={{ width:28, height:42, objectFit:"cover", borderRadius:3, boxShadow:"1px 1px 4px rgba(0,0,0,0.25)", flexShrink:0 }} />
                     : <BookSpine title={book.title} genre={book.genre} size={28} />
                   }
