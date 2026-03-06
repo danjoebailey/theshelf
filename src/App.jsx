@@ -42,52 +42,73 @@ const WOOD = {
 
 // Rustic hardcover color palettes
 const RUSTIC_COVERS = [
-  { base:"#8b4513", mid:"#a0522d", dark:"#6b3410", cloth:"#7a3d18" },
-  { base:"#2f4f2f", mid:"#3d6b3d", dark:"#1e3a1e", cloth:"#2a4a2a" },
-  { base:"#4a3728", mid:"#5c4535", dark:"#332518", cloth:"#3d2e20" },
-  { base:"#6b3a2a", mid:"#7d4535", dark:"#4a2518", cloth:"#5a3020" },
-  { base:"#2a3a4a", mid:"#354a5c", dark:"#1a2535", cloth:"#233040" },
-  { base:"#5a4a2a", mid:"#6b5a35", dark:"#3a2e18", cloth:"#4a3a20" },
-  { base:"#3a2a4a", mid:"#4a3a5c", dark:"#251a35", cloth:"#302040" },
-  { base:"#4a3a2a", mid:"#5c4a35", dark:"#2e2518", cloth:"#3d3020" },
-  { base:"#2a4a3a", mid:"#355c4a", dark:"#1a3528", cloth:"#203d30" },
-  { base:"#5a3a28", mid:"#6b4a35", dark:"#3a2518", cloth:"#4a2e20" },
+  { base:"#8b1a1a", mid:"#b02828", dark:"#5c1010", light:"#d44040", cloth:"#7a1818" },
+  { base:"#1a4a1a", mid:"#286828", dark:"#0f2e0f", light:"#3a8c3a", cloth:"#183818" },
+  { base:"#1a2a7a", mid:"#2438a0", dark:"#101850", light:"#3050c8", cloth:"#182060" },
+  { base:"#7a5000", mid:"#9a6800", dark:"#4a3000", light:"#c08810", cloth:"#604000" },
+  { base:"#5a1a7a", mid:"#7228a0", dark:"#381050", light:"#9040c8", cloth:"#481860" },
+  { base:"#007870", mid:"#009a90", dark:"#004848", light:"#10b8a8", cloth:"#006060" },
+  { base:"#8b4500", mid:"#b05800", dark:"#5c2e00", light:"#d87010", cloth:"#7a3800" },
+  { base:"#1a3a6a", mid:"#244e88", dark:"#102448", light:"#2e62a8", cloth:"#183058" },
+  { base:"#6a1a3a", mid:"#882450", dark:"#401028", light:"#a83060", cloth:"#501830" },
+  { base:"#2a5a1a", mid:"#387828", dark:"#183810", light:"#489a30", cloth:"#204814" },
 ];
 
 function RusticSpine({ book, index, w, h, tilt }) {
   const rc = RUSTIC_COVERS[index % RUSTIC_COVERS.length];
   const id = `rs-${book.id}`;
+  const topH = 5;
+  const sy = topH;
+  const sh = h - topH;
   return (
-    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} style={{ flexShrink:0, transform:`rotate(${tilt}deg)`, transformOrigin:"bottom center", display:"block" }}>
+    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} style={{ flexShrink:0, transform:`rotate(${tilt}deg)`, transformOrigin:"bottom center", display:"block", overflow:"visible" }}>
       <defs>
         <linearGradient id={`${id}-g`} x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor={rc.dark}/>
-          <stop offset="20%" stopColor={rc.mid}/>
-          <stop offset="50%" stopColor={rc.base}/>
-          <stop offset="80%" stopColor={rc.mid}/>
+          <stop offset="0%"   stopColor={rc.dark}/>
+          <stop offset="12%"  stopColor={rc.cloth}/>
+          <stop offset="38%"  stopColor={rc.base}/>
+          <stop offset="62%"  stopColor={rc.mid}/>
+          <stop offset="88%"  stopColor={rc.cloth}/>
           <stop offset="100%" stopColor={rc.dark}/>
         </linearGradient>
-        <linearGradient id={`${id}-t`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="rgba(255,220,160,0.12)"/>
-          <stop offset="100%" stopColor="rgba(0,0,0,0.18)"/>
+        <linearGradient id={`${id}-v`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor="rgba(255,245,210,0.28)"/>
+          <stop offset="20%"  stopColor="rgba(255,255,255,0.04)"/>
+          <stop offset="70%"  stopColor="rgba(0,0,0,0.04)"/>
+          <stop offset="100%" stopColor="rgba(0,0,0,0.38)"/>
+        </linearGradient>
+        <linearGradient id={`${id}-top`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stopColor={rc.light}/>
+          <stop offset="100%" stopColor={rc.base}/>
         </linearGradient>
       </defs>
-      {/* main body */}
-      <rect x="0" y="0" width={w} height={h} fill={`url(#${id}-g)`}/>
-      {/* cloth texture overlay */}
-      <rect x="0" y="0" width={w} height={h} fill={`url(#${id}-t)`}/>
-      {/* spine edge shadow left */}
-      <rect x="0" y="0" width="2" height={h} fill="rgba(0,0,0,0.35)"/>
-      {/* spine edge highlight right */}
-      <rect x={w-1.5} y="0" width="1.5" height={h} fill="rgba(255,255,255,0.06)"/>
-      {/* top cap */}
-      <rect x="0" y="0" width={w} height="3" fill="rgba(255,220,160,0.15)"/>
-      {/* decorative band top */}
-      <rect x="1" y="5" width={w-2} height="1.5" fill="rgba(255,200,100,0.18)"/>
-      <rect x="1" y="8" width={w-2} height="0.8" fill="rgba(255,200,100,0.1)"/>
-      {/* decorative band bottom */}
-      <rect x="1" y={h-7} width={w-2} height="1.5" fill="rgba(255,200,100,0.18)"/>
-      <rect x="1" y={h-10} width={w-2} height="0.8" fill="rgba(255,200,100,0.1)"/>
+
+      {/* 3D top face */}
+      <rect x="0" y="0" width={w} height={topH} fill={`url(#${id}-top)`}/>
+      <rect x="0" y="0" width={w} height={topH} fill="rgba(255,255,255,0.18)"/>
+      <line x1="1" y1="1.5" x2={w-1} y2="1.5" stroke="rgba(255,255,255,0.25)" strokeWidth="0.6"/>
+      <line x1="1" y1="3.2" x2={w-1} y2="3.2" stroke="rgba(255,255,255,0.12)" strokeWidth="0.5"/>
+
+      {/* Spine body */}
+      <rect x="0" y={sy} width={w} height={sh} fill={`url(#${id}-g)`}/>
+      <rect x="0" y={sy} width={w} height={sh} fill={`url(#${id}-v)`}/>
+
+      {/* Left edge shadow */}
+      <rect x="0" y={sy} width="2.5" height={sh} fill="rgba(0,0,0,0.52)"/>
+      {/* Right edge highlight */}
+      <rect x={w-1.5} y={sy} width="1.5" height={sh} fill="rgba(255,255,255,0.12)"/>
+      {/* Top spine highlight */}
+      <rect x="0" y={sy} width={w} height="2" fill="rgba(255,245,210,0.32)"/>
+
+      {/* Gold decorative band — top */}
+      <rect x="2" y={sy+5}   width={w-4} height="2"   fill="rgba(255,215,80,0.35)"/>
+      <rect x="2" y={sy+8}   width={w-4} height="0.8" fill="rgba(255,215,80,0.2)"/>
+      {/* Gold decorative band — bottom */}
+      <rect x="2" y={sy+sh-9} width={w-4} height="2"   fill="rgba(255,215,80,0.35)"/>
+      <rect x="2" y={sy+sh-6} width={w-4} height="0.8" fill="rgba(255,215,80,0.2)"/>
+
+      {/* Bottom shadow */}
+      <rect x="0" y={sy+sh-3} width={w} height="3" fill="rgba(0,0,0,0.3)"/>
     </svg>
   );
 }
