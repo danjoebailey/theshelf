@@ -825,11 +825,12 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
       <div style={{ padding:"6px 16px 10px" }}>
 
         <div style={{ position:"relative" }}>
-          <div style={{ background:WOOD.card, borderRadius:12, display:"flex", alignItems:"center", padding:"0 12px", gap:8, borderTop:`6px solid #8a5a28`, borderLeft:`6px solid #8a5a28`, borderBottom:`6px solid #8a5a28`, borderRight:"none", backdropFilter:"blur(4px)" }}>
-            <input value={search} onChange={handleSearchChange} placeholder="Search for a book to add…"
-              style={{ flex:1, background:"transparent", border:"none", color:"#1a0900", fontSize:16, padding:"10px 0", fontFamily:"'DM Sans',sans-serif", outline:"none" }}/>
-            {apiSearching && <span style={{ fontSize:12, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif" }}>Searching…</span>}
-            {search && !apiSearching && <button onClick={()=>{ setSearch(""); setApiResults([]); }} style={{ background:"transparent", color:"#8a5a28", fontSize:13, border:"none", cursor:"pointer" }}>✕</button>}
+          <div style={{ position:"relative" }}>
+            <span style={{ position:"absolute", left:10, top:"50%", transform:"translateY(-50%)", color:"#aaa", fontSize:15, pointerEvents:"none" }}>🔍</span>
+            <input type="search" value={search} onChange={handleSearchChange} placeholder="Search for a book to add…"
+              style={{ width:"100%", boxSizing:"border-box", padding:"10px 36px 10px 34px", border:"1px solid #d1d5db", borderRadius:8, fontSize:15, fontFamily:"'DM Sans',sans-serif", outline:"none", background:"#fff", color:"#111" }}/>
+            {apiSearching && <span style={{ position:"absolute", right:10, top:"50%", transform:"translateY(-50%)", fontSize:12, color:"#999", fontFamily:"'DM Sans',sans-serif" }}>Searching…</span>}
+            {search && !apiSearching && <button onClick={()=>{ setSearch(""); setApiResults([]); }} style={{ position:"absolute", right:8, top:"50%", transform:"translateY(-50%)", background:"transparent", color:"#999", fontSize:13, border:"none", cursor:"pointer" }}>✕</button>}
           </div>
 
           {/* dropdown results */}
