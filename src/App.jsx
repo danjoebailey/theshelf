@@ -1294,7 +1294,7 @@ function StatsTab({ books }) {
   const card = { background:"rgba(255,235,195,0.72)", backdropFilter:"blur(6px)", borderRadius:14, border:`1px solid rgba(160,100,40,0.3)`, boxShadow:"0 2px 8px rgba(0,0,0,0.12)" };
 
   return (
-    <div style={{ overflowY:"auto", padding:"0 16px 80px", height:"100%", position:"relative", zIndex:10 }} onClick={()=>setTimeDropOpen(false)}>
+    <div style={{ overflowY:"auto", padding:"12px 16px 80px", height:"100%", position:"relative", zIndex:10 }} onClick={()=>setTimeDropOpen(false)}>
 
       {/* timeline dropdown */}
       <div style={{ position:"relative", marginBottom:12 }} onClick={e=>e.stopPropagation()}>
