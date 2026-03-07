@@ -1296,37 +1296,6 @@ function StatsTab({ books }) {
   return (
     <div style={{ overflowY:"auto", padding:"0 16px 80px", height:"100%", position:"relative", zIndex:10 }} onClick={()=>setTimeDropOpen(false)}>
 
-      {/* book covers strip */}
-      {filteredBooks.length > 0 && (
-        <div style={{ marginBottom:20, marginLeft:-16, marginRight:-16 }}>
-          <div style={{
-            display:"flex", gap:6, overflowX:"auto", padding:"16px 16px 12px",
-            scrollbarWidth:"none",
-          }}>
-            {filteredBooks.map(b => (
-              <div key={b.id} style={{ flexShrink:0 }}>
-                {(b.coverUrl || b.coverId)
-                  ? <img
-                      src={b.coverUrl || `https://covers.openlibrary.org/b/id/${b.coverId}-M.jpg`}
-                      alt={b.title}
-                      title={b.title}
-                      style={{ height:90, width:60, objectFit:"cover", borderRadius:5, boxShadow:"0 3px 10px rgba(0,0,0,0.35)", display:"block" }} />
-                  : <div style={{
-                      height:90, width:60, borderRadius:5,
-                      background:GENRE_COLORS[b.genre]||"#7b6fa0",
-                      display:"flex", alignItems:"center", justifyContent:"center",
-                      boxShadow:"0 3px 10px rgba(0,0,0,0.3)",
-                    }}>
-                      <span style={{ fontSize:9, color:"#fff", textAlign:"center", padding:"0 4px", lineHeight:1.3, fontFamily:"'Crimson Pro',serif", fontStyle:"italic" }}>{b.title}</span>
-                    </div>
-                }
-              </div>
-            ))}
-          </div>
-          <div style={{ height:1, background:"rgba(138,90,40,0.2)", marginLeft:16, marginRight:16 }}/>
-        </div>
-      )}
-
       {/* timeline dropdown */}
       <div style={{ position:"relative", marginBottom:12 }} onClick={e=>e.stopPropagation()}>
         <button onClick={()=>setTimeDropOpen(o=>!o)} style={{
@@ -1357,6 +1326,37 @@ function StatsTab({ books }) {
           </div>
         )}
       </div>
+
+      {/* book covers strip */}
+      {filteredBooks.length > 0 && (
+        <div style={{ marginBottom:20, marginLeft:-16, marginRight:-16 }}>
+          <div style={{
+            display:"flex", gap:6, overflowX:"auto", padding:"16px 16px 12px",
+            scrollbarWidth:"none",
+          }}>
+            {filteredBooks.map(b => (
+              <div key={b.id} style={{ flexShrink:0 }}>
+                {(b.coverUrl || b.coverId)
+                  ? <img
+                      src={b.coverUrl || `https://covers.openlibrary.org/b/id/${b.coverId}-M.jpg`}
+                      alt={b.title}
+                      title={b.title}
+                      style={{ height:90, width:60, objectFit:"cover", borderRadius:5, boxShadow:"0 3px 10px rgba(0,0,0,0.35)", display:"block" }} />
+                  : <div style={{
+                      height:90, width:60, borderRadius:5,
+                      background:GENRE_COLORS[b.genre]||"#7b6fa0",
+                      display:"flex", alignItems:"center", justifyContent:"center",
+                      boxShadow:"0 3px 10px rgba(0,0,0,0.3)",
+                    }}>
+                      <span style={{ fontSize:9, color:"#fff", textAlign:"center", padding:"0 4px", lineHeight:1.3, fontFamily:"'Crimson Pro',serif", fontStyle:"italic" }}>{b.title}</span>
+                    </div>
+                }
+              </div>
+            ))}
+          </div>
+          <div style={{ height:1, background:"rgba(138,90,40,0.2)", marginLeft:16, marginRight:16 }}/>
+        </div>
+      )}
 
       <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginBottom:12 }}>
         {[
