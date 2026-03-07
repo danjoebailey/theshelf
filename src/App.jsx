@@ -480,9 +480,9 @@ function WoodBg() {
 }
 
 // Shelf ledge rendered below certain sections
-function ShelfLedge({ top }) {
+function ShelfLedge({ bottom }) {
   return (
-    <div style={{ position:"absolute", left:0, right:0, top, height:14, zIndex:5, pointerEvents:"none" }}>
+    <div style={{ position:"absolute", left:0, right:0, bottom, height:14, zIndex:5, pointerEvents:"none" }}>
       <div style={{ height:10, background:"linear-gradient(180deg, #d4a060 0%, #b07840 60%, #8a5a28 100%)", boxShadow:"0 4px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,220,140,0.3)" }}/>
       <div style={{ height:4, background:"linear-gradient(180deg, rgba(0,0,0,0.5), transparent)" }}/>
     </div>
@@ -678,7 +678,6 @@ function BookDetailModal({ book, onClose, onEdit, onRemove }) {
             <button onClick={()=>{ onRemove(book.id); onClose(); }} style={{ padding:"12px 18px", borderRadius:10, cursor:"pointer", background:"rgba(192,57,43,0.07)", border:"1px solid rgba(192,57,43,0.18)", fontFamily:"'DM Sans',sans-serif", fontSize:14, fontWeight:600, color:"#c0392b" }}>Remove</button>
           </div>
         </div>
-      </div>
     </div>
   );
 }
@@ -1453,7 +1452,6 @@ function BookSearchModal({ book, onSave, onClose }) {
           fontFamily:"'DM Sans',sans-serif",
           border:"none", cursor:(noRating || rating) ? "pointer" : "default", transition:"all 0.2s",
         }}>Add to Shelf</button>
-      </div>
     </div>
   );
 }
@@ -1738,7 +1736,6 @@ function EditSheet({ book, onSave, onClose }) {
           color:"#1a0900", borderRadius:12, fontSize:15, fontWeight:600,
           fontFamily:"'DM Sans',sans-serif", border:"none", cursor:"pointer",
         }}>Save Changes</button>
-      </div>
     </div>
   );
 }
@@ -1881,7 +1878,6 @@ function GoodreadsImportSheet({ onImport, onClose }) {
             Import {preview.length} books
           </button>
         )}
-      </div>
     </div>
   );
 }
@@ -1922,7 +1918,7 @@ export default function App() {
   }
 
   return (
-    <div style={{ display:"flex", justifyContent:"center", alignItems:"center", minHeight:"100vh", background:"#8a6030" }}>
+    <div style={{ width:"100%", height:"100dvh", display:"flex", flexDirection:"column", position:"relative", overflow:"hidden" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');
         * { box-sizing:border-box; margin:0; padding:0; }
@@ -1937,18 +1933,6 @@ export default function App() {
         input[type=number]::-webkit-inner-spin-button { display:none; }
         option { background:#3a2010; color:#f5e6d0; }
       `}</style>
-
-      {/* phone frame */}
-      <div style={{
-        width:375, height:780,
-        borderRadius:44,
-        overflow:"hidden",
-        position:"relative",
-        boxShadow:"0 0 0 10px #8a5c30, 0 0 0 12px #a07040, 0 50px 100px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,220,140,0.15)",
-        display:"flex",
-        flexDirection:"column",
-        fontFamily:"'DM Sans',sans-serif",
-      }}>
         {/* wood background */}
         <WoodBg />
 
@@ -1990,7 +1974,7 @@ export default function App() {
         </div>
 
         {/* shelf ledge above tab bar */}
-        <ShelfLedge top={694} />
+        <ShelfLedge bottom={60} />
 
         {/* tab bar */}
         <div style={{
@@ -2009,7 +1993,6 @@ export default function App() {
             </button>
           ))}
         </div>
-      </div>
     </div>
   );
 }
