@@ -1268,9 +1268,8 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
 
 function StatsTab({ books }) {
   const [timeline, setTimeline] = useState("All");
-  const [timeDropOpen, setTimeDropOpen] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
   const [ratingFilter, setRatingFilter] = useState(null);
-  const [ratingDropOpen, setRatingDropOpen] = useState(false);
 
   const thisYear = new Date().getFullYear().toString();
   const lastYear = (new Date().getFullYear() - 1).toString();
@@ -1297,74 +1296,53 @@ function StatsTab({ books }) {
   const card = { background:"rgba(255,235,195,0.72)", backdropFilter:"blur(6px)", borderRadius:14, border:`1px solid rgba(160,100,40,0.3)`, boxShadow:"0 2px 8px rgba(0,0,0,0.12)" };
 
   return (
-    <div style={{ overflowY:"auto", padding:"12px 16px 80px", height:"100%", position:"relative", zIndex:10 }} onClick={()=>{ setTimeDropOpen(false); setRatingDropOpen(false); }}>
+    <div style={{ overflowY:"auto", padding:"12px 16px 80px", height:"100%", position:"relative", zIndex:10 }} onClick={()=>setFilterOpen(false)}>
 
-      {/* filters row */}
-      <div style={{ display:"flex", gap:8, marginBottom:12, alignItems:"center" }} onClick={e=>e.stopPropagation()}>
-
-      {/* timeline dropdown */}
-      <div style={{ position:"relative" }}>
-        <button onClick={()=>setTimeDropOpen(o=>!o)} style={{
+      {/* filter icon button */}
+      <div style={{ position:"relative", marginBottom:12 }} onClick={e=>e.stopPropagation()}>
+        <button onClick={()=>setFilterOpen(o=>!o)} style={{
           display:"flex", alignItems:"center", gap:6,
-          background:"rgba(15,8,2,0.55)", borderRadius:20, padding:"6px 14px",
+          background: (timeline !== "All" || ratingFilter !== null) ? WOOD.amber : "rgba(15,8,2,0.55)",
+          borderRadius:20, padding:"6px 12px",
           border:"1px solid rgba(120,70,20,0.3)",
-          cursor:"pointer", color:"#fff", fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:500,
+          cursor:"pointer", color: (timeline !== "All" || ratingFilter !== null) ? "#1a0900" : "#fff",
+          fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:500,
+          transition:"all 0.2s",
         }}>
-          <span>{timeline}</span>
-          <span style={{ fontSize:10, color:"rgba(255,255,255,0.5)", display:"inline-block", transition:"transform 0.2s", transform: timeDropOpen?"rotate(180deg)":"rotate(0deg)" }}>▾</span>
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M1 3h14v1.5l-5 5V14l-4-2V9.5L1 4.5V3z"/>
+          </svg>
+          <span>Filter</span>
         </button>
-        {timeDropOpen && (
+        {filterOpen && (
           <div style={{
-            position:"absolute", top:"calc(100% + 4px)", left:0, zIndex:30, minWidth:130,
-            background:"#f5e8d0", borderRadius:10, overflow:"hidden",
+            position:"absolute", top:"calc(100% + 6px)", left:0, zIndex:30, width:200,
+            background:"#f5e8d0", borderRadius:12, overflow:"hidden",
             boxShadow:"0 4px 20px rgba(0,0,0,0.25)", border:"1px solid rgba(138,90,40,0.3)",
             animation:"fadeIn 0.12s ease",
           }}>
+            <div style={{ padding:"10px 14px 6px", fontSize:10, color:WOOD.textFaint, textTransform:"uppercase", letterSpacing:"0.1em", fontFamily:"'DM Sans',sans-serif" }}>Period</div>
             {["All","This Year","Last Year"].map((t, i) => (
-              <button key={t} onClick={()=>{ setTimeline(t); setTimeDropOpen(false); }} style={{
-                display:"block", width:"100%", padding:"10px 14px", textAlign:"left",
+              <button key={t} onClick={()=>setTimeline(t)} style={{
+                display:"block", width:"100%", padding:"8px 14px", textAlign:"left",
                 background: t===timeline ? "rgba(138,90,40,0.12)" : "transparent",
-                border:"none", borderBottom: i < 2 ? "1px solid rgba(138,90,40,0.12)" : "none",
-                cursor:"pointer", fontFamily:"'Crimson Pro',serif", fontSize:15,
+                border:"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:14,
                 color: t===timeline ? WOOD.amber : WOOD.text, fontWeight: t===timeline ? 600 : 400,
               }}>{t}</button>
             ))}
-          </div>
-        )}
-      </div>
-
-      {/* rating filter dropdown */}
-      <div style={{ position:"relative" }}>
-        <button onClick={()=>setRatingDropOpen(o=>!o)} style={{
-          display:"flex", alignItems:"center", gap:6,
-          background:"rgba(15,8,2,0.55)", borderRadius:20, padding:"6px 14px",
-          border:"1px solid rgba(120,70,20,0.3)",
-          cursor:"pointer", color:"#fff", fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:500,
-        }}>
-          <span>{ratingFilter === null ? "All Ratings" : ratingFilter + " ★"}</span>
-          <span style={{ fontSize:10, color:"rgba(255,255,255,0.5)", display:"inline-block", transition:"transform 0.2s", transform: ratingDropOpen?"rotate(180deg)":"rotate(0deg)" }}>▾</span>
-        </button>
-        {ratingDropOpen && (
-          <div style={{
-            position:"absolute", top:"calc(100% + 4px)", left:0, zIndex:30, minWidth:130,
-            background:"#f5e8d0", borderRadius:10, overflow:"hidden",
-            boxShadow:"0 4px 20px rgba(0,0,0,0.25)", border:"1px solid rgba(138,90,40,0.3)",
-            animation:"fadeIn 0.12s ease",
-          }}>
-            {[null, 5, 4.5, 4, 3.5, 3].map((r, i) => (
-              <button key={r ?? "all"} onClick={()=>{ setRatingFilter(r); setRatingDropOpen(false); }} style={{
-                display:"block", width:"100%", padding:"10px 14px", textAlign:"left",
+            <div style={{ height:1, background:"rgba(138,90,40,0.15)", margin:"4px 0" }}/>
+            <div style={{ padding:"6px 14px 6px", fontSize:10, color:WOOD.textFaint, textTransform:"uppercase", letterSpacing:"0.1em", fontFamily:"'DM Sans',sans-serif" }}>Rating</div>
+            {[null, 5, 4.5, 4, 3.5, 3].map(r => (
+              <button key={r ?? "all"} onClick={()=>setRatingFilter(ratingFilter===r ? null : r)} style={{
+                display:"block", width:"100%", padding:"8px 14px", textAlign:"left",
                 background: ratingFilter===r ? "rgba(138,90,40,0.12)" : "transparent",
-                border:"none", borderBottom: i < 5 ? "1px solid rgba(138,90,40,0.12)" : "none",
-                cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:15,
+                border:"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:14,
                 color: ratingFilter===r ? WOOD.amber : WOOD.text, fontWeight: ratingFilter===r ? 600 : 400,
-              }}>{r === null ? "All Ratings" : r + " ★"}</button>
+              }}>{r === null ? "All" : r + " ★"}</button>
             ))}
           </div>
         )}
       </div>
-
-      </div>{/* end filters row */}
 
       {/* book covers strip */}
       {filteredBooks.length > 0 && (
