@@ -1990,7 +1990,7 @@ export default function App() {
           flexShrink:0,
           position:"relative", zIndex:10,
         }}>
-          {[{ id:"shelf", icon:"📚", label:"Shelf" },{ id:"stats", icon:"📊", label:"Stats" }].map(({ id,icon,label })=>(
+          {[{ id:"shelf", icon:"📚", label:"Shelf" },{ id:"stats", icon:"📊", label:"Breakdown" }].map(({ id,icon,label })=>(
             <button key={id} onClick={()=>setTab(id)} style={{ flex:1, background:"transparent", border:"none", cursor:"pointer", display:"flex", flexDirection:"column", alignItems:"center", gap:3 }}>
               <div style={{ fontSize:20, lineHeight:1, filter:tab===id?"none":"grayscale(1) opacity(0.35)", transform:tab===id?"scale(1.08)":"scale(1)", transition:"all 0.2s" }}>{icon}</div>
               <span style={{ fontSize:10, fontFamily:"'DM Sans',sans-serif", color:tab===id?WOOD.amber:WOOD.textFaint, fontWeight:tab===id?600:400, transition:"color 0.2s" }}>{label}</span>
