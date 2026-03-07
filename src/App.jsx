@@ -1365,10 +1365,9 @@ function StatsTab({ books }) {
           { label:"Avg Rating", value:stats.avgRating ? stats.avgRating.toFixed(2)+" ★" : "—", emoji:"⭐" },
           { label:"Genres", value:Object.keys(stats.genreMap).length, emoji:"🏷️" },
         ].map(({ label,value,emoji })=>(
-          <div key={label} style={{ ...card, padding:"14px 13px" }}>
-            <div style={{ fontSize:20, marginBottom:6 }}>{emoji}</div>
-            <div style={{ fontFamily:"'Crimson Pro',serif", fontSize:26, fontWeight:300, color:WOOD.text, lineHeight:1 }}>{value}</div>
-            <div style={{ fontSize:10, color:WOOD.textFaint, marginTop:4, textTransform:"uppercase", letterSpacing:"0.1em" }}>{label}</div>
+          <div key={label} style={{ ...card, padding:"8px 12px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+            <div style={{ fontSize:10, color:WOOD.textFaint, textTransform:"uppercase", letterSpacing:"0.1em" }}>{label}</div>
+            <div style={{ fontFamily:"'Crimson Pro',serif", fontSize:20, fontWeight:400, color:WOOD.text, lineHeight:1 }}>{value}</div>
           </div>
         ))}
       </div>
