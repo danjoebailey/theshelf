@@ -1269,16 +1269,18 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
 function StatsTab({ books }) {
   const [timeline, setTimeline] = useState("All");
   const [timeDropOpen, setTimeDropOpen] = useState(false);
+  const [ratingFilter, setRatingFilter] = useState(null);
 
   const thisYear = new Date().getFullYear().toString();
   const lastYear = (new Date().getFullYear() - 1).toString();
 
   const filteredBooks = useMemo(() => {
-    const readBooks = books.filter(b => (b.shelf || "Read") === "Read");
-    if (timeline === "This Year") return readBooks.filter(b => b.date?.startsWith(thisYear));
-    if (timeline === "Last Year") return readBooks.filter(b => b.date?.startsWith(lastYear));
+    let readBooks = books.filter(b => (b.shelf || "Read") === "Read");
+    if (timeline === "This Year") readBooks = readBooks.filter(b => b.date?.startsWith(thisYear));
+    if (timeline === "Last Year") readBooks = readBooks.filter(b => b.date?.startsWith(lastYear));
+    if (ratingFilter !== null) readBooks = readBooks.filter(b => b.rating === ratingFilter);
     return readBooks;
-  }, [books, timeline]);
+  }, [books, timeline, ratingFilter]);
 
   const stats = useMemo(() => {
     const totalPages = filteredBooks.reduce((s,b)=>s+(b.pages||0),0);
@@ -1325,6 +1327,21 @@ function StatsTab({ books }) {
             ))}
           </div>
         )}
+      </div>
+
+      {/* rating filter pills */}
+      <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginBottom:12 }} onClick={e=>e.stopPropagation()}>
+        {[null, 5, 4.5, 4, 3.5, 3].map(r => (
+          <button key={r ?? "all"} onClick={()=>setRatingFilter(ratingFilter===r ? null : r)} style={{
+            padding:"4px 12px", borderRadius:20, fontSize:12, fontWeight:600,
+            border: ratingFilter===r ? "2px solid "+WOOD.amber : "2px solid rgba(138,90,40,0.3)",
+            background: ratingFilter===r ? WOOD.amber : "rgba(0,0,0,0.18)",
+            color: ratingFilter===r ? "#1a0900" : WOOD.textFaint,
+            cursor:"pointer", transition:"all 0.15s", fontFamily:"'DM Sans',sans-serif",
+          }}>
+            {r === null ? "All" : r + " ★"}
+          </button>
+        ))}
       </div>
 
       {/* book covers strip */}
