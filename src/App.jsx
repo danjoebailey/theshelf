@@ -1299,8 +1299,11 @@ function StatsTab({ books }) {
   return (
     <div style={{ overflowY:"auto", padding:"12px 16px 80px", height:"100%", position:"relative", zIndex:10 }} onClick={()=>{ setTimeDropOpen(false); setRatingDropOpen(false); }}>
 
+      {/* filters row */}
+      <div style={{ display:"flex", gap:8, marginBottom:12, alignItems:"center" }} onClick={e=>e.stopPropagation()}>
+
       {/* timeline dropdown */}
-      <div style={{ position:"relative", marginBottom:12 }} onClick={e=>e.stopPropagation()}>
+      <div style={{ position:"relative" }}>
         <button onClick={()=>setTimeDropOpen(o=>!o)} style={{
           display:"flex", alignItems:"center", gap:6,
           background:"rgba(15,8,2,0.55)", borderRadius:20, padding:"6px 14px",
@@ -1331,7 +1334,7 @@ function StatsTab({ books }) {
       </div>
 
       {/* rating filter dropdown */}
-      <div style={{ position:"relative", marginBottom:12 }} onClick={e=>e.stopPropagation()}>
+      <div style={{ position:"relative" }}>
         <button onClick={()=>setRatingDropOpen(o=>!o)} style={{
           display:"flex", alignItems:"center", gap:6,
           background:"rgba(15,8,2,0.55)", borderRadius:20, padding:"6px 14px",
@@ -1360,6 +1363,8 @@ function StatsTab({ books }) {
           </div>
         )}
       </div>
+
+      </div>{/* end filters row */}
 
       {/* book covers strip */}
       {filteredBooks.length > 0 && (
