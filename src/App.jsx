@@ -1993,10 +1993,15 @@ export default function App() {
           {[{ id:"shelf", label:"Shelf" },{ id:"stats", label:"Breakdown" }].map(({ id,label })=>(
             <button key={id} onClick={()=>setTab(id)} style={{
               flex:1, background:"transparent", border:"none", cursor:"pointer",
-              display:"flex", flexDirection:"column", alignItems:"center", gap:4, padding:"6px 0",
+              display:"flex", justifyContent:"center", alignItems:"center", padding:"6px 12px",
             }}>
-              <span style={{ fontSize:13, fontFamily:"'DM Sans',sans-serif", fontWeight:600, color:tab===id?WOOD.amber:WOOD.textFaint, transition:"color 0.2s", letterSpacing:"0.02em" }}>{label}</span>
-              {tab===id && <div style={{ width:20, height:2, borderRadius:1, background:WOOD.amber }}/>}
+              <span style={{
+                padding:"7px 22px", borderRadius:20,
+                background: tab===id ? WOOD.amber : "rgba(0,0,0,0.18)",
+                color: tab===id ? "#1a0900" : WOOD.textFaint,
+                fontSize:13, fontFamily:"'DM Sans',sans-serif", fontWeight:600,
+                transition:"all 0.2s", letterSpacing:"0.02em",
+              }}>{label}</span>
             </button>
           ))}
         </div>
