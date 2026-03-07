@@ -678,6 +678,7 @@ function BookDetailModal({ book, onClose, onEdit, onRemove }) {
             <button onClick={()=>{ onRemove(book.id); onClose(); }} style={{ padding:"12px 18px", borderRadius:10, cursor:"pointer", background:"rgba(192,57,43,0.07)", border:"1px solid rgba(192,57,43,0.18)", fontFamily:"'DM Sans',sans-serif", fontSize:14, fontWeight:600, color:"#c0392b" }}>Remove</button>
           </div>
         </div>
+      </div>
     </div>
   );
 }
@@ -1452,6 +1453,7 @@ function BookSearchModal({ book, onSave, onClose }) {
           fontFamily:"'DM Sans',sans-serif",
           border:"none", cursor:(noRating || rating) ? "pointer" : "default", transition:"all 0.2s",
         }}>Add to Shelf</button>
+      </div>
     </div>
   );
 }
@@ -1736,6 +1738,7 @@ function EditSheet({ book, onSave, onClose }) {
           color:"#1a0900", borderRadius:12, fontSize:15, fontWeight:600,
           fontFamily:"'DM Sans',sans-serif", border:"none", cursor:"pointer",
         }}>Save Changes</button>
+      </div>
     </div>
   );
 }
@@ -1878,6 +1881,7 @@ function GoodreadsImportSheet({ onImport, onClose }) {
             Import {preview.length} books
           </button>
         )}
+      </div>
     </div>
   );
 }
