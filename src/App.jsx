@@ -1270,6 +1270,7 @@ function StatsTab({ books }) {
   const [timeline, setTimeline] = useState("All");
   const [filterOpen, setFilterOpen] = useState(false);
   const [ratingFilter, setRatingFilter] = useState(null);
+  const [genreFilter, setGenreFilter] = useState(null);
 
   const thisYear = new Date().getFullYear().toString();
   const lastYear = (new Date().getFullYear() - 1).toString();
@@ -1279,8 +1280,9 @@ function StatsTab({ books }) {
     if (timeline === "This Year") readBooks = readBooks.filter(b => b.date?.startsWith(thisYear));
     if (timeline === "Last Year") readBooks = readBooks.filter(b => b.date?.startsWith(lastYear));
     if (ratingFilter !== null) readBooks = readBooks.filter(b => b.rating === ratingFilter);
+    if (genreFilter !== null) readBooks = readBooks.filter(b => b.genre === genreFilter);
     return readBooks;
-  }, [books, timeline, ratingFilter]);
+  }, [books, timeline, ratingFilter, genreFilter]);
 
   const stats = useMemo(() => {
     const totalPages = filteredBooks.reduce((s,b)=>s+(b.pages||0),0);
@@ -1302,7 +1304,7 @@ function StatsTab({ books }) {
       <div style={{ position:"relative", marginBottom:12 }} onClick={e=>e.stopPropagation()}>
         <button onClick={()=>setFilterOpen(o=>!o)} style={{
           display:"flex", alignItems:"center", gap:6,
-          background: (timeline !== "All" || ratingFilter !== null) ? WOOD.amber : "rgba(15,8,2,0.55)",
+          background: (timeline !== "All" || ratingFilter !== null || genreFilter !== null) ? WOOD.amber : "rgba(15,8,2,0.55)",
           borderRadius:20, padding:"6px 12px",
           border:"1px solid rgba(120,70,20,0.3)",
           cursor:"pointer", color: (timeline !== "All" || ratingFilter !== null) ? "#1a0900" : "#fff",
@@ -1339,6 +1341,16 @@ function StatsTab({ books }) {
                 border:"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:14,
                 color: ratingFilter===r ? WOOD.amber : WOOD.text, fontWeight: ratingFilter===r ? 600 : 400,
               }}>{r === null ? "All" : r + " ★"}</button>
+            ))}
+            <div style={{ height:1, background:"rgba(138,90,40,0.15)", margin:"4px 0" }}/>
+            <div style={{ padding:"6px 14px 6px", fontSize:10, color:WOOD.textFaint, textTransform:"uppercase", letterSpacing:"0.1em", fontFamily:"'DM Sans',sans-serif" }}>Genre</div>
+            {[null, ...Object.keys(stats.genreMap).sort()].map(g => (
+              <button key={g ?? "all"} onClick={()=>setGenreFilter(genreFilter===g ? null : g)} style={{
+                display:"block", width:"100%", padding:"8px 14px", textAlign:"left",
+                background: genreFilter===g ? "rgba(138,90,40,0.12)" : "transparent",
+                border:"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:14,
+                color: genreFilter===g ? WOOD.amber : WOOD.text, fontWeight: genreFilter===g ? 600 : 400,
+              }}>{g === null ? "All" : g}</button>
             ))}
           </div>
         )}
