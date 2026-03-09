@@ -1424,13 +1424,15 @@ function StatsTab({ books }) {
             </div>
           ) : (
             groupedBooks.map(([groupKey, groupBooks]) => (
-              <div key={groupKey}>
-                <div style={{ padding:"10px 16px 4px", fontSize:11, color:WOOD.textFaint, textTransform:"uppercase", letterSpacing:"0.09em", fontFamily:"'DM Sans',sans-serif", fontWeight:600 }}>
-                  {groupKey} · {groupBooks.length}
+              <div key={groupKey} style={{ marginBottom:4 }}>
+                <div style={{ display:"flex", alignItems:"center", gap:8, padding:"10px 16px 6px" }}>
+                  <span style={{ fontFamily:"'Crimson Pro',serif", fontSize:17, fontWeight:400, color:WOOD.text, letterSpacing:"0.01em" }}>{groupKey}</span>
+                  <span style={{ fontSize:11, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif", fontWeight:500 }}>{groupBooks.length} {groupBooks.length === 1 ? "book" : "books"}</span>
                 </div>
-                <div style={{ display:"flex", gap:6, overflowX:"auto", padding:"4px 16px 10px", scrollbarWidth:"none" }}>
+                <div style={{ display:"flex", gap:6, overflowX:"auto", padding:"2px 16px 10px", scrollbarWidth:"none" }}>
                   {groupBooks.map(b => <BookCoverThumb key={b.id} book={b} />)}
                 </div>
+                <div style={{ height:1, background:"rgba(138,90,40,0.12)", marginLeft:16, marginRight:16 }}/>
               </div>
             ))
           )}
