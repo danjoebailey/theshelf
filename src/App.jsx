@@ -454,19 +454,6 @@ function WoodBg() {
       </defs>
       {/* base wood */}
       <rect width="100%" height="100%" fill="url(#woodBase)"/>
-      {/* horizontal plank lines */}
-      {[0,130,260,390,520,650,780].map((y,i)=>(
-        <g key={i}>
-          <rect x="0" y={y} width="100%" height="2" fill="rgba(80,40,10,0.18)"/>
-          <rect x="0" y={y+2} width="100%" height="1" fill="rgba(255,220,150,0.12)"/>
-        </g>
-      ))}
-      {/* subtle vertical grain lines */}
-      {[28,55,88,115,145,172,205,235,260,292,318,348,375].map((x,i)=>(
-        <line key={i} x1={x} y1="0" x2={x+(i%2===0?3:-2)} y2="780"
-          stroke={i%3===0?"rgba(80,40,10,0.1)":"rgba(255,200,120,0.08)"}
-          strokeWidth={i%3===0?"1.5":"1"}/>
-      ))}
       {/* grain texture overlay */}
       <rect width="100%" height="100%" fill="rgba(180,110,40,0.08)" filter="url(#grain)" style={{mixBlendMode:"multiply"}}/>
       {/* vignette */}
