@@ -1394,7 +1394,9 @@ function StatsTab({ books }) {
             transition:"all 0.2s",
           }}>
             <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor">
-              <path d="M1 2h6v6H1zM9 2h6v6H9zM1 10h6v4H1zM9 10h6v4H9z" opacity="0.85"/>
+              <rect x="1" y="3" width="14" height="1.5" rx="0.75"/>
+              <rect x="1" y="7.25" width="14" height="1.5" rx="0.75"/>
+              <rect x="1" y="11.5" width="14" height="1.5" rx="0.75"/>
             </svg>
             <span>{groupBy ? `Group: ${groupBy[0].toUpperCase()+groupBy.slice(1)}` : "Group"}</span>
           </button>
