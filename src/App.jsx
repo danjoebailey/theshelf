@@ -1266,11 +1266,33 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
   );
 }
 
+function BookCoverThumb({ book: b }) {
+  return (
+    <div style={{ flexShrink:0 }}>
+      {(b.coverUrl || b.coverId)
+        ? <img
+            src={b.coverUrl || `https://covers.openlibrary.org/b/id/${b.coverId}-M.jpg`}
+            alt={b.title} title={b.title}
+            style={{ height:90, width:60, objectFit:"cover", borderRadius:5, boxShadow:"0 3px 10px rgba(0,0,0,0.35)", display:"block" }} />
+        : <div style={{
+            height:90, width:60, borderRadius:5,
+            background:GENRE_COLORS[b.genre]||"#7b6fa0",
+            display:"flex", alignItems:"center", justifyContent:"center",
+            boxShadow:"0 3px 10px rgba(0,0,0,0.3)",
+          }}>
+            <span style={{ fontSize:9, color:"#fff", textAlign:"center", padding:"0 4px", lineHeight:1.3, fontFamily:"'Crimson Pro',serif", fontStyle:"italic" }}>{b.title}</span>
+          </div>
+      }
+    </div>
+  );
+}
+
 function StatsTab({ books }) {
   const [timeline, setTimeline] = useState("All");
   const [filterOpen, setFilterOpen] = useState(false);
   const [ratingFilter, setRatingFilter] = useState(null);
   const [genreFilter, setGenreFilter] = useState(null);
+  const [groupBy, setGroupBy] = useState(null);
 
   const thisYear = new Date().getFullYear().toString();
   const lastYear = (new Date().getFullYear() - 1).toString();
@@ -1294,6 +1316,22 @@ function StatsTab({ books }) {
     return { totalPages, avgRating, genreMap, genrePages, topGenre, topRated };
   }, [filteredBooks]);
   const topGenres = Object.entries(stats.genreMap).sort((a,b)=>b[1]-a[1]);
+
+  const groupedBooks = useMemo(() => {
+    if (!groupBy) return null;
+    const groups = {};
+    filteredBooks.forEach(b => {
+      let key;
+      if (groupBy === "rating") key = b.rating ? `${b.rating} ★` : "Unrated";
+      else if (groupBy === "genre") key = b.genre || "Other";
+      else if (groupBy === "year") key = b.date?.slice(0,4) || "Unknown";
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(b);
+    });
+    if (groupBy === "rating") return Object.entries(groups).sort((a,b) => parseFloat(b[0]) - parseFloat(a[0]));
+    if (groupBy === "year") return Object.entries(groups).sort((a,b) => b[0].localeCompare(a[0]));
+    return Object.entries(groups).sort((a,b) => b[1].length - a[1].length);
+  }, [filteredBooks, groupBy]);
 
   const card = { background:"rgba(255,235,195,0.72)", backdropFilter:"blur(6px)", borderRadius:14, border:`1px solid rgba(160,100,40,0.3)`, boxShadow:"0 2px 8px rgba(0,0,0,0.12)" };
 
@@ -1356,33 +1394,41 @@ function StatsTab({ books }) {
         )}
       </div>
 
+      {/* group by pills */}
+      {filteredBooks.length > 0 && (
+        <div style={{ display:"flex", gap:6, marginBottom:12, flexWrap:"wrap" }}>
+          {[{ id:null, label:"No grouping" },{ id:"rating", label:"Rating" },{ id:"genre", label:"Genre" },{ id:"year", label:"Year" }].map(({ id, label }) => (
+            <button key={id ?? "none"} onClick={() => setGroupBy(id)} style={{
+              padding:"4px 12px", borderRadius:20,
+              border:"1px solid rgba(138,90,40,0.3)",
+              background: groupBy===id ? WOOD.amber : "rgba(15,8,2,0.45)",
+              color: groupBy===id ? "#1a0900" : WOOD.textFaint,
+              fontSize:12, fontFamily:"'DM Sans',sans-serif", fontWeight:500,
+              cursor:"pointer", transition:"all 0.15s",
+            }}>{label}</button>
+          ))}
+        </div>
+      )}
+
       {/* book covers strip */}
       {filteredBooks.length > 0 && (
         <div style={{ marginBottom:20, marginLeft:-16, marginRight:-16 }}>
-          <div style={{
-            display:"flex", gap:6, overflowX:"auto", padding:"16px 16px 12px",
-            scrollbarWidth:"none",
-          }}>
-            {filteredBooks.map(b => (
-              <div key={b.id} style={{ flexShrink:0 }}>
-                {(b.coverUrl || b.coverId)
-                  ? <img
-                      src={b.coverUrl || `https://covers.openlibrary.org/b/id/${b.coverId}-M.jpg`}
-                      alt={b.title}
-                      title={b.title}
-                      style={{ height:90, width:60, objectFit:"cover", borderRadius:5, boxShadow:"0 3px 10px rgba(0,0,0,0.35)", display:"block" }} />
-                  : <div style={{
-                      height:90, width:60, borderRadius:5,
-                      background:GENRE_COLORS[b.genre]||"#7b6fa0",
-                      display:"flex", alignItems:"center", justifyContent:"center",
-                      boxShadow:"0 3px 10px rgba(0,0,0,0.3)",
-                    }}>
-                      <span style={{ fontSize:9, color:"#fff", textAlign:"center", padding:"0 4px", lineHeight:1.3, fontFamily:"'Crimson Pro',serif", fontStyle:"italic" }}>{b.title}</span>
-                    </div>
-                }
+          {!groupBy ? (
+            <div style={{ display:"flex", gap:6, overflowX:"auto", padding:"16px 16px 12px", scrollbarWidth:"none" }}>
+              {filteredBooks.map(b => <BookCoverThumb key={b.id} book={b} />)}
+            </div>
+          ) : (
+            groupedBooks.map(([groupKey, groupBooks]) => (
+              <div key={groupKey}>
+                <div style={{ padding:"10px 16px 4px", fontSize:11, color:WOOD.textFaint, textTransform:"uppercase", letterSpacing:"0.09em", fontFamily:"'DM Sans',sans-serif", fontWeight:600 }}>
+                  {groupKey} · {groupBooks.length}
+                </div>
+                <div style={{ display:"flex", gap:6, overflowX:"auto", padding:"4px 16px 10px", scrollbarWidth:"none" }}>
+                  {groupBooks.map(b => <BookCoverThumb key={b.id} book={b} />)}
+                </div>
               </div>
-            ))}
-          </div>
+            ))
+          )}
           <div style={{ height:1, background:"rgba(138,90,40,0.2)", marginLeft:16, marginRight:16 }}/>
         </div>
       )}
