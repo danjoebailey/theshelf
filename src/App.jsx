@@ -476,7 +476,7 @@ function ShelfLedge({ bottom }) {
   );
 }
 
-function StarRating({ value, onChange, size=22, readonly=false, stretch=false }) {
+function StarRating({ value, onChange, size=22, readonly=false, stretch=false, onlyFilled=false }) {
   const [hovered, setHovered] = useState(null);
   const display = hovered ?? value;
   const uid = useRef(`sr-${Math.random().toString(36).slice(2)}`);
@@ -485,13 +485,16 @@ function StarRating({ value, onChange, size=22, readonly=false, stretch=false })
       onMouseLeave={()=>!readonly&&setHovered(null)}>
       {[1,2,3,4,5].map(star => {
         const full = display >= star, half = !full && display >= star-0.5;
+        if (onlyFilled && !full && !half) return null;
         const id = `${uid.current}-${star}`;
         return (
           <div key={star} style={{ position:"relative", width:size, height:size }}>
-            <svg width={size} height={size} viewBox="0 0 20 20" style={{ position:"absolute" }}>
-              <polygon points="10,2 12.4,7.5 18.5,7.5 13.7,11.4 15.5,17.5 10,13.8 4.5,17.5 6.3,11.4 1.5,7.5 7.6,7.5"
-                fill="rgba(0,0,0,0.3)" stroke="rgba(100,60,20,0.4)" strokeWidth="1" />
-            </svg>
+            {!onlyFilled && (
+              <svg width={size} height={size} viewBox="0 0 20 20" style={{ position:"absolute" }}>
+                <polygon points="10,2 12.4,7.5 18.5,7.5 13.7,11.4 15.5,17.5 10,13.8 4.5,17.5 6.3,11.4 1.5,7.5 7.6,7.5"
+                  fill="rgba(0,0,0,0.3)" stroke="rgba(100,60,20,0.4)" strokeWidth="1" />
+              </svg>
+            )}
             {(full||half) && (
               <svg width={size} height={size} viewBox="0 0 20 20" style={{ position:"absolute" }}>
                 <defs><clipPath id={id}><rect x="0" y="0" width={full?20:10} height="20"/></clipPath></defs>
@@ -1427,7 +1430,7 @@ function StatsTab({ books }) {
               <div key={groupKey} style={{ marginBottom:4 }}>
                 <div style={{ display:"flex", alignItems:"center", gap:8, padding:"10px 16px 6px" }}>
                   {groupBy === "rating" && groupKey !== "Unrated"
-                    ? <StarRating value={parseFloat(groupKey)} readonly size={18} />
+                    ? <StarRating value={parseFloat(groupKey)} readonly size={18} onlyFilled />
                     : <span style={{ fontFamily:"'Crimson Pro',serif", fontSize:17, fontWeight:700, color:"#fff", letterSpacing:"0.01em" }}>{groupKey}</span>
                   }
                   <span style={{ fontSize:11, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif", fontWeight:500 }}>{groupBooks.length} {groupBooks.length === 1 ? "book" : "books"}</span>
