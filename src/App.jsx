@@ -1426,7 +1426,10 @@ function StatsTab({ books }) {
             groupedBooks.map(([groupKey, groupBooks]) => (
               <div key={groupKey} style={{ marginBottom:4 }}>
                 <div style={{ display:"flex", alignItems:"center", gap:8, padding:"10px 16px 6px" }}>
-                  <span style={{ fontFamily:"'Crimson Pro',serif", fontSize:17, fontWeight:700, color:"#fff", letterSpacing:"0.01em" }}>{groupKey}</span>
+                  {groupBy === "rating" && groupKey !== "Unrated"
+                    ? <StarRating value={parseFloat(groupKey)} readonly size={18} />
+                    : <span style={{ fontFamily:"'Crimson Pro',serif", fontSize:17, fontWeight:700, color:"#fff", letterSpacing:"0.01em" }}>{groupKey}</span>
+                  }
                   <span style={{ fontSize:11, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif", fontWeight:500 }}>{groupBooks.length} {groupBooks.length === 1 ? "book" : "books"}</span>
                 </div>
                 <div style={{ display:"flex", gap:6, overflowX:"auto", padding:"2px 16px 10px", scrollbarWidth:"none" }}>
