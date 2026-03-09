@@ -1293,6 +1293,7 @@ function StatsTab({ books }) {
   const [ratingFilter, setRatingFilter] = useState(null);
   const [genreFilter, setGenreFilter] = useState(null);
   const [groupBy, setGroupBy] = useState(null);
+  const [groupOpen, setGroupOpen] = useState(false);
 
   const thisYear = new Date().getFullYear().toString();
   const lastYear = (new Date().getFullYear() - 1).toString();
@@ -1336,7 +1337,7 @@ function StatsTab({ books }) {
   const card = { background:"rgba(255,235,195,0.72)", backdropFilter:"blur(6px)", borderRadius:14, border:`1px solid rgba(160,100,40,0.3)`, boxShadow:"0 2px 8px rgba(0,0,0,0.12)" };
 
   return (
-    <div style={{ overflowY:"auto", padding:"12px 16px 80px", height:"100%", position:"relative", zIndex:10 }} onClick={()=>setFilterOpen(false)}>
+    <div style={{ overflowY:"auto", padding:"12px 16px 80px", height:"100%", position:"relative", zIndex:10 }} onClick={()=>{ setFilterOpen(false); setGroupOpen(false); }}>
 
       {/* filter + group by row */}
       <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12 }} onClick={e=>e.stopPropagation()}>
@@ -1392,29 +1393,39 @@ function StatsTab({ books }) {
             ))}
           </div>
         )}
-        {(() => {
-          const options = [null, "rating", "genre", "year"];
-          const labels = { null: "Group", rating: "Rating", genre: "Genre", year: "Year" };
-          const next = options[(options.indexOf(groupBy) + 1) % options.length];
-          const active = groupBy !== null;
-          return (
-            <button onClick={() => setGroupBy(next)} style={{
-              display:"flex", alignItems:"center", gap:6,
-              background: active ? WOOD.amber : "rgba(15,8,2,0.55)",
-              borderRadius:20, padding:"6px 12px",
-              border:"1px solid rgba(120,70,20,0.3)",
-              cursor:"pointer", color: active ? "#1a0900" : "#fff",
-              fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:500,
-              transition:"all 0.2s", flexShrink:0,
+        <div style={{ position:"relative" }}>
+          <button onClick={()=>setGroupOpen(o=>!o)} style={{
+            display:"flex", alignItems:"center", gap:6,
+            background: groupBy !== null ? WOOD.amber : "rgba(15,8,2,0.55)",
+            borderRadius:20, padding:"6px 12px",
+            border:"1px solid rgba(120,70,20,0.3)",
+            cursor:"pointer", color: groupBy !== null ? "#1a0900" : "#fff",
+            fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:500,
+            transition:"all 0.2s",
+          }}>
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor">
+              <path d="M1 2h6v6H1zM9 2h6v6H9zM1 10h6v4H1zM9 10h6v4H9z" opacity="0.85"/>
+            </svg>
+            <span>{groupBy ? `Group: ${groupBy[0].toUpperCase()+groupBy.slice(1)}` : "Group"}</span>
+          </button>
+          {groupOpen && (
+            <div style={{
+              position:"absolute", top:"calc(100% + 6px)", left:0, zIndex:30, width:160,
+              background:"#f5e8d0", borderRadius:12, overflow:"hidden",
+              boxShadow:"0 4px 20px rgba(0,0,0,0.25)", border:"1px solid rgba(138,90,40,0.3)",
+              animation:"fadeIn 0.12s ease",
             }}>
-              <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
-                <path d="M2 4h12v1.5L9 10v4.5l-2-1V10L2 5.5V4z" opacity="0.4"/>
-                <path d="M5 1v3M11 1v3M2 7h12" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
-              </svg>
-              <span>{active ? `Group: ${labels[groupBy]}` : "Group"}</span>
-            </button>
-          );
-        })()}
+              {[{ id:null, label:"None" },{ id:"rating", label:"Rating" },{ id:"genre", label:"Genre" },{ id:"year", label:"Year" }].map(({ id, label }) => (
+                <button key={id ?? "none"} onClick={()=>{ setGroupBy(id); setGroupOpen(false); }} style={{
+                  display:"block", width:"100%", padding:"8px 14px", textAlign:"left",
+                  background: groupBy===id ? "rgba(138,90,40,0.12)" : "transparent",
+                  border:"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:14,
+                  color: groupBy===id ? WOOD.amber : WOOD.text, fontWeight: groupBy===id ? 600 : 400,
+                }}>{label}</button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* book covers strip */}
