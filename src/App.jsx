@@ -2127,7 +2127,7 @@ export default function App() {
               display:"flex", justifyContent:"center", alignItems:"center", padding:"6px 12px",
             }}>
               <span style={{
-                padding: id==="shelf" ? "2px 8px" : "7px 22px", borderRadius:20,
+                padding: id==="shelf" ? "0px 6px" : "7px 22px", borderRadius:20,
                 background: tab===id ? WOOD.amber : "rgba(0,0,0,0.18)",
                 color: tab===id ? "#1a0900" : WOOD.textFaint,
                 fontSize:13, fontFamily:"'DM Sans',sans-serif", fontWeight:600,
@@ -2135,7 +2135,7 @@ export default function App() {
                 display:"flex", alignItems:"center", justifyContent:"center",
               }}>
                 {id==="shelf"
-                  ? <img src="/books_no_bg.png" alt="Shelf" style={{ height:62, width:"auto", opacity: tab===id ? 1 : 0.55, transition:"opacity 0.2s" }} />
+                  ? <img src="/books_no_bg.png" alt="Shelf" style={{ height:62, width:"auto", display:"block", margin:"-14px -4px", opacity: tab===id ? 1 : 0.55, transition:"opacity 0.2s" }} />
                   : label}
               </span>
             </button>
