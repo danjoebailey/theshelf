@@ -1135,11 +1135,19 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
       <div style={{ flex:1, overflowY:"auto", padding:"4px 16px 16px", position:"relative", zIndex:1 }} onScroll={handleScroll}>
         {filtered.length===0 && apiResults.length===0 && !apiSearching && (
           <div style={{ textAlign:"center", marginTop:60 }}>
-            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:18, fontStyle:"italic", color:WOOD.textFaint }}>
-              {activeShelf === "Read"
-                ? "Add books to shelf from search or input from Goodreads"
-                : "No Books on Shelf"}
-            </p>
+            <div style={{
+              display:"inline-block",
+              background: WOOD.card,
+              border: `1px solid ${WOOD.cardBorder}`,
+              borderRadius:16,
+              padding:"18px 28px",
+            }}>
+              <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:18, fontStyle:"italic", color:WOOD.textFaint, margin:0 }}>
+                {activeShelf === "Read"
+                  ? "Add books to shelf from search or input from Goodreads"
+                  : "No Books on Shelf"}
+              </p>
+            </div>
           </div>
         )}
         {filtered.map((book,i)=>(
