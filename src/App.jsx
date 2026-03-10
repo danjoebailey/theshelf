@@ -2127,12 +2127,17 @@ export default function App() {
               display:"flex", justifyContent:"center", alignItems:"center", padding:"6px 12px",
             }}>
               <span style={{
-                padding:"7px 22px", borderRadius:20,
+                padding: id==="shelf" ? "4px 16px" : "7px 22px", borderRadius:20,
                 background: tab===id ? WOOD.amber : "rgba(0,0,0,0.18)",
                 color: tab===id ? "#1a0900" : WOOD.textFaint,
                 fontSize:13, fontFamily:"'DM Sans',sans-serif", fontWeight:600,
                 transition:"all 0.2s", letterSpacing:"0.02em",
-              }}>{label}</span>
+                display:"flex", alignItems:"center", justifyContent:"center",
+              }}>
+                {id==="shelf"
+                  ? <img src="/books_no_bg.png" alt="Shelf" style={{ height:28, width:"auto", opacity: tab===id ? 1 : 0.55, transition:"opacity 0.2s" }} />
+                  : label}
+              </span>
             </button>
           ))}
         </div>
