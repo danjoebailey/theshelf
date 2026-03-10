@@ -2135,7 +2135,7 @@ export default function App() {
                 display:"flex", alignItems:"center", justifyContent:"center",
               }}>
                 {id==="shelf"
-                  ? <img src="/books_no_bg.png" alt="Shelf" style={{ height:44, width:"auto", opacity: tab===id ? 1 : 0.55, transition:"opacity 0.2s" }} />
+                  ? <img src="/books_no_bg.png" alt="Shelf" style={{ height:62, width:"auto", opacity: tab===id ? 1 : 0.55, transition:"opacity 0.2s" }} />
                   : label}
               </span>
             </button>
