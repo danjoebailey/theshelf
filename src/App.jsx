@@ -1212,9 +1212,12 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
               padding:"18px 28px",
             }}>
               <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:18, fontStyle:"italic", color:WOOD.textFaint, margin:0 }}>
-                {activeShelf === "Read"
-                  ? "Add books to shelf from search or input from Goodreads"
-                  : "No Books on Shelf"}
+                Search to add books or{" "}
+                <button onClick={onImport} style={{
+                  background:"none", border:"none", padding:0, cursor:"pointer",
+                  fontFamily:"'Crimson Pro',serif", fontSize:18, fontStyle:"italic",
+                  color:WOOD.amber, textDecoration:"underline", textDecorationStyle:"dotted",
+                }}>import from Goodreads</button>
               </p>
             </div>
           </div>
