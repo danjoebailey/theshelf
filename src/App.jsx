@@ -2109,9 +2109,6 @@ export default function App() {
           {showImport && <GoodreadsImportSheet onImport={importBooks} onClose={()=>setShowImport(false)} />}
         </div>
 
-        {/* shelf ledge above tab bar */}
-        <ShelfLedge bottom={60} />
-
         {/* tab bar */}
         <div style={{
           display:"flex",
