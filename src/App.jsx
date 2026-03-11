@@ -2150,7 +2150,7 @@ export default function App() {
               background:"rgba(0,0,0,0.18)",
               display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden",
             }}>
-              <img src="/reader_no_bg.png" alt="Account" style={{ height:62, width:"auto", display:"block", margin:"-14px -4px", opacity:0.55, transition:"opacity 0.2s" }} />
+              <img src="/reader_no_bg.png" alt="Account" style={{ height:62, width:"auto", display:"block", margin:"-14px -4px", opacity:0.55, filter:"brightness(0) invert(1)", transition:"opacity 0.2s" }} />
             </span>
           </button>
         </div>
