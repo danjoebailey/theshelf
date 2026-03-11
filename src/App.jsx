@@ -1376,6 +1376,7 @@ function StatsTab({ books }) {
   const [genreFilter, setGenreFilter] = useState(null);
   const [groupBy, setGroupBy] = useState(null);
   const [groupOpen, setGroupOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   const thisYear = new Date().getFullYear().toString();
   const lastYear = (new Date().getFullYear() - 1).toString();
@@ -1417,6 +1418,99 @@ function StatsTab({ books }) {
   }, [filteredBooks, groupBy]);
 
   const card = { background:"rgba(255,235,195,0.72)", backdropFilter:"blur(6px)", borderRadius:14, border:`1px solid rgba(160,100,40,0.3)`, boxShadow:"0 2px 8px rgba(0,0,0,0.12)" };
+
+  async function exportShelfImage() {
+    setExporting(true);
+    const COLS = 5, CW = 80, CH = 120, GAP = 8, PAD = 20, LABEL_H = 36;
+    const sections = groupedBooks
+      ? groupedBooks.map(([key, bks]) => ({ key, bks }))
+      : [{ key: null, bks: filteredBooks }];
+
+    const canvasW = PAD * 2 + COLS * CW + (COLS - 1) * GAP;
+    let canvasH = PAD;
+    sections.forEach(({ key, bks }) => {
+      if (key) canvasH += LABEL_H;
+      canvasH += Math.ceil(bks.length / COLS) * (CH + GAP);
+    });
+    canvasH += PAD + 28; // footer
+
+    const canvas = document.createElement("canvas");
+    canvas.width = canvasW;
+    canvas.height = canvasH;
+    const ctx = canvas.getContext("2d");
+
+    // background
+    const bg = ctx.createLinearGradient(0, 0, 0, canvasH);
+    bg.addColorStop(0, "#7a4820"); bg.addColorStop(1, "#4a2808");
+    ctx.fillStyle = bg; ctx.fillRect(0, 0, canvasW, canvasH);
+
+    // load covers
+    const loadImg = url => new Promise(res => {
+      const img = new Image(); img.crossOrigin = "anonymous";
+      img.onload = () => res(img); img.onerror = () => res(null);
+      img.src = url;
+    });
+    const allBooks = sections.flatMap(s => s.bks);
+    const imgMap = {};
+    await Promise.all(allBooks.map(async b => {
+      const url = b.coverUrl || (b.coverId ? `https://covers.openlibrary.org/b/id/${b.coverId}-M.jpg` : null);
+      if (url) imgMap[b.id] = await loadImg(url);
+    }));
+
+    function clipRoundRect(x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x+r, y); ctx.lineTo(x+w-r, y); ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+      ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+      ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+      ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath();
+    }
+
+    let y = PAD;
+    for (const { key, bks } of sections) {
+      if (key) {
+        ctx.fillStyle = "#f5c97a";
+        ctx.font = "bold 16px 'Georgia', serif";
+        ctx.fillText(key, PAD, y + 22);
+        y += LABEL_H;
+      }
+      bks.forEach((b, i) => {
+        const col = i % COLS, row = Math.floor(i / COLS);
+        const x = PAD + col * (CW + GAP), by = y + row * (CH + GAP);
+        ctx.save(); clipRoundRect(x, by, CW, CH, 4); ctx.clip();
+        if (imgMap[b.id]) {
+          ctx.drawImage(imgMap[b.id], x, by, CW, CH);
+        } else {
+          ctx.fillStyle = GENRE_COLORS[b.genre] || "#8a5a28";
+          ctx.fillRect(x, by, CW, CH);
+          ctx.fillStyle = "rgba(255,255,255,0.85)";
+          ctx.font = "9px sans-serif";
+          const words = b.title.split(" ");
+          let line = "", lineY = by + CH/2 - 8;
+          words.forEach(w => {
+            const test = line ? line + " " + w : w;
+            if (ctx.measureText(test).width > CW - 8) { ctx.fillText(line, x+4, lineY); line = w; lineY += 13; }
+            else line = test;
+          });
+          if (line) ctx.fillText(line, x+4, lineY);
+        }
+        ctx.restore();
+      });
+      y += Math.ceil(bks.length / COLS) * (CH + GAP);
+    }
+
+    // footer
+    ctx.fillStyle = "rgba(245,201,122,0.55)";
+    ctx.font = "12px 'Georgia', serif";
+    ctx.fillText("theshelf.vercel.app", PAD, canvasH - 10);
+
+    canvas.toBlob(blob => {
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "my-shelf.png";
+      a.click();
+      setExporting(false);
+    });
+  }
 
   return (
     <div style={{ overflowY:"auto", padding:"12px 16px 80px", height:"100%", position:"relative", zIndex:10 }} onClick={()=>{ setFilterOpen(false); setGroupOpen(false); }}>
@@ -1526,6 +1620,21 @@ function StatsTab({ books }) {
             </div>
           )}
         </div>
+
+        {/* export as image */}
+        <button onClick={exportShelfImage} disabled={exporting || filteredBooks.length===0} style={{
+          display:"flex", alignItems:"center", justifyContent:"center",
+          background:"rgba(15,8,2,0.55)", borderRadius:20, padding:"6px 10px",
+          border:"1px solid rgba(120,70,20,0.3)", backdropFilter:"blur(4px)",
+          cursor: filteredBooks.length===0 ? "default" : "pointer",
+          color:"#fff", opacity: exporting ? 0.5 : 1, marginLeft:"auto",
+          transition:"opacity 0.2s",
+        }}>
+          {exporting
+            ? <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="7" cy="7" r="5" strokeDasharray="20" strokeDashoffset="10"><animateTransform attributeName="transform" type="rotate" from="0 7 7" to="360 7 7" dur="0.8s" repeatCount="indefinite"/></circle></svg>
+            : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+          }
+        </button>
       </div>
 
       {/* book covers strip */}
