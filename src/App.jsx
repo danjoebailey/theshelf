@@ -1081,13 +1081,6 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
             )}
           </div>
 
-          <button onClick={e=>{ e.stopPropagation(); onImport(); }} style={{
-            display:"flex", alignItems:"center", gap:4,
-            background:"rgba(15,8,2,0.55)", borderRadius:20, padding:"5px 12px",
-            border:"1px solid rgba(120,70,20,0.3)", backdropFilter:"blur(4px)",
-            cursor:"pointer", color:"#fff", fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:500,
-          }}>Goodreads</button>
-
           <div style={{ display:"flex", gap:6, marginLeft:"auto", position:"relative" }}>
             {/* view mode toggle */}
             <button onClick={e=>{ e.stopPropagation(); setViewMode(v=>v==="card"?"row":v==="row"?"pages":"card"); }} title={viewMode==="card"?"Row view":viewMode==="row"?"Pages view":"Card view"} style={{
@@ -2231,6 +2224,7 @@ export default function App() {
   const [editBook, setEditBook] = useState(null);
   const [scrollY, setScrollY] = useState(0);
   const [showImport, setShowImport] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   function addBook(form) {
     const updated = [...books, { id:Date.now(), ...form, pages:parseInt(form.pages)||0, date:new Date().toISOString().slice(0,10) }];
@@ -2345,21 +2339,53 @@ export default function App() {
               </span>
             </button>
           ))}
-          {/* user settings — placeholder until accounts are wired up */}
-          <button disabled style={{
-            flex:1, background:"transparent", border:"none", cursor:"default",
+          {/* profile menu button */}
+          <button onClick={()=>setShowProfileMenu(m=>!m)} style={{
+            flex:1, background:"transparent", border:"none", cursor:"pointer",
             display:"flex", alignItems:"center", justifyContent:"center",
             padding:"6px 12px",
           }}>
             <span style={{
               padding:"0px 6px", borderRadius:20,
-              background:"rgba(0,0,0,0.18)",
+              background: showProfileMenu ? WOOD.amber : "rgba(0,0,0,0.18)",
               display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden",
+              transition:"background 0.2s",
             }}>
-              <img src="/reader_no_bg.png" alt="Account" style={{ height:50, width:"auto", display:"block", margin:"-8px -4px", opacity:0.55, filter:"brightness(0) invert(1)", transition:"opacity 0.2s" }} />
+              <img src="/reader_no_bg.png" alt="Account" style={{ height:50, width:"auto", display:"block", margin:"-8px -4px", opacity: showProfileMenu ? 1 : 0.55, filter:"brightness(0) invert(1)", transition:"opacity 0.2s" }} />
             </span>
           </button>
         </div>
+
+        {/* profile menu sheet */}
+        {showProfileMenu && (
+          <div onClick={()=>setShowProfileMenu(false)} style={{
+            position:"absolute", inset:0, zIndex:50, background:"rgba(0,0,0,0.4)",
+            display:"flex", alignItems:"flex-end", justifyContent:"center",
+            animation:"fadeIn 0.15s ease",
+          }}>
+            <div onClick={e=>e.stopPropagation()} style={{
+              width:"100%", background:"#f5e8d0",
+              borderRadius:"20px 20px 0 0",
+              padding:"20px 20px 36px",
+              boxShadow:"0 -4px 32px rgba(0,0,0,0.25)",
+              animation:"slideUp 0.2s ease",
+            }}>
+              <div style={{ width:36, height:4, background:"rgba(138,90,40,0.3)", borderRadius:2, margin:"0 auto 20px" }} />
+              <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:20, color:WOOD.text, marginBottom:16 }}>Profile</p>
+              <button onClick={()=>{ setShowProfileMenu(false); setShowImport(true); }} style={{
+                display:"flex", alignItems:"center", gap:12, width:"100%",
+                background:"rgba(138,90,40,0.08)", borderRadius:12, padding:"14px 16px",
+                border:"1px solid rgba(138,90,40,0.2)", cursor:"pointer",
+                fontFamily:"'DM Sans',sans-serif", fontSize:14, color:WOOD.text, fontWeight:500,
+              }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={WOOD.textDim} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                </svg>
+                Import from Goodreads
+              </button>
+            </div>
+          </div>
+        )}
     </div>
   );
 }
