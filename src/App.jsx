@@ -2146,14 +2146,11 @@ export default function App() {
             padding:"6px 12px",
           }}>
             <span style={{
-              padding:"7px 14px", borderRadius:20,
+              padding:"0px 6px", borderRadius:20,
               background:"rgba(0,0,0,0.18)",
-              display:"flex", alignItems:"center", justifyContent:"center",
+              display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden",
             }}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1a0900" opacity={0.55} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="8" r="4"/>
-                <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-              </svg>
+              <img src="/reader_no_bg.png" alt="Account" style={{ height:62, width:"auto", display:"block", margin:"-14px -4px", opacity:0.55, transition:"opacity 0.2s" }} />
             </span>
           </button>
         </div>
