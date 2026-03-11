@@ -2137,6 +2137,17 @@ export default function App() {
               </span>
             </button>
           ))}
+          {/* user settings — placeholder until accounts are wired up */}
+          <button disabled style={{
+            background:"transparent", border:"none", cursor:"default",
+            display:"flex", alignItems:"center", justifyContent:"center",
+            padding:"6px 16px", opacity:0.45,
+          }}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1a0900" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="8" r="4"/>
+              <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+            </svg>
+          </button>
         </div>
     </div>
   );
