@@ -1112,7 +1112,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
               {hasFilters && (() => {
                 const active = [filterYear, filterGenre, filterAuthor && filterAuthor.split(" ").pop()].filter(Boolean);
                 return <span style={{ fontSize:11, fontFamily:"'DM Sans',sans-serif", fontWeight:600 }}>
-                  {active[0]}{active.length > 1 ? ` +${active.length - 1}` : ""}
+                  {active.slice(0,2).join(" · ")}{active.length > 2 ? ` +${active.length - 2}` : ""}
                 </span>;
               })()}
             </button>
@@ -1550,7 +1550,7 @@ function StatsTab({ books }) {
                 {hasF && (() => {
                   const active = [timeline !== "All" ? timeline : null, ratingFilter !== null ? `${ratingFilter}★` : null, genreFilter].filter(Boolean);
                   return <span style={{ fontSize:11, fontFamily:"'DM Sans',sans-serif", fontWeight:600 }}>
-                    {active[0]}{active.length > 1 ? ` +${active.length - 1}` : ""}
+                    {active.slice(0,2).join(" · ")}{active.length > 2 ? ` +${active.length - 2}` : ""}
                   </span>;
                 })()}
               </button>
