@@ -1211,9 +1211,10 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
               borderRadius:16,
               padding:"18px 28px",
             }}>
-              <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:18, fontStyle:"italic", color:WOOD.textFaint, marginBottom:14 }}>
+              <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:18, fontStyle:"italic", color:WOOD.textFaint, marginBottom:8 }}>
                 Search to add books
               </p>
+              <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, fontStyle:"italic", color:WOOD.textFaint, marginBottom:8 }}>or</p>
               <button onClick={onImport} style={{
                 display:"flex", alignItems:"center", gap:8, margin:"0 auto",
                 background:WOOD.amber, borderRadius:20, padding:"8px 18px",
