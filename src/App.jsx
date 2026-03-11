@@ -2141,7 +2141,7 @@ export default function App() {
           ))}
           {/* user settings — placeholder until accounts are wired up */}
           <button disabled style={{
-            background:"transparent", border:"none", cursor:"default",
+            flex:1, background:"transparent", border:"none", cursor:"default",
             display:"flex", alignItems:"center", justifyContent:"center",
             padding:"6px 12px",
           }}>
