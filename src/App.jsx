@@ -1423,6 +1423,7 @@ function StatsTab({ books }) {
 
       {/* filter + group by row */}
       <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12 }} onClick={e=>e.stopPropagation()}>
+        <div style={{ position:"relative" }}>
         <button onClick={()=>setFilterOpen(o=>!o)} style={{
           display:"flex", alignItems:"center", gap:6,
           background: (timeline !== "All" || ratingFilter !== null || genreFilter !== null) ? WOOD.amber : "rgba(15,8,2,0.55)",
@@ -1475,6 +1476,7 @@ function StatsTab({ books }) {
             ))}
           </div>
         )}
+        </div>
         <div style={{ position:"relative" }}>
           <button onClick={()=>setGroupOpen(o=>!o)} style={{
             display:"flex", alignItems:"center", gap:6,
