@@ -2134,7 +2134,7 @@ export default function App() {
                 {id==="shelf"
                   ? <img src="/books_no_bg.png" alt="Shelf" style={{ height:62, width:"auto", display:"block", margin:"-14px -4px", opacity: tab===id ? 1 : 0.55, transition:"opacity 0.2s" }} />
                   : id==="stats"
-                  ? <img src="/three_books_breakdown.png" alt="Breakdown" style={{ height:62, width:"auto", display:"block", margin:"-14px -4px", opacity: tab===id ? 1 : 0.55, transition:"opacity 0.2s" }} />
+                  ? <img src="/three_books_breakdown.png" alt="Breakdown" style={{ width:62, height:"auto", display:"block", margin:"4px -4px", opacity: tab===id ? 1 : 0.55, transition:"opacity 0.2s" }} />
                   : label}
               </span>
             </button>
