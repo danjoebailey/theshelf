@@ -851,9 +851,9 @@ function BookRowPages({ book, index, onEdit, maxPages }) {
     <div onClick={()=>onEdit(book)} style={{
       display:"flex", alignItems:"center", gap:10,
       background:WOOD.card, borderRadius:8, padding:"7px 10px", marginBottom:6,
-      borderLeft:`4px solid #8a5a28`,
       boxShadow:"0 1px 4px rgba(0,0,0,0.12)",
       cursor:"pointer", minHeight:rowHeight,
+      borderTop:`6px solid #8a5a28`, borderLeft:`6px solid #8a5a28`, borderBottom:`6px solid #8a5a28`, borderRight:"none",
       animation:`fadeUp 0.2s ease ${index*0.03}s both`,
     }}>
       {(book.coverUrl || book.coverId)
