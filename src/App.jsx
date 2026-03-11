@@ -1109,9 +1109,12 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
               <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
                 <path d="M1 2h10l-4 5v3l-2-1V7L1 2z"/>
               </svg>
-              {hasFilters && <span style={{ fontSize:11, fontFamily:"'DM Sans',sans-serif", fontWeight:600 }}>
-                {[filterYear,filterGenre,filterAuthor].filter(Boolean).length}
-              </span>}
+              {hasFilters && (() => {
+                const active = [filterYear, filterGenre, filterAuthor && filterAuthor.split(" ").pop()].filter(Boolean);
+                return <span style={{ fontSize:11, fontFamily:"'DM Sans',sans-serif", fontWeight:600 }}>
+                  {active[0]}{active.length > 1 ? ` +${active.length - 1}` : ""}
+                </span>;
+              })()}
             </button>
 
             {/* shelf dropdown */}
@@ -1544,7 +1547,12 @@ function StatsTab({ books }) {
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
                   <path d="M1 2h10l-4 5v3l-2-1V7L1 2z"/>
                 </svg>
-                {hasF && <span style={{ fontSize:11, fontFamily:"'DM Sans',sans-serif", fontWeight:600 }}>{activeCount}</span>}
+                {hasF && (() => {
+                  const active = [timeline !== "All" ? timeline : null, ratingFilter !== null ? `${ratingFilter}★` : null, genreFilter].filter(Boolean);
+                  return <span style={{ fontSize:11, fontFamily:"'DM Sans',sans-serif", fontWeight:600 }}>
+                    {active[0]}{active.length > 1 ? ` +${active.length - 1}` : ""}
+                  </span>;
+                })()}
               </button>
               {filterOpen && (
                 <div onClick={e=>e.stopPropagation()} style={{
