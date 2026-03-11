@@ -1211,14 +1211,20 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
               borderRadius:16,
               padding:"18px 28px",
             }}>
-              <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:18, fontStyle:"italic", color:WOOD.textFaint, margin:0 }}>
-                Search to add books or{" "}
-                <button onClick={onImport} style={{
-                  background:"none", border:"none", padding:0, cursor:"pointer",
-                  fontFamily:"'Crimson Pro',serif", fontSize:18, fontStyle:"italic",
-                  color:WOOD.amber, textDecoration:"underline", textDecorationStyle:"dotted",
-                }}>import from Goodreads</button>
+              <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:18, fontStyle:"italic", color:WOOD.textFaint, marginBottom:14 }}>
+                Search to add books
               </p>
+              <button onClick={onImport} style={{
+                display:"flex", alignItems:"center", gap:8, margin:"0 auto",
+                background:WOOD.amber, borderRadius:20, padding:"8px 18px",
+                border:"none", cursor:"pointer",
+                fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:600, color:"#1a0900",
+              }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                </svg>
+                Import from Goodreads
+              </button>
             </div>
           </div>
         )}
