@@ -814,6 +814,34 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
   );
 }
 
+function BookRow({ book, index, onEdit }) {
+  const isRated = (book.shelf || "Read") !== "The List" && (book.shelf || "Read") !== "Curious" && (book.shelf || "Read") !== "Reading";
+  return (
+    <div onClick={()=>onEdit(book)} style={{
+      display:"flex", alignItems:"center", gap:10,
+      background:WOOD.card, borderRadius:8, padding:"7px 10px", marginBottom:6,
+      borderLeft:`4px solid #8a5a28`,
+      boxShadow:"0 1px 4px rgba(0,0,0,0.12)",
+      cursor:"pointer",
+      animation:`fadeUp 0.2s ease ${index*0.03}s both`,
+    }}>
+      {(book.coverUrl || book.coverId)
+        ? <img src={book.coverUrl || `https://covers.openlibrary.org/b/id/${book.coverId}-M.jpg`} alt={book.title}
+            style={{ height:44, aspectRatio:"2/3", objectFit:"cover", borderRadius:3, boxShadow:"1px 1px 5px rgba(0,0,0,0.3)", flexShrink:0 }} />
+        : <BookSpine title={book.title} genre={book.genre} size={44} />
+      }
+      <div style={{ flex:1, minWidth:0 }}>
+        <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, lineHeight:1.2, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", marginBottom:1 }}>{book.title}</p>
+        <p style={{ fontSize:11, color:WOOD.textDim, fontStyle:"italic", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{book.author}</p>
+      </div>
+      <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:3, flexShrink:0 }}>
+        <span style={{ background:GENRE_COLORS[book.genre]||GENRE_COLORS["Other"], color:"#fff", borderRadius:"20px", padding:"2px 7px", fontSize:8, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.06em" }}>{book.genre}</span>
+        {isRated && <StarRating value={book.rating} readonly size={12} />}
+      </div>
+    </div>
+  );
+}
+
 function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelfChange, onImport }) {
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("date");
@@ -831,6 +859,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
   const [customList, setCustomList] = useState([]);
   const [apiResults, setApiResults] = useState([]);
   const [apiSearching, setApiSearching] = useState(false);
+  const [viewMode, setViewMode] = useState("card");
   const searchTimer = useRef(null);
 
   const shelfBooks = useMemo(() => books.filter(b => (b.shelf || "Read") === activeShelf), [books, activeShelf]);
@@ -1028,6 +1057,19 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
           }}>Goodreads</button>
 
           <div style={{ display:"flex", gap:6, marginLeft:"auto", position:"relative" }}>
+            {/* view mode toggle */}
+            <button onClick={e=>{ e.stopPropagation(); setViewMode(v=>v==="card"?"row":"card"); }} title={viewMode==="card"?"Row view":"Card view"} style={{
+              display:"flex", alignItems:"center", justifyContent:"center",
+              background:"rgba(15,8,2,0.55)", borderRadius:20, padding:"5px 10px",
+              border:"1px solid rgba(120,70,20,0.3)", backdropFilter:"blur(4px)",
+              cursor:"pointer", color:"#fff",
+            }}>
+              {viewMode==="card"
+                ? <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor"><rect x="0" y="0" width="13" height="3" rx="1.5"/><rect x="0" y="5" width="13" height="3" rx="1.5"/><rect x="0" y="10" width="13" height="3" rx="1.5"/></svg>
+                : <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor"><rect x="0" y="0" width="6" height="6" rx="1"/><rect x="7" y="0" width="6" height="6" rx="1"/><rect x="0" y="7" width="6" height="6" rx="1"/><rect x="7" y="7" width="6" height="6" rx="1"/></svg>
+              }
+            </button>
+
             {/* filter icon button */}
             <button onClick={e=>{ e.stopPropagation(); setFilterOpen(o=>!o); setShelfDropOpen(false); }} style={{
               display:"flex", alignItems:"center", justifyContent:"center", gap:4,
@@ -1182,7 +1224,10 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
               </div>
             )}
             <div style={{ flex:1, minWidth:0 }}>
-              <BookCard book={book} index={i} onRemove={onRemove} onEdit={onEdit} onShelfChange={onShelfChange} onOpenShelfPicker={setShelfPickerBook} />
+              {viewMode==="row"
+                ? <BookRow book={book} index={i} onEdit={onEdit} />
+                : <BookCard book={book} index={i} onRemove={onRemove} onEdit={onEdit} onShelfChange={onShelfChange} onOpenShelfPicker={setShelfPickerBook} />
+              }
             </div>
           </div>
         ))}
