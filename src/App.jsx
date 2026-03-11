@@ -2117,7 +2117,7 @@ export default function App() {
           display:"flex",
           background:"linear-gradient(180deg, #c89050 0%, #b07838 100%)",
           borderTop:"1px solid rgba(200,150,70,0.4)",
-          padding:"8px 0 16px",
+          padding:"2px 0 6px",
           flexShrink:0,
           position:"relative", zIndex:10,
         }}>
