@@ -678,12 +678,34 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
   const [menuOpen, setMenuOpen] = useState(false);
   const [liked, setLiked] = useState([]);
   const [disliked, setDisliked] = useState([]);
+  const [prose, setProse] = useState(null);
+  const [proseLoading, setProseLoading] = useState(false);
+  const [showProse, setShowProse] = useState(false);
   const desc = book.description || DESCRIPTIONS[book.title] || "";
   const isRated = (book.shelf || "Read") !== "The List" && (book.shelf || "Read") !== "Curious" && (book.shelf || "Read") !== "Reading";
+  const showProseBtn = (book.shelf || "Read") !== "Read" && (book.shelf || "Read") !== "Reading";
 
   function toggleAspect(aspect, list, setList, otherList, setOtherList) {
     if (list.includes(aspect)) setList(list.filter(a => a !== aspect));
     else { setOtherList(otherList.filter(a => a !== aspect)); setList([...list, aspect]); }
+  }
+
+  async function fetchProse() {
+    if (prose) { setShowProse(true); return; }
+    setProseLoading(true);
+    setShowProse(true);
+    try {
+      const res = await fetch("/api/prose-preview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: book.title, author: book.author }),
+      });
+      const data = await res.json();
+      setProse(data.prose || "Unable to generate preview.");
+    } catch {
+      setProse("Unable to generate preview.");
+    }
+    setProseLoading(false);
   }
 
   return (
@@ -785,9 +807,40 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
         </div>
       )}
 
+      {showProse && (
+        <div onClick={e=>e.stopPropagation()} style={{
+          position:"absolute", inset:0, zIndex:20, borderRadius:12,
+          background:"rgba(30,15,5,0.92)", backdropFilter:"blur(4px)",
+          display:"flex", flexDirection:"column", padding:"18px 16px 14px",
+          animation:"fadeIn 0.18s ease",
+        }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
+            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:13, color:"rgba(245,201,122,0.7)", letterSpacing:"0.08em", textTransform:"uppercase" }}>Prose Preview · {book.author}</p>
+            <button onClick={()=>setShowProse(false)} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(255,255,255,0.5)", fontSize:18, lineHeight:1, padding:"0 2px" }}>✕</button>
+          </div>
+          {proseLoading
+            ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:"rgba(255,255,255,0.4)", fontStyle:"italic" }}>Generating…</p>
+            : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:"rgba(255,245,230,0.9)", lineHeight:1.75, fontStyle:"italic", overflowY:"auto", flex:1 }}>{prose}</p>
+          }
+        </div>
+      )}
+
       {expanded && (
         <div style={{ marginTop:10, paddingTop:10, borderTop:"1px solid rgba(138,90,40,0.25)" }} onClick={e=>e.stopPropagation()}>
           {desc && <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, lineHeight:1.65, fontStyle:"italic", marginBottom: isRated ? 14 : 0 }}>{desc}</p>}
+          {showProseBtn && (
+            <button onClick={fetchProse} style={{
+              display:"flex", alignItems:"center", gap:6, marginTop: desc ? 12 : 0, marginBottom: 4,
+              background:"rgba(138,90,40,0.12)", borderRadius:20, padding:"6px 14px",
+              border:"1px solid rgba(138,90,40,0.25)", cursor:"pointer",
+              fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:500, color:WOOD.textDim,
+            }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+              </svg>
+              Prose Preview
+            </button>
+          )}
           {isRated && (
             <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
               <div>
