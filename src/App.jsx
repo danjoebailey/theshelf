@@ -2340,52 +2340,47 @@ export default function App() {
             </button>
           ))}
           {/* profile menu button */}
-          <button onClick={()=>setShowProfileMenu(m=>!m)} style={{
-            flex:1, background:"transparent", border:"none", cursor:"pointer",
-            display:"flex", alignItems:"center", justifyContent:"center",
-            padding:"6px 12px",
-          }}>
-            <span style={{
-              padding:"0px 6px", borderRadius:20,
-              background: showProfileMenu ? WOOD.amber : "rgba(0,0,0,0.18)",
-              display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden",
-              transition:"background 0.2s",
+          <div style={{ flex:1, position:"relative", display:"flex", justifyContent:"center" }}>
+            <button onClick={()=>setShowProfileMenu(m=>!m)} style={{
+              background:"transparent", border:"none", cursor:"pointer",
+              display:"flex", alignItems:"center", justifyContent:"center",
+              padding:"6px 12px",
             }}>
-              <img src="/reader_no_bg.png" alt="Account" style={{ height:50, width:"auto", display:"block", margin:"-8px -4px", opacity: showProfileMenu ? 1 : 0.55, filter:"brightness(0) invert(1)", transition:"opacity 0.2s" }} />
-            </span>
-          </button>
-        </div>
-
-        {/* profile menu sheet */}
-        {showProfileMenu && (
-          <div onClick={()=>setShowProfileMenu(false)} style={{
-            position:"absolute", inset:0, zIndex:50, background:"rgba(0,0,0,0.4)",
-            display:"flex", alignItems:"flex-end", justifyContent:"center",
-            animation:"fadeIn 0.15s ease",
-          }}>
-            <div onClick={e=>e.stopPropagation()} style={{
-              width:"100%", background:"#f5e8d0",
-              borderRadius:"20px 20px 0 0",
-              padding:"20px 20px 36px",
-              boxShadow:"0 -4px 32px rgba(0,0,0,0.25)",
-              animation:"slideUp 0.2s ease",
-            }}>
-              <div style={{ width:36, height:4, background:"rgba(138,90,40,0.3)", borderRadius:2, margin:"0 auto 20px" }} />
-              <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:20, color:WOOD.text, marginBottom:16 }}>Profile</p>
-              <button onClick={()=>{ setShowProfileMenu(false); setShowImport(true); }} style={{
-                display:"flex", alignItems:"center", gap:12, width:"100%",
-                background:"rgba(138,90,40,0.08)", borderRadius:12, padding:"14px 16px",
-                border:"1px solid rgba(138,90,40,0.2)", cursor:"pointer",
-                fontFamily:"'DM Sans',sans-serif", fontSize:14, color:WOOD.text, fontWeight:500,
+              <span style={{
+                padding:"0px 6px", borderRadius:20,
+                background: showProfileMenu ? WOOD.amber : "rgba(0,0,0,0.18)",
+                display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden",
+                transition:"background 0.2s",
               }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={WOOD.textDim} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-                </svg>
-                Import from Goodreads
-              </button>
-            </div>
+                <img src="/reader_no_bg.png" alt="Account" style={{ height:50, width:"auto", display:"block", margin:"-8px -4px", opacity: showProfileMenu ? 1 : 0.55, filter:"brightness(0) invert(1)", transition:"opacity 0.2s" }} />
+              </span>
+            </button>
+
+            {showProfileMenu && (
+              <>
+                <div onClick={()=>setShowProfileMenu(false)} style={{ position:"fixed", inset:0, zIndex:40 }} />
+                <div style={{
+                  position:"absolute", bottom:"calc(100% + 6px)", right:0, zIndex:50, minWidth:200,
+                  background:"#f5e8d0", borderRadius:12, overflow:"hidden",
+                  boxShadow:"0 -4px 20px rgba(0,0,0,0.25)", border:"1px solid rgba(138,90,40,0.3)",
+                  animation:"fadeIn 0.12s ease",
+                }}>
+                  <button onClick={()=>{ setShowProfileMenu(false); setShowImport(true); }} style={{
+                    display:"flex", alignItems:"center", gap:10,
+                    width:"100%", padding:"12px 16px", textAlign:"left",
+                    background:"transparent", border:"none", cursor:"pointer",
+                    fontFamily:"'DM Sans',sans-serif", fontSize:14, color:WOOD.text, fontWeight:400,
+                  }}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={WOOD.textDim} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                    </svg>
+                    Import from Goodreads
+                  </button>
+                </div>
+              </>
+            )}
           </div>
-        )}
+        </div>
     </div>
   );
 }
