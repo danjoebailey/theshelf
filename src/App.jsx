@@ -1424,58 +1424,72 @@ function StatsTab({ books }) {
       {/* filter + group by row */}
       <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12 }} onClick={e=>e.stopPropagation()}>
         <div style={{ position:"relative" }}>
-        <button onClick={()=>setFilterOpen(o=>!o)} style={{
-          display:"flex", alignItems:"center", gap:6,
-          background: (timeline !== "All" || ratingFilter !== null || genreFilter !== null) ? WOOD.amber : "rgba(15,8,2,0.55)",
-          borderRadius:20, padding:"6px 12px",
-          border:"1px solid rgba(120,70,20,0.3)",
-          cursor:"pointer", color: (timeline !== "All" || ratingFilter !== null) ? "#1a0900" : "#fff",
-          fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:500,
-          transition:"all 0.2s",
-        }}>
-          <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor">
-            <path d="M1 3h14v1.5l-5 5V14l-4-2V9.5L1 4.5V3z"/>
-          </svg>
-          <span>Filter</span>
-        </button>
-        {filterOpen && (
-          <div style={{
-            position:"absolute", top:"calc(100% + 6px)", left:0, zIndex:30, width:200,
-            background:"#f5e8d0", borderRadius:12, overflow:"hidden",
-            boxShadow:"0 4px 20px rgba(0,0,0,0.25)", border:"1px solid rgba(138,90,40,0.3)",
-            animation:"fadeIn 0.12s ease",
-          }}>
-            <div style={{ padding:"10px 14px 6px", fontSize:10, color:WOOD.textFaint, textTransform:"uppercase", letterSpacing:"0.1em", fontFamily:"'DM Sans',sans-serif" }}>Period</div>
-            {["All","This Year","Last Year"].map((t, i) => (
-              <button key={t} onClick={()=>setTimeline(t)} style={{
-                display:"block", width:"100%", padding:"8px 14px", textAlign:"left",
-                background: t===timeline ? "rgba(138,90,40,0.12)" : "transparent",
-                border:"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:14,
-                color: t===timeline ? WOOD.amber : WOOD.text, fontWeight: t===timeline ? 600 : 400,
-              }}>{t}</button>
-            ))}
-            <div style={{ height:1, background:"rgba(138,90,40,0.15)", margin:"4px 0" }}/>
-            <div style={{ padding:"6px 14px 6px", fontSize:10, color:WOOD.textFaint, textTransform:"uppercase", letterSpacing:"0.1em", fontFamily:"'DM Sans',sans-serif" }}>Rating</div>
-            {[null, 5, 4.5, 4, 3.5, 3].map(r => (
-              <button key={r ?? "all"} onClick={()=>setRatingFilter(ratingFilter===r ? null : r)} style={{
-                display:"block", width:"100%", padding:"8px 14px", textAlign:"left",
-                background: ratingFilter===r ? "rgba(138,90,40,0.12)" : "transparent",
-                border:"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:14,
-                color: ratingFilter===r ? WOOD.amber : WOOD.text, fontWeight: ratingFilter===r ? 600 : 400,
-              }}>{r === null ? "All" : r + " ★"}</button>
-            ))}
-            <div style={{ height:1, background:"rgba(138,90,40,0.15)", margin:"4px 0" }}/>
-            <div style={{ padding:"6px 14px 6px", fontSize:10, color:WOOD.textFaint, textTransform:"uppercase", letterSpacing:"0.1em", fontFamily:"'DM Sans',sans-serif" }}>Genre</div>
-            {[null, ...Object.keys(stats.genreMap).sort()].map(g => (
-              <button key={g ?? "all"} onClick={()=>setGenreFilter(genreFilter===g ? null : g)} style={{
-                display:"block", width:"100%", padding:"8px 14px", textAlign:"left",
-                background: genreFilter===g ? "rgba(138,90,40,0.12)" : "transparent",
-                border:"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:14,
-                color: genreFilter===g ? WOOD.amber : WOOD.text, fontWeight: genreFilter===g ? 600 : 400,
-              }}>{g === null ? "All" : g}</button>
-            ))}
-          </div>
-        )}
+          {(() => {
+            const hasF = timeline !== "All" || ratingFilter !== null || genreFilter !== null;
+            const activeCount = (timeline !== "All" ? 1 : 0) + (ratingFilter !== null ? 1 : 0) + (genreFilter !== null ? 1 : 0);
+            const statsPillStyle = (active) => ({
+              padding:"5px 12px", borderRadius:20, fontSize:11, fontFamily:"'DM Sans',sans-serif", fontWeight:500,
+              cursor:"pointer", transition:"all 0.15s", border:"1px solid",
+              background: active ? WOOD.amber : "rgba(255,235,195,0.12)",
+              color: active ? "#1a0900" : WOOD.textDim,
+              borderColor: active ? WOOD.amber : "rgba(138,90,40,0.3)",
+              whiteSpace:"nowrap",
+            });
+            return (<>
+              <button onClick={()=>setFilterOpen(o=>!o)} style={{
+                display:"flex", alignItems:"center", justifyContent:"center", gap:4,
+                background: hasF ? WOOD.amber : "rgba(15,8,2,0.55)",
+                borderRadius:20, padding:"6px 10px",
+                border:`1px solid ${hasF ? WOOD.amber : "rgba(120,70,20,0.3)"}`,
+                backdropFilter:"blur(4px)", cursor:"pointer",
+                color: hasF ? "#1a0900" : "#fff",
+              }}>
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+                  <path d="M1 2h10l-4 5v3l-2-1V7L1 2z"/>
+                </svg>
+                {hasF && <span style={{ fontSize:11, fontFamily:"'DM Sans',sans-serif", fontWeight:600 }}>{activeCount}</span>}
+              </button>
+              {filterOpen && (
+                <div onClick={e=>e.stopPropagation()} style={{
+                  position:"absolute", top:"calc(100% + 4px)", left:0, zIndex:30, width:240,
+                  background:"#f5e8d0", borderRadius:12, padding:"14px",
+                  boxShadow:"0 4px 24px rgba(0,0,0,0.28)", border:"1px solid rgba(138,90,40,0.3)",
+                  animation:"fadeIn 0.12s ease",
+                }}>
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
+                    <p style={{ fontSize:11, fontWeight:700, color:WOOD.textDim, textTransform:"uppercase", letterSpacing:"0.1em", fontFamily:"'DM Sans',sans-serif" }}>Filters</p>
+                    {hasF && <button onClick={()=>{ setTimeline("All"); setRatingFilter(null); setGenreFilter(null); }} style={{ fontSize:11, color:WOOD.amber, background:"none", border:"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontWeight:600 }}>Clear all</button>}
+                  </div>
+                  <div style={{ marginBottom:12 }}>
+                    <p style={{ fontSize:10, color:WOOD.textFaint, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6, fontFamily:"'DM Sans',sans-serif" }}>Period</p>
+                    <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
+                      {["All","This Year","Last Year"].map(t => (
+                        <button key={t} onClick={()=>setTimeline(t)} style={statsPillStyle(t===timeline && t!=="All")}>{t}</button>
+                      ))}
+                    </div>
+                  </div>
+                  <div style={{ marginBottom:12 }}>
+                    <p style={{ fontSize:10, color:WOOD.textFaint, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6, fontFamily:"'DM Sans',sans-serif" }}>Rating</p>
+                    <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
+                      {[5, 4.5, 4, 3.5, 3].map(r => (
+                        <button key={r} onClick={()=>setRatingFilter(ratingFilter===r ? null : r)} style={statsPillStyle(ratingFilter===r)}>{r} ★</button>
+                      ))}
+                    </div>
+                  </div>
+                  {Object.keys(stats.genreMap).length > 0 && (
+                    <div>
+                      <p style={{ fontSize:10, color:WOOD.textFaint, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6, fontFamily:"'DM Sans',sans-serif" }}>Genre</p>
+                      <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
+                        {Object.keys(stats.genreMap).sort().map(g => (
+                          <button key={g} onClick={()=>setGenreFilter(genreFilter===g ? null : g)} style={statsPillStyle(genreFilter===g)}>{g}</button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </>);
+          })()}
         </div>
         <div style={{ position:"relative" }}>
           <button onClick={()=>setGroupOpen(o=>!o)} style={{
