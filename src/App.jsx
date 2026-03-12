@@ -1805,7 +1805,7 @@ function ReikoTab({ books }) {
                   }}>
                     <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
                       {recCovers[rec.title]
-                        ? <img src={recCovers[rec.title]} alt={rec.title} style={{ height: 72, aspectRatio: "2/3", objectFit: "cover", borderRadius: 4, boxShadow: "1px 1px 6px rgba(0,0,0,0.3)", flexShrink: 0 }} />
+                        ? <img src={recCovers[rec.title]} alt={rec.title} style={{ height: 72, width: 48, objectFit: "cover", borderRadius: 4, boxShadow: "1px 1px 6px rgba(0,0,0,0.3)", flexShrink: 0 }} />
                         : <div style={{ height: 72, width: 48, borderRadius: 4, background: GENRE_COLORS[rec.genre] || GENRE_COLORS["Other"], flexShrink: 0, boxShadow: "1px 1px 6px rgba(0,0,0,0.2)" }} />
                       }
                       <div style={{ flex: 1, minWidth: 0 }}>
