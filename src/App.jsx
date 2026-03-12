@@ -1567,7 +1567,6 @@ function BookCoverThumb({ book: b }) {
 
 function ReikoTab({ books }) {
   const [selected, setSelected] = useState([]);
-  const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
   const [recs, setRecs] = useState(null);
   const [recCovers, setRecCovers] = useState({});
@@ -1607,7 +1606,7 @@ function ReikoTab({ books }) {
       const res = await fetch("/api/recommend-books", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ books: seeds.map(b => ({ title: b.title, author: b.author, genre: b.genre })), prompt, owned: books.map(b => b.title) }),
+        body: JSON.stringify({ books: seeds.map(b => ({ title: b.title, author: b.author, genre: b.genre })), owned: books.map(b => b.title) }),
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
@@ -1758,23 +1757,6 @@ function ReikoTab({ books }) {
             </div>
           </div>
 
-          {/* Mood prompt */}
-          <div style={{ padding: "0 18px 18px" }}>
-            <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 8 }}>What are you in the mood for? <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: 0 }}>(optional)</span></p>
-            <textarea
-              value={prompt}
-              onChange={e => setPrompt(e.target.value)}
-              placeholder="e.g. something lighter, more historical, a slow burn..."
-              rows={2}
-              style={{
-                width: "100%", boxSizing: "border-box",
-                background: "rgba(0,0,0,0.18)", border: "1.5px solid rgba(255,255,255,0.2)",
-                borderRadius: 10, padding: "10px 12px",
-                fontFamily: "'Crimson Pro',serif", fontSize: 15, color: "#fff",
-                resize: "none", outline: "none",
-              }}
-            />
-          </div>
 
           {/* Submit */}
           <div style={{ padding: "0 18px 22px" }}>
