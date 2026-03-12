@@ -1485,11 +1485,13 @@ function StatsTab({ books }) {
       if (groupBy === "rating") key = b.rating ? `${b.rating} ★` : "Unrated";
       else if (groupBy === "genre") key = b.genre || "Other";
       else if (groupBy === "year") key = b.date?.slice(0,4) || "Unknown";
+      else if (groupBy === "month") { const m = b.date?.slice(5,7); key = m ? MONTH_NAMES[parseInt(m,10)-1] + " " + (b.date?.slice(0,4)||"") : "Unknown"; }
       if (!groups[key]) groups[key] = [];
       groups[key].push(b);
     });
     if (groupBy === "rating") return Object.entries(groups).sort((a,b) => parseFloat(b[0]) - parseFloat(a[0]));
     if (groupBy === "year") return Object.entries(groups).sort((a,b) => b[0].localeCompare(a[0]));
+    if (groupBy === "month") return Object.entries(groups).sort((a,b) => b[0].localeCompare(a[0]));
     return Object.entries(groups).sort((a,b) => b[1].length - a[1].length);
   }, [filteredBooks, groupBy]);
 
@@ -1697,7 +1699,7 @@ function StatsTab({ books }) {
               boxShadow:"0 4px 20px rgba(0,0,0,0.25)", border:"1px solid rgba(138,90,40,0.3)",
               animation:"fadeIn 0.12s ease",
             }}>
-              {[{ id:null, label:"None" },{ id:"rating", label:"Rating" },{ id:"genre", label:"Genre" },{ id:"year", label:"Year" }].map(({ id, label }) => (
+              {[{ id:null, label:"None" },{ id:"rating", label:"Rating" },{ id:"genre", label:"Genre" },{ id:"year", label:"Year" },{ id:"month", label:"Month" }].map(({ id, label }) => (
                 <button key={id ?? "none"} onClick={()=>{ setGroupBy(id); setGroupOpen(false); }} style={{
                   display:"block", width:"100%", padding:"8px 14px", textAlign:"left",
                   background: groupBy===id ? "rgba(138,90,40,0.12)" : "transparent",
