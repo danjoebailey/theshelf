@@ -724,6 +724,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
       animation:`fadeUp 0.28s ease ${index*0.05}s both`,
       cursor:"pointer",
       position:"relative",
+      zIndex: (menuOpen || shelfDropOpen) ? 10 : 1,
     }} onClick={()=>{ if(menuOpen) setMenuOpen(false); else if(shelfDropOpen) setShelfDropOpen(false); else setExpanded(e=>!e); }}>
       <div style={{ display:"flex", gap:14, alignItems:"stretch" }}>
         <div style={{ alignSelf:"stretch", flexShrink:0, display:"flex" }}>
@@ -748,7 +749,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
             {(book.shelf || "Read") !== "The List" && (book.shelf || "Read") !== "Curious" && (book.shelf || "Read") !== "Reading" && <StarRating value={book.rating} readonly size={18} />}
           </div>
           <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
-            <div style={{ display:"flex", gap:7, alignItems:"center", overflow:"hidden" }}>
+            <div style={{ display:"flex", gap:7, alignItems:"center" }}>
             <span style={{ background:GENRE_COLORS[book.genre], color:"#fff", borderRadius:"20px", padding:"3px 10px", fontSize:9, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", flexShrink:0, lineHeight:1 }}>{book.genre}</span>
 
             {/* dynamic shelf bubble + dropdown */}
