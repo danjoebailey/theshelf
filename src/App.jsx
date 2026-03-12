@@ -2708,7 +2708,7 @@ export default function App() {
           flexShrink:0,
           position:"relative", zIndex:10,
         }}>
-          {[{ id:"shelf", label:"Shelf" },{ id:"reiko", label:"Reiko" },{ id:"stats", label:"Breakdown" }].map(({ id,label })=>(
+          {[{ id:"shelf", label:"Shelf" },{ id:"stats", label:"Breakdown" },{ id:"reiko", label:"Reiko" }].map(({ id,label })=>(
             <button key={id} onClick={()=>setTab(id)} style={{
               flex:1, background:"transparent", border:"none", cursor:"pointer",
               display:"flex", justifyContent:"center", alignItems:"center", padding:"6px 12px",
