@@ -2578,6 +2578,46 @@ function saveBooks(books) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(books));
 }
 
+function mapSubjectsToGenre(subjects = []) {
+  const joined = subjects.slice(0, 30).join(" ").toLowerCase();
+  if (/science fiction|sci-fi|space opera|cyberpunk|dystopi|speculative fiction/.test(joined)) return "Sci-Fi";
+  if (/fantasy|magic|dragons|wizard|elves|swords|tolkien/.test(joined)) return "Fantasy";
+  if (/mystery|detective|crime fiction|thriller|suspense/.test(joined)) return "Mystery";
+  if (/romance|love story|romantic fiction/.test(joined)) return "Romance";
+  if (/biography|autobiography|memoir/.test(joined)) return "Biography";
+  if (/history|historical/.test(joined)) return "History";
+  if (/self-help|self help|personal development|motivation|productivity/.test(joined)) return "Self-Help";
+  if (/nonfiction|non-fiction|essays|journalism/.test(joined)) return "Non-Fiction";
+  if (/fiction|novel|short stori/.test(joined)) return "Fiction";
+  return "Other";
+}
+
+async function enrichBooksFromOpenLibrary(books, onProgress) {
+  const results = [];
+  const batchSize = 4;
+  for (let i = 0; i < books.length; i += batchSize) {
+    const batch = books.slice(i, i + batchSize);
+    const enriched = await Promise.all(batch.map(async book => {
+      try {
+        const title = encodeURIComponent(book.title);
+        const author = encodeURIComponent(book.author);
+        const res = await fetch(`https://openlibrary.org/search.json?title=${title}&author=${author}&limit=1&fields=cover_i,subject`);
+        const data = await res.json();
+        const doc = data.docs?.[0];
+        if (!doc) return book;
+        return {
+          ...book,
+          coverId: doc.cover_i || null,
+          genre: mapSubjectsToGenre(doc.subject),
+        };
+      } catch { return book; }
+    }));
+    results.push(...enriched);
+    if (onProgress) onProgress(results.length, books.length);
+  }
+  return results;
+}
+
 function parseGoodreadsCSV(text) {
   const lines = text.split(/\r?\n/);
   if (lines.length < 2) return [];
@@ -2622,6 +2662,8 @@ function parseGoodreadsCSV(text) {
 function GoodreadsImportSheet({ onImport, onClose }) {
   const [preview, setPreview] = useState(null);
   const [error, setError] = useState("");
+  const [enriching, setEnriching] = useState(false);
+  const [enrichProgress, setEnrichProgress] = useState(0);
   const fileRef = useRef(null);
 
   function handleFile(e) {
@@ -2688,17 +2730,22 @@ function GoodreadsImportSheet({ onImport, onClose }) {
                 <span>{shelf}</span><span style={{ fontWeight:600 }}>{count} books</span>
               </div>
             ))}
-            <p style={{ fontSize:11, color:WOOD.textFaint, marginTop:8, fontStyle:"italic" }}>Genres will default to "Other" — you can edit them after importing.</p>
+            <p style={{ fontSize:11, color:WOOD.textFaint, marginTop:8, fontStyle:"italic" }}>Covers and genres will be fetched automatically on import.</p>
           </div>
         )}
 
         {preview && (
-          <button onClick={()=>{ onImport(preview); onClose(); }} style={{
-            width:"100%", padding:"13px", borderRadius:12, cursor:"pointer",
+          <button onClick={async ()=>{
+            setEnriching(true); setEnrichProgress(0);
+            const enriched = await enrichBooksFromOpenLibrary(preview, (done, total) => setEnrichProgress(Math.round(done/total*100)));
+            onImport(enriched); onClose();
+          }} disabled={enriching} style={{
+            width:"100%", padding:"13px", borderRadius:12, cursor: enriching ? "default" : "pointer",
             background:WOOD.amber, border:"none",
             fontFamily:"'DM Sans',sans-serif", fontSize:15, fontWeight:600, color:"#1a0900",
+            opacity: enriching ? 0.8 : 1,
           }}>
-            Import {preview.length} books
+            {enriching ? `Fetching covers & genres… ${enrichProgress}%` : `Import ${preview.length} books`}
           </button>
         )}
       </div>
