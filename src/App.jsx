@@ -1624,8 +1624,9 @@ function ReikoTab({ books }) {
                   <button key={book.id} onClick={() => toggleBook(book.id)} style={{
                     display: "flex", alignItems: "center", gap: 7,
                     padding: "6px 10px 6px 6px", borderRadius: 10,
-                    background: isOn ? "rgba(197,143,60,0.18)" : "rgba(138,90,40,0.07)",
-                    border: `1.5px solid ${isOn ? WOOD.amber : "rgba(138,90,40,0.2)"}`,
+                    background: WOOD.card,
+                    border: `1.5px solid ${isOn ? WOOD.amber : "rgba(138,90,40,0.18)"}`,
+                    boxShadow: isOn ? "0 1px 6px rgba(0,0,0,0.13)" : "0 1px 3px rgba(0,0,0,0.08)",
                     cursor: "pointer", transition: "all 0.15s",
                     maxWidth: 190, minWidth: 0,
                   }}>
