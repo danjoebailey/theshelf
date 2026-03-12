@@ -826,7 +826,13 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
 
       {expanded && (
         <div style={{ marginTop:10, paddingTop:10, borderTop:"1px solid rgba(138,90,40,0.25)" }} onClick={e=>e.stopPropagation()}>
-          {book.pages>0 && <p style={{ color:WOOD.textFaint, fontSize:10, marginBottom:6, fontFamily:"'DM Sans',sans-serif" }}>{book.pages.toLocaleString()} pages</p>}
+          {(book.publishYear || book.pages>0) && (
+            <p style={{ color:WOOD.textFaint, fontSize:10, marginBottom:6, fontFamily:"'DM Sans',sans-serif" }}>
+              {book.publishYear ? `Published ${book.publishYear}` : ""}
+              {book.publishYear && book.pages>0 ? " · " : ""}
+              {book.pages>0 ? `${book.pages.toLocaleString()} pages` : ""}
+            </p>
+          )}
           {desc && <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, lineHeight:1.65, fontStyle:"italic", marginBottom: isRated ? 14 : 0 }}>{desc}</p>}
           {showProseBtn && (
             <button onClick={fetchProse} style={{

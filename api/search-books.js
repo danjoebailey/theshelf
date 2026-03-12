@@ -34,7 +34,7 @@ export default async function handler(req, res) {
   const { query } = req.body;
   if (!query?.trim()) return res.status(400).json({ error: "Missing query" });
 
-  const url = `https://openlibrary.org/search.json?title=${encodeURIComponent(query)}&limit=7&fields=title,author_name,number_of_pages_median,subject,cover_i`;
+  const url = `https://openlibrary.org/search.json?title=${encodeURIComponent(query)}&limit=7&fields=title,author_name,number_of_pages_median,subject,cover_i,first_publish_year`;
   const response = await fetch(url);
   const data = await response.json();
 
@@ -43,7 +43,8 @@ export default async function handler(req, res) {
     author:   (doc.author_name || [])[0] || "Unknown",
     pages:    doc.number_of_pages_median || 0,
     genre:    inferGenre(doc.subject || []),
-    coverUrl: doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg` : null,
+    coverUrl:    doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg` : null,
+    publishYear: doc.first_publish_year || null,
   }));
 
   res.json(results);
