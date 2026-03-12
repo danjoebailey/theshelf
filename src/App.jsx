@@ -1571,6 +1571,29 @@ function ReikoTab({ books }) {
   const [loading, setLoading] = useState(false);
   const [recs, setRecs] = useState(null);
   const [error, setError] = useState(null);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [filterShelf, setFilterShelf] = useState(null);
+  const [filterGenre, setFilterGenre] = useState(null);
+  const [filterRating, setFilterRating] = useState(null);
+  const [filterYear, setFilterYear] = useState(null);
+
+  const availableYears = useMemo(() => [...new Set(books.map(b => b.date ? new Date(b.date).getFullYear() : null).filter(Boolean))].sort((a,b)=>b-a), [books]);
+  const availableGenres = useMemo(() => [...new Set(books.map(b => b.genre).filter(Boolean))].sort(), [books]);
+
+  const filteredPicker = useMemo(() => books.filter(b => {
+    if (filterShelf && (b.shelf || "Read") !== filterShelf) return false;
+    if (filterGenre && b.genre !== filterGenre) return false;
+    if (filterYear && (!b.date || new Date(b.date).getFullYear() !== filterYear)) return false;
+    if (filterRating) {
+      const r = b.rating || 0;
+      if (filterRating === 5 && r < 5) return false;
+      if (filterRating === 4 && r < 4) return false;
+      if (filterRating === 3 && r < 3) return false;
+    }
+    return true;
+  }), [books, filterShelf, filterGenre, filterYear, filterRating]);
+
+  const activeFilterCount = [filterShelf, filterGenre, filterRating, filterYear].filter(Boolean).length;
 
   function toggleBook(id) {
     setSelected(s => s.includes(id) ? s.filter(x => x !== id) : s.length < 6 ? [...s, id] : s);
@@ -1613,11 +1636,96 @@ function ReikoTab({ books }) {
         <>
           {/* Book picker */}
           <div style={{ padding: "0 18px 16px" }}>
-            <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 10 }}>
-              Choose seeds {selected.length > 0 && <span style={{ color: WOOD.amber, fontWeight: 700 }}>({selected.length} selected)</span>}
-            </p>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+              <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", letterSpacing: "0.1em" }}>
+                Choose seeds {selected.length > 0 && <span style={{ color: WOOD.amber, fontWeight: 700 }}>({selected.length} selected)</span>}
+              </p>
+              <button onClick={() => setFilterOpen(o => !o)} style={{
+                display: "flex", alignItems: "center", gap: 5,
+                background: filterOpen || activeFilterCount > 0 ? WOOD.amber : "rgba(255,255,255,0.12)",
+                border: "none", borderRadius: 20, padding: "4px 10px", cursor: "pointer",
+                fontFamily: "'DM Sans',sans-serif", fontSize: 11, fontWeight: 600,
+                color: filterOpen || activeFilterCount > 0 ? "#1a0900" : "rgba(255,255,255,0.8)",
+                transition: "all 0.2s",
+              }}>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+                Filter{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}
+              </button>
+            </div>
+
+            {filterOpen && (
+              <div style={{ marginBottom: 12, display: "flex", flexDirection: "column", gap: 8 }}>
+                {/* Shelf */}
+                <div>
+                  <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.45)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 5 }}>Shelf</p>
+                  <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+                    {SHELVES.map(s => (
+                      <button key={s} onClick={() => setFilterShelf(f => f === s ? null : s)} style={{
+                        padding: "3px 10px", borderRadius: 20, border: "none", cursor: "pointer",
+                        fontFamily: "'DM Sans',sans-serif", fontSize: 11, fontWeight: 600,
+                        background: filterShelf === s ? WOOD.amber : "rgba(255,255,255,0.12)",
+                        color: filterShelf === s ? "#1a0900" : "rgba(255,255,255,0.75)",
+                        transition: "all 0.15s",
+                      }}>{s}</button>
+                    ))}
+                  </div>
+                </div>
+                {/* Genre */}
+                {availableGenres.length > 0 && (
+                  <div>
+                    <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.45)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 5 }}>Genre</p>
+                    <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+                      {availableGenres.map(g => (
+                        <button key={g} onClick={() => setFilterGenre(f => f === g ? null : g)} style={{
+                          padding: "3px 10px", borderRadius: 20, border: "none", cursor: "pointer",
+                          fontFamily: "'DM Sans',sans-serif", fontSize: 11, fontWeight: 600,
+                          background: filterGenre === g ? (GENRE_COLORS[g] || GENRE_COLORS["Other"]) : "rgba(255,255,255,0.12)",
+                          color: filterGenre === g ? "#fff" : "rgba(255,255,255,0.75)",
+                          transition: "all 0.15s",
+                        }}>{g}</button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {/* Rating */}
+                <div>
+                  <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.45)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 5 }}>Rating</p>
+                  <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+                    {[{ label: "5★", val: 5 }, { label: "4★+", val: 4 }, { label: "3★+", val: 3 }].map(({ label, val }) => (
+                      <button key={val} onClick={() => setFilterRating(f => f === val ? null : val)} style={{
+                        padding: "3px 10px", borderRadius: 20, border: "none", cursor: "pointer",
+                        fontFamily: "'DM Sans',sans-serif", fontSize: 11, fontWeight: 600,
+                        background: filterRating === val ? WOOD.amber : "rgba(255,255,255,0.12)",
+                        color: filterRating === val ? "#1a0900" : "rgba(255,255,255,0.75)",
+                        transition: "all 0.15s",
+                      }}>{label}</button>
+                    ))}
+                  </div>
+                </div>
+                {/* Year */}
+                {availableYears.length > 0 && (
+                  <div>
+                    <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.45)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 5 }}>Year Read</p>
+                    <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+                      {availableYears.map(y => (
+                        <button key={y} onClick={() => setFilterYear(f => f === y ? null : y)} style={{
+                          padding: "3px 10px", borderRadius: 20, border: "none", cursor: "pointer",
+                          fontFamily: "'DM Sans',sans-serif", fontSize: 11, fontWeight: 600,
+                          background: filterYear === y ? WOOD.amber : "rgba(255,255,255,0.12)",
+                          color: filterYear === y ? "#1a0900" : "rgba(255,255,255,0.75)",
+                          transition: "all 0.15s",
+                        }}>{y}</button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
-              {books.map(book => {
+              {filteredPicker.length === 0
+                ? <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 14, color: "rgba(255,255,255,0.5)", fontStyle: "italic" }}>No books match the current filters.</p>
+                : filteredPicker.map(book => {
                 const isOn = selected.includes(book.id);
                 const color = GENRE_COLORS[book.genre] || GENRE_COLORS["Other"];
                 return (
