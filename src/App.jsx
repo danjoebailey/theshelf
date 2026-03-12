@@ -901,62 +901,165 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
   );
 }
 
-function BookRow({ book, index, onEdit }) {
+function BookRowExpanded({ book, onEdit, onRemove }) {
+  const desc = book.description || DESCRIPTIONS[book.title] || "";
   const isRated = (book.shelf || "Read") !== "The List" && (book.shelf || "Read") !== "Curious" && (book.shelf || "Read") !== "Reading";
+  const showProseBtn = (book.shelf || "Read") !== "Read" && (book.shelf || "Read") !== "Reading";
+  const [liked, setLiked] = useState([]);
+  const [disliked, setDisliked] = useState([]);
+  const [prose, setProse] = useState(null);
+  const [proseLoading, setProseLoading] = useState(false);
+  const [showProse, setShowProse] = useState(false);
+
+  function toggleAspect(a, list, setList, other, setOther) {
+    if (list.includes(a)) setList(list.filter(x=>x!==a));
+    else { setList([...list,a]); setOther(other.filter(x=>x!==a)); }
+  }
+  async function fetchProse() {
+    setShowProse(true);
+    if (prose) return;
+    setProseLoading(true);
+    try {
+      const res = await fetch("/api/prose-preview", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ title:book.title, author:book.author }) });
+      const data = await res.json();
+      setProse(data.prose || "Unable to generate preview.");
+    } catch { setProse("Unable to generate preview."); }
+    setProseLoading(false);
+  }
+
   return (
-    <div onClick={()=>onEdit(book)} style={{
-      display:"flex", alignItems:"center", gap:10,
-      background:WOOD.card, borderRadius:8, padding:"7px 10px", marginBottom:6,
-      borderLeft:`4px solid #8a5a28`,
-      boxShadow:"0 1px 4px rgba(0,0,0,0.12)",
-      cursor:"pointer",
-      animation:`fadeUp 0.2s ease ${index*0.03}s both`,
-    }}>
-      {(book.coverUrl || book.coverId)
-        ? <img src={book.coverUrl || `https://covers.openlibrary.org/b/id/${book.coverId}-M.jpg`} alt={book.title}
-            style={{ height:44, aspectRatio:"2/3", objectFit:"cover", borderRadius:3, boxShadow:"1px 1px 5px rgba(0,0,0,0.3)", flexShrink:0 }} />
-        : <BookSpine title={book.title} genre={book.genre} size={44} />
-      }
-      <div style={{ flex:1, minWidth:0 }}>
-        <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, lineHeight:1.2, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", marginBottom:1 }}>{book.title}</p>
-        <p style={{ fontSize:11, color:WOOD.textDim, fontStyle:"italic", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{book.author}</p>
+    <div style={{ marginTop:8, paddingTop:8, borderTop:"1px solid rgba(138,90,40,0.25)", position:"relative" }} onClick={e=>e.stopPropagation()}>
+      {showProse && (
+        <div style={{ position:"absolute", inset:0, zIndex:20, borderRadius:8, background:"rgba(30,15,5,0.92)", backdropFilter:"blur(4px)", display:"flex", flexDirection:"column", padding:"14px 12px 10px", animation:"fadeIn 0.18s ease" }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
+            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:12, color:"rgba(245,201,122,0.7)", letterSpacing:"0.08em", textTransform:"uppercase" }}>Prose Preview · {book.author}</p>
+            <button onClick={()=>setShowProse(false)} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(255,255,255,0.5)", fontSize:16, lineHeight:1, padding:"0 2px" }}>✕</button>
+          </div>
+          {proseLoading
+            ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:"rgba(255,255,255,0.4)", fontStyle:"italic" }}>Generating…</p>
+            : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:"rgba(255,245,230,0.9)", lineHeight:1.75, fontStyle:"italic", overflowY:"auto", flex:1 }}>{prose}</p>
+          }
+        </div>
+      )}
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:4 }}>
+        {(book.publishYear || book.pages>0) && (
+          <p style={{ color:WOOD.textFaint, fontSize:10, fontFamily:"'DM Sans',sans-serif" }}>
+            {book.publishYear ? `Published ${book.publishYear}` : ""}
+            {book.publishYear && book.pages>0 ? " · " : ""}
+            {book.pages>0 ? `${book.pages.toLocaleString()} pages` : ""}
+          </p>
+        )}
+        {book.date && (book.shelf||"Read")==="Read" && (
+          <p style={{ color:WOOD.textFaint, fontSize:10, fontFamily:"'DM Sans',sans-serif", textAlign:"right", flexShrink:0, marginLeft:8 }}>
+            {new Date(book.date).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})}
+          </p>
+        )}
       </div>
-      <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:3, flexShrink:0 }}>
-        <span style={{ background:GENRE_COLORS[book.genre]||GENRE_COLORS["Other"], color:"#fff", borderRadius:"20px", padding:"2px 7px", fontSize:8, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.06em" }}>{book.genre}</span>
-        {isRated && <StarRating value={book.rating} readonly size={12} />}
+      {desc && <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:WOOD.text, lineHeight:1.65, fontStyle:"italic", marginBottom: isRated ? 12 : 0 }}>{desc}</p>}
+      {showProseBtn && (
+        <button onClick={fetchProse} style={{ display:"flex", alignItems:"center", gap:6, marginTop:desc?10:0, marginBottom:4, background:"rgba(138,90,40,0.12)", borderRadius:20, padding:"5px 12px", border:"1px solid rgba(138,90,40,0.25)", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, color:WOOD.textDim }}>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          Prose Preview
+        </button>
+      )}
+      {isRated && (
+        <div style={{ display:"flex", flexDirection:"column", gap:8, marginTop:4 }}>
+          <div>
+            <p style={{ fontSize:10, fontWeight:700, color:"#4a7a5a", textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:5, fontFamily:"'DM Sans',sans-serif" }}>👍 Liked</p>
+            <div style={{ display:"flex", gap:4, flexWrap:"wrap" }}>
+              {ASPECTS.map(a => { const active=liked.includes(a); return (
+                <button key={a} onClick={()=>toggleAspect(a,liked,setLiked,disliked,setDisliked)} style={{ padding:"3px 9px", borderRadius:20, fontSize:10, fontFamily:"'DM Sans',sans-serif", fontWeight:600, cursor:"pointer", background:active?"#4a7a5a":"rgba(74,122,90,0.1)", color:active?"#fff":"#4a7a5a", border:`1px solid ${active?"#4a7a5a":"rgba(74,122,90,0.35)"}` }}>{a}</button>
+              ); })}
+            </div>
+          </div>
+          <div>
+            <p style={{ fontSize:10, fontWeight:700, color:"#8a4a4a", textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:5, fontFamily:"'DM Sans',sans-serif" }}>👎 Disliked</p>
+            <div style={{ display:"flex", gap:4, flexWrap:"wrap" }}>
+              {ASPECTS.map(a => { const active=disliked.includes(a); return (
+                <button key={a} onClick={()=>toggleAspect(a,disliked,setDisliked,liked,setLiked)} style={{ padding:"3px 9px", borderRadius:20, fontSize:10, fontFamily:"'DM Sans',sans-serif", fontWeight:600, cursor:"pointer", background:active?"#8a4a4a":"rgba(138,74,74,0.1)", color:active?"#fff":"#8a4a4a", border:`1px solid ${active?"#8a4a4a":"rgba(138,74,74,0.35)"}` }}>{a}</button>
+              ); })}
+            </div>
+          </div>
+        </div>
+      )}
+      <div style={{ display:"flex", gap:8, marginTop:10 }}>
+        <button onClick={()=>onEdit(book)} style={{ flex:1, padding:"7px 0", background:"rgba(138,90,40,0.1)", border:"1px solid rgba(138,90,40,0.2)", borderRadius:8, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:12, color:WOOD.text }}>Edit</button>
+        <button onClick={()=>onRemove(book.id)} style={{ flex:1, padding:"7px 0", background:"rgba(192,57,43,0.08)", border:"1px solid rgba(192,57,43,0.2)", borderRadius:8, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:12, color:"#c0392b" }}>Remove</button>
       </div>
     </div>
   );
 }
 
-function BookRowPages({ book, index, onEdit, maxPages }) {
+function BookRow({ book, index, onEdit, onRemove, onShelfChange }) {
+  const [expanded, setExpanded] = useState(false);
+  const isRated = (book.shelf || "Read") !== "The List" && (book.shelf || "Read") !== "Curious" && (book.shelf || "Read") !== "Reading";
+  return (
+    <div style={{
+      background:WOOD.card, borderRadius:8, padding:"7px 10px", marginBottom:6,
+      borderLeft:`4px solid #8a5a28`,
+      boxShadow:"0 1px 4px rgba(0,0,0,0.12)",
+      cursor:"pointer",
+      animation:`fadeUp 0.2s ease ${index*0.03}s both`,
+      position:"relative", zIndex: expanded ? 10 : 1,
+    }} onClick={()=>setExpanded(e=>!e)}>
+      <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+        {(book.coverUrl || book.coverId)
+          ? <img src={book.coverUrl || `https://covers.openlibrary.org/b/id/${book.coverId}-M.jpg`} alt={book.title}
+              style={{ height:44, aspectRatio:"2/3", objectFit:"cover", borderRadius:3, boxShadow:"1px 1px 5px rgba(0,0,0,0.3)", flexShrink:0 }} />
+          : <BookSpine title={book.title} genre={book.genre} size={44} />
+        }
+        <div style={{ flex:1, minWidth:0 }}>
+          <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, lineHeight:1.2, whiteSpace:expanded?"normal":"nowrap", overflow:"hidden", textOverflow:"ellipsis", marginBottom:1 }}>{book.title}</p>
+          <p style={{ fontSize:11, color:WOOD.textDim, fontStyle:"italic", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{book.author}</p>
+        </div>
+        <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:3, flexShrink:0 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:5 }}>
+            <span style={{ color:WOOD.textFaint, fontSize:11, transition:"transform 0.2s", transform:expanded?"rotate(180deg)":"rotate(0deg)" }}>▾</span>
+            <span style={{ background:GENRE_COLORS[book.genre]||GENRE_COLORS["Other"], color:"#fff", borderRadius:"20px", padding:"2px 7px", fontSize:8, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.06em" }}>{book.genre}</span>
+          </div>
+          {isRated && <StarRating value={book.rating} readonly size={12} />}
+        </div>
+      </div>
+      {expanded && <BookRowExpanded book={book} onEdit={onEdit} onRemove={onRemove} />}
+    </div>
+  );
+}
+
+function BookRowPages({ book, index, onEdit, onRemove, onShelfChange, maxPages }) {
+  const [expanded, setExpanded] = useState(false);
   const isRated = (book.shelf || "Read") !== "The List" && (book.shelf || "Read") !== "Curious" && (book.shelf || "Read") !== "Reading";
   const pages = book.pages || 0;
   const minH = 52, maxH = 190;
   const rowHeight = pages > 0 ? Math.max(minH, Math.min(maxH, minH + (pages / Math.max(maxPages, 1)) * (maxH - minH))) : minH;
   return (
-    <div onClick={()=>onEdit(book)} style={{
-      display:"flex", alignItems:"center", gap:10,
+    <div style={{
       background:WOOD.card, borderRadius:8, padding:"7px 10px", marginBottom:6,
       boxShadow:"0 1px 4px rgba(0,0,0,0.12)",
-      cursor:"pointer", minHeight:rowHeight,
+      cursor:"pointer", minHeight: expanded ? "auto" : rowHeight,
       borderTop:`6px solid #8a5a28`, borderLeft:`6px solid #8a5a28`, borderBottom:`6px solid #8a5a28`, borderRight:"none",
       animation:`fadeUp 0.2s ease ${index*0.03}s both`,
-    }}>
-      {(book.coverUrl || book.coverId)
-        ? <img src={book.coverUrl || `https://covers.openlibrary.org/b/id/${book.coverId}-M.jpg`} alt={book.title}
-            style={{ height:Math.min(rowHeight - 14, 80), aspectRatio:"2/3", objectFit:"cover", borderRadius:3, boxShadow:"1px 1px 5px rgba(0,0,0,0.3)", flexShrink:0 }} />
-        : <BookSpine title={book.title} genre={book.genre} size={Math.min(rowHeight - 14, 80)} />
-      }
-      <div style={{ flex:1, minWidth:0 }}>
-        <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, lineHeight:1.2, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", marginBottom:1 }}>{book.title}</p>
-        <p style={{ fontSize:11, color:WOOD.textDim, fontStyle:"italic", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", marginBottom:4 }}>{book.author}</p>
-        {pages > 0 && <p style={{ fontSize:10, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif" }}>{pages.toLocaleString()} pages</p>}
+      position:"relative", zIndex: expanded ? 10 : 1,
+    }} onClick={()=>setExpanded(e=>!e)}>
+      <div style={{ display:"flex", alignItems:"center", gap:10, minHeight: expanded ? 0 : rowHeight - 14 }}>
+        {(book.coverUrl || book.coverId)
+          ? <img src={book.coverUrl || `https://covers.openlibrary.org/b/id/${book.coverId}-M.jpg`} alt={book.title}
+              style={{ height:Math.min(rowHeight - 14, 80), aspectRatio:"2/3", objectFit:"cover", borderRadius:3, boxShadow:"1px 1px 5px rgba(0,0,0,0.3)", flexShrink:0 }} />
+          : <BookSpine title={book.title} genre={book.genre} size={Math.min(rowHeight - 14, 80)} />
+        }
+        <div style={{ flex:1, minWidth:0 }}>
+          <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, lineHeight:1.2, whiteSpace:expanded?"normal":"nowrap", overflow:"hidden", textOverflow:"ellipsis", marginBottom:1 }}>{book.title}</p>
+          <p style={{ fontSize:11, color:WOOD.textDim, fontStyle:"italic", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", marginBottom:4 }}>{book.author}</p>
+          {pages > 0 && <p style={{ fontSize:10, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif" }}>{pages.toLocaleString()} pages</p>}
+        </div>
+        <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:3, flexShrink:0 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:5 }}>
+            <span style={{ color:WOOD.textFaint, fontSize:11, transition:"transform 0.2s", transform:expanded?"rotate(180deg)":"rotate(0deg)" }}>▾</span>
+            <span style={{ background:GENRE_COLORS[book.genre]||GENRE_COLORS["Other"], color:"#fff", borderRadius:"20px", padding:"2px 7px", fontSize:8, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.06em" }}>{book.genre}</span>
+          </div>
+          {isRated && <StarRating value={book.rating} readonly size={12} />}
+        </div>
       </div>
-      <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:3, flexShrink:0 }}>
-        <span style={{ background:GENRE_COLORS[book.genre]||GENRE_COLORS["Other"], color:"#fff", borderRadius:"20px", padding:"2px 7px", fontSize:8, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.06em" }}>{book.genre}</span>
-        {isRated && <StarRating value={book.rating} readonly size={12} />}
-      </div>
+      {expanded && <BookRowExpanded book={book} onEdit={onEdit} onRemove={onRemove} />}
     </div>
   );
 }
@@ -1352,9 +1455,9 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
             )}
             <div style={{ flex:1, minWidth:0 }}>
               {viewMode==="row"
-                ? <BookRow book={book} index={i} onEdit={onEdit} />
+                ? <BookRow book={book} index={i} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} />
                 : viewMode==="pages"
-                ? <BookRowPages book={book} index={i} onEdit={onEdit} maxPages={Math.max(...filtered.map(b=>b.pages||0))} />
+                ? <BookRowPages book={book} index={i} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} maxPages={Math.max(...filtered.map(b=>b.pages||0))} />
                 : <BookCard book={book} index={i} onRemove={onRemove} onEdit={onEdit} onShelfChange={onShelfChange} onOpenShelfPicker={setShelfPickerBook} />
               }
             </div>
