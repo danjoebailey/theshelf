@@ -1570,6 +1570,7 @@ function ReikoTab({ books }) {
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
   const [recs, setRecs] = useState(null);
+  const [recCovers, setRecCovers] = useState({});
   const [error, setError] = useState(null);
   const [filterOpen, setFilterOpen] = useState(false);
   const [filterShelf, setFilterShelf] = useState(null);
@@ -1601,7 +1602,7 @@ function ReikoTab({ books }) {
 
   async function getRecommendations() {
     const seeds = books.filter(b => selected.includes(b.id));
-    setLoading(true); setRecs(null); setError(null);
+    setLoading(true); setRecs(null); setRecCovers({}); setError(null);
     try {
       const res = await fetch("/api/recommend-books", {
         method: "POST",
@@ -1610,7 +1611,19 @@ function ReikoTab({ books }) {
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
-      setRecs(data.recommendations || []);
+      const results = data.recommendations || [];
+      setRecs(results);
+      // Fetch covers in parallel from OpenLibrary
+      const coverEntries = await Promise.all(results.map(async rec => {
+        try {
+          const q = encodeURIComponent(`${rec.title} ${rec.author}`);
+          const r = await fetch(`https://openlibrary.org/search.json?q=${q}&limit=1&fields=cover_i`);
+          const d = await r.json();
+          const coverId = d.docs?.[0]?.cover_i;
+          return [rec.title, coverId ? `https://covers.openlibrary.org/b/id/${coverId}-M.jpg` : null];
+        } catch { return [rec.title, null]; }
+      }));
+      setRecCovers(Object.fromEntries(coverEntries.filter(([, v]) => v)));
     } catch (e) {
       setError(e.message || "Something went wrong.");
     }
@@ -1807,14 +1820,20 @@ function ReikoTab({ books }) {
                     boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
                     animation: `fadeUp 0.25s ease ${i * 0.06}s both`,
                   }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
-                      <div style={{ flex: 1, minWidth: 0, paddingRight: 8 }}>
-                        <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 17, color: WOOD.text, lineHeight: 1.2, marginBottom: 2 }}>{rec.title}</p>
-                        <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: WOOD.textDim, fontStyle: "italic" }}>{rec.author}</p>
+                    <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+                      {recCovers[rec.title]
+                        ? <img src={recCovers[rec.title]} alt={rec.title} style={{ height: 72, aspectRatio: "2/3", objectFit: "cover", borderRadius: 4, boxShadow: "1px 1px 6px rgba(0,0,0,0.3)", flexShrink: 0 }} />
+                        : <div style={{ height: 72, width: 48, borderRadius: 4, background: GENRE_COLORS[rec.genre] || GENRE_COLORS["Other"], flexShrink: 0, boxShadow: "1px 1px 6px rgba(0,0,0,0.2)" }} />
+                      }
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 3 }}>
+                          <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 17, color: WOOD.text, lineHeight: 1.2, flex: 1, paddingRight: 8 }}>{rec.title}</p>
+                          <span style={{ background: GENRE_COLORS[rec.genre] || GENRE_COLORS["Other"], color: "#fff", borderRadius: 20, padding: "2px 8px", fontSize: 8, fontFamily: "'DM Sans',sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", flexShrink: 0, marginTop: 2 }}>{rec.genre}</span>
+                        </div>
+                        <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: WOOD.textDim, fontStyle: "italic", marginBottom: 6 }}>{rec.author}</p>
+                        <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 14, color: WOOD.textDim, lineHeight: 1.6, fontStyle: "italic" }}>{rec.reason}</p>
                       </div>
-                      <span style={{ background: GENRE_COLORS[rec.genre] || GENRE_COLORS["Other"], color: "#fff", borderRadius: 20, padding: "2px 8px", fontSize: 8, fontFamily: "'DM Sans',sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", flexShrink: 0, marginTop: 2 }}>{rec.genre}</span>
                     </div>
-                    <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 14, color: WOOD.textDim, lineHeight: 1.6, fontStyle: "italic" }}>{rec.reason}</p>
                   </div>
                 ))}
               </div>
