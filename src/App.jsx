@@ -676,6 +676,7 @@ function BookDetailModal({ book, onClose, onEdit, onRemove }) {
 function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPicker }) {
   const [expanded, setExpanded] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [shelfDropOpen, setShelfDropOpen] = useState(false);
   const [liked, setLiked] = useState([]);
   const [disliked, setDisliked] = useState([]);
   const [prose, setProse] = useState(null);
@@ -723,7 +724,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
       animation:`fadeUp 0.28s ease ${index*0.05}s both`,
       cursor:"pointer",
       position:"relative",
-    }} onClick={()=>{ if(menuOpen) setMenuOpen(false); else setExpanded(e=>!e); }}>
+    }} onClick={()=>{ if(menuOpen) setMenuOpen(false); else if(shelfDropOpen) setShelfDropOpen(false); else setExpanded(e=>!e); }}>
       <div style={{ display:"flex", gap:14, alignItems:"stretch" }}>
         <div style={{ alignSelf:"stretch", flexShrink:0, display:"flex" }}>
           {(book.coverUrl || book.coverId)
@@ -750,28 +751,47 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
             <div style={{ display:"flex", gap:7, alignItems:"center", overflow:"hidden" }}>
             <span style={{ background:GENRE_COLORS[book.genre], color:"#fff", borderRadius:"20px", padding:"3px 10px", fontSize:9, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", flexShrink:0, lineHeight:1 }}>{book.genre}</span>
 
-            {/* dynamic shelf bubble */}
+            {/* dynamic shelf bubble + dropdown */}
             {(() => {
               const shelf = book.shelf || "Read";
               const SHELF_META = {
-                "Read":     { label: "Read", bg:"rgba(138,90,40,0.5)",   color:"rgba(255,255,255,0.7)", border:"rgba(138,90,40,0.4)" },
-                "Reading":  { label: "Reading",           bg:"rgba(60,120,80,0.55)",  color:"rgba(255,255,255,0.9)", border:"rgba(60,120,80,0.4)" },
-                "The List": { label: "The List",          bg:"rgba(138,90,40,0.5)",   color:"rgba(255,255,255,0.7)", border:"rgba(138,90,40,0.4)" },
-                "Curious":  { label: "🧐",                bg:"rgba(200,144,90,0.15)", color:WOOD.amber,              border:"rgba(200,144,90,0.3)" },
-                "DNF":      { label: "DNF",               bg:"rgba(160,50,50,0.55)",  color:"rgba(255,255,255,0.9)", border:"rgba(160,50,50,0.4)" },
+                "Read":     { label: "Read",     bg:"rgba(138,90,40,0.5)",   color:"rgba(255,255,255,0.7)", border:"rgba(138,90,40,0.4)" },
+                "Reading":  { label: "Reading",  bg:"rgba(60,120,80,0.55)",  color:"rgba(255,255,255,0.9)", border:"rgba(60,120,80,0.4)" },
+                "The List": { label: "The List", bg:"rgba(138,90,40,0.5)",   color:"rgba(255,255,255,0.7)", border:"rgba(138,90,40,0.4)" },
+                "Curious":  { label: "🧐",       bg:"rgba(200,144,90,0.15)", color:WOOD.amber,              border:"rgba(200,144,90,0.3)" },
+                "DNF":      { label: "DNF",      bg:"rgba(160,50,50,0.55)",  color:"rgba(255,255,255,0.9)", border:"rgba(160,50,50,0.4)" },
               };
               const meta = SHELF_META[shelf];
               return (
-                <span onClick={e=>{ e.stopPropagation(); onOpenShelfPicker && onOpenShelfPicker(book); }} style={{
-                  marginLeft:"auto", flexShrink:0,
-                  background: meta.bg, color: meta.color, border:`1px solid ${meta.border}`,
-                  borderRadius:"20px", padding:"3px 10px",
-                  fontSize: shelf==="Curious" ? 13 : 9,
-                  fontFamily:"'DM Sans',sans-serif", fontWeight:700,
-                  textTransform:"uppercase", letterSpacing:"0.08em",
-                  lineHeight:1, cursor:"pointer", maxWidth:90,
-                  overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
-                }}>{meta.label}</span>
+                <div style={{ position:"relative", marginLeft:"auto", flexShrink:0 }}>
+                  <span onClick={e=>{ e.stopPropagation(); setShelfDropOpen(o=>!o); setMenuOpen(false); }} style={{
+                    background: meta.bg, color: meta.color, border:`1px solid ${meta.border}`,
+                    borderRadius:"20px", padding:"3px 10px",
+                    fontSize: shelf==="Curious" ? 13 : 9,
+                    fontFamily:"'DM Sans',sans-serif", fontWeight:700,
+                    textTransform:"uppercase", letterSpacing:"0.08em",
+                    lineHeight:1, cursor:"pointer", display:"block",
+                    maxWidth:90, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
+                  }}>{meta.label}</span>
+                  {shelfDropOpen && (
+                    <div onClick={e=>e.stopPropagation()} style={{
+                      position:"absolute", top:"calc(100% + 4px)", right:0, zIndex:40, minWidth:120,
+                      background:"#f5e8d0", borderRadius:10, overflow:"hidden",
+                      boxShadow:"0 4px 20px rgba(0,0,0,0.25)", border:"1px solid rgba(138,90,40,0.3)",
+                      animation:"fadeIn 0.12s ease",
+                    }}>
+                      {SHELVES.map((s, i) => (
+                        <button key={s} onClick={()=>{ setShelfDropOpen(false); onShelfChange(book.id, s); }} style={{
+                          display:"block", width:"100%", padding:"9px 14px", textAlign:"left",
+                          background: s===shelf ? "rgba(138,90,40,0.1)" : "transparent",
+                          border:"none", borderBottom: i<SHELVES.length-1 ? "1px solid rgba(138,90,40,0.1)" : "none",
+                          cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:13,
+                          color: s===shelf ? WOOD.amber : WOOD.text, fontWeight: s===shelf ? 600 : 400,
+                        }}>{s}</button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               );
             })()}
           </div>
