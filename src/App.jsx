@@ -1436,6 +1436,7 @@ function BookCoverThumb({ book: b }) {
 
 function StatsTab({ books }) {
   const [timeline, setTimeline] = useState("All");
+  const [filterMonth, setFilterMonth] = useState(null);
   const [filterOpen, setFilterOpen] = useState(false);
   const [ratingFilter, setRatingFilter] = useState(null);
   const [genreFilter, setGenreFilter] = useState(null);
@@ -1443,18 +1444,27 @@ function StatsTab({ books }) {
   const [groupOpen, setGroupOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
 
+  const MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
   const availableYears = useMemo(() => {
     const years = [...new Set(books.filter(b=>(b.shelf||"Read")==="Read").map(b=>b.date?.slice(0,4)).filter(Boolean))];
     return years.sort((a,b)=>b.localeCompare(a));
   }, [books]);
 
+  const availableMonths = useMemo(() => {
+    const base = books.filter(b=>(b.shelf||"Read")==="Read" && (timeline==="All" || b.date?.startsWith(timeline)));
+    const months = [...new Set(base.map(b=>b.date?.slice(5,7)).filter(Boolean))];
+    return months.sort();
+  }, [books, timeline]);
+
   const filteredBooks = useMemo(() => {
     let readBooks = books.filter(b => (b.shelf || "Read") === "Read");
     if (timeline !== "All") readBooks = readBooks.filter(b => b.date?.startsWith(timeline));
+    if (filterMonth !== null) readBooks = readBooks.filter(b => b.date?.slice(5,7) === filterMonth);
     if (ratingFilter !== null) readBooks = readBooks.filter(b => b.rating === ratingFilter);
     if (genreFilter !== null) readBooks = readBooks.filter(b => b.genre === genreFilter);
     return readBooks;
-  }, [books, timeline, ratingFilter, genreFilter]);
+  }, [books, timeline, filterMonth, ratingFilter, genreFilter]);
 
   const stats = useMemo(() => {
     const totalPages = filteredBooks.reduce((s,b)=>s+(b.pages||0),0);
@@ -1585,8 +1595,7 @@ function StatsTab({ books }) {
       <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12 }} onClick={e=>e.stopPropagation()}>
         <div style={{ position:"relative" }}>
           {(() => {
-            const hasF = timeline !== "All" || ratingFilter !== null || genreFilter !== null;
-            const activeCount = (timeline !== "All" ? 1 : 0) + (ratingFilter !== null ? 1 : 0) + (genreFilter !== null ? 1 : 0);
+            const hasF = timeline !== "All" || filterMonth !== null || ratingFilter !== null || genreFilter !== null;
             const statsPillStyle = (active) => ({
               padding:"5px 12px", borderRadius:20, fontSize:11, fontFamily:"'DM Sans',sans-serif", fontWeight:500,
               cursor:"pointer", transition:"all 0.15s", border:"1px solid",
@@ -1608,7 +1617,7 @@ function StatsTab({ books }) {
                   <path d="M1 2h10l-4 5v3l-2-1V7L1 2z"/>
                 </svg>
                 {hasF && (() => {
-                  const active = [timeline !== "All" ? timeline : null, ratingFilter !== null ? `${ratingFilter}★` : null, genreFilter].filter(Boolean);
+                  const active = [timeline !== "All" ? timeline : null, filterMonth !== null ? MONTH_NAMES[parseInt(filterMonth,10)-1] : null, ratingFilter !== null ? `${ratingFilter}★` : null, genreFilter].filter(Boolean);
                   return <span style={{ fontSize:11, fontFamily:"'DM Sans',sans-serif", fontWeight:600 }}>
                     {active.slice(0,2).join(" · ")}{active.length > 2 ? ` +${active.length - 2}` : ""}
                   </span>;
@@ -1623,13 +1632,21 @@ function StatsTab({ books }) {
                 }}>
                   <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
                     <p style={{ fontSize:11, fontWeight:700, color:WOOD.textDim, textTransform:"uppercase", letterSpacing:"0.1em", fontFamily:"'DM Sans',sans-serif" }}>Filters</p>
-                    {hasF && <button onClick={()=>{ setTimeline("All"); setRatingFilter(null); setGenreFilter(null); }} style={{ fontSize:11, color:WOOD.amber, background:"none", border:"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontWeight:600 }}>Clear all</button>}
+                    {hasF && <button onClick={()=>{ setTimeline("All"); setFilterMonth(null); setRatingFilter(null); setGenreFilter(null); }} style={{ fontSize:11, color:WOOD.amber, background:"none", border:"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontWeight:600 }}>Clear all</button>}
                   </div>
                   {availableYears.length > 0 && <div style={{ marginBottom:12 }}>
                     <p style={{ fontSize:10, color:WOOD.textFaint, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6, fontFamily:"'DM Sans',sans-serif" }}>Year</p>
                     <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
                       {availableYears.map(y => (
-                        <button key={y} onClick={()=>setTimeline(timeline===y ? "All" : y)} style={statsPillStyle(timeline===y)}>{y}</button>
+                        <button key={y} onClick={()=>{ setTimeline(timeline===y ? "All" : y); setFilterMonth(null); }} style={statsPillStyle(timeline===y)}>{y}</button>
+                      ))}
+                    </div>
+                  </div>}
+                  {availableMonths.length > 0 && <div style={{ marginBottom:12 }}>
+                    <p style={{ fontSize:10, color:WOOD.textFaint, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6, fontFamily:"'DM Sans',sans-serif" }}>Month</p>
+                    <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
+                      {availableMonths.map(m => (
+                        <button key={m} onClick={()=>setFilterMonth(filterMonth===m ? null : m)} style={statsPillStyle(filterMonth===m)}>{MONTH_NAMES[parseInt(m,10)-1]}</button>
                       ))}
                     </div>
                   </div>}
