@@ -1601,19 +1601,19 @@ function ReikoTab({ books }) {
     <div style={{ height: "100%", overflowY: "auto", overflowX: "hidden", padding: "0 0 100px" }}>
       {/* Header */}
       <div style={{ padding: "20px 18px 14px" }}>
-        <h1 style={{ fontFamily: "'Crimson Pro',serif", fontWeight: 300, fontSize: 30, color: WOOD.text, letterSpacing: "-0.01em", marginBottom: 4 }}>Reiko Mend</h1>
-        <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: WOOD.textFaint }}>Select up to 6 books you've loved — AI will find your next read.</p>
+        <h1 style={{ fontFamily: "'Crimson Pro',serif", fontWeight: 300, fontSize: 30, color: "#fff", letterSpacing: "-0.01em", marginBottom: 4 }}>Reiko Mend</h1>
+        <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: "rgba(255,255,255,0.6)" }}>Select up to 6 books you've loved — AI will find your next read.</p>
       </div>
 
       {!hasBooks ? (
         <div style={{ padding: "40px 20px", textAlign: "center" }}>
-          <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 17, color: WOOD.textDim, fontStyle: "italic" }}>Add books to your shelf first, then come back for recommendations.</p>
+          <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 17, color: "rgba(255,255,255,0.7)", fontStyle: "italic" }}>Add books to your shelf first, then come back for recommendations.</p>
         </div>
       ) : (
         <>
           {/* Book picker */}
           <div style={{ padding: "0 18px 16px" }}>
-            <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 700, color: WOOD.textFaint, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 10 }}>
+            <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 10 }}>
               Choose seeds {selected.length > 0 && <span style={{ color: WOOD.amber, fontWeight: 700 }}>({selected.length} selected)</span>}
             </p>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
@@ -1652,7 +1652,7 @@ function ReikoTab({ books }) {
 
           {/* Mood prompt */}
           <div style={{ padding: "0 18px 18px" }}>
-            <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 700, color: WOOD.textFaint, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 8 }}>What are you in the mood for? <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: 0 }}>(optional)</span></p>
+            <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 8 }}>What are you in the mood for? <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: 0 }}>(optional)</span></p>
             <textarea
               value={prompt}
               onChange={e => setPrompt(e.target.value)}
@@ -1660,9 +1660,9 @@ function ReikoTab({ books }) {
               rows={2}
               style={{
                 width: "100%", boxSizing: "border-box",
-                background: "rgba(138,90,40,0.07)", border: "1.5px solid rgba(138,90,40,0.2)",
+                background: "rgba(0,0,0,0.18)", border: "1.5px solid rgba(255,255,255,0.2)",
                 borderRadius: 10, padding: "10px 12px",
-                fontFamily: "'Crimson Pro',serif", fontSize: 15, color: WOOD.text,
+                fontFamily: "'Crimson Pro',serif", fontSize: 15, color: "#fff",
                 resize: "none", outline: "none",
               }}
             />
@@ -1684,7 +1684,7 @@ function ReikoTab({ books }) {
                 : <><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.3L12 17 5.8 21.2l2.4-7.3L2 9.4h7.6z"/></svg>Get Recommendations</>
               }
             </button>
-            {selected.length === 0 && <p style={{ textAlign: "center", fontSize: 11, color: WOOD.textFaint, fontFamily: "'DM Sans',sans-serif", marginTop: 8 }}>Select at least one book to continue</p>}
+            {selected.length === 0 && <p style={{ textAlign: "center", fontSize: 11, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Sans',sans-serif", marginTop: 8 }}>Select at least one book to continue</p>}
           </div>
 
           {/* Error */}
@@ -1697,23 +1697,23 @@ function ReikoTab({ books }) {
           {/* Results */}
           {recs && recs.length > 0 && (
             <div style={{ padding: "0 18px" }}>
-              <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 700, color: WOOD.textFaint, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 12 }}>Recommended for you</p>
+              <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 12 }}>Recommended for you</p>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {recs.map((rec, i) => (
                   <div key={i} style={{
-                    background: WOOD.card, borderRadius: 12, padding: "14px 14px",
-                    boxShadow: "0 1px 6px rgba(0,0,0,0.1)",
+                    background: "rgba(0,0,0,0.18)", borderRadius: 12, padding: "14px 14px",
+                    boxShadow: "0 1px 6px rgba(0,0,0,0.15)",
                     borderLeft: `4px solid ${GENRE_COLORS[rec.genre] || GENRE_COLORS["Other"]}`,
                     animation: `fadeUp 0.25s ease ${i * 0.06}s both`,
                   }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
                       <div style={{ flex: 1, minWidth: 0, paddingRight: 8 }}>
-                        <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 17, color: WOOD.text, lineHeight: 1.2, marginBottom: 2 }}>{rec.title}</p>
-                        <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: WOOD.textDim, fontStyle: "italic" }}>{rec.author}</p>
+                        <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 17, color: "#fff", lineHeight: 1.2, marginBottom: 2 }}>{rec.title}</p>
+                        <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: "rgba(255,255,255,0.65)", fontStyle: "italic" }}>{rec.author}</p>
                       </div>
                       <span style={{ background: GENRE_COLORS[rec.genre] || GENRE_COLORS["Other"], color: "#fff", borderRadius: 20, padding: "2px 8px", fontSize: 8, fontFamily: "'DM Sans',sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", flexShrink: 0, marginTop: 2 }}>{rec.genre}</span>
                     </div>
-                    <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 14, color: WOOD.textDim, lineHeight: 1.6, fontStyle: "italic" }}>{rec.reason}</p>
+                    <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 14, color: "rgba(255,255,255,0.75)", lineHeight: 1.6, fontStyle: "italic" }}>{rec.reason}</p>
                   </div>
                 ))}
               </div>
