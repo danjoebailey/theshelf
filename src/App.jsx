@@ -1443,13 +1443,14 @@ function StatsTab({ books }) {
   const [groupOpen, setGroupOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
 
-  const thisYear = new Date().getFullYear().toString();
-  const lastYear = (new Date().getFullYear() - 1).toString();
+  const availableYears = useMemo(() => {
+    const years = [...new Set(books.filter(b=>(b.shelf||"Read")==="Read").map(b=>b.date?.slice(0,4)).filter(Boolean))];
+    return years.sort((a,b)=>b.localeCompare(a));
+  }, [books]);
 
   const filteredBooks = useMemo(() => {
     let readBooks = books.filter(b => (b.shelf || "Read") === "Read");
-    if (timeline === "This Year") readBooks = readBooks.filter(b => b.date?.startsWith(thisYear));
-    if (timeline === "Last Year") readBooks = readBooks.filter(b => b.date?.startsWith(lastYear));
+    if (timeline !== "All") readBooks = readBooks.filter(b => b.date?.startsWith(timeline));
     if (ratingFilter !== null) readBooks = readBooks.filter(b => b.rating === ratingFilter);
     if (genreFilter !== null) readBooks = readBooks.filter(b => b.genre === genreFilter);
     return readBooks;
@@ -1624,14 +1625,14 @@ function StatsTab({ books }) {
                     <p style={{ fontSize:11, fontWeight:700, color:WOOD.textDim, textTransform:"uppercase", letterSpacing:"0.1em", fontFamily:"'DM Sans',sans-serif" }}>Filters</p>
                     {hasF && <button onClick={()=>{ setTimeline("All"); setRatingFilter(null); setGenreFilter(null); }} style={{ fontSize:11, color:WOOD.amber, background:"none", border:"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontWeight:600 }}>Clear all</button>}
                   </div>
-                  <div style={{ marginBottom:12 }}>
-                    <p style={{ fontSize:10, color:WOOD.textFaint, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6, fontFamily:"'DM Sans',sans-serif" }}>Period</p>
+                  {availableYears.length > 0 && <div style={{ marginBottom:12 }}>
+                    <p style={{ fontSize:10, color:WOOD.textFaint, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6, fontFamily:"'DM Sans',sans-serif" }}>Year</p>
                     <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
-                      {["All","This Year","Last Year"].map(t => (
-                        <button key={t} onClick={()=>setTimeline(t)} style={statsPillStyle(t===timeline && t!=="All")}>{t}</button>
+                      {availableYears.map(y => (
+                        <button key={y} onClick={()=>setTimeline(timeline===y ? "All" : y)} style={statsPillStyle(timeline===y)}>{y}</button>
                       ))}
                     </div>
-                  </div>
+                  </div>}
                   <div style={{ marginBottom:12 }}>
                     <p style={{ fontSize:10, color:WOOD.textFaint, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6, fontFamily:"'DM Sans',sans-serif" }}>Rating</p>
                     <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
