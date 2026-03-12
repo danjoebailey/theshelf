@@ -1804,10 +1804,13 @@ function ReikoTab({ books }) {
                     animation: `fadeUp 0.25s ease ${i * 0.06}s both`,
                   }}>
                     <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-                      {recCovers[rec.title]
-                        ? <img src={recCovers[rec.title]} alt={rec.title} style={{ height: 72, width: 48, objectFit: "cover", borderRadius: 4, boxShadow: "1px 1px 6px rgba(0,0,0,0.3)", flexShrink: 0 }} />
-                        : <div style={{ height: 72, width: 48, borderRadius: 4, background: GENRE_COLORS[rec.genre] || GENRE_COLORS["Other"], flexShrink: 0, boxShadow: "1px 1px 6px rgba(0,0,0,0.2)" }} />
-                      }
+                      <div style={{ height: 72, width: 48, borderRadius: 4, flexShrink: 0, position: "relative", background: GENRE_COLORS[rec.genre] || GENRE_COLORS["Other"], boxShadow: "1px 1px 6px rgba(0,0,0,0.2)" }}>
+                        {recCovers[rec.title] && (
+                          <img src={recCovers[rec.title]} alt={rec.title}
+                            style={{ position: "absolute", inset: 0, height: 72, width: 48, objectFit: "cover", borderRadius: 4, boxShadow: "1px 1px 6px rgba(0,0,0,0.3)" }}
+                            onError={e => { e.target.style.display = "none"; }} />
+                        )}
+                      </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 3 }}>
                           <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 17, color: WOOD.text, lineHeight: 1.2, flex: 1, paddingRight: 8 }}>{rec.title}</p>
