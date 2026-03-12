@@ -1796,19 +1796,25 @@ function ReikoTab({ books }) {
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {recs.map((rec, i) => (
                   <div key={i} style={{
-                    background: "rgba(0,0,0,0.18)", borderRadius: 12, padding: "14px 14px",
-                    boxShadow: "0 1px 6px rgba(0,0,0,0.15)",
-                    borderLeft: `4px solid ${GENRE_COLORS[rec.genre] || GENRE_COLORS["Other"]}`,
+                    background: WOOD.card,
+                    backdropFilter: "blur(6px)",
+                    borderRadius: 12,
+                    padding: "14px 16px",
+                    borderTop: "6px solid #8a5a28",
+                    borderLeft: "6px solid #8a5a28",
+                    borderBottom: "6px solid #8a5a28",
+                    borderRight: "none",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
                     animation: `fadeUp 0.25s ease ${i * 0.06}s both`,
                   }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
                       <div style={{ flex: 1, minWidth: 0, paddingRight: 8 }}>
-                        <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 17, color: "#fff", lineHeight: 1.2, marginBottom: 2 }}>{rec.title}</p>
-                        <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: "rgba(255,255,255,0.65)", fontStyle: "italic" }}>{rec.author}</p>
+                        <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 17, color: WOOD.text, lineHeight: 1.2, marginBottom: 2 }}>{rec.title}</p>
+                        <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: WOOD.textDim, fontStyle: "italic" }}>{rec.author}</p>
                       </div>
                       <span style={{ background: GENRE_COLORS[rec.genre] || GENRE_COLORS["Other"], color: "#fff", borderRadius: 20, padding: "2px 8px", fontSize: 8, fontFamily: "'DM Sans',sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", flexShrink: 0, marginTop: 2 }}>{rec.genre}</span>
                     </div>
-                    <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 14, color: "rgba(255,255,255,0.75)", lineHeight: 1.6, fontStyle: "italic" }}>{rec.reason}</p>
+                    <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 14, color: WOOD.textDim, lineHeight: 1.6, fontStyle: "italic" }}>{rec.reason}</p>
                   </div>
                 ))}
               </div>
