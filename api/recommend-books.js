@@ -1,7 +1,7 @@
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
 
-  const { books, prompt } = req.body;
+  const { books, prompt, owned } = req.body;
   if (!books || !Array.isArray(books) || books.length === 0)
     return res.status(400).json({ error: "Please select at least one book." });
 
@@ -10,8 +10,11 @@ export default async function handler(req, res) {
 
   const bookList = books.map(b => `- "${b.title}" by ${b.author} (${b.genre})`).join("\n");
   const moodLine = prompt ? `\nThe reader also says: "${prompt}"` : "";
+  const excludeLine = owned && owned.length > 0
+    ? `\n\nDo NOT recommend any of these books the reader already owns:\n${owned.map(t => `- "${t}"`).join("\n")}`
+    : "";
 
-  const userMessage = `Based on these books the reader has enjoyed:\n${bookList}${moodLine}\n\nRecommend exactly 6 books they would love. For each, provide a concise reason (1–2 sentences) explaining why it fits their taste. Respond ONLY with a JSON object — no markdown, no explanation — in this exact format:\n{"recommendations":[{"title":"...","author":"...","genre":"...","reason":"..."},...]}\n\nGenres must be one of: Fiction, Non-Fiction, Fantasy, Sci-Fi, Mystery, Biography, History, Romance, Self-Help, Other.`;
+  const userMessage = `Based on these books the reader has enjoyed:\n${bookList}${moodLine}${excludeLine}\n\nRecommend exactly 6 books they would love. For each, provide a concise reason (1–2 sentences) explaining why it fits their taste. Respond ONLY with a JSON object — no markdown, no explanation — in this exact format:\n{"recommendations":[{"title":"...","author":"...","genre":"...","reason":"..."},...]}\n\nGenres must be one of: Fiction, Non-Fiction, Fantasy, Sci-Fi, Mystery, Biography, History, Romance, Self-Help, Other.`;
 
   const response = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
