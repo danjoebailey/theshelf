@@ -1565,6 +1565,165 @@ function BookCoverThumb({ book: b }) {
   );
 }
 
+function ReikoTab({ books }) {
+  const [selected, setSelected] = useState([]);
+  const [prompt, setPrompt] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [recs, setRecs] = useState(null);
+  const [error, setError] = useState(null);
+
+  function toggleBook(id) {
+    setSelected(s => s.includes(id) ? s.filter(x => x !== id) : s.length < 6 ? [...s, id] : s);
+  }
+
+  async function getRecommendations() {
+    const seeds = books.filter(b => selected.includes(b.id));
+    setLoading(true); setRecs(null); setError(null);
+    try {
+      const res = await fetch("/api/recommend-books", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ books: seeds.map(b => ({ title: b.title, author: b.author, genre: b.genre })), prompt }),
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      setRecs(data.recommendations || []);
+    } catch (e) {
+      setError(e.message || "Something went wrong.");
+    }
+    setLoading(false);
+  }
+
+  const hasBooks = books.length > 0;
+  const canSubmit = selected.length > 0 && !loading;
+
+  return (
+    <div style={{ height: "100%", overflowY: "auto", overflowX: "hidden", padding: "0 0 100px" }}>
+      {/* Header */}
+      <div style={{ padding: "20px 18px 14px" }}>
+        <h1 style={{ fontFamily: "'Crimson Pro',serif", fontWeight: 300, fontSize: 30, color: WOOD.text, letterSpacing: "-0.01em", marginBottom: 4 }}>Reiko Mend</h1>
+        <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: WOOD.textFaint }}>Select up to 6 books you've loved — AI will find your next read.</p>
+      </div>
+
+      {!hasBooks ? (
+        <div style={{ padding: "40px 20px", textAlign: "center" }}>
+          <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 17, color: WOOD.textDim, fontStyle: "italic" }}>Add books to your shelf first, then come back for recommendations.</p>
+        </div>
+      ) : (
+        <>
+          {/* Book picker */}
+          <div style={{ padding: "0 18px 16px" }}>
+            <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 700, color: WOOD.textFaint, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 10 }}>
+              Choose seeds {selected.length > 0 && <span style={{ color: WOOD.amber, fontWeight: 700 }}>({selected.length} selected)</span>}
+            </p>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
+              {books.map(book => {
+                const isOn = selected.includes(book.id);
+                const color = GENRE_COLORS[book.genre] || GENRE_COLORS["Other"];
+                return (
+                  <button key={book.id} onClick={() => toggleBook(book.id)} style={{
+                    display: "flex", alignItems: "center", gap: 7,
+                    padding: "6px 10px 6px 6px", borderRadius: 10,
+                    background: isOn ? "rgba(197,143,60,0.18)" : "rgba(138,90,40,0.07)",
+                    border: `1.5px solid ${isOn ? WOOD.amber : "rgba(138,90,40,0.2)"}`,
+                    cursor: "pointer", transition: "all 0.15s",
+                    maxWidth: 190, minWidth: 0,
+                  }}>
+                    {(book.coverUrl || book.coverId)
+                      ? <img src={book.coverUrl || `https://covers.openlibrary.org/b/id/${book.coverId}-S.jpg`} alt={book.title}
+                          style={{ height: 34, aspectRatio: "2/3", objectFit: "cover", borderRadius: 3, flexShrink: 0 }} />
+                      : <div style={{ height: 34, width: 23, borderRadius: 3, background: color, flexShrink: 0 }} />
+                    }
+                    <div style={{ minWidth: 0, textAlign: "left" }}>
+                      <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 13, color: isOn ? WOOD.text : WOOD.textDim, lineHeight: 1.2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 130 }}>{book.title}</p>
+                      <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, color: WOOD.textFaint, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 130 }}>{book.author}</p>
+                    </div>
+                    {isOn && (
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill={WOOD.amber} stroke="none" style={{ flexShrink: 0, marginLeft: 2 }}>
+                        <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.3L12 17 5.8 21.2l2.4-7.3L2 9.4h7.6z" />
+                      </svg>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Mood prompt */}
+          <div style={{ padding: "0 18px 18px" }}>
+            <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 700, color: WOOD.textFaint, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 8 }}>What are you in the mood for? <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: 0 }}>(optional)</span></p>
+            <textarea
+              value={prompt}
+              onChange={e => setPrompt(e.target.value)}
+              placeholder="e.g. something lighter, more historical, a slow burn..."
+              rows={2}
+              style={{
+                width: "100%", boxSizing: "border-box",
+                background: "rgba(138,90,40,0.07)", border: "1.5px solid rgba(138,90,40,0.2)",
+                borderRadius: 10, padding: "10px 12px",
+                fontFamily: "'Crimson Pro',serif", fontSize: 15, color: WOOD.text,
+                resize: "none", outline: "none",
+              }}
+            />
+          </div>
+
+          {/* Submit */}
+          <div style={{ padding: "0 18px 22px" }}>
+            <button onClick={getRecommendations} disabled={!canSubmit} style={{
+              width: "100%", padding: "13px 0",
+              background: canSubmit ? `linear-gradient(135deg, ${WOOD.amber}, #c8883a)` : "rgba(138,90,40,0.15)",
+              border: "none", borderRadius: 12, cursor: canSubmit ? "pointer" : "default",
+              fontFamily: "'DM Sans',sans-serif", fontSize: 15, fontWeight: 700,
+              color: canSubmit ? "#1a0900" : WOOD.textFaint,
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+              transition: "all 0.2s",
+            }}>
+              {loading
+                ? <><span style={{ width: 16, height: 16, border: "2px solid rgba(26,9,0,0.3)", borderTopColor: "#1a0900", borderRadius: "50%", display: "inline-block", animation: "spin 0.7s linear infinite" }} /> Finding books…</>
+                : <><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.3L12 17 5.8 21.2l2.4-7.3L2 9.4h7.6z"/></svg>Get Recommendations</>
+              }
+            </button>
+            {selected.length === 0 && <p style={{ textAlign: "center", fontSize: 11, color: WOOD.textFaint, fontFamily: "'DM Sans',sans-serif", marginTop: 8 }}>Select at least one book to continue</p>}
+          </div>
+
+          {/* Error */}
+          {error && (
+            <div style={{ margin: "0 18px 18px", padding: "12px 14px", background: "rgba(192,57,43,0.08)", border: "1px solid rgba(192,57,43,0.2)", borderRadius: 10 }}>
+              <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: "#c0392b" }}>{error}</p>
+            </div>
+          )}
+
+          {/* Results */}
+          {recs && recs.length > 0 && (
+            <div style={{ padding: "0 18px" }}>
+              <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 700, color: WOOD.textFaint, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 12 }}>Recommended for you</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {recs.map((rec, i) => (
+                  <div key={i} style={{
+                    background: WOOD.card, borderRadius: 12, padding: "14px 14px",
+                    boxShadow: "0 1px 6px rgba(0,0,0,0.1)",
+                    borderLeft: `4px solid ${GENRE_COLORS[rec.genre] || GENRE_COLORS["Other"]}`,
+                    animation: `fadeUp 0.25s ease ${i * 0.06}s both`,
+                  }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 6 }}>
+                      <div style={{ flex: 1, minWidth: 0, paddingRight: 8 }}>
+                        <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 17, color: WOOD.text, lineHeight: 1.2, marginBottom: 2 }}>{rec.title}</p>
+                        <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: WOOD.textDim, fontStyle: "italic" }}>{rec.author}</p>
+                      </div>
+                      <span style={{ background: GENRE_COLORS[rec.genre] || GENRE_COLORS["Other"], color: "#fff", borderRadius: 20, padding: "2px 8px", fontSize: 8, fontFamily: "'DM Sans',sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", flexShrink: 0, marginTop: 2 }}>{rec.genre}</span>
+                    </div>
+                    <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 14, color: WOOD.textDim, lineHeight: 1.6, fontStyle: "italic" }}>{rec.reason}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
 function StatsTab({ books }) {
   const [timeline, setTimeline] = useState("All");
   const [filterMonth, setFilterMonth] = useState(null);
@@ -2529,6 +2688,8 @@ export default function App() {
         <div style={{ flex:1, overflow:"hidden", position:"relative" }}>
           {tab==="shelf"
             ? <ShelfTab books={books} onAdd={()=>setShowAdd(true)} onAddBook={book=>{ setAddInitialBook(book); setShowAdd(true); }} onRemove={id=>{ const next = books.filter(b=>b.id!==id); setBooks(next); saveBooks(next); }} onEdit={setEditBook} onScroll={setScrollY} onShelfChange={changeShelf} onImport={()=>setShowImport(true)} />
+            : tab==="reiko"
+            ? <ReikoTab books={books} />
             : <StatsTab books={books} />
           }
           {showAdd && !addInitialBook && <AddSheet onSave={addBook} onClose={()=>setShowAdd(false)} />}
@@ -2546,13 +2707,13 @@ export default function App() {
           flexShrink:0,
           position:"relative", zIndex:10,
         }}>
-          {[{ id:"shelf", label:"Shelf" },{ id:"stats", label:"Breakdown" }].map(({ id,label })=>(
+          {[{ id:"shelf", label:"Shelf" },{ id:"reiko", label:"Reiko" },{ id:"stats", label:"Breakdown" }].map(({ id,label })=>(
             <button key={id} onClick={()=>setTab(id)} style={{
               flex:1, background:"transparent", border:"none", cursor:"pointer",
               display:"flex", justifyContent:"center", alignItems:"center", padding:"6px 12px",
             }}>
               <span style={{
-                padding: id==="shelf" ? "0px 6px" : id==="stats" ? "9px 10px" : "7px 22px", borderRadius:20,
+                padding: id==="shelf" ? "0px 6px" : id==="stats" ? "9px 10px" : "11px 13px", borderRadius:20,
                 background: tab===id ? WOOD.amber : "rgba(0,0,0,0.18)",
                 color: tab===id ? "#1a0900" : WOOD.textFaint,
                 fontSize:13, fontFamily:"'DM Sans',sans-serif", fontWeight:600,
@@ -2563,6 +2724,10 @@ export default function App() {
                   ? <img src="/books_no_bg.png" alt="Shelf" style={{ height:62, width:"auto", display:"block", margin:"-14px -4px", opacity: tab===id ? 1 : 0.55, transition:"opacity 0.2s" }} />
                   : id==="stats"
                   ? <img src="/three_books_breakdown.png" alt="Breakdown" style={{ width:46, height:"auto", display:"block", margin:"0", opacity: tab===id ? 1 : 0.55, transition:"opacity 0.2s" }} />
+                  : id==="reiko"
+                  ? <svg width="22" height="22" viewBox="0 0 24 24" fill={tab===id ? "#1a0900" : "none"} stroke={tab===id ? "#1a0900" : WOOD.textFaint} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: tab===id ? 1 : 0.7, transition:"all 0.2s" }}>
+                      <path d="M12 2l2.09 6.26L20 9.27l-4.5 4.37 1.18 6.36L12 17l-4.68 3-1.5-6.36L2 9.27l5.91-1.01z"/>
+                    </svg>
                   : label}
               </span>
             </button>
