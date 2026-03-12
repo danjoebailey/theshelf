@@ -1615,7 +1615,8 @@ function ReikoTab({ books }) {
       // Fetch covers in parallel from OpenLibrary
       const coverEntries = await Promise.all(results.map(async rec => {
         try {
-          const q = encodeURIComponent(`${rec.title} ${rec.author}`);
+          const cleanTitle = rec.title.replace(/\s*\(.*$/, "").trim();
+          const q = encodeURIComponent(`${cleanTitle} ${rec.author}`);
           const r = await fetch(`https://openlibrary.org/search.json?q=${q}&limit=1&fields=cover_i`);
           const d = await r.json();
           const coverId = d.docs?.[0]?.cover_i;
@@ -2599,7 +2600,7 @@ async function enrichBooksFromOpenLibrary(books, onProgress) {
     const batch = books.slice(i, i + batchSize);
     const enriched = await Promise.all(batch.map(async book => {
       try {
-        const title = encodeURIComponent(book.title);
+        const title = encodeURIComponent(book.title.replace(/\s*\(.*$/, "").trim());
         const author = encodeURIComponent(book.author);
         const res = await fetch(`https://openlibrary.org/search.json?title=${title}&author=${author}&limit=1&fields=cover_i,subject`);
         const data = await res.json();
