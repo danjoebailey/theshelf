@@ -826,13 +826,20 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
 
       {expanded && (
         <div style={{ marginTop:10, paddingTop:10, borderTop:"1px solid rgba(138,90,40,0.25)" }} onClick={e=>e.stopPropagation()}>
-          {(book.publishYear || book.pages>0) && (
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
+            {(book.publishYear || book.pages>0) && (
             <p style={{ color:WOOD.textFaint, fontSize:10, marginBottom:6, fontFamily:"'DM Sans',sans-serif" }}>
               {book.publishYear ? `Published ${book.publishYear}` : ""}
               {book.publishYear && book.pages>0 ? " · " : ""}
               {book.pages>0 ? `${book.pages.toLocaleString()} pages` : ""}
             </p>
           )}
+            {book.date && (book.shelf||"Read")==="Read" && (
+              <p style={{ color:WOOD.textFaint, fontSize:10, fontFamily:"'DM Sans',sans-serif", textAlign:"right", flexShrink:0, marginLeft:8 }}>
+                {new Date(book.date).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})}
+              </p>
+            )}
+          </div>
           {desc && <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, lineHeight:1.65, fontStyle:"italic", marginBottom: isRated ? 14 : 0 }}>{desc}</p>}
           {showProseBtn && (
             <button onClick={fetchProse} style={{
