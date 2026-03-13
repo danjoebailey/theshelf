@@ -2632,12 +2632,21 @@ async function enrichBooksFromOpenLibrary(books, onProgress) {
         const res = await fetch(`https://openlibrary.org/search.json?title=${title}&author=${author}&limit=1&fields=cover_i,subject`);
         const data = await res.json();
         const doc = data.docs?.[0];
-        if (!doc) return book;
-        return {
+        const result = {
           ...book,
-          coverId: doc.cover_i || null,
-          genre: mapSubjectsToGenre(doc.subject),
+          coverId: doc?.cover_i || null,
+          genre: doc ? mapSubjectsToGenre(doc.subject) : (book.genre || "Other"),
         };
+        // If no OpenLibrary cover, try Google Books (no API key needed)
+        if (!result.coverId) {
+          try {
+            const gbRes = await fetch(`https://www.googleapis.com/books/v1/volumes?q=intitle:${title}+inauthor:${author}&maxResults=1&printType=books`);
+            const gbData = await gbRes.json();
+            const thumb = gbData.items?.[0]?.volumeInfo?.imageLinks?.thumbnail;
+            if (thumb) result.coverUrl = thumb.replace("http://", "https://");
+          } catch {}
+        }
+        return result;
       } catch { return book; }
     }));
     results.push(...enriched);
