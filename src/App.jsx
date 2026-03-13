@@ -695,6 +695,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
   const [prose, setProse] = useState(null);
   const [proseLoading, setProseLoading] = useState(false);
   const [showProse, setShowProse] = useState(false);
+  const touchMoved = useRef(false);
   const desc = book.description || DESCRIPTIONS[book.title] || "";
   const isRated = (book.shelf || "Read") !== "The List" && (book.shelf || "Read") !== "Curious" && (book.shelf || "Read") !== "Reading";
   const showProseBtn = (book.shelf || "Read") !== "Read" && (book.shelf || "Read") !== "Reading";
@@ -739,7 +740,11 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
       touchAction:"manipulation",
       position:"relative",
       zIndex: (menuOpen || shelfDropOpen) ? 10 : 1,
-    }} onClick={()=>{ if(menuOpen) setMenuOpen(false); else if(shelfDropOpen) setShelfDropOpen(false); else setExpanded(e=>!e); }}>
+    }}
+    onTouchStart={()=>{ touchMoved.current=false; }}
+    onTouchMove={()=>{ touchMoved.current=true; }}
+    onTouchEnd={e=>{ if(!touchMoved.current){ e.preventDefault(); if(menuOpen) setMenuOpen(false); else if(shelfDropOpen) setShelfDropOpen(false); else setExpanded(x=>!x); } }}
+    onClick={()=>{ if(menuOpen) setMenuOpen(false); else if(shelfDropOpen) setShelfDropOpen(false); else setExpanded(e=>!e); }}>
       <div style={{ display:"flex", gap:14, alignItems:"stretch" }}>
         <div style={{ alignSelf:"stretch", flexShrink:0, display:"flex" }}>
           <BookCover book={book} width={53} height={80} radius={4} shadow="2px 2px 8px rgba(0,0,0,0.35)" />
@@ -1002,6 +1007,7 @@ function BookRowExpanded({ book, onEdit, onRemove }) {
 
 function BookRow({ book, index, onEdit, onRemove, onShelfChange }) {
   const [expanded, setExpanded] = useState(false);
+  const touchMoved = useRef(false);
   const isRated = (book.shelf || "Read") !== "The List" && (book.shelf || "Read") !== "Curious" && (book.shelf || "Read") !== "Reading";
   return (
     <div style={{
@@ -1012,7 +1018,11 @@ function BookRow({ book, index, onEdit, onRemove, onShelfChange }) {
       touchAction:"manipulation",
       animation:`fadeUp 0.2s ease ${index*0.03}s both`,
       position:"relative", zIndex: expanded ? 10 : 1,
-    }} onClick={()=>setExpanded(e=>!e)}>
+    }}
+    onTouchStart={()=>{ touchMoved.current=false; }}
+    onTouchMove={()=>{ touchMoved.current=true; }}
+    onTouchEnd={e=>{ if(!touchMoved.current){ e.preventDefault(); setExpanded(x=>!x); } }}
+    onClick={()=>setExpanded(e=>!e)}>
       <div style={{ display:"flex", alignItems:"center", gap:10 }}>
         <BookCover book={book} width={29} height={44} radius={3} shadow="1px 1px 5px rgba(0,0,0,0.3)" />
         <div style={{ flex:1, minWidth:0 }}>
@@ -1034,6 +1044,7 @@ function BookRow({ book, index, onEdit, onRemove, onShelfChange }) {
 
 function BookRowPages({ book, index, onEdit, onRemove, onShelfChange, maxPages }) {
   const [expanded, setExpanded] = useState(false);
+  const touchMoved = useRef(false);
   const isRated = (book.shelf || "Read") !== "The List" && (book.shelf || "Read") !== "Curious" && (book.shelf || "Read") !== "Reading";
   const pages = book.pages || 0;
   const minH = 52, maxH = 190;
@@ -1046,7 +1057,11 @@ function BookRowPages({ book, index, onEdit, onRemove, onShelfChange, maxPages }
       borderTop:`6px solid #8a5a28`, borderLeft:`6px solid #8a5a28`, borderBottom:`6px solid #8a5a28`, borderRight:"none",
       animation:`fadeUp 0.2s ease ${index*0.03}s both`,
       position:"relative", zIndex: expanded ? 10 : 1,
-    }} onClick={()=>setExpanded(e=>!e)}>
+    }}
+    onTouchStart={()=>{ touchMoved.current=false; }}
+    onTouchMove={()=>{ touchMoved.current=true; }}
+    onTouchEnd={e=>{ if(!touchMoved.current){ e.preventDefault(); setExpanded(x=>!x); } }}
+    onClick={()=>setExpanded(e=>!e)}>
       <div style={{ display:"flex", alignItems:"center", gap:10, minHeight: expanded ? 0 : rowHeight - 14 }}>
         <BookCover book={book} width={Math.round(Math.min(rowHeight-14,80)*2/3)} height={Math.min(rowHeight-14,80)} radius={3} shadow="1px 1px 5px rgba(0,0,0,0.3)" />
         <div style={{ flex:1, minWidth:0 }}>
@@ -2867,7 +2882,9 @@ export default function App() {
           position:"relative", zIndex:10,
         }}>
           {[{ id:"shelf", label:"Shelf" },{ id:"stats", label:"Breakdown" },{ id:"reiko", label:"Reiko" }].map(({ id,label })=>(
-            <button key={id} onClick={()=>setTab(id)} style={{
+            <button key={id}
+              onTouchEnd={e=>{ e.preventDefault(); setTab(id); }}
+              onClick={()=>setTab(id)} style={{
               flex:1, background:"transparent", border:"none", cursor:"pointer",
               display:"flex", justifyContent:"center", alignItems:"center", padding:"6px 12px",
             }}>
