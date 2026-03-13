@@ -1620,7 +1620,7 @@ function ReikoTab({ books }) {
     });
     const seen = new Set();
     return filtered.filter(b => {
-      const key = (b.title || '').replace(/\s*[(:].*/,'').toLowerCase().replace(/[^\w]/g, '');
+      const key = normBookKey(b.title);
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
@@ -2603,10 +2603,24 @@ function EditSheet({ book, onSave, onClose }) {
 
 const STORAGE_KEY = "theshelf_books";
 
+function normBookKey(title) {
+  return (title || '').replace(/\s*[(:].*/,'').toLowerCase().replace(/[^\w]/g, '');
+}
+
 function loadBooks() {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
-    return saved ? JSON.parse(saved) : [];
+    if (!saved) return [];
+    const books = JSON.parse(saved);
+    const seen = new Set();
+    const deduped = books.filter(b => {
+      const key = normBookKey(b.title);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    if (deduped.length !== books.length) saveBooks(deduped);
+    return deduped;
   } catch {
     return [];
   }
@@ -2829,8 +2843,8 @@ export default function App() {
   }
 
   function importBooks(imported) {
-    const existing = new Set(books.map(b => b.title.toLowerCase() + "|" + b.author.toLowerCase()));
-    const newBooks = imported.filter(b => !existing.has(b.title.toLowerCase() + "|" + b.author.toLowerCase()));
+    const existing = new Set(books.map(b => normBookKey(b.title)));
+    const newBooks = imported.filter(b => !existing.has(normBookKey(b.title)));
     const updated = [...books, ...newBooks];
     setBooks(updated);
     saveBooks(updated);
