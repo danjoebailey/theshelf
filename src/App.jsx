@@ -1173,7 +1173,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
   });
 
   return (
-    <div style={{ display:"flex", flexDirection:"column", height:"100%", position:"relative", touchAction:"manipulation" }} onClick={()=>{ setShelfDropOpen(false); setFilterOpen(false); setSortDropOpen(false); }}>
+    <div style={{ display:"flex", flexDirection:"column", height:"100%", position:"relative" }} onClick={()=>{ setShelfDropOpen(false); setFilterOpen(false); setSortDropOpen(false); }}>
       {/* shelf selector + search */}
       <div style={{ flexShrink:0, position:"relative", zIndex:100, overflow:"visible" }}>
       <div style={{ padding:"6px 16px 10px" }}>
@@ -1397,7 +1397,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
       </div>
 
       {/* book list */}
-      <div style={{ flex:1, overflowY:"auto", padding:"4px 16px 16px", position:"relative", zIndex:1, touchAction:"pan-y", WebkitOverflowScrolling:"touch" }} onScroll={handleScroll}>
+      <div style={{ flex:1, overflowY:"auto", padding:"4px 16px 16px", position:"relative", zIndex:1, WebkitOverflowScrolling:"touch" }} onScroll={handleScroll}>
         {filtered.length===0 && apiResults.length===0 && !apiSearching && (
           <div style={{ textAlign:"center", marginTop:60 }}>
             <div style={{
@@ -2801,7 +2801,6 @@ export default function App() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');
         * { box-sizing:border-box; margin:0; padding:0; }
-        button, a, [role="button"] { touch-action: manipulation; }
         html, body, #root { height:100%; width:100%; overflow:hidden; background:#3a2010; }
         ::-webkit-scrollbar { width:2px; }
         ::-webkit-scrollbar-thumb { background:rgba(100,60,20,0.4); border-radius:2px; }
