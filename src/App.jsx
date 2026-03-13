@@ -1596,9 +1596,9 @@ function ReikoTab({ books }) {
   const [recCovers, setRecCovers] = useState({});
   const [error, setError] = useState(null);
   const [filterOpen, setFilterOpen] = useState(false);
-  const [filterShelf, setFilterShelf] = useState(null);
+  const [filterShelf, setFilterShelf] = useState("Read");
   const [filterGenre, setFilterGenre] = useState(null);
-  const [filterRating, setFilterRating] = useState(null);
+  const [filterRating, setFilterRating] = useState(5);
   const [filterYear, setFilterYear] = useState(null);
 
   const availableYears = useMemo(() => [...new Set(books.map(b => b.date ? new Date(b.date).getFullYear() : null).filter(Boolean))].sort((a,b)=>b-a), [books]);
