@@ -28,6 +28,23 @@ function inferGenre(subjects = []) {
   return "Other";
 }
 
+async function googleBooksLookup(title, author) {
+  try {
+    const q = encodeURIComponent(`intitle:${title}${author ? ` inauthor:${author}` : ""}`);
+    const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${q}&maxResults=1&printType=books`);
+    const data = await res.json();
+    const item = data.items?.[0];
+    if (!item) return null;
+    const thumb = item.volumeInfo?.imageLinks?.thumbnail;
+    return {
+      coverUrl: thumb ? thumb.replace("http://", "https://") : null,
+      genre: inferGenre(item.volumeInfo?.categories || []),
+    };
+  } catch {
+    return null;
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
 
@@ -38,13 +55,23 @@ export default async function handler(req, res) {
   const response = await fetch(url);
   const data = await response.json();
 
-  const results = (data.docs || []).map(doc => ({
-    title:    doc.title || "Unknown",
-    author:   (doc.author_name || [])[0] || "Unknown",
-    pages:    doc.number_of_pages_median || 0,
-    genre:    inferGenre(doc.subject || []),
-    coverUrl:    doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg` : null,
-    publishYear: doc.first_publish_year || null,
+  const results = await Promise.all((data.docs || []).map(async doc => {
+    const genre = inferGenre(doc.subject || []);
+    const coverUrl = doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg` : null;
+
+    let gb = null;
+    if (!coverUrl || genre === "Other") {
+      gb = await googleBooksLookup(doc.title || query, (doc.author_name || [])[0] || "");
+    }
+
+    return {
+      title:       doc.title || "Unknown",
+      author:      (doc.author_name || [])[0] || "Unknown",
+      pages:       doc.number_of_pages_median || 0,
+      genre:       genre !== "Other" ? genre : (gb?.genre && gb.genre !== "Other" ? gb.genre : "Other"),
+      coverUrl:    coverUrl || gb?.coverUrl || null,
+      publishYear: doc.first_publish_year || null,
+    };
   }));
 
   res.json(results);
