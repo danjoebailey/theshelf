@@ -1590,7 +1590,7 @@ function BookCoverThumb({ book: b }) {
   );
 }
 
-function ReikoTab({ books, onAddBook }) {
+function ReikoTab({ books, onAddDirect }) {
   const [selected, setSelected] = useState([]);
   const [loading, setLoading] = useState(false);
   const [recs, setRecs] = useState(null);
@@ -1600,6 +1600,7 @@ function ReikoTab({ books, onAddBook }) {
   const [filterShelf, setFilterShelf] = useState("Read");
   const [filterGenre, setFilterGenre] = useState(null);
   const [filterRating, setFilterRating] = useState(5);
+  const [openDropIdx, setOpenDropIdx] = useState(null);
   const [filterYear, setFilterYear] = useState(null);
 
   const availableYears = useMemo(() => [...new Set(books.map(b => b.date ? new Date(b.date).getFullYear() : null).filter(Boolean))].sort((a,b)=>b-a), [books]);
@@ -1825,9 +1826,18 @@ function ReikoTab({ books, onAddBook }) {
               <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 12 }}>Recommended for you</p>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {[...new Map(recs.map(r => [r.title.toLowerCase(), r])).values()].map((rec, i) => {
-                  const alreadyOwned = books.some(b => normBookKey(b.title) === normBookKey(rec.title));
+                  const ownedBook = books.find(b => normBookKey(b.title) === normBookKey(rec.title));
+                  const SHELF_META = {
+                    "Read":     { bg:"rgba(138,90,40,0.5)",   color:"rgba(255,255,255,0.9)", border:"rgba(138,90,40,0.4)" },
+                    "Reading":  { bg:"rgba(60,120,80,0.55)",  color:"rgba(255,255,255,0.9)", border:"rgba(60,120,80,0.4)" },
+                    "The List": { bg:"rgba(138,90,40,0.5)",   color:"rgba(255,255,255,0.9)", border:"rgba(138,90,40,0.4)" },
+                    "Curious":  { bg:"rgba(200,144,90,0.15)", color:WOOD.amber,              border:"rgba(200,144,90,0.3)" },
+                    "DNF":      { bg:"rgba(160,50,50,0.55)",  color:"rgba(255,255,255,0.9)", border:"rgba(160,50,50,0.4)" },
+                  };
+                  const dropLabel = ownedBook ? (ownedBook.shelf || "Read") : "+ Add";
+                  const dropMeta = ownedBook ? SHELF_META[ownedBook.shelf || "Read"] : { bg:"rgba(138,90,40,0.18)", color:WOOD.amber, border:"rgba(138,90,40,0.35)" };
                   return (
-                  <div key={i} style={{
+                  <div key={i} onClick={() => setOpenDropIdx(null)} style={{
                     background: WOOD.card,
                     backdropFilter: "blur(6px)",
                     borderRadius: 12,
@@ -1838,6 +1848,7 @@ function ReikoTab({ books, onAddBook }) {
                     borderRight: "none",
                     boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
                     animation: `fadeUp 0.25s ease ${i * 0.06}s both`,
+                    position: "relative",
                   }}>
                     <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
                       <div style={{ height: 72, width: 48, borderRadius: 4, flexShrink: 0, position: "relative", background: GENRE_COLORS[rec.genre] || GENRE_COLORS["Other"], boxShadow: "1px 1px 6px rgba(0,0,0,0.2)" }}>
@@ -1853,15 +1864,28 @@ function ReikoTab({ books, onAddBook }) {
                           <span style={{ background: GENRE_COLORS[rec.genre] || GENRE_COLORS["Other"], color: "#fff", borderRadius: 20, padding: "2px 8px", fontSize: 8, fontFamily: "'DM Sans',sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", flexShrink: 0, marginTop: 2 }}>{rec.genre}</span>
                         </div>
                         <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: WOOD.textDim, fontStyle: "italic", marginBottom: 6 }}>{rec.author}</p>
-                        <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 14, color: WOOD.textDim, lineHeight: 1.6, fontStyle: "italic", marginBottom: 10 }}>{rec.reason}</p>
-                        {alreadyOwned
-                          ? <span style={{ fontSize: 11, fontFamily: "'DM Sans',sans-serif", color: WOOD.textFaint, fontStyle: "italic" }}>Already on your shelf</span>
-                          : <button
-                              {...tc(() => onAddBook({ title: rec.title, author: rec.author, genre: rec.genre, coverUrl: recCovers[rec.title] || null, pages: 0 }))}
-                              style={{ background: "#8a5a28", color: "#fff", border: "none", borderRadius: 20, padding: "5px 14px", fontSize: 11, fontFamily: "'DM Sans',sans-serif", fontWeight: 700, cursor: "pointer", letterSpacing: "0.04em" }}>
-                              + Add to Shelf
-                            </button>
-                        }
+                        <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 14, color: WOOD.textDim, lineHeight: 1.6, fontStyle: "italic" }}>{rec.reason}</p>
+                      </div>
+                    </div>
+                    {/* shelf label / add dropdown — bottom right */}
+                    <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 10, position: "relative" }} onClick={e => e.stopPropagation()}>
+                      <div style={{ position: "relative" }}>
+                        <span
+                          {...tc(() => setOpenDropIdx(openDropIdx === i ? null : i))}
+                          style={{ background: dropMeta.bg, color: dropMeta.color, border: `1px solid ${dropMeta.border}`, borderRadius: 20, padding: "3px 10px", fontSize: 9, fontFamily: "'DM Sans',sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", lineHeight: 1, cursor: "pointer", display: "inline-block" }}>
+                          {dropLabel}
+                        </span>
+                        {openDropIdx === i && (
+                          <div style={{ position: "absolute", bottom: "calc(100% + 4px)", right: 0, zIndex: 40, minWidth: 120, background: "#f5e8d0", borderRadius: 10, overflow: "hidden", boxShadow: "0 4px 20px rgba(0,0,0,0.25)", border: "1px solid rgba(138,90,40,0.3)", animation: "fadeIn 0.12s ease" }}>
+                            {SHELVES.map((s, si) => (
+                              <button key={s}
+                                {...tc(() => { setOpenDropIdx(null); onAddDirect({ title: rec.title, author: rec.author, genre: rec.genre, coverUrl: recCovers[rec.title] || null, pages: 0 }, s); })}
+                                style={{ display: "block", width: "100%", padding: "9px 14px", textAlign: "left", background: ownedBook && (ownedBook.shelf||"Read")===s ? "rgba(138,90,40,0.1)" : "transparent", border: "none", borderBottom: si < SHELVES.length-1 ? "1px solid rgba(138,90,40,0.1)" : "none", cursor: "pointer", fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: ownedBook && (ownedBook.shelf||"Read")===s ? WOOD.amber : WOOD.text, fontWeight: ownedBook && (ownedBook.shelf||"Read")===s ? 600 : 400 }}>
+                                {s}
+                              </button>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -2911,7 +2935,7 @@ export default function App() {
           {tab==="shelf"
             ? <ShelfTab books={books} onAdd={()=>setShowAdd(true)} onAddBook={book=>{ setAddInitialBook(book); setShowAdd(true); }} onRemove={id=>{ const next = books.filter(b=>b.id!==id); setBooks(next); saveBooks(next); }} onEdit={setEditBook} onScroll={setScrollY} onShelfChange={changeShelf} onImport={()=>setShowImport(true)} />
             : tab==="reiko"
-            ? <ReikoTab books={books} onAddBook={book=>{ setAddInitialBook(book); setShowAdd(true); }} />
+            ? <ReikoTab books={books} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, shelf, rating:0, date:new Date().toISOString().slice(0,10) }; const next = [...books, b]; setBooks(next); saveBooks(next); }} />
             : <StatsTab books={books} />
           }
           {showAdd && !addInitialBook && <AddSheet onSave={addBook} onClose={()=>setShowAdd(false)} />}
