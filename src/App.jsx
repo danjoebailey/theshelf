@@ -1204,7 +1204,8 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
 
         <div style={{ position:"relative" }}>
           <div style={{ position:"relative" }}>
-            <input type="search" value={search} onChange={handleSearchChange} placeholder="Search for a book to add…"
+            <input type="text" value={search} onChange={handleSearchChange} placeholder="Search for a book to add…"
+              onTouchEnd={e=>{ e.stopPropagation(); e.currentTarget.focus(); }}
               style={{ width:"100%", boxSizing:"border-box", padding:"10px 36px 10px 12px", border:"1px solid #d1d5db", borderRadius:8, fontSize:15, fontFamily:"'DM Sans',sans-serif", outline:"none", background:"#fff", color:"#111" }}/>
             {apiSearching && <span style={{ position:"absolute", right:10, top:"50%", transform:"translateY(-50%)", fontSize:12, color:"#999", fontFamily:"'DM Sans',sans-serif" }}>Searching…</span>}
             {search && !apiSearching && <button onClick={()=>{ setSearch(""); setApiResults([]); }} style={{ position:"absolute", right:8, top:"50%", transform:"translateY(-50%)", background:"transparent", color:"#999", fontSize:13, border:"none", cursor:"pointer" }}>✕</button>}
