@@ -21,6 +21,15 @@ const SAMPLE = [
   { id:10, title:"The Hobbit",                    author:"J.R.R. Tolkien",       genre:"Fantasy",     pages:310, rating:5,   date:"2024-10-31", shelf:"Curious" },
 ];
 
+// Touch-click helper: fires action on touchEnd (no 300ms delay) and onClick (desktop).
+// stopProp=true also stops event propagation (for buttons inside click-to-close containers).
+function tc(action, stopProp = false) {
+  return {
+    onTouchEnd: e => { if (stopProp) e.stopPropagation(); e.preventDefault(); action(); },
+    onClick: stopProp ? (e => { e.stopPropagation(); action(); }) : action,
+  };
+}
+
 // Warm wood palette
 const WOOD = {
   dark:    "#5a3820",
@@ -1239,7 +1248,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
 
           {/* single sort pill + dropdown */}
           <div style={{ position:"relative" }}>
-            <button onClick={e=>{ e.stopPropagation(); setSortDropOpen(o=>!o); setFilterOpen(false); setShelfDropOpen(false); }} style={{
+            <button {...tc(()=>{ setSortDropOpen(o=>!o); setFilterOpen(false); setShelfDropOpen(false); }, true)} style={{
               display:"flex", alignItems:"center", gap:5,
               background:"rgba(15,8,2,0.55)", borderRadius:20, padding:"5px 14px",
               border:"1px solid rgba(120,70,20,0.3)", backdropFilter:"blur(4px)",
@@ -1267,10 +1276,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
                   { key:"title",  label:"Title" },
                   { key:"custom", label:"Custom" },
                 ].map(({ key, label }, i, arr) => (
-                  <button key={key} onClick={()=>{
-                    handleSortClick(key);
-                    setSortDropOpen(false);
-                  }} style={{
+                  <button key={key} {...tc(()=>{ handleSortClick(key); setSortDropOpen(false); })} style={{
                     display:"flex", alignItems:"center", justifyContent:"space-between",
                     width:"100%", padding:"10px 14px", textAlign:"left",
                     background: sort===key ? "rgba(138,90,40,0.1)" : "transparent",
@@ -1291,7 +1297,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
 
           <div style={{ display:"flex", gap:6, marginLeft:"auto", position:"relative" }}>
             {/* view mode toggle */}
-            <button onClick={e=>{ e.stopPropagation(); setViewMode(v=>v==="card"?"row":v==="row"?"pages":"card"); }} title={viewMode==="card"?"Row view":viewMode==="row"?"Pages view":"Card view"} style={{
+            <button {...tc(()=>setViewMode(v=>v==="card"?"row":v==="row"?"pages":"card"), true)} title={viewMode==="card"?"Row view":viewMode==="row"?"Pages view":"Card view"} style={{
               display:"flex", alignItems:"center", justifyContent:"center",
               background:"rgba(15,8,2,0.55)", borderRadius:20, padding:"5px 10px",
               border:"1px solid rgba(120,70,20,0.3)", backdropFilter:"blur(4px)",
@@ -1306,7 +1312,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
             </button>
 
             {/* filter icon button */}
-            <button onClick={e=>{ e.stopPropagation(); setFilterOpen(o=>!o); setShelfDropOpen(false); }} style={{
+            <button {...tc(()=>{ setFilterOpen(o=>!o); setShelfDropOpen(false); }, true)} style={{
               display:"flex", alignItems:"center", justifyContent:"center", gap:4,
               background: hasFilters ? WOOD.amber : "rgba(15,8,2,0.55)",
               borderRadius:20, padding:"5px 10px",
@@ -1326,7 +1332,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
             </button>
 
             {/* shelf dropdown */}
-            <button onClick={e=>{ e.stopPropagation(); setShelfDropOpen(o=>!o); setFilterOpen(false); }} style={{
+            <button {...tc(()=>{ setShelfDropOpen(o=>!o); setFilterOpen(false); }, true)} style={{
               display:"flex", alignItems:"center", gap:5,
               background:"rgba(15,8,2,0.55)", borderRadius:20, padding:"5px 12px",
               border:"1px solid rgba(120,70,20,0.3)", backdropFilter:"blur(4px)",
@@ -1345,7 +1351,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
                 animation:"fadeIn 0.12s ease",
               }}>
                 {SHELVES.map((s, i) => (
-                  <button key={s} onClick={()=>{ setActiveShelf(s); setShelfDropOpen(false); if (sort === "custom") setSort("date"); }} style={{
+                  <button key={s} {...tc(()=>{ setActiveShelf(s); setShelfDropOpen(false); if (sort === "custom") setSort("date"); })} style={{
                     display:"block", width:"100%", padding:"10px 14px", textAlign:"left",
                     background: s===activeShelf ? "rgba(138,90,40,0.12)" : "transparent",
                     border:"none", borderBottom: i < SHELVES.length-1 ? "1px solid rgba(138,90,40,0.12)" : "none",
@@ -1372,7 +1378,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
                 {/* header */}
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
                   <p style={{ fontSize:11, fontWeight:700, color:WOOD.textDim, textTransform:"uppercase", letterSpacing:"0.1em", fontFamily:"'DM Sans',sans-serif" }}>Filters</p>
-                  {hasFilters && <button onClick={()=>{ setFilterYear(null); setFilterGenre(null); setFilterAuthor(null); }} style={{ fontSize:11, color:WOOD.amber, background:"none", border:"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontWeight:600 }}>Clear all</button>}
+                  {hasFilters && <button {...tc(()=>{ setFilterYear(null); setFilterGenre(null); setFilterAuthor(null); })} style={{ fontSize:11, color:WOOD.amber, background:"none", border:"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontWeight:600 }}>Clear all</button>}
                 </div>
 
                 {/* Year */}
@@ -1380,7 +1386,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
                   <p style={{ fontSize:10, color:WOOD.textFaint, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6, fontFamily:"'DM Sans',sans-serif" }}>Year</p>
                   <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
                     {years.map(y => (
-                      <button key={y} onClick={()=>setFilterYear(filterYear===y?null:y)} style={pillStyle(filterYear===y)}>{y}</button>
+                      <button key={y} {...tc(()=>setFilterYear(filterYear===y?null:y))} style={pillStyle(filterYear===y)}>{y}</button>
                     ))}
                   </div>
                 </div>}
@@ -1390,7 +1396,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
                   <p style={{ fontSize:10, color:WOOD.textFaint, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6, fontFamily:"'DM Sans',sans-serif" }}>Genre</p>
                   <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
                     {genres.map(g => (
-                      <button key={g} onClick={()=>setFilterGenre(filterGenre===g?null:g)} style={pillStyle(filterGenre===g)}>{g}</button>
+                      <button key={g} {...tc(()=>setFilterGenre(filterGenre===g?null:g))} style={pillStyle(filterGenre===g)}>{g}</button>
                     ))}
                   </div>
                 </div>}
@@ -1400,7 +1406,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
                   <p style={{ fontSize:10, color:WOOD.textFaint, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6, fontFamily:"'DM Sans',sans-serif" }}>Author</p>
                   <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
                     {authors.map(a => (
-                      <button key={a} onClick={()=>setFilterAuthor(filterAuthor===a?null:a)} style={pillStyle(filterAuthor===a)}>{a.split(" ").pop()}</button>
+                      <button key={a} {...tc(()=>setFilterAuthor(filterAuthor===a?null:a))} style={pillStyle(filterAuthor===a)}>{a.split(" ").pop()}</button>
                     ))}
                   </div>
                 </div>}
@@ -1426,7 +1432,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
                 Search to add books
               </p>
               <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, fontStyle:"italic", color:WOOD.textFaint, marginBottom:8 }}>or</p>
-              <button onClick={onImport} style={{
+              <button {...tc(onImport)} style={{
                 display:"flex", alignItems:"center", gap:8, margin:"0 auto",
                 background:WOOD.amber, borderRadius:20, padding:"8px 18px",
                 border:"none", cursor:"pointer",
@@ -1447,7 +1453,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
                 display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
                 width:32, flexShrink:0, paddingBottom:10, gap:2,
               }}>
-                <button onClick={()=>moveBook(i, -1)} disabled={i===0} style={{
+                <button {...tc(()=>moveBook(i, -1))} disabled={i===0} style={{
                   background:"none", border:"none", cursor: i===0 ? "default" : "pointer",
                   color: i===0 ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.45)",
                   fontSize:12, lineHeight:1, padding:"2px 0",
@@ -1464,7 +1470,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
                   lineHeight:1,
                   paddingTop:1,
                 }}>{i + 1}</span>
-                <button onClick={()=>moveBook(i, 1)} disabled={i===filtered.length-1} style={{
+                <button {...tc(()=>moveBook(i, 1))} disabled={i===filtered.length-1} style={{
                   background:"none", border:"none", cursor: i===filtered.length-1 ? "default" : "pointer",
                   color: i===filtered.length-1 ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.45)",
                   fontSize:12, lineHeight:1, padding:"2px 0",
