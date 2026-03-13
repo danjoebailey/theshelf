@@ -1766,7 +1766,7 @@ function ReikoTab({ books }) {
                     border: `1.5px solid ${isOn ? WOOD.amber : "rgba(138,90,40,0.18)"}`,
                     boxShadow: isOn ? "0 1px 6px rgba(0,0,0,0.13)" : "0 1px 3px rgba(0,0,0,0.08)",
                     cursor: "pointer", transition: "all 0.15s",
-                    maxWidth: 190, minWidth: 0,
+                    maxWidth: "calc(50% - 4px)", minWidth: 0, flex: "1 1 calc(50% - 4px)",
                   }}>
                     {(book.coverUrl || book.coverId)
                       ? <img src={book.coverUrl || `https://covers.openlibrary.org/b/id/${book.coverId}-S.jpg`} alt={book.title}
