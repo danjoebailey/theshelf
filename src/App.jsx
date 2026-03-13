@@ -1590,7 +1590,7 @@ function BookCoverThumb({ book: b }) {
   );
 }
 
-function ReikoTab({ books }) {
+function ReikoTab({ books, onAddBook }) {
   const [selected, setSelected] = useState([]);
   const [loading, setLoading] = useState(false);
   const [recs, setRecs] = useState(null);
@@ -1824,7 +1824,9 @@ function ReikoTab({ books }) {
             <div style={{ padding: "0 18px" }}>
               <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 12 }}>Recommended for you</p>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {[...new Map(recs.map(r => [r.title.toLowerCase(), r])).values()].map((rec, i) => (
+                {[...new Map(recs.map(r => [r.title.toLowerCase(), r])).values()].map((rec, i) => {
+                  const alreadyOwned = books.some(b => normBookKey(b.title) === normBookKey(rec.title));
+                  return (
                   <div key={i} style={{
                     background: WOOD.card,
                     backdropFilter: "blur(6px)",
@@ -1851,11 +1853,19 @@ function ReikoTab({ books }) {
                           <span style={{ background: GENRE_COLORS[rec.genre] || GENRE_COLORS["Other"], color: "#fff", borderRadius: 20, padding: "2px 8px", fontSize: 8, fontFamily: "'DM Sans',sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", flexShrink: 0, marginTop: 2 }}>{rec.genre}</span>
                         </div>
                         <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: WOOD.textDim, fontStyle: "italic", marginBottom: 6 }}>{rec.author}</p>
-                        <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 14, color: WOOD.textDim, lineHeight: 1.6, fontStyle: "italic" }}>{rec.reason}</p>
+                        <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 14, color: WOOD.textDim, lineHeight: 1.6, fontStyle: "italic", marginBottom: 10 }}>{rec.reason}</p>
+                        {alreadyOwned
+                          ? <span style={{ fontSize: 11, fontFamily: "'DM Sans',sans-serif", color: WOOD.textFaint, fontStyle: "italic" }}>Already on your shelf</span>
+                          : <button
+                              {...tc(() => onAddBook({ title: rec.title, author: rec.author, genre: rec.genre, coverUrl: recCovers[rec.title] || null, pages: 0 }))}
+                              style={{ background: "#8a5a28", color: "#fff", border: "none", borderRadius: 20, padding: "5px 14px", fontSize: 11, fontFamily: "'DM Sans',sans-serif", fontWeight: 700, cursor: "pointer", letterSpacing: "0.04em" }}>
+                              + Add to Shelf
+                            </button>
+                        }
                       </div>
                     </div>
                   </div>
-                ))}
+                );})}
               </div>
             </div>
           )}
@@ -2901,7 +2911,7 @@ export default function App() {
           {tab==="shelf"
             ? <ShelfTab books={books} onAdd={()=>setShowAdd(true)} onAddBook={book=>{ setAddInitialBook(book); setShowAdd(true); }} onRemove={id=>{ const next = books.filter(b=>b.id!==id); setBooks(next); saveBooks(next); }} onEdit={setEditBook} onScroll={setScrollY} onShelfChange={changeShelf} onImport={()=>setShowImport(true)} />
             : tab==="reiko"
-            ? <ReikoTab books={books} />
+            ? <ReikoTab books={books} onAddBook={book=>{ setAddInitialBook(book); setShowAdd(true); }} />
             : <StatsTab books={books} />
           }
           {showAdd && !addInitialBook && <AddSheet onSave={addBook} onClose={()=>setShowAdd(false)} />}
