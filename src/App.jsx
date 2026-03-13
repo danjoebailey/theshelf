@@ -1645,7 +1645,8 @@ function ReikoTab({ books, onAddDirect }) {
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
-      const results = data.recommendations || [];
+      const readKeys = new Set(books.filter(b => (b.shelf||"Read") === "Read").map(b => normBookKey(b.title)));
+      const results = (data.recommendations || []).filter(r => !readKeys.has(normBookKey(r.title)));
       setRecs(results);
       // Fetch covers in parallel from OpenLibrary
       const coverEntries = await Promise.all(results.map(async rec => {
