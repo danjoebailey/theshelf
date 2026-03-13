@@ -1604,18 +1604,24 @@ function ReikoTab({ books }) {
   const availableYears = useMemo(() => [...new Set(books.map(b => b.date ? new Date(b.date).getFullYear() : null).filter(Boolean))].sort((a,b)=>b-a), [books]);
   const availableGenres = useMemo(() => [...new Set(books.map(b => b.genre).filter(Boolean))].sort(), [books]);
 
-  const filteredPicker = useMemo(() => books.filter(b => {
-    if (filterShelf && (b.shelf || "Read") !== filterShelf) return false;
-    if (filterGenre && b.genre !== filterGenre) return false;
-    if (filterYear && (!b.date || new Date(b.date).getFullYear() !== filterYear)) return false;
-    if (filterRating) {
-      const r = b.rating || 0;
-      if (filterRating === 5 && r < 5) return false;
-      if (filterRating === 4 && r < 4) return false;
-      if (filterRating === 3 && r < 3) return false;
-    }
-    return true;
-  }), [books, filterShelf, filterGenre, filterYear, filterRating]);
+  const filteredPicker = useMemo(() => {
+    const seen = new Set();
+    return books.filter(b => {
+      const key = (b.title + "|" + b.author).toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      if (filterShelf && (b.shelf || "Read") !== filterShelf) return false;
+      if (filterGenre && b.genre !== filterGenre) return false;
+      if (filterYear && (!b.date || new Date(b.date).getFullYear() !== filterYear)) return false;
+      if (filterRating) {
+        const r = b.rating || 0;
+        if (filterRating === 5 && r < 5) return false;
+        if (filterRating === 4 && r < 4) return false;
+        if (filterRating === 3 && r < 3) return false;
+      }
+      return true;
+    });
+  }, [books, filterShelf, filterGenre, filterYear, filterRating]);
 
   const activeFilterCount = [filterShelf, filterGenre, filterRating, filterYear].filter(Boolean).length;
 
@@ -1785,7 +1791,7 @@ function ReikoTab({ books }) {
 
           {/* Submit */}
           <div style={{ padding: "0 18px 22px" }}>
-            <button onClick={getRecommendations} disabled={!canSubmit} style={{
+            <button {...tc(getRecommendations)} disabled={!canSubmit} style={{
               width: "100%", padding: "13px 0",
               background: canSubmit ? `linear-gradient(135deg, ${WOOD.amber}, #c8883a)` : "rgba(138,90,40,0.15)",
               border: "none", borderRadius: 12, cursor: canSubmit ? "pointer" : "default",
@@ -1814,7 +1820,7 @@ function ReikoTab({ books }) {
             <div style={{ padding: "0 18px" }}>
               <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 12 }}>Recommended for you</p>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {recs.map((rec, i) => (
+                {[...new Map(recs.map(r => [r.title.toLowerCase(), r])).values()].map((rec, i) => (
                   <div key={i} style={{
                     background: WOOD.card,
                     backdropFilter: "blur(6px)",
