@@ -1641,7 +1641,7 @@ function ReikoTab({ books, onAddDirect }) {
       const res = await fetch("/api/recommend-books", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ books: seeds.map(b => ({ title: b.title, author: b.author, genre: b.genre })), owned: books.map(b => b.title) }),
+        body: JSON.stringify({ books: seeds.map(b => ({ title: b.title, author: b.author, genre: b.genre })), owned: books.filter(b => (b.shelf||"Read") === "Read").map(b => b.title) }),
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
