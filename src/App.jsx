@@ -2826,6 +2826,7 @@ export default function App() {
               position: "relative",
               zIndex: 10,
               marginBottom: -(progress * SHELF_H),
+              pointerEvents: progress > 0 ? "none" : "auto",
             }}>
               <div style={{
                 opacity: 1 - progress,
