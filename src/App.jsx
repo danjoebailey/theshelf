@@ -429,7 +429,7 @@ function DecorativeShelf({ books }) {
 // SVG wood grain background
 function WoodBg() {
   return (
-    <svg style={{ position:"absolute", inset:0, width:"100%", height:"100%", opacity:1 }} xmlns="http://www.w3.org/2000/svg">
+    <svg style={{ position:"absolute", inset:0, width:"100%", height:"100%", opacity:1, pointerEvents:"none" }} xmlns="http://www.w3.org/2000/svg">
       <defs>
         <linearGradient id="woodBase" x1="0" y1="0" x2="1" y2="0">
           <stop offset="0%"   stopColor="#c8905a"/>
@@ -736,6 +736,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
       boxShadow:"0 2px 8px rgba(0,0,0,0.15)",
       animation:`fadeUp 0.28s ease ${index*0.05}s both`,
       cursor:"pointer",
+      touchAction:"manipulation",
       position:"relative",
       zIndex: (menuOpen || shelfDropOpen) ? 10 : 1,
     }} onClick={()=>{ if(menuOpen) setMenuOpen(false); else if(shelfDropOpen) setShelfDropOpen(false); else setExpanded(e=>!e); }}>
@@ -1008,6 +1009,7 @@ function BookRow({ book, index, onEdit, onRemove, onShelfChange }) {
       borderLeft:`4px solid #8a5a28`,
       boxShadow:"0 1px 4px rgba(0,0,0,0.12)",
       cursor:"pointer",
+      touchAction:"manipulation",
       animation:`fadeUp 0.2s ease ${index*0.03}s both`,
       position:"relative", zIndex: expanded ? 10 : 1,
     }} onClick={()=>setExpanded(e=>!e)}>
@@ -1040,7 +1042,7 @@ function BookRowPages({ book, index, onEdit, onRemove, onShelfChange, maxPages }
     <div style={{
       background:WOOD.card, borderRadius:8, padding:"7px 10px", marginBottom:6,
       boxShadow:"0 1px 4px rgba(0,0,0,0.12)",
-      cursor:"pointer", minHeight: expanded ? "auto" : rowHeight,
+      cursor:"pointer", touchAction:"manipulation", minHeight: expanded ? "auto" : rowHeight,
       borderTop:`6px solid #8a5a28`, borderLeft:`6px solid #8a5a28`, borderBottom:`6px solid #8a5a28`, borderRight:"none",
       animation:`fadeUp 0.2s ease ${index*0.03}s both`,
       position:"relative", zIndex: expanded ? 10 : 1,
@@ -2799,6 +2801,7 @@ export default function App() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');
         * { box-sizing:border-box; margin:0; padding:0; }
+        button, a, [role="button"] { touch-action: manipulation; }
         html, body, #root { height:100%; width:100%; overflow:hidden; background:#3a2010; }
         ::-webkit-scrollbar { width:2px; }
         ::-webkit-scrollbar-thumb { background:rgba(100,60,20,0.4); border-radius:2px; }
