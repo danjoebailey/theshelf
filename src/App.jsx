@@ -1598,7 +1598,7 @@ function ReikoTab({ books, onAddDirect }) {
   const [error, setError] = useState(null);
   const [filterOpen, setFilterOpen] = useState(false);
   const [filterShelf, setFilterShelf] = useState("Read");
-  const [filterGenre, setFilterGenre] = useState(null);
+  const [filterGenres, setFilterGenres] = useState([]);
   const [filterRating, setFilterRating] = useState(5);
   const [openDropIdx, setOpenDropIdx] = useState(null);
   const [filterYear, setFilterYear] = useState(null);
@@ -1609,7 +1609,7 @@ function ReikoTab({ books, onAddDirect }) {
   const filteredPicker = useMemo(() => {
     const filtered = books.filter(b => {
       if (filterShelf && (b.shelf || "Read") !== filterShelf) return false;
-      if (filterGenre && b.genre !== filterGenre) return false;
+      if (filterGenres.length > 0 && !filterGenres.includes(b.genre)) return false;
       if (filterYear && (!b.date || new Date(b.date).getFullYear() !== filterYear)) return false;
       if (filterRating) {
         const r = b.rating || 0;
@@ -1626,9 +1626,9 @@ function ReikoTab({ books, onAddDirect }) {
       seen.add(key);
       return true;
     });
-  }, [books, filterShelf, filterGenre, filterYear, filterRating]);
+  }, [books, filterShelf, filterGenres, filterYear, filterRating]);
 
-  const activeFilterCount = [filterShelf, filterGenre, filterRating, filterYear].filter(Boolean).length;
+  const activeFilterCount = [filterShelf, filterGenres.length > 0 ? true : null, filterRating, filterYear].filter(Boolean).length;
 
   function toggleBook(id) {
     setSelected(s => s.includes(id) ? s.filter(x => x !== id) : s.length < 6 ? [...s, id] : s);
@@ -1699,7 +1699,7 @@ function ReikoTab({ books, onAddDirect }) {
               }}>
                 <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><path d="M1 2h10l-4 5v3l-2-1V7L1 2z"/></svg>
                 {activeFilterCount > 0 && <span style={{ fontSize: 11, fontFamily: "'DM Sans',sans-serif", fontWeight: 600 }}>
-                  {[filterShelf, filterGenre, filterRating ? `${filterRating}★+` : null, filterYear].filter(Boolean).slice(0,2).join(" · ")}
+                  {[filterShelf, filterGenres.length > 0 ? filterGenres.join("/") : null, filterRating ? `${filterRating}★+` : null, filterYear].filter(Boolean).slice(0,2).join(" · ")}
                   {activeFilterCount > 2 ? ` +${activeFilterCount - 2}` : ""}
                 </span>}
               </button>
@@ -1713,7 +1713,7 @@ function ReikoTab({ books, onAddDirect }) {
               }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <p style={{ fontSize: 11, fontWeight: 700, color: WOOD.textDim, textTransform: "uppercase", letterSpacing: "0.1em", fontFamily: "'DM Sans',sans-serif" }}>Filters</p>
-                  {activeFilterCount > 0 && <button onClick={() => { setFilterShelf(null); setFilterGenre(null); setFilterRating(null); setFilterYear(null); }} style={{ fontSize: 11, color: WOOD.amber, background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Sans',sans-serif", fontWeight: 600 }}>Clear all</button>}
+                  {activeFilterCount > 0 && <button onClick={() => { setFilterShelf(null); setFilterGenres([]); setFilterRating(null); setFilterYear(null); }} style={{ fontSize: 11, color: WOOD.amber, background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Sans',sans-serif", fontWeight: 600 }}>Clear all</button>}
                 </div>
                 {/* Shelf */}
                 <div>
@@ -1730,7 +1730,7 @@ function ReikoTab({ books, onAddDirect }) {
                     <p style={{ fontSize: 10, color: WOOD.textFaint, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 6, fontFamily: "'DM Sans',sans-serif" }}>Genre</p>
                     <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
                       {availableGenres.map(g => (
-                        <button key={g} onClick={() => setFilterGenre(f => f === g ? null : g)} style={{ padding:"5px 12px", borderRadius:20, fontSize:11, fontFamily:"'DM Sans',sans-serif", fontWeight:500, cursor:"pointer", transition:"all 0.15s", border:"1px solid", background: filterGenre===g ? WOOD.amber : "rgba(255,235,195,0.12)", color: filterGenre===g ? "#1a0900" : WOOD.textDim, borderColor: filterGenre===g ? WOOD.amber : "rgba(138,90,40,0.3)", whiteSpace:"nowrap" }}>{g}</button>
+                        <button key={g} onClick={() => setFilterGenres(gs => gs.includes(g) ? gs.filter(x => x !== g) : [...gs, g])} style={{ padding:"5px 12px", borderRadius:20, fontSize:11, fontFamily:"'DM Sans',sans-serif", fontWeight:500, cursor:"pointer", transition:"all 0.15s", border:"1px solid", background: filterGenres.includes(g) ? WOOD.amber : "rgba(255,235,195,0.12)", color: filterGenres.includes(g) ? "#1a0900" : WOOD.textDim, borderColor: filterGenres.includes(g) ? WOOD.amber : "rgba(138,90,40,0.3)", whiteSpace:"nowrap" }}>{g}</button>
                       ))}
                     </div>
                   </div>
