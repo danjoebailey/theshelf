@@ -1620,7 +1620,7 @@ function ReikoTab({ books }) {
     });
     const seen = new Set();
     return filtered.filter(b => {
-      const key = (b.title.trim() + "|" + b.author.trim()).toLowerCase();
+      const key = (b.title || '').toLowerCase().replace(/[^\w]/g, '');
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
