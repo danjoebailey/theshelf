@@ -2800,6 +2800,7 @@ export default function App() {
         @import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');
         * { box-sizing:border-box; margin:0; padding:0; }
         html, body, #root { height:100%; width:100%; overflow:hidden; background:#3a2010; }
+        button, a, [role="button"] { touch-action: manipulation; }
         ::-webkit-scrollbar { width:2px; }
         ::-webkit-scrollbar-thumb { background:rgba(100,60,20,0.4); border-radius:2px; }
         @keyframes fadeIn { from{opacity:0} to{opacity:1} }
@@ -2859,7 +2860,8 @@ export default function App() {
           display:"flex",
           background:"linear-gradient(180deg, #c89050 0%, #b07838 100%)",
           borderTop:"1px solid rgba(200,150,70,0.4)",
-          padding:"2px 0 6px",
+          paddingTop:2,
+          paddingBottom:"calc(6px + env(safe-area-inset-bottom, 0px))",
           flexShrink:0,
           position:"relative", zIndex:10,
         }}>
