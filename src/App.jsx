@@ -1606,11 +1606,7 @@ function ReikoTab({ books }) {
   const availableGenres = useMemo(() => [...new Set(books.map(b => b.genre).filter(Boolean))].sort(), [books]);
 
   const filteredPicker = useMemo(() => {
-    const seen = new Set();
-    return books.filter(b => {
-      const key = (b.title + "|" + b.author).toLowerCase();
-      if (seen.has(key)) return false;
-      seen.add(key);
+    const filtered = books.filter(b => {
       if (filterShelf && (b.shelf || "Read") !== filterShelf) return false;
       if (filterGenre && b.genre !== filterGenre) return false;
       if (filterYear && (!b.date || new Date(b.date).getFullYear() !== filterYear)) return false;
@@ -1620,6 +1616,13 @@ function ReikoTab({ books }) {
         if (filterRating === 4 && r < 4) return false;
         if (filterRating === 3 && r < 3) return false;
       }
+      return true;
+    });
+    const seen = new Set();
+    return filtered.filter(b => {
+      const key = (b.title.trim() + "|" + b.author.trim()).toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
       return true;
     });
   }, [books, filterShelf, filterGenre, filterYear, filterRating]);
