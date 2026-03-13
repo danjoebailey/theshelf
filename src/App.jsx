@@ -2798,9 +2798,8 @@ export default function App() {
     <div style={{ width:"100%", height:"100dvh", display:"flex", flexDirection:"column", position:"relative", overflow:"hidden" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');
-        * { box-sizing:border-box; margin:0; padding:0; }
+        * { box-sizing:border-box; margin:0; padding:0; touch-action: manipulation; }
         html, body, #root { height:100%; width:100%; overflow:hidden; background:#3a2010; }
-        button, a, [role="button"] { touch-action: manipulation; }
         ::-webkit-scrollbar { width:2px; }
         ::-webkit-scrollbar-thumb { background:rgba(100,60,20,0.4); border-radius:2px; }
         @keyframes fadeIn { from{opacity:0} to{opacity:1} }
