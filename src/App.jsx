@@ -740,7 +740,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
     setScoresLoading(true);
     setShowScores(true);
     try {
-      const res = await fetch("/api/book-scores", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ title:book.title, author:book.author }) });
+      const res = await fetch("/api/book-scores", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ title:book.title, author:book.author, genre:book.genre }) });
       const data = await res.json();
       setScores(data.error ? null : data);
     } catch { setScores(null); }
@@ -992,7 +992,7 @@ function BookRowExpanded({ book, onEdit, onRemove }) {
     setScoresLoading(true);
     setShowScores(true);
     try {
-      const res = await fetch("/api/book-scores", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ title:book.title, author:book.author }) });
+      const res = await fetch("/api/book-scores", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ title:book.title, author:book.author, genre:book.genre }) });
       const data = await res.json();
       setScores(data.error ? null : data);
     } catch { setScores(null); }
