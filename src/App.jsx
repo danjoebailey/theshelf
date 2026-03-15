@@ -704,6 +704,9 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
   const [prose, setProse] = useState(null);
   const [proseLoading, setProseLoading] = useState(false);
   const [showProse, setShowProse] = useState(false);
+  const [scores, setScores] = useState(null);
+  const [scoresLoading, setScoresLoading] = useState(false);
+  const [showScores, setShowScores] = useState(false);
   const touchMoved = useRef(false);
   const desc = book.description || DESCRIPTIONS[book.title] || "";
   const isRated = (book.shelf || "Read") !== "The List" && (book.shelf || "Read") !== "Curious" && (book.shelf || "Read") !== "Reading";
@@ -730,6 +733,18 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
       setProse("Unable to generate preview.");
     }
     setProseLoading(false);
+  }
+
+  async function fetchScores() {
+    if (scores) { setShowScores(true); return; }
+    setScoresLoading(true);
+    setShowScores(true);
+    try {
+      const res = await fetch("/api/book-scores", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ title:book.title, author:book.author }) });
+      const data = await res.json();
+      setScores(data.error ? null : data);
+    } catch { setScores(null); }
+    setScoresLoading(false);
   }
 
   return (
@@ -869,17 +884,18 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
             )}
           </div>
           {desc && <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, lineHeight:1.65, fontStyle:"italic", marginBottom: isRated ? 14 : 0 }}>{desc}</p>}
-          {showProseBtn && !showProse && <button {...tc(fetchProse, true)} style={{
-              display:"flex", alignItems:"center", gap:6, marginTop: desc ? 12 : 0, marginBottom: 4,
-              background:"rgba(138,90,40,0.12)", borderRadius:20, padding:"6px 14px",
-              border:"1px solid rgba(138,90,40,0.25)", cursor:"pointer",
-              fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:500, color:WOOD.textDim,
-            }}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
-              </svg>
-              Prose Preview
-            </button>}
+          {(!showProse && !showScores) && (
+            <div style={{ display:"flex", gap:6, marginTop: desc ? 12 : 0, marginBottom: 4 }}>
+              {showProseBtn && <button {...tc(fetchProse, true)} style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(138,90,40,0.12)", borderRadius:20, padding:"6px 14px", border:"1px solid rgba(138,90,40,0.25)", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:500, color:WOOD.textDim }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                Prose
+              </button>}
+              <button {...tc(fetchScores, true)} style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(138,90,40,0.12)", borderRadius:20, padding:"6px 14px", border:"1px solid rgba(138,90,40,0.25)", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:500, color:WOOD.textDim }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+                Scores
+              </button>
+            </div>
+          )}
           {showProse && (
             <div style={{ marginTop: desc ? 12 : 0, marginBottom: 4, animation:"fadeIn 0.18s ease" }}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
@@ -889,6 +905,30 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
               {proseLoading
                 ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, color:WOOD.textFaint, fontStyle:"italic" }}>Generating…</p>
                 : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, color:WOOD.text, lineHeight:1.8, fontStyle:"italic" }}>{prose}</p>
+              }
+            </div>
+          )}
+          {showScores && (
+            <div style={{ marginTop: desc ? 12 : 0, marginBottom: 4, animation:"fadeIn 0.18s ease" }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
+                <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:12, color:WOOD.amber, letterSpacing:"0.08em", textTransform:"uppercase" }}>Scores · {book.title}</p>
+                <button {...tc(()=>setShowScores(false), true)} style={{ background:"none", border:"none", cursor:"pointer", color:WOOD.textFaint, fontSize:16, lineHeight:1, padding:"0 2px" }}>✕</button>
+              </div>
+              {scoresLoading
+                ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:WOOD.textFaint, fontStyle:"italic" }}>Scoring…</p>
+                : scores ? (
+                  <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+                    {[["Prose", scores.prose],["Plot", scores.plot],["Characters", scores.characters],["Pacing", scores.pacing],["World-building", scores.worldBuilding],["Dialogue", scores.dialogue],["Ending", scores.ending]].map(([label, val]) => val != null && (
+                      <div key={label} style={{ display:"flex", alignItems:"center", gap:10 }}>
+                        <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:WOOD.textDim, width:96, flexShrink:0 }}>{label}</span>
+                        <div style={{ flex:1, height:6, borderRadius:3, background:"rgba(138,90,40,0.15)", overflow:"hidden" }}>
+                          <div style={{ height:"100%", borderRadius:3, background:WOOD.amber, width:`${val*10}%`, transition:"width 0.4s ease" }} />
+                        </div>
+                        <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:700, color:WOOD.amber, width:20, textAlign:"right", flexShrink:0 }}>{val}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:WOOD.textFaint, fontStyle:"italic" }}>Unable to score.</p>
               }
             </div>
           )}
@@ -927,6 +967,9 @@ function BookRowExpanded({ book, onEdit, onRemove }) {
   const [prose, setProse] = useState(null);
   const [proseLoading, setProseLoading] = useState(false);
   const [showProse, setShowProse] = useState(false);
+  const [scores, setScores] = useState(null);
+  const [scoresLoading, setScoresLoading] = useState(false);
+  const [showScores, setShowScores] = useState(false);
 
   function toggleAspect(a, list, setList, other, setOther) {
     if (list.includes(a)) setList(list.filter(x=>x!==a));
@@ -942,6 +985,18 @@ function BookRowExpanded({ book, onEdit, onRemove }) {
       setProse(data.prose || "Unable to generate preview.");
     } catch { setProse("Unable to generate preview."); }
     setProseLoading(false);
+  }
+
+  async function fetchScores() {
+    if (scores) { setShowScores(true); return; }
+    setScoresLoading(true);
+    setShowScores(true);
+    try {
+      const res = await fetch("/api/book-scores", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ title:book.title, author:book.author }) });
+      const data = await res.json();
+      setScores(data.error ? null : data);
+    } catch { setScores(null); }
+    setScoresLoading(false);
   }
 
   return (
@@ -961,10 +1016,18 @@ function BookRowExpanded({ book, onEdit, onRemove }) {
         )}
       </div>
       {desc && <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:WOOD.text, lineHeight:1.65, fontStyle:"italic", marginBottom: isRated ? 12 : 0 }}>{desc}</p>}
-      {showProseBtn && !showProse && <button {...tc(fetchProse, true)} style={{ display:"flex", alignItems:"center", gap:6, marginTop:desc?10:0, marginBottom:4, background:"rgba(138,90,40,0.12)", borderRadius:20, padding:"5px 12px", border:"1px solid rgba(138,90,40,0.25)", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, color:WOOD.textDim }}>
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-        Prose Preview
-      </button>}
+      {(!showProse && !showScores) && (
+        <div style={{ display:"flex", gap:6, marginTop:desc?10:0, marginBottom:4 }}>
+          {showProseBtn && <button {...tc(fetchProse, true)} style={{ display:"flex", alignItems:"center", gap:5, background:"rgba(138,90,40,0.12)", borderRadius:20, padding:"5px 12px", border:"1px solid rgba(138,90,40,0.25)", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, color:WOOD.textDim }}>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            Prose
+          </button>}
+          <button {...tc(fetchScores, true)} style={{ display:"flex", alignItems:"center", gap:5, background:"rgba(138,90,40,0.12)", borderRadius:20, padding:"5px 12px", border:"1px solid rgba(138,90,40,0.25)", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, color:WOOD.textDim }}>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+            Scores
+          </button>
+        </div>
+      )}
       {showProse && (
         <div style={{ marginTop:desc?10:0, marginBottom:4, animation:"fadeIn 0.18s ease" }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
@@ -974,6 +1037,30 @@ function BookRowExpanded({ book, onEdit, onRemove }) {
           {proseLoading
             ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.textFaint, fontStyle:"italic" }}>Generating…</p>
             : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, lineHeight:1.8, fontStyle:"italic" }}>{prose}</p>
+          }
+        </div>
+      )}
+      {showScores && (
+        <div style={{ marginTop:desc?10:0, marginBottom:4, animation:"fadeIn 0.18s ease" }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
+            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:11, color:WOOD.amber, letterSpacing:"0.08em", textTransform:"uppercase" }}>Scores · {book.title}</p>
+            <button {...tc(()=>setShowScores(false), true)} style={{ background:"none", border:"none", cursor:"pointer", color:WOOD.textFaint, fontSize:15, lineHeight:1, padding:"0 2px" }}>✕</button>
+          </div>
+          {scoresLoading
+            ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:13, color:WOOD.textFaint, fontStyle:"italic" }}>Scoring…</p>
+            : scores ? (
+              <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                {[["Prose", scores.prose],["Plot", scores.plot],["Characters", scores.characters],["Pacing", scores.pacing],["World-building", scores.worldBuilding],["Dialogue", scores.dialogue],["Ending", scores.ending]].map(([label, val]) => val != null && (
+                  <div key={label} style={{ display:"flex", alignItems:"center", gap:8 }}>
+                    <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, color:WOOD.textDim, width:88, flexShrink:0 }}>{label}</span>
+                    <div style={{ flex:1, height:5, borderRadius:3, background:"rgba(138,90,40,0.15)", overflow:"hidden" }}>
+                      <div style={{ height:"100%", borderRadius:3, background:WOOD.amber, width:`${val*10}%`, transition:"width 0.4s ease" }} />
+                    </div>
+                    <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:700, color:WOOD.amber, width:18, textAlign:"right", flexShrink:0 }}>{val}</span>
+                  </div>
+                ))}
+              </div>
+            ) : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:13, color:WOOD.textFaint, fontStyle:"italic" }}>Unable to score.</p>
           }
         </div>
       )}
