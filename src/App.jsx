@@ -2710,7 +2710,10 @@ function EditSheet({ book, onSave, onClose }) {
         <div style={{ display:"flex", justifyContent:"center", paddingTop:12, marginBottom:14 }}>
           <div style={{ width:34, height:4, background:"rgba(100,60,20,0.5)", borderRadius:2 }}/>
         </div>
-        <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:22, fontWeight:300, marginBottom:18, color:WOOD.text }}>Edit Book</p>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:18 }}>
+          <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:22, fontWeight:300, color:WOOD.text }}>Edit Book</p>
+          <button {...tc(onClose, true)} style={{ background:"rgba(100,60,20,0.15)", border:"none", borderRadius:"50%", width:30, height:30, cursor:"pointer", fontSize:14, color:WOOD.textDim, display:"flex", alignItems:"center", justifyContent:"center" }}>✕</button>
+        </div>
 
         {/* static book info */}
         <div style={{ display:"flex", gap:12, alignItems:"flex-start", marginBottom:16, background:"rgba(255,245,220,0.85)", borderRadius:10, padding:"12px 14px", border:"1px solid rgba(200,160,80,0.3)" }}>
