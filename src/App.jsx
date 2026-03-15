@@ -852,7 +852,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
           { label:"Edit",   action:()=>{ setMenuOpen(false); onEdit(book); } },
             { label:"Remove", action:()=>{ setMenuOpen(false); onRemove(book.id); } },
           ].map(({ label, icon, action }) => (
-            <button key={label} onClick={action} style={{
+            <button key={label} {...tc(action, true)} style={{
               display:"flex", alignItems:"center", gap:8,
               width:"100%", padding:"11px 14px",
               background:"transparent", border:"none", cursor:"pointer",
