@@ -44,21 +44,8 @@ function inferGenre(subjects = []) {
   return "Other";
 }
 
-async function googleBooksLookup(title, author) {
-  try {
-    const q = encodeURIComponent(`intitle:${title}${author ? ` inauthor:${author}` : ""}`);
-    const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${q}&maxResults=1&printType=books`);
-    const data = await res.json();
-    const item = data.items?.[0];
-    if (!item) return null;
-    const thumb = item.volumeInfo?.imageLinks?.thumbnail;
-    return {
-      coverUrl: thumb ? thumb.replace("http://", "https://") : null,
-      genre: inferGenre(item.volumeInfo?.categories || []),
-    };
-  } catch {
-    return null;
-  }
+function docKey(title, author) {
+  return `${(title || "").toLowerCase().replace(/[^\w]/g, "")}|${(author || "").toLowerCase().replace(/[^\w]/g, "")}`;
 }
 
 async function googleBooksSearch(query) {
@@ -75,7 +62,6 @@ async function googleBooksSearch(query) {
         genre:       inferGenre(info.categories || []),
         coverUrl:    thumb ? thumb.replace("http://", "https://") : null,
         publishYear: info.publishedDate ? parseInt(info.publishedDate) : null,
-        _fromGoogle: true,
       };
     });
   } catch {
@@ -83,21 +69,23 @@ async function googleBooksSearch(query) {
   }
 }
 
-const FIELDS = "title,author_name,number_of_pages_median,subject,cover_i,first_publish_year";
-
-async function olSearch(param, query, limit = 7) {
+async function olSearch(query) {
   try {
-    const url = `https://openlibrary.org/search.json?${param}=${encodeURIComponent(query)}&limit=${limit}&fields=${FIELDS}`;
+    const fields = "title,author_name,number_of_pages_median,subject,cover_i,first_publish_year";
+    const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=7&fields=${fields}`;
     const res = await fetch(url);
     const data = await res.json();
-    return data.docs || [];
+    return (data.docs || []).map(doc => ({
+      title:       doc.title || "Unknown",
+      author:      (doc.author_name || [])[0] || "Unknown",
+      pages:       doc.number_of_pages_median || 0,
+      genre:       inferGenre(doc.subject || []),
+      coverUrl:    doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg` : null,
+      publishYear: doc.first_publish_year || null,
+    }));
   } catch {
     return [];
   }
-}
-
-function docKey(title, author) {
-  return `${(title || "").toLowerCase().replace(/[^\w]/g, "")}|${(author || "").toLowerCase().replace(/[^\w]/g, "")}`;
 }
 
 export default async function handler(req, res) {
@@ -106,50 +94,19 @@ export default async function handler(req, res) {
   const { query } = req.body;
   if (!query?.trim()) return res.status(400).json({ error: "Missing query" });
 
-  // Run all sources in parallel
-  const [titleDocs, generalDocs, authorDocs, googleItems] = await Promise.all([
-    olSearch("title", query),
-    olSearch("q", query),
-    olSearch("author", query),
+  // Run both in parallel; Google Books is primary, OL fills gaps
+  const [googleItems, olItems] = await Promise.all([
     googleBooksSearch(query),
+    olSearch(query),
   ]);
 
-  // Build OpenLibrary results first, then fill with Google Books
   const seen = new Set();
-  const olMerged = [];
-  for (const doc of [...titleDocs, ...generalDocs, ...authorDocs]) {
-    const key = docKey(doc.title, (doc.author_name || [])[0]);
-    if (!seen.has(key)) { seen.add(key); olMerged.push(doc); }
-    if (olMerged.length === 7) break;
-  }
+  const results = [];
 
-  const olResults = await Promise.all(olMerged.map(async doc => {
-    const genre = inferGenre(doc.subject || []);
-    const coverUrl = doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg` : null;
-    let gb = null;
-    if (!coverUrl || genre === "Other") {
-      gb = await googleBooksLookup(doc.title || query, (doc.author_name || [])[0] || "");
-    }
-    return {
-      title:       doc.title || "Unknown",
-      author:      (doc.author_name || [])[0] || "Unknown",
-      pages:       doc.number_of_pages_median || 0,
-      genre:       genre !== "Other" ? genre : (gb?.genre && gb.genre !== "Other" ? gb.genre : "Other"),
-      coverUrl:    coverUrl || gb?.coverUrl || null,
-      publishYear: doc.first_publish_year || null,
-    };
-  }));
-
-  // Fill remaining slots with Google Books results not already seen
-  const results = [...olResults];
-  for (const item of googleItems) {
+  for (const item of [...googleItems, ...olItems]) {
     if (results.length >= 7) break;
     const key = docKey(item.title, item.author);
-    if (!seen.has(key)) {
-      seen.add(key);
-      const { _fromGoogle, ...clean } = item;
-      results.push(clean);
-    }
+    if (!seen.has(key)) { seen.add(key); results.push(item); }
   }
 
   res.json(results);
