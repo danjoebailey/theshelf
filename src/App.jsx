@@ -514,9 +514,9 @@ function StarRating({ value, onChange, size=22, readonly=false, stretch=false, o
             )}
             {!readonly && <>
               <div style={{ position:"absolute",left:0,top:0,width:"50%",height:"100%",zIndex:10 }}
-                onMouseEnter={()=>setHovered(star-0.5)} onClick={()=>onChange(star-0.5)} />
+                onMouseEnter={()=>setHovered(star-0.5)} {...tc(()=>onChange(star-0.5),true)} />
               <div style={{ position:"absolute",left:"50%",top:0,width:"50%",height:"100%",zIndex:10 }}
-                onMouseEnter={()=>setHovered(star)} onClick={()=>onChange(star)} />
+                onMouseEnter={()=>setHovered(star)} {...tc(()=>onChange(star),true)} />
             </>}
           </div>
         );
