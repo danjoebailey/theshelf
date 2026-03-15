@@ -707,7 +707,6 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
   const touchMoved = useRef(false);
   const desc = book.description || DESCRIPTIONS[book.title] || "";
   const isRated = (book.shelf || "Read") !== "The List" && (book.shelf || "Read") !== "Curious" && (book.shelf || "Read") !== "Reading";
-  const showProseBtn = (book.shelf || "Read") !== "Read" && (book.shelf || "Read") !== "Reading";
 
   function toggleAspect(aspect, list, setList, otherList, setOtherList) {
     if (list.includes(aspect)) setList(list.filter(a => a !== aspect));
@@ -886,8 +885,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
             )}
           </div>
           {desc && <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, lineHeight:1.65, fontStyle:"italic", marginBottom: isRated ? 14 : 0 }}>{desc}</p>}
-          {showProseBtn && (
-            <button onClick={fetchProse} style={{
+          <button {...tc(fetchProse)} style={{
               display:"flex", alignItems:"center", gap:6, marginTop: desc ? 12 : 0, marginBottom: 4,
               background:"rgba(138,90,40,0.12)", borderRadius:20, padding:"6px 14px",
               border:"1px solid rgba(138,90,40,0.25)", cursor:"pointer",
@@ -898,7 +896,6 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
               </svg>
               Prose Preview
             </button>
-          )}
           {isRated && (
             <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
               <div>
@@ -928,7 +925,6 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
 function BookRowExpanded({ book, onEdit, onRemove }) {
   const desc = book.description || DESCRIPTIONS[book.title] || "";
   const isRated = (book.shelf || "Read") !== "The List" && (book.shelf || "Read") !== "Curious" && (book.shelf || "Read") !== "Reading";
-  const showProseBtn = (book.shelf || "Read") !== "Read" && (book.shelf || "Read") !== "Reading";
   const [liked, setLiked] = useState([]);
   const [disliked, setDisliked] = useState([]);
   const [prose, setProse] = useState(null);
@@ -980,12 +976,10 @@ function BookRowExpanded({ book, onEdit, onRemove }) {
         )}
       </div>
       {desc && <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:WOOD.text, lineHeight:1.65, fontStyle:"italic", marginBottom: isRated ? 12 : 0 }}>{desc}</p>}
-      {showProseBtn && (
-        <button onClick={fetchProse} style={{ display:"flex", alignItems:"center", gap:6, marginTop:desc?10:0, marginBottom:4, background:"rgba(138,90,40,0.12)", borderRadius:20, padding:"5px 12px", border:"1px solid rgba(138,90,40,0.25)", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, color:WOOD.textDim }}>
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-          Prose Preview
-        </button>
-      )}
+      <button {...tc(fetchProse)} style={{ display:"flex", alignItems:"center", gap:6, marginTop:desc?10:0, marginBottom:4, background:"rgba(138,90,40,0.12)", borderRadius:20, padding:"5px 12px", border:"1px solid rgba(138,90,40,0.25)", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, color:WOOD.textDim }}>
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        Prose Preview
+      </button>
       {isRated && (
         <div style={{ display:"flex", flexDirection:"column", gap:8, marginTop:4 }}>
           <div>
