@@ -2717,7 +2717,7 @@ function EditSheet({ book, onSave, onClose }) {
 
         {/* static book info */}
         <div style={{ display:"flex", gap:12, alignItems:"flex-start", marginBottom:16, background:"rgba(255,245,220,0.85)", borderRadius:10, padding:"12px 14px", border:"1px solid rgba(200,160,80,0.3)" }}>
-          <BookSpine title={book.title} genre={book.genre} size={72} />
+          <BookCover book={book} width={72} height={108} radius={6} shadow="0 4px 12px rgba(0,0,0,0.25)" />
           <div style={{ minWidth:0 }}>
             <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:18, color:WOOD.text, lineHeight:1.2, marginBottom:3 }}>{book.title}</p>
             <p style={{ fontSize:13, color:WOOD.textDim, fontStyle:"italic", marginBottom:6 }}>{book.author}</p>
