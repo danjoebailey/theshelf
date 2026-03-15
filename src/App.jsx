@@ -1453,6 +1453,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
                 background:"#f5e8d0", borderRadius:12, padding:"14px",
                 boxShadow:"0 4px 24px rgba(0,0,0,0.28)", border:"1px solid rgba(138,90,40,0.3)",
                 animation:"fadeIn 0.12s ease",
+                maxHeight:"60vh", overflowY:"auto", WebkitOverflowScrolling:"touch",
               }}>
                 {/* header */}
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
