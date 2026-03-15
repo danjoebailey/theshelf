@@ -2693,6 +2693,7 @@ function EditSheet({ book, onSave, onClose }) {
   const [rating, setRating] = useState(book.rating);
   const [shelf, setShelf] = useState(book.shelf || "Read");
   const [genre, setGenre] = useState(book.genre || "Other");
+  const [date, setDate] = useState(book.date || new Date().toISOString().slice(0,10));
 
   return (
     <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.7)", zIndex:50, display:"flex", flexDirection:"column", justifyContent:"flex-end", animation:"fadeIn 0.15s ease" }}
@@ -2797,7 +2798,15 @@ function EditSheet({ book, onSave, onClose }) {
           </div>
         )}
 
-        <button onClick={()=>onSave({ id:book.id, rating, shelf, genre })} style={{
+        {/* date */}
+        <div style={{ background:"rgba(255,245,220,0.85)", border:`1px solid rgba(200,160,80,0.3)`, borderRadius:10, padding:14, marginBottom:12 }}>
+          <p style={{ fontSize:14, color:WOOD.textDim, marginBottom:10, letterSpacing:"0.1em", textAlign:"center" }}>{shelf === "Read" ? "Date Read" : "Date Added"}</p>
+          <input type="date" value={date} onChange={e=>setDate(e.target.value)}
+            onTouchEnd={e=>e.stopPropagation()}
+            style={{ width:"100%", padding:"8px 12px", borderRadius:8, border:"1px solid rgba(138,90,40,0.3)", background:"#fff", fontSize:14, fontFamily:"'DM Sans',sans-serif", color:WOOD.text, outline:"none", boxSizing:"border-box" }} />
+        </div>
+
+        <button onClick={()=>onSave({ id:book.id, rating, shelf, genre, date })} style={{
           width:"100%", padding:"14px",
           background:`linear-gradient(135deg,${WOOD.amber},#f97316)`,
           color:"#1a0900", borderRadius:12, fontSize:15, fontWeight:600,
@@ -3064,7 +3073,7 @@ export default function App() {
   }
 
   function saveEdit(updated) {
-    const next = books.map(b => b.id === updated.id ? { ...b, rating: updated.rating, shelf: updated.shelf, genre: updated.genre ?? b.genre } : b);
+    const next = books.map(b => b.id === updated.id ? { ...b, rating: updated.rating, shelf: updated.shelf, genre: updated.genre ?? b.genre, date: updated.date ?? b.date } : b);
     setBooks(next);
     saveBooks(next);
   }
