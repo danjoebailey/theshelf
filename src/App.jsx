@@ -851,23 +851,6 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
         </div>
       )}
 
-      {showProse && (
-        <div onClick={e=>e.stopPropagation()} style={{
-          position:"absolute", inset:0, zIndex:20, borderRadius:12,
-          background:"rgba(30,15,5,0.92)", backdropFilter:"blur(4px)",
-          display:"flex", flexDirection:"column", padding:"18px 16px 14px",
-          animation:"fadeIn 0.18s ease",
-        }}>
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
-            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:13, color:"rgba(245,201,122,0.7)", letterSpacing:"0.08em", textTransform:"uppercase" }}>Prose Preview · {book.author}</p>
-            <button onClick={()=>setShowProse(false)} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(255,255,255,0.5)", fontSize:18, lineHeight:1, padding:"0 2px" }}>✕</button>
-          </div>
-          {proseLoading
-            ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:"rgba(255,255,255,0.4)", fontStyle:"italic" }}>Generating…</p>
-            : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:"rgba(255,245,230,0.9)", lineHeight:1.75, fontStyle:"italic", overflowY:"auto", flex:1 }}>{prose}</p>
-          }
-        </div>
-      )}
 
       {expanded && (
         <div style={{ marginTop:10, paddingTop:10, borderTop:"1px solid rgba(138,90,40,0.25)" }} onClick={e=>e.stopPropagation()}>
@@ -886,7 +869,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
             )}
           </div>
           {desc && <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, lineHeight:1.65, fontStyle:"italic", marginBottom: isRated ? 14 : 0 }}>{desc}</p>}
-          {showProseBtn && <button {...tc(fetchProse)} style={{
+          {showProseBtn && !showProse && <button {...tc(fetchProse)} style={{
               display:"flex", alignItems:"center", gap:6, marginTop: desc ? 12 : 0, marginBottom: 4,
               background:"rgba(138,90,40,0.12)", borderRadius:20, padding:"6px 14px",
               border:"1px solid rgba(138,90,40,0.25)", cursor:"pointer",
@@ -897,6 +880,18 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
               </svg>
               Prose Preview
             </button>}
+          {showProse && (
+            <div style={{ marginTop: desc ? 12 : 0, marginBottom: 4, borderRadius: 10, background:"rgba(30,15,5,0.55)", padding:"14px 14px 12px", animation:"fadeIn 0.18s ease" }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
+                <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:12, color:"rgba(245,201,122,0.7)", letterSpacing:"0.08em", textTransform:"uppercase" }}>Prose Preview · {book.author}</p>
+                <button {...tc(()=>setShowProse(false))} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(255,255,255,0.4)", fontSize:16, lineHeight:1, padding:"0 2px" }}>✕</button>
+              </div>
+              {proseLoading
+                ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:WOOD.textFaint, fontStyle:"italic" }}>Generating…</p>
+                : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:WOOD.text, lineHeight:1.75, fontStyle:"italic" }}>{prose}</p>
+              }
+            </div>
+          )}
           {isRated && (
             <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
               <div>
@@ -950,19 +945,7 @@ function BookRowExpanded({ book, onEdit, onRemove }) {
   }
 
   return (
-    <div style={{ marginTop:8, paddingTop:8, borderTop:"1px solid rgba(138,90,40,0.25)", position:"relative" }} onClick={e=>e.stopPropagation()}>
-      {showProse && (
-        <div style={{ position:"absolute", inset:0, zIndex:20, borderRadius:8, background:"rgba(30,15,5,0.92)", backdropFilter:"blur(4px)", display:"flex", flexDirection:"column", padding:"14px 12px 10px", animation:"fadeIn 0.18s ease" }}>
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
-            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:12, color:"rgba(245,201,122,0.7)", letterSpacing:"0.08em", textTransform:"uppercase" }}>Prose Preview · {book.author}</p>
-            <button onClick={()=>setShowProse(false)} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(255,255,255,0.5)", fontSize:16, lineHeight:1, padding:"0 2px" }}>✕</button>
-          </div>
-          {proseLoading
-            ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:"rgba(255,255,255,0.4)", fontStyle:"italic" }}>Generating…</p>
-            : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:"rgba(255,245,230,0.9)", lineHeight:1.75, fontStyle:"italic", overflowY:"auto", flex:1 }}>{prose}</p>
-          }
-        </div>
-      )}
+    <div style={{ marginTop:8, paddingTop:8, borderTop:"1px solid rgba(138,90,40,0.25)" }} onClick={e=>e.stopPropagation()}>
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:4 }}>
         {(book.publishYear || book.pages>0) && (
           <p style={{ color:WOOD.textFaint, fontSize:10, fontFamily:"'DM Sans',sans-serif" }}>
@@ -978,10 +961,22 @@ function BookRowExpanded({ book, onEdit, onRemove }) {
         )}
       </div>
       {desc && <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:WOOD.text, lineHeight:1.65, fontStyle:"italic", marginBottom: isRated ? 12 : 0 }}>{desc}</p>}
-      {showProseBtn && <button {...tc(fetchProse)} style={{ display:"flex", alignItems:"center", gap:6, marginTop:desc?10:0, marginBottom:4, background:"rgba(138,90,40,0.12)", borderRadius:20, padding:"5px 12px", border:"1px solid rgba(138,90,40,0.25)", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, color:WOOD.textDim }}>
+      {showProseBtn && !showProse && <button {...tc(fetchProse)} style={{ display:"flex", alignItems:"center", gap:6, marginTop:desc?10:0, marginBottom:4, background:"rgba(138,90,40,0.12)", borderRadius:20, padding:"5px 12px", border:"1px solid rgba(138,90,40,0.25)", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, color:WOOD.textDim }}>
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
         Prose Preview
       </button>}
+      {showProse && (
+        <div style={{ marginTop:desc?10:0, marginBottom:4, borderRadius:8, background:"rgba(30,15,5,0.55)", padding:"12px 12px 10px", animation:"fadeIn 0.18s ease" }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
+            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:11, color:"rgba(245,201,122,0.7)", letterSpacing:"0.08em", textTransform:"uppercase" }}>Prose Preview · {book.author}</p>
+            <button {...tc(()=>setShowProse(false))} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(255,255,255,0.4)", fontSize:15, lineHeight:1, padding:"0 2px" }}>✕</button>
+          </div>
+          {proseLoading
+            ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:13, color:WOOD.textFaint, fontStyle:"italic" }}>Generating…</p>
+            : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:13, color:WOOD.text, lineHeight:1.75, fontStyle:"italic" }}>{prose}</p>
+          }
+        </div>
+      )}
       {isRated && (
         <div style={{ display:"flex", flexDirection:"column", gap:8, marginTop:4 }}>
           <div>
