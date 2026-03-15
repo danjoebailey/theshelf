@@ -80,15 +80,16 @@ export default async function handler(req, res) {
   const { query } = req.body;
   if (!query?.trim()) return res.status(400).json({ error: "Missing query" });
 
-  // Run title and author searches in parallel, merge with title results first
-  const [titleDocs, authorDocs] = await Promise.all([
+  // Run title, general (fuzzy), and author searches in parallel
+  const [titleDocs, generalDocs, authorDocs] = await Promise.all([
     olSearch("title", query),
+    olSearch("q", query),
     olSearch("author", query),
   ]);
 
   const seen = new Set();
   const merged = [];
-  for (const doc of [...titleDocs, ...authorDocs]) {
+  for (const doc of [...titleDocs, ...generalDocs, ...authorDocs]) {
     const key = `${(doc.title || "").toLowerCase()}|${((doc.author_name || [])[0] || "").toLowerCase()}`;
     if (!seen.has(key)) { seen.add(key); merged.push(doc); }
     if (merged.length === 7) break;
