@@ -3056,6 +3056,79 @@ function GoodreadsImportSheet({ onImport, onClose }) {
   );
 }
 
+function GenreTriageSheet({ books, onSave, onClose }) {
+  const [idx, setIdx] = useState(0);
+  const [genres, setGenres] = useState(() => Object.fromEntries(books.map(b => [b.id, "Other"])));
+  const book = books[idx];
+  const isLast = idx === books.length - 1;
+
+  function advance() {
+    if (isLast) { onSave(genres); onClose(); }
+    else setIdx(i => i + 1);
+  }
+
+  return (
+    <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.7)", zIndex:60, display:"flex", flexDirection:"column", justifyContent:"flex-end", animation:"fadeIn 0.15s ease" }}>
+      <div onTouchEnd={e=>e.stopPropagation()} onClick={e=>e.stopPropagation()} style={{
+        background:"linear-gradient(180deg, #ddb870 0%, #c89850 100%)",
+        borderRadius:"20px 20px 0 0",
+        padding:"0 18px 30px",
+        maxHeight:"85%", overflowY:"auto",
+        borderTop:"1px solid rgba(220,180,100,0.5)",
+        boxShadow:"0 -8px 32px rgba(0,0,0,0.3)",
+        animation:"slideUp 0.25s cubic-bezier(0.34,1.56,0.64,1)",
+      }}>
+        <div style={{ height:3, background:"linear-gradient(90deg, rgba(0,0,0,0.3), rgba(255,200,100,0.1) 40%, rgba(0,0,0,0.3))" }}/>
+        <div style={{ display:"flex", justifyContent:"center", paddingTop:12, marginBottom:14 }}>
+          <div style={{ width:34, height:4, background:"rgba(100,60,20,0.5)", borderRadius:2 }}/>
+        </div>
+
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:4 }}>
+          <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:22, fontWeight:300, color:WOOD.text }}>Set Genre</p>
+          <button {...tc(onClose, true)} style={{ background:"rgba(100,60,20,0.15)", border:"none", borderRadius:"50%", width:30, height:30, cursor:"pointer", fontSize:14, color:WOOD.textDim, display:"flex", alignItems:"center", justifyContent:"center" }}>✕</button>
+        </div>
+        <p style={{ fontSize:12, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif", marginBottom:18 }}>
+          {idx + 1} of {books.length} book{books.length > 1 ? "s" : ""} without a recognized genre
+        </p>
+
+        <div style={{ background:"rgba(255,245,220,0.85)", borderRadius:10, padding:"12px 14px", marginBottom:16, border:"1px solid rgba(200,160,80,0.3)" }}>
+          <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:17, color:WOOD.text, lineHeight:1.2, marginBottom:3 }}>{book.title}</p>
+          <p style={{ fontSize:13, color:WOOD.textDim, fontStyle:"italic" }}>{book.author}</p>
+        </div>
+
+        <div style={{ display:"flex", gap:6, flexWrap:"wrap", justifyContent:"center", marginBottom:18 }}>
+          {GENRES.filter(g => g !== "Other").map(g => {
+            const selected = genres[book.id] === g;
+            return (
+              <button key={g} {...tc(()=>setGenres(prev=>({...prev,[book.id]:g})),true)} style={{
+                padding:"6px 13px", borderRadius:20, cursor:"pointer",
+                background: selected ? (GENRE_COLORS[g]||WOOD.amber) : "rgba(138,90,40,0.1)",
+                color: selected ? "#fff" : WOOD.textDim,
+                border: `1px solid ${selected ? (GENRE_COLORS[g]||WOOD.amber) : "rgba(138,90,40,0.25)"}`,
+                fontSize:12, fontFamily:"'DM Sans',sans-serif", fontWeight: selected ? 700 : 400,
+                textTransform:"uppercase", letterSpacing:"0.06em", transition:"all 0.15s",
+              }}>{g}</button>
+            );
+          })}
+        </div>
+
+        <div style={{ display:"flex", gap:10 }}>
+          <button {...tc(()=>{ setGenres(prev=>({...prev,[book.id]:"Other"})); advance(); }, true)} style={{
+            flex:1, padding:"12px", borderRadius:12, cursor:"pointer",
+            background:"rgba(138,90,40,0.12)", border:"1px solid rgba(138,90,40,0.25)",
+            fontFamily:"'DM Sans',sans-serif", fontSize:14, color:WOOD.textDim,
+          }}>Skip</button>
+          <button {...tc(advance, true)} style={{
+            flex:2, padding:"12px", borderRadius:12, cursor:"pointer",
+            background:`linear-gradient(135deg,${WOOD.amber},#f97316)`,
+            border:"none", fontFamily:"'DM Sans',sans-serif", fontSize:15, fontWeight:600, color:"#1a0900",
+          }}>{isLast ? "Done" : "Next →"}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [books, setBooks] = useState(loadBooks);
   const [tab, setTab] = useState("shelf");
@@ -3065,6 +3138,7 @@ export default function App() {
   const [scrollY, setScrollY] = useState(0);
   const [showImport, setShowImport] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [genreTriage, setGenreTriage] = useState(null);
 
   function addBook(form) {
     const updated = [...books, { id:Date.now(), ...form, genre:normalizeGenre(form.genre), pages:parseInt(form.pages)||0, date:new Date().toISOString().slice(0,10) }];
@@ -3090,6 +3164,8 @@ export default function App() {
     const updated = [...books, ...newBooks];
     setBooks(updated);
     saveBooks(updated);
+    const untagged = newBooks.filter(b => b.genre === "Other");
+    if (untagged.length > 0) setGenreTriage(untagged);
   }
 
   return (
@@ -3150,6 +3226,7 @@ export default function App() {
           {addInitialBook && <BookSearchModal book={addInitialBook} onSave={addBook} onClose={()=>{ setAddInitialBook(null); setShowAdd(false); }} />}
           {editBook && <EditSheet book={editBook} onSave={updated=>{ saveEdit(updated); setEditBook(null); }} onClose={()=>setEditBook(null)} />}
           {showImport && <GoodreadsImportSheet onImport={importBooks} onClose={()=>setShowImport(false)} />}
+          {genreTriage && <GenreTriageSheet books={genreTriage} onSave={resolved=>{ setBooks(prev=>{ const next = prev.map(b => resolved[b.id] ? {...b, genre:resolved[b.id]} : b); saveBooks(next); return next; }); }} onClose={()=>setGenreTriage(null)} />}
         </div>
 
         {/* tab bar */}
