@@ -822,7 +822,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
                       animation:"fadeIn 0.12s ease",
                     }}>
                       {SHELVES.map((s, i) => (
-                        <button key={s} onClick={()=>{ setShelfDropOpen(false); onShelfChange(book.id, s); }} style={{
+                        <button key={s} {...tc(()=>{ setShelfDropOpen(false); onShelfChange(book.id, s); }, true)} style={{
                           display:"block", width:"100%", padding:"9px 14px", textAlign:"left",
                           background: s===shelf ? "rgba(138,90,40,0.1)" : "transparent",
                           border:"none", borderBottom: i<SHELVES.length-1 ? "1px solid rgba(138,90,40,0.1)" : "none",
@@ -939,7 +939,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
                 <p style={{ fontSize:10, fontWeight:700, color:"#4a7a5a", textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:6, fontFamily:"'DM Sans',sans-serif" }}>👍 Liked</p>
                 <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
                   {ASPECTS.map(a => { const active=liked.includes(a); return (
-                    <button key={a} onClick={()=>toggleAspect(a,liked,setLiked,disliked,setDisliked)} style={{ padding:"4px 10px", borderRadius:20, fontSize:11, fontFamily:"'DM Sans',sans-serif", fontWeight:600, cursor:"pointer", transition:"all 0.15s", background:active?"#4a7a5a":"rgba(74,122,90,0.1)", color:active?"#fff":"#4a7a5a", border:`1px solid ${active?"#4a7a5a":"rgba(74,122,90,0.35)"}` }}>{a}</button>
+                    <button key={a} {...tc(()=>toggleAspect(a,liked,setLiked,disliked,setDisliked), true)} style={{ padding:"4px 10px", borderRadius:20, fontSize:11, fontFamily:"'DM Sans',sans-serif", fontWeight:600, cursor:"pointer", transition:"all 0.15s", background:active?"#4a7a5a":"rgba(74,122,90,0.1)", color:active?"#fff":"#4a7a5a", border:`1px solid ${active?"#4a7a5a":"rgba(74,122,90,0.35)"}` }}>{a}</button>
                   ); })}
                 </div>
               </div>
@@ -947,7 +947,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
                 <p style={{ fontSize:10, fontWeight:700, color:"#8a4a4a", textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:6, fontFamily:"'DM Sans',sans-serif" }}>👎 Disliked</p>
                 <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
                   {ASPECTS.map(a => { const active=disliked.includes(a); return (
-                    <button key={a} onClick={()=>toggleAspect(a,disliked,setDisliked,liked,setLiked)} style={{ padding:"4px 10px", borderRadius:20, fontSize:11, fontFamily:"'DM Sans',sans-serif", fontWeight:600, cursor:"pointer", transition:"all 0.15s", background:active?"#8a4a4a":"rgba(138,74,74,0.1)", color:active?"#fff":"#8a4a4a", border:`1px solid ${active?"#8a4a4a":"rgba(138,74,74,0.35)"}` }}>{a}</button>
+                    <button key={a} {...tc(()=>toggleAspect(a,disliked,setDisliked,liked,setLiked), true)} style={{ padding:"4px 10px", borderRadius:20, fontSize:11, fontFamily:"'DM Sans',sans-serif", fontWeight:600, cursor:"pointer", transition:"all 0.15s", background:active?"#8a4a4a":"rgba(138,74,74,0.1)", color:active?"#fff":"#8a4a4a", border:`1px solid ${active?"#8a4a4a":"rgba(138,74,74,0.35)"}` }}>{a}</button>
                   ); })}
                 </div>
               </div>
@@ -1001,7 +1001,7 @@ function BookRowExpanded({ book, onEdit, onRemove }) {
   }
 
   return (
-    <div style={{ marginTop:8, paddingTop:8, borderTop:"1px solid rgba(138,90,40,0.25)" }} onClick={e=>e.stopPropagation()}>
+    <div style={{ marginTop:8, paddingTop:8, borderTop:"1px solid rgba(138,90,40,0.25)" }} onTouchEnd={e=>e.stopPropagation()} onClick={e=>e.stopPropagation()}>
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:4 }}>
         {(book.publishYear || book.pages>0) && (
           <p style={{ color:WOOD.textFaint, fontSize:10, fontFamily:"'DM Sans',sans-serif" }}>
@@ -1071,7 +1071,7 @@ function BookRowExpanded({ book, onEdit, onRemove }) {
             <p style={{ fontSize:10, fontWeight:700, color:"#4a7a5a", textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:5, fontFamily:"'DM Sans',sans-serif" }}>👍 Liked</p>
             <div style={{ display:"flex", gap:4, flexWrap:"wrap" }}>
               {ASPECTS.map(a => { const active=liked.includes(a); return (
-                <button key={a} onClick={()=>toggleAspect(a,liked,setLiked,disliked,setDisliked)} style={{ padding:"3px 9px", borderRadius:20, fontSize:10, fontFamily:"'DM Sans',sans-serif", fontWeight:600, cursor:"pointer", background:active?"#4a7a5a":"rgba(74,122,90,0.1)", color:active?"#fff":"#4a7a5a", border:`1px solid ${active?"#4a7a5a":"rgba(74,122,90,0.35)"}` }}>{a}</button>
+                <button key={a} {...tc(()=>toggleAspect(a,liked,setLiked,disliked,setDisliked), true)} style={{ padding:"3px 9px", borderRadius:20, fontSize:10, fontFamily:"'DM Sans',sans-serif", fontWeight:600, cursor:"pointer", background:active?"#4a7a5a":"rgba(74,122,90,0.1)", color:active?"#fff":"#4a7a5a", border:`1px solid ${active?"#4a7a5a":"rgba(74,122,90,0.35)"}` }}>{a}</button>
               ); })}
             </div>
           </div>
@@ -1079,15 +1079,15 @@ function BookRowExpanded({ book, onEdit, onRemove }) {
             <p style={{ fontSize:10, fontWeight:700, color:"#8a4a4a", textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:5, fontFamily:"'DM Sans',sans-serif" }}>👎 Disliked</p>
             <div style={{ display:"flex", gap:4, flexWrap:"wrap" }}>
               {ASPECTS.map(a => { const active=disliked.includes(a); return (
-                <button key={a} onClick={()=>toggleAspect(a,disliked,setDisliked,liked,setLiked)} style={{ padding:"3px 9px", borderRadius:20, fontSize:10, fontFamily:"'DM Sans',sans-serif", fontWeight:600, cursor:"pointer", background:active?"#8a4a4a":"rgba(138,74,74,0.1)", color:active?"#fff":"#8a4a4a", border:`1px solid ${active?"#8a4a4a":"rgba(138,74,74,0.35)"}` }}>{a}</button>
+                <button key={a} {...tc(()=>toggleAspect(a,disliked,setDisliked,liked,setLiked), true)} style={{ padding:"3px 9px", borderRadius:20, fontSize:10, fontFamily:"'DM Sans',sans-serif", fontWeight:600, cursor:"pointer", background:active?"#8a4a4a":"rgba(138,74,74,0.1)", color:active?"#fff":"#8a4a4a", border:`1px solid ${active?"#8a4a4a":"rgba(138,74,74,0.35)"}` }}>{a}</button>
               ); })}
             </div>
           </div>
         </div>
       )}
       <div style={{ display:"flex", gap:8, marginTop:10 }}>
-        <button onClick={()=>onEdit(book)} style={{ flex:1, padding:"7px 0", background:"rgba(138,90,40,0.1)", border:"1px solid rgba(138,90,40,0.2)", borderRadius:8, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:12, color:WOOD.text }}>Edit</button>
-        <button onClick={()=>onRemove(book.id)} style={{ flex:1, padding:"7px 0", background:"rgba(192,57,43,0.08)", border:"1px solid rgba(192,57,43,0.2)", borderRadius:8, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:12, color:"#c0392b" }}>Remove</button>
+        <button {...tc(()=>onEdit(book), true)} style={{ flex:1, padding:"7px 0", background:"rgba(138,90,40,0.1)", border:"1px solid rgba(138,90,40,0.2)", borderRadius:8, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:12, color:WOOD.text }}>Edit</button>
+        <button {...tc(()=>onRemove(book.id), true)} style={{ flex:1, padding:"7px 0", background:"rgba(192,57,43,0.08)", border:"1px solid rgba(192,57,43,0.2)", borderRadius:8, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:12, color:"#c0392b" }}>Remove</button>
       </div>
     </div>
   );
