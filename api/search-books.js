@@ -67,7 +67,7 @@ export default async function handler(req, res) {
   const { query } = req.body;
   if (!query?.trim()) return res.status(400).json({ error: "Missing query" });
 
-  const url = `https://openlibrary.org/search.json?title=${encodeURIComponent(query)}&limit=7&fields=title,author_name,number_of_pages_median,subject,cover_i,first_publish_year`;
+  const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=7&fields=title,author_name,number_of_pages_median,subject,cover_i,first_publish_year`;
   const response = await fetch(url);
   const data = await response.json();
 
