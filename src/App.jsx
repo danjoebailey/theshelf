@@ -881,14 +881,14 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
               Prose Preview
             </button>}
           {showProse && (
-            <div style={{ marginTop: desc ? 12 : 0, marginBottom: 4, borderRadius: 10, background:"rgba(30,15,5,0.55)", padding:"14px 14px 12px", animation:"fadeIn 0.18s ease" }}>
+            <div style={{ marginTop: desc ? 12 : 0, marginBottom: 4, animation:"fadeIn 0.18s ease" }}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
-                <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:12, color:"rgba(245,201,122,0.7)", letterSpacing:"0.08em", textTransform:"uppercase" }}>Prose Preview · {book.author}</p>
-                <button {...tc(()=>setShowProse(false))} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(255,255,255,0.4)", fontSize:16, lineHeight:1, padding:"0 2px" }}>✕</button>
+                <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:12, color:WOOD.amber, letterSpacing:"0.08em", textTransform:"uppercase" }}>Prose Preview · {book.author}</p>
+                <button {...tc(()=>setShowProse(false))} style={{ background:"none", border:"none", cursor:"pointer", color:WOOD.textFaint, fontSize:16, lineHeight:1, padding:"0 2px" }}>✕</button>
               </div>
               {proseLoading
-                ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:WOOD.textFaint, fontStyle:"italic" }}>Generating…</p>
-                : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:WOOD.text, lineHeight:1.75, fontStyle:"italic" }}>{prose}</p>
+                ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, color:WOOD.textFaint, fontStyle:"italic" }}>Generating…</p>
+                : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, color:WOOD.text, lineHeight:1.8, fontStyle:"italic" }}>{prose}</p>
               }
             </div>
           )}
@@ -966,14 +966,14 @@ function BookRowExpanded({ book, onEdit, onRemove }) {
         Prose Preview
       </button>}
       {showProse && (
-        <div style={{ marginTop:desc?10:0, marginBottom:4, borderRadius:8, background:"rgba(30,15,5,0.55)", padding:"12px 12px 10px", animation:"fadeIn 0.18s ease" }}>
+        <div style={{ marginTop:desc?10:0, marginBottom:4, animation:"fadeIn 0.18s ease" }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
-            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:11, color:"rgba(245,201,122,0.7)", letterSpacing:"0.08em", textTransform:"uppercase" }}>Prose Preview · {book.author}</p>
-            <button {...tc(()=>setShowProse(false))} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(255,255,255,0.4)", fontSize:15, lineHeight:1, padding:"0 2px" }}>✕</button>
+            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:11, color:WOOD.amber, letterSpacing:"0.08em", textTransform:"uppercase" }}>Prose Preview · {book.author}</p>
+            <button {...tc(()=>setShowProse(false))} style={{ background:"none", border:"none", cursor:"pointer", color:WOOD.textFaint, fontSize:15, lineHeight:1, padding:"0 2px" }}>✕</button>
           </div>
           {proseLoading
-            ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:13, color:WOOD.textFaint, fontStyle:"italic" }}>Generating…</p>
-            : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:13, color:WOOD.text, lineHeight:1.75, fontStyle:"italic" }}>{prose}</p>
+            ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.textFaint, fontStyle:"italic" }}>Generating…</p>
+            : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, lineHeight:1.8, fontStyle:"italic" }}>{prose}</p>
           }
         </div>
       )}
