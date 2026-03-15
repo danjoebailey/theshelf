@@ -61,6 +61,28 @@ async function googleBooksLookup(title, author) {
   }
 }
 
+async function googleBooksSearch(query) {
+  try {
+    const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=7&printType=books`);
+    const data = await res.json();
+    return (data.items || []).map(item => {
+      const info = item.volumeInfo || {};
+      const thumb = info.imageLinks?.thumbnail;
+      return {
+        title:       info.title || "Unknown",
+        author:      (info.authors || [])[0] || "Unknown",
+        pages:       info.pageCount || 0,
+        genre:       inferGenre(info.categories || []),
+        coverUrl:    thumb ? thumb.replace("http://", "https://") : null,
+        publishYear: info.publishedDate ? parseInt(info.publishedDate) : null,
+        _fromGoogle: true,
+      };
+    });
+  } catch {
+    return [];
+  }
+}
+
 const FIELDS = "title,author_name,number_of_pages_median,subject,cover_i,first_publish_year";
 
 async function olSearch(param, query, limit = 7) {
@@ -74,36 +96,40 @@ async function olSearch(param, query, limit = 7) {
   }
 }
 
+function docKey(title, author) {
+  return `${(title || "").toLowerCase().replace(/[^\w]/g, "")}|${(author || "").toLowerCase().replace(/[^\w]/g, "")}`;
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
 
   const { query } = req.body;
   if (!query?.trim()) return res.status(400).json({ error: "Missing query" });
 
-  // Run title, general (fuzzy), and author searches in parallel
-  const [titleDocs, generalDocs, authorDocs] = await Promise.all([
+  // Run all sources in parallel
+  const [titleDocs, generalDocs, authorDocs, googleItems] = await Promise.all([
     olSearch("title", query),
     olSearch("q", query),
     olSearch("author", query),
+    googleBooksSearch(query),
   ]);
 
+  // Build OpenLibrary results first, then fill with Google Books
   const seen = new Set();
-  const merged = [];
+  const olMerged = [];
   for (const doc of [...titleDocs, ...generalDocs, ...authorDocs]) {
-    const key = `${(doc.title || "").toLowerCase()}|${((doc.author_name || [])[0] || "").toLowerCase()}`;
-    if (!seen.has(key)) { seen.add(key); merged.push(doc); }
-    if (merged.length === 7) break;
+    const key = docKey(doc.title, (doc.author_name || [])[0]);
+    if (!seen.has(key)) { seen.add(key); olMerged.push(doc); }
+    if (olMerged.length === 7) break;
   }
 
-  const results = await Promise.all(merged.map(async doc => {
+  const olResults = await Promise.all(olMerged.map(async doc => {
     const genre = inferGenre(doc.subject || []);
     const coverUrl = doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg` : null;
-
     let gb = null;
     if (!coverUrl || genre === "Other") {
       gb = await googleBooksLookup(doc.title || query, (doc.author_name || [])[0] || "");
     }
-
     return {
       title:       doc.title || "Unknown",
       author:      (doc.author_name || [])[0] || "Unknown",
@@ -113,6 +139,18 @@ export default async function handler(req, res) {
       publishYear: doc.first_publish_year || null,
     };
   }));
+
+  // Fill remaining slots with Google Books results not already seen
+  const results = [...olResults];
+  for (const item of googleItems) {
+    if (results.length >= 7) break;
+    const key = docKey(item.title, item.author);
+    if (!seen.has(key)) {
+      seen.add(key);
+      const { _fromGoogle, ...clean } = item;
+      results.push(clean);
+    }
+  }
 
   res.json(results);
 }
