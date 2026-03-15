@@ -2886,6 +2886,10 @@ function mapSubjectsToGenre(subjects = []) {
   return "Other";
 }
 
+function cleanThumb(url) {
+  return url ? url.replace("http://", "https://").replace("&edge=curl", "") : null;
+}
+
 async function enrichBooksFromOpenLibrary(books, onProgress) {
   const results = [];
   const batchSize = 4;
@@ -2895,20 +2899,36 @@ async function enrichBooksFromOpenLibrary(books, onProgress) {
       try {
         const title = encodeURIComponent(book.title.replace(/\s*\(.*$/, "").trim());
         const author = encodeURIComponent(book.author);
-        const [olRes, gbRes] = await Promise.allSettled([
-          fetch(`https://openlibrary.org/search.json?title=${title}&author=${author}&limit=1&fields=cover_i,subject`).then(r=>r.json()),
-          fetch(`https://www.googleapis.com/books/v1/volumes?q=intitle:${title}+inauthor:${author}&maxResults=1&printType=books`).then(r=>r.json()),
-        ]);
-        const doc = olRes.status === "fulfilled" ? olRes.value?.docs?.[0] : null;
-        const gbItem = gbRes.status === "fulfilled" ? gbRes.value?.items?.[0] : null;
-        const gbThumb = gbItem?.volumeInfo?.imageLinks?.thumbnail;
-        const result = {
+        const isbn = book.isbn;
+
+        const fetches = [
+          // OpenLibrary by title+author
+          fetch(`https://openlibrary.org/search.json?title=${title}&author=${author}&limit=1&fields=cover_i,subject`).then(r=>r.json()).catch(()=>null),
+          // Google Books by title+author
+          fetch(`https://www.googleapis.com/books/v1/volumes?q=intitle:${title}+inauthor:${author}&maxResults=1&printType=books`).then(r=>r.json()).catch(()=>null),
+          // Google Books by ISBN (if available)
+          isbn ? fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&maxResults=1`).then(r=>r.json()).catch(()=>null) : Promise.resolve(null),
+        ];
+
+        const [olData, gbTitleData, gbIsbnData] = await Promise.all(fetches);
+
+        const olDoc = olData?.docs?.[0];
+        const gbTitleThumb = gbTitleData?.items?.[0]?.volumeInfo?.imageLinks?.thumbnail;
+        const gbIsbnThumb = gbIsbnData?.items?.[0]?.volumeInfo?.imageLinks?.thumbnail;
+
+        // Prefer ISBN-based cover (most accurate), then title/author GB, then OL cover ID
+        const coverUrl = cleanThumb(gbIsbnThumb) || cleanThumb(gbTitleThumb) || null;
+        const coverId = olDoc?.cover_i || null;
+
+        // OL ISBN cover as direct URL fallback (no search needed)
+        const olIsbnCoverUrl = isbn ? `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg` : null;
+
+        return {
           ...book,
-          coverId: doc?.cover_i || null,
-          coverUrl: gbThumb ? gbThumb.replace("http://", "https://").replace("&edge=curl", "") : (book.coverUrl || null),
-          genre: doc ? mapSubjectsToGenre(doc.subject) : (book.genre || "Other"),
+          coverId,
+          coverUrl: coverUrl || olIsbnCoverUrl || book.coverUrl || null,
+          genre: olDoc ? mapSubjectsToGenre(olDoc.subject) : (book.genre || "Other"),
         };
-        return result;
       } catch { return book; }
     }));
     results.push(...enriched);
@@ -2985,6 +3005,8 @@ function parseGoodreadsCSV(text, shelfMap = DEFAULT_GR_SHELF_MAP) {
     const grShelf = get("Exclusive Shelf").toLowerCase();
     const dateRaw = get("Date Read") || get("Date Added");
     const date = dateRaw ? dateRaw.replace(/\//g, "-") : new Date().toISOString().slice(0,10);
+    const rawIsbn = get("ISBN13") || get("ISBN");
+    const isbn = rawIsbn.replace(/[^0-9X]/gi, "");
     return {
       id: Date.now() + Math.random(),
       title: get("Title"),
@@ -2994,6 +3016,7 @@ function parseGoodreadsCSV(text, shelfMap = DEFAULT_GR_SHELF_MAP) {
       rating: parseFloat(get("My Rating")) || 0,
       date,
       shelf: shelfMap[grShelf] || "Read",
+      isbn: isbn || null,
     };
   }).filter(b => b.title);
 }
