@@ -805,7 +805,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
               const meta = SHELF_META[shelf];
               return (
                 <div style={{ position:"relative", marginLeft:"auto", flexShrink:0 }}>
-                  <span onClick={e=>{ e.stopPropagation(); setShelfDropOpen(o=>!o); setMenuOpen(false); }} style={{
+                  <span {...tc(()=>{ setShelfDropOpen(o=>!o); setMenuOpen(false); }, true)} style={{
                     background: meta.bg, color: meta.color, border:`1px solid ${meta.border}`,
                     borderRadius:"20px", padding:"3px 10px",
                     fontSize: shelf==="Curious" ? 13 : 9,
