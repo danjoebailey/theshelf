@@ -1669,6 +1669,140 @@ function BookCoverThumb({ book: b }) {
   );
 }
 
+const WB_GENRES = new Set(["Fantasy", "Sci-Fi", "Fiction"]);
+
+function RecCard({ rec, coverUrl, ownedBook, onAddDirect, index }) {
+  const [dropOpen, setDropOpen] = useState(false);
+  const [prose, setProse] = useState(null);
+  const [proseLoading, setProseLoading] = useState(false);
+  const [showProse, setShowProse] = useState(false);
+  const [scores, setScores] = useState(null);
+  const [scoresLoading, setScoresLoading] = useState(false);
+  const [showScores, setShowScores] = useState(false);
+
+  const SHELF_META = {
+    "Read":     { bg:"rgba(138,90,40,0.5)",   color:"rgba(255,255,255,0.9)", border:"rgba(138,90,40,0.4)" },
+    "Reading":  { bg:"rgba(60,120,80,0.55)",  color:"rgba(255,255,255,0.9)", border:"rgba(60,120,80,0.4)" },
+    "The List": { bg:"rgba(138,90,40,0.5)",   color:"rgba(255,255,255,0.9)", border:"rgba(138,90,40,0.4)" },
+    "Curious":  { bg:"rgba(200,144,90,0.15)", color:WOOD.amber,              border:"rgba(200,144,90,0.3)" },
+    "DNF":      { bg:"rgba(160,50,50,0.55)",  color:"rgba(255,255,255,0.9)", border:"rgba(160,50,50,0.4)" },
+  };
+  const dropLabel = ownedBook ? (ownedBook.shelf || "Read") : "+ Add";
+  const dropMeta = ownedBook ? SHELF_META[ownedBook.shelf || "Read"] : { bg:"rgba(138,90,40,0.18)", color:WOOD.amber, border:"rgba(138,90,40,0.35)" };
+
+  async function fetchProse() {
+    if (prose) { setShowProse(true); return; }
+    setProseLoading(true); setShowProse(true);
+    try {
+      const res = await fetch("/api/prose-preview", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ title:rec.title, author:rec.author }) });
+      const data = await res.json();
+      setProse(data.prose || "Unable to generate preview.");
+    } catch { setProse("Unable to generate preview."); }
+    setProseLoading(false);
+  }
+
+  async function fetchScores() {
+    if (scores) { setShowScores(true); return; }
+    setScoresLoading(true); setShowScores(true);
+    try {
+      const res = await fetch("/api/book-scores", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ title:rec.title, author:rec.author, genre:rec.genre }) });
+      const data = await res.json();
+      setScores(data.error ? null : data);
+    } catch { setScores(null); }
+    setScoresLoading(false);
+  }
+
+  return (
+    <div onClick={() => setDropOpen(false)} style={{
+      background: WOOD.card, backdropFilter: "blur(6px)", borderRadius: 12, padding: "14px 16px",
+      borderTop: "6px solid #8a5a28", borderLeft: "6px solid #8a5a28", borderBottom: "6px solid #8a5a28", borderRight: "none",
+      boxShadow: "0 2px 8px rgba(0,0,0,0.15)", animation: `fadeUp 0.25s ease ${index * 0.06}s both`, position: "relative",
+    }}>
+      <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+        <div style={{ height: 72, width: 48, borderRadius: 4, flexShrink: 0, position: "relative", background: GENRE_COLORS[rec.genre] || GENRE_COLORS["Other"], boxShadow: "1px 1px 6px rgba(0,0,0,0.2)" }}>
+          {coverUrl && <img src={coverUrl} alt={rec.title} style={{ position:"absolute", inset:0, height:72, width:48, objectFit:"cover", borderRadius:4, boxShadow:"1px 1px 6px rgba(0,0,0,0.3)" }} onError={e => { e.target.style.display = "none"; }} />}
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 3 }}>
+            <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 17, color: WOOD.text, lineHeight: 1.2, flex: 1, paddingRight: 8 }}>{rec.title}</p>
+            <span style={{ background: GENRE_COLORS[rec.genre] || GENRE_COLORS["Other"], color: "#fff", borderRadius: 20, padding: "2px 8px", fontSize: 8, fontFamily: "'DM Sans',sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", flexShrink: 0, marginTop: 2 }}>{rec.genre}</span>
+          </div>
+          <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: WOOD.textDim, fontStyle: "italic", marginBottom: 6 }}>{rec.author}</p>
+          <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 14, color: WOOD.textDim, lineHeight: 1.6, fontStyle: "italic" }}>{rec.reason}</p>
+        </div>
+      </div>
+
+      {/* Prose / Scores */}
+      {(!showProse && !showScores) && (
+        <div style={{ display:"flex", gap:6, marginTop:10 }} onClick={e=>e.stopPropagation()}>
+          <button {...tc(fetchProse, true)} style={{ display:"flex", alignItems:"center", gap:5, background:"rgba(138,90,40,0.12)", borderRadius:20, padding:"5px 12px", border:"1px solid rgba(138,90,40,0.25)", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, color:WOOD.textDim }}>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            Prose
+          </button>
+          <button {...tc(fetchScores, true)} style={{ display:"flex", alignItems:"center", gap:5, background:"rgba(138,90,40,0.12)", borderRadius:20, padding:"5px 12px", border:"1px solid rgba(138,90,40,0.25)", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, color:WOOD.textDim }}>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+            Scores
+          </button>
+        </div>
+      )}
+      {showProse && (
+        <div style={{ marginTop:10, animation:"fadeIn 0.18s ease" }} onClick={e=>e.stopPropagation()}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
+            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:11, color:WOOD.amber, letterSpacing:"0.08em", textTransform:"uppercase" }}>Prose Preview · {rec.author}</p>
+            <button {...tc(()=>setShowProse(false), true)} style={{ background:"none", border:"none", cursor:"pointer", color:WOOD.textFaint, fontSize:15, lineHeight:1, padding:"0 2px" }}>✕</button>
+          </div>
+          {proseLoading
+            ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.textFaint, fontStyle:"italic" }}>Generating…</p>
+            : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, lineHeight:1.8, fontStyle:"italic" }}>{prose}</p>}
+        </div>
+      )}
+      {showScores && (
+        <div style={{ marginTop:10, animation:"fadeIn 0.18s ease" }} onClick={e=>e.stopPropagation()}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
+            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:11, color:WOOD.amber, letterSpacing:"0.08em", textTransform:"uppercase" }}>Scores · {rec.title}</p>
+            <button {...tc(()=>setShowScores(false), true)} style={{ background:"none", border:"none", cursor:"pointer", color:WOOD.textFaint, fontSize:15, lineHeight:1, padding:"0 2px" }}>✕</button>
+          </div>
+          {scoresLoading
+            ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:13, color:WOOD.textFaint, fontStyle:"italic" }}>Scoring…</p>
+            : scores ? (
+              <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                {[["Prose",scores.prose],["Plot",scores.plot],["Characters",scores.characters],["Pacing",scores.pacing],["World-building",scores.worldBuilding],["Dialogue",scores.dialogue],["Ending",scores.ending]].map(([label,val]) => val != null && (
+                  <div key={label} style={{ display:"flex", alignItems:"center", gap:8 }}>
+                    <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, color:WOOD.textDim, width:88, flexShrink:0 }}>{label}</span>
+                    <div style={{ flex:1, height:5, borderRadius:3, background:"rgba(138,90,40,0.15)", overflow:"hidden" }}>
+                      <div style={{ height:"100%", borderRadius:3, background:WOOD.amber, width:`${val*10}%`, transition:"width 0.4s ease" }} />
+                    </div>
+                    <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:700, color:WOOD.amber, width:18, textAlign:"right", flexShrink:0 }}>{val}</span>
+                  </div>
+                ))}
+              </div>
+            ) : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:13, color:WOOD.textFaint, fontStyle:"italic" }}>Unable to score.</p>}
+        </div>
+      )}
+
+      {/* shelf dropdown — bottom right */}
+      <div style={{ display:"flex", justifyContent:"flex-end", marginTop:10, position:"relative" }} onClick={e=>e.stopPropagation()}>
+        <div style={{ position:"relative" }}>
+          <span {...tc(()=>setDropOpen(o=>!o))} style={{ background:dropMeta.bg, color:dropMeta.color, border:`1px solid ${dropMeta.border}`, borderRadius:20, padding:"3px 10px", fontSize:9, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", lineHeight:1, cursor:"pointer", display:"inline-block" }}>
+            {dropLabel}
+          </span>
+          {dropOpen && (
+            <div style={{ position:"absolute", bottom:"calc(100% + 4px)", right:0, zIndex:40, minWidth:120, background:"#f5e8d0", borderRadius:10, overflow:"hidden", boxShadow:"0 4px 20px rgba(0,0,0,0.25)", border:"1px solid rgba(138,90,40,0.3)", animation:"fadeIn 0.12s ease" }}>
+              {SHELVES.map((s, si) => (
+                <button key={s}
+                  {...tc(()=>{ setDropOpen(false); onAddDirect({ title:rec.title, author:rec.author, genre:rec.genre, coverUrl, pages:0 }, s); })}
+                  style={{ display:"block", width:"100%", padding:"9px 14px", textAlign:"left", background:ownedBook&&(ownedBook.shelf||"Read")===s?"rgba(138,90,40,0.1)":"transparent", border:"none", borderBottom:si<SHELVES.length-1?"1px solid rgba(138,90,40,0.1)":"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:13, color:ownedBook&&(ownedBook.shelf||"Read")===s?WOOD.amber:WOOD.text, fontWeight:ownedBook&&(ownedBook.shelf||"Read")===s?600:400 }}>
+                  {s}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ReikoTab({ books, onAddDirect }) {
   const [selected, setSelected] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -1679,7 +1813,7 @@ function ReikoTab({ books, onAddDirect }) {
   const [filterShelf, setFilterShelf] = useState("Read");
   const [filterGenres, setFilterGenres] = useState([]);
   const [filterRating, setFilterRating] = useState(5);
-  const [openDropIdx, setOpenDropIdx] = useState(null);
+
   const [filterYear, setFilterYear] = useState(null);
 
   const availableYears = useMemo(() => [...new Set(books.map(b => b.date ? new Date(b.date).getFullYear() : null).filter(Boolean))].sort((a,b)=>b-a), [books]);
@@ -1905,71 +2039,9 @@ function ReikoTab({ books, onAddDirect }) {
             <div style={{ padding: "0 18px" }}>
               <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 12 }}>Recommended for you</p>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {[...new Map(recs.map(r => [r.title.toLowerCase(), r])).values()].map((rec, i) => {
-                  const ownedBook = books.find(b => normBookKey(b.title) === normBookKey(rec.title));
-                  const SHELF_META = {
-                    "Read":     { bg:"rgba(138,90,40,0.5)",   color:"rgba(255,255,255,0.9)", border:"rgba(138,90,40,0.4)" },
-                    "Reading":  { bg:"rgba(60,120,80,0.55)",  color:"rgba(255,255,255,0.9)", border:"rgba(60,120,80,0.4)" },
-                    "The List": { bg:"rgba(138,90,40,0.5)",   color:"rgba(255,255,255,0.9)", border:"rgba(138,90,40,0.4)" },
-                    "Curious":  { bg:"rgba(200,144,90,0.15)", color:WOOD.amber,              border:"rgba(200,144,90,0.3)" },
-                    "DNF":      { bg:"rgba(160,50,50,0.55)",  color:"rgba(255,255,255,0.9)", border:"rgba(160,50,50,0.4)" },
-                  };
-                  const dropLabel = ownedBook ? (ownedBook.shelf || "Read") : "+ Add";
-                  const dropMeta = ownedBook ? SHELF_META[ownedBook.shelf || "Read"] : { bg:"rgba(138,90,40,0.18)", color:WOOD.amber, border:"rgba(138,90,40,0.35)" };
-                  return (
-                  <div key={i} onClick={() => setOpenDropIdx(null)} style={{
-                    background: WOOD.card,
-                    backdropFilter: "blur(6px)",
-                    borderRadius: 12,
-                    padding: "14px 16px",
-                    borderTop: "6px solid #8a5a28",
-                    borderLeft: "6px solid #8a5a28",
-                    borderBottom: "6px solid #8a5a28",
-                    borderRight: "none",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-                    animation: `fadeUp 0.25s ease ${i * 0.06}s both`,
-                    position: "relative",
-                  }}>
-                    <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-                      <div style={{ height: 72, width: 48, borderRadius: 4, flexShrink: 0, position: "relative", background: GENRE_COLORS[rec.genre] || GENRE_COLORS["Other"], boxShadow: "1px 1px 6px rgba(0,0,0,0.2)" }}>
-                        {recCovers[rec.title] && (
-                          <img src={recCovers[rec.title]} alt={rec.title}
-                            style={{ position: "absolute", inset: 0, height: 72, width: 48, objectFit: "cover", borderRadius: 4, boxShadow: "1px 1px 6px rgba(0,0,0,0.3)" }}
-                            onError={e => { e.target.style.display = "none"; }} />
-                        )}
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 3 }}>
-                          <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 17, color: WOOD.text, lineHeight: 1.2, flex: 1, paddingRight: 8 }}>{rec.title}</p>
-                          <span style={{ background: GENRE_COLORS[rec.genre] || GENRE_COLORS["Other"], color: "#fff", borderRadius: 20, padding: "2px 8px", fontSize: 8, fontFamily: "'DM Sans',sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", flexShrink: 0, marginTop: 2 }}>{rec.genre}</span>
-                        </div>
-                        <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: WOOD.textDim, fontStyle: "italic", marginBottom: 6 }}>{rec.author}</p>
-                        <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 14, color: WOOD.textDim, lineHeight: 1.6, fontStyle: "italic" }}>{rec.reason}</p>
-                      </div>
-                    </div>
-                    {/* shelf label / add dropdown — bottom right */}
-                    <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 10, position: "relative" }} onClick={e => e.stopPropagation()}>
-                      <div style={{ position: "relative" }}>
-                        <span
-                          {...tc(() => setOpenDropIdx(openDropIdx === i ? null : i))}
-                          style={{ background: dropMeta.bg, color: dropMeta.color, border: `1px solid ${dropMeta.border}`, borderRadius: 20, padding: "3px 10px", fontSize: 9, fontFamily: "'DM Sans',sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", lineHeight: 1, cursor: "pointer", display: "inline-block" }}>
-                          {dropLabel}
-                        </span>
-                        {openDropIdx === i && (
-                          <div style={{ position: "absolute", bottom: "calc(100% + 4px)", right: 0, zIndex: 40, minWidth: 120, background: "#f5e8d0", borderRadius: 10, overflow: "hidden", boxShadow: "0 4px 20px rgba(0,0,0,0.25)", border: "1px solid rgba(138,90,40,0.3)", animation: "fadeIn 0.12s ease" }}>
-                            {SHELVES.map((s, si) => (
-                              <button key={s}
-                                {...tc(() => { setOpenDropIdx(null); onAddDirect({ title: rec.title, author: rec.author, genre: rec.genre, coverUrl: recCovers[rec.title] || null, pages: 0 }, s); })}
-                                style={{ display: "block", width: "100%", padding: "9px 14px", textAlign: "left", background: ownedBook && (ownedBook.shelf||"Read")===s ? "rgba(138,90,40,0.1)" : "transparent", border: "none", borderBottom: si < SHELVES.length-1 ? "1px solid rgba(138,90,40,0.1)" : "none", cursor: "pointer", fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: ownedBook && (ownedBook.shelf||"Read")===s ? WOOD.amber : WOOD.text, fontWeight: ownedBook && (ownedBook.shelf||"Read")===s ? 600 : 400 }}>
-                                {s}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );})}
+                {[...new Map(recs.map(r => [r.title.toLowerCase(), r])).values()].map((rec, i) => (
+                  <RecCard key={i} index={i} rec={rec} coverUrl={recCovers[rec.title] || null} ownedBook={books.find(b => normBookKey(b.title) === normBookKey(rec.title))} onAddDirect={onAddDirect} />
+                ))}
               </div>
             </div>
           )}
