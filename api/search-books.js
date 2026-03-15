@@ -60,7 +60,7 @@ async function googleBooksSearch(query) {
         author:      (info.authors || [])[0] || "Unknown",
         pages:       info.pageCount || 0,
         genre:       inferGenre(info.categories || []),
-        coverUrl:    thumb ? thumb.replace("http://", "https://") : null,
+        coverUrl:    thumb ? thumb.replace("http://", "https://").replace("&edge=curl", "") : null,
         publishYear: info.publishedDate ? parseInt(info.publishedDate) : null,
       };
     });

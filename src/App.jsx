@@ -531,7 +531,8 @@ const COVERS = {
 
 // Fixed-size cover: renders fallback at exact w×h, overlays img on top (hides on error)
 function BookCover({ book, width, height, radius=4, shadow="2px 2px 8px rgba(0,0,0,0.3)" }) {
-  const src = book.coverUrl || (book.coverId ? `https://covers.openlibrary.org/b/id/${book.coverId}-M.jpg` : null);
+  const rawSrc = book.coverUrl || (book.coverId ? `https://covers.openlibrary.org/b/id/${book.coverId}-M.jpg` : null);
+  const src = rawSrc ? rawSrc.replace("http://", "https://").replace("&edge=curl", "") : null;
   const color = GENRE_COLORS[book.genre] || "#94a3b8";
   const initials = book.title.split(" ").filter(Boolean).slice(0,2).map(w=>w[0]).join("").toUpperCase();
   return (
