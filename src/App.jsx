@@ -2895,23 +2895,19 @@ async function enrichBooksFromOpenLibrary(books, onProgress) {
       try {
         const title = encodeURIComponent(book.title.replace(/\s*\(.*$/, "").trim());
         const author = encodeURIComponent(book.author);
-        const res = await fetch(`https://openlibrary.org/search.json?title=${title}&author=${author}&limit=1&fields=cover_i,subject`);
-        const data = await res.json();
-        const doc = data.docs?.[0];
+        const [olRes, gbRes] = await Promise.allSettled([
+          fetch(`https://openlibrary.org/search.json?title=${title}&author=${author}&limit=1&fields=cover_i,subject`).then(r=>r.json()),
+          fetch(`https://www.googleapis.com/books/v1/volumes?q=intitle:${title}+inauthor:${author}&maxResults=1&printType=books`).then(r=>r.json()),
+        ]);
+        const doc = olRes.status === "fulfilled" ? olRes.value?.docs?.[0] : null;
+        const gbItem = gbRes.status === "fulfilled" ? gbRes.value?.items?.[0] : null;
+        const gbThumb = gbItem?.volumeInfo?.imageLinks?.thumbnail;
         const result = {
           ...book,
           coverId: doc?.cover_i || null,
+          coverUrl: gbThumb ? gbThumb.replace("http://", "https://").replace("&edge=curl", "") : (book.coverUrl || null),
           genre: doc ? mapSubjectsToGenre(doc.subject) : (book.genre || "Other"),
         };
-        // If no OpenLibrary cover, try Google Books (no API key needed)
-        if (!result.coverId) {
-          try {
-            const gbRes = await fetch(`https://www.googleapis.com/books/v1/volumes?q=intitle:${title}+inauthor:${author}&maxResults=1&printType=books`);
-            const gbData = await gbRes.json();
-            const thumb = gbData.items?.[0]?.volumeInfo?.imageLinks?.thumbnail;
-            if (thumb) result.coverUrl = thumb.replace("http://", "https://");
-          } catch {}
-        }
         return result;
       } catch { return book; }
     }));
