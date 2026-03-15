@@ -783,7 +783,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
               </div>
               <div style={{ display:"flex", alignItems:"center", gap:6, flexShrink:0 }}>
                 <span style={{ color:WOOD.textFaint, fontSize:12, display:"inline-block", transition:"transform 0.2s", transform:expanded?"rotate(180deg)":"rotate(0deg)" }}>▾</span>
-                <button onClick={e=>{ e.stopPropagation(); setMenuOpen(m=>!m); }} style={{ background:"transparent", border:"none", cursor:"pointer", padding:"2px 4px 0", color:"rgba(120,70,20,0.6)", fontSize:16, lineHeight:1, letterSpacing:"-1px" }}>⋮</button>
+                <button {...tc(()=>setMenuOpen(m=>!m), true)} style={{ background:"transparent", border:"none", cursor:"pointer", padding:"2px 4px 0", color:"rgba(120,70,20,0.6)", fontSize:16, lineHeight:1, letterSpacing:"-1px" }}>⋮</button>
               </div>
             </div>
             {(book.shelf || "Read") !== "The List" && (book.shelf || "Read") !== "Curious" && (book.shelf || "Read") !== "Reading" && <StarRating value={book.rating} readonly size={18} />}
