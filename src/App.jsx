@@ -2916,8 +2916,32 @@ async function enrichBooksFromOpenLibrary(books, onProgress) {
       } catch { return book; }
     }));
     results.push(...enriched);
-    if (onProgress) onProgress(results.length, books.length);
+    if (onProgress) onProgress(results.length, books.length, "covers");
   }
+
+  // AI genre classification for any books still on "Other"
+  const unresolved = results.filter(b => b.genre === "Other");
+  if (unresolved.length > 0) {
+    if (onProgress) onProgress(results.length, books.length, "genres");
+    try {
+      const batchSize2 = 20;
+      for (let i = 0; i < unresolved.length; i += batchSize2) {
+        const batch = unresolved.slice(i, i + batchSize2).map(b => ({ id: String(b.id), title: b.title, author: b.author }));
+        const res = await fetch("/api/classify-genres", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ books: batch }),
+        });
+        const data = await res.json();
+        if (data.results) {
+          for (const b of results) {
+            if (data.results[String(b.id)]) b.genre = data.results[String(b.id)];
+          }
+        }
+      }
+    } catch {}
+  }
+
   return results;
 }
 
@@ -2986,6 +3010,7 @@ function GoodreadsImportSheet({ onImport, onClose }) {
   const [error, setError] = useState("");
   const [enriching, setEnriching] = useState(false);
   const [enrichProgress, setEnrichProgress] = useState(0);
+  const [enrichPhase, setEnrichPhase] = useState("covers");
   const fileRef = useRef(null);
 
   function handleFile(e) {
@@ -3080,9 +3105,12 @@ function GoodreadsImportSheet({ onImport, onClose }) {
 
         {csvText && (
           <button onClick={async ()=>{
-            setEnriching(true); setEnrichProgress(0);
+            setEnriching(true); setEnrichProgress(0); setEnrichPhase("covers");
             const parsed = parseGoodreadsCSV(csvText, shelfMapping);
-            const enriched = await enrichBooksFromOpenLibrary(parsed, (done, total) => setEnrichProgress(Math.round(done/total*100)));
+            const enriched = await enrichBooksFromOpenLibrary(parsed, (done, total, phase) => {
+              setEnrichPhase(phase);
+              if (phase === "covers") setEnrichProgress(Math.round(done/total*100));
+            });
             onImport(enriched); onClose();
           }} disabled={enriching} style={{
             width:"100%", padding:"13px", borderRadius:12, cursor: enriching ? "default" : "pointer",
@@ -3090,7 +3118,9 @@ function GoodreadsImportSheet({ onImport, onClose }) {
             fontFamily:"'DM Sans',sans-serif", fontSize:15, fontWeight:600, color:"#1a0900",
             opacity: enriching ? 0.8 : 1,
           }}>
-            {enriching ? `Fetching covers & genres… ${enrichProgress}%` : `Import ${totalCount} books`}
+            {enriching
+              ? enrichPhase === "genres" ? "Classifying genres with AI…" : `Fetching covers… ${enrichProgress}%`
+              : `Import ${totalCount} books`}
           </button>
         )}
       </div>
