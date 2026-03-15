@@ -2921,28 +2921,44 @@ async function enrichBooksFromOpenLibrary(books, onProgress) {
   return results;
 }
 
-function parseGoodreadsCSV(text) {
+const DEFAULT_GR_SHELF_MAP = { "read": "Read", "to-read": "The List", "currently-reading": "Reading" };
+
+function parseLine(line) {
+  const fields = [];
+  let cur = "", inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (c === '"') {
+      if (inQ && line[i+1] === '"') { cur += '"'; i++; }
+      else inQ = !inQ;
+    } else if (c === ',' && !inQ) {
+      fields.push(cur); cur = "";
+    } else cur += c;
+  }
+  fields.push(cur);
+  return fields;
+}
+
+function getGoodreadsShelfCounts(text) {
+  const lines = text.split(/\r?\n/);
+  if (lines.length < 2) return {};
+  const headers = parseLine(lines[0]).map(h => h.trim());
+  const shelfIdx = headers.indexOf("Exclusive Shelf");
+  if (shelfIdx === -1) return {};
+  const counts = {};
+  for (const line of lines.slice(1)) {
+    if (!line.trim()) continue;
+    const shelf = (parseLine(line)[shelfIdx] || "").trim().toLowerCase();
+    if (shelf) counts[shelf] = (counts[shelf] || 0) + 1;
+  }
+  return counts;
+}
+
+function parseGoodreadsCSV(text, shelfMap = DEFAULT_GR_SHELF_MAP) {
   const lines = text.split(/\r?\n/);
   if (lines.length < 2) return [];
-  // parse a single CSV line respecting quoted fields
-  function parseLine(line) {
-    const fields = [];
-    let cur = "", inQ = false;
-    for (let i = 0; i < line.length; i++) {
-      const c = line[i];
-      if (c === '"') {
-        if (inQ && line[i+1] === '"') { cur += '"'; i++; }
-        else inQ = !inQ;
-      } else if (c === ',' && !inQ) {
-        fields.push(cur); cur = "";
-      } else cur += c;
-    }
-    fields.push(cur);
-    return fields;
-  }
   const headers = parseLine(lines[0]).map(h => h.trim());
   const idx = k => headers.indexOf(k);
-  const SHELF_MAP = { "read": "Read", "to-read": "The List", "currently-reading": "Reading" };
   return lines.slice(1).filter(l => l.trim()).map(line => {
     const f = parseLine(line);
     const get = k => (f[idx(k)] || "").trim();
@@ -2957,13 +2973,16 @@ function parseGoodreadsCSV(text) {
       pages: parseInt(get("Number of Pages")) || 0,
       rating: parseFloat(get("My Rating")) || 0,
       date,
-      shelf: SHELF_MAP[grShelf] || "Read",
+      shelf: shelfMap[grShelf] || "Read",
     };
   }).filter(b => b.title);
 }
 
 function GoodreadsImportSheet({ onImport, onClose }) {
-  const [preview, setPreview] = useState(null);
+  const [csvText, setCsvText] = useState(null);
+  const [totalCount, setTotalCount] = useState(0);
+  const [grShelfCounts, setGrShelfCounts] = useState({});
+  const [shelfMapping, setShelfMapping] = useState({});
   const [error, setError] = useState("");
   const [enriching, setEnriching] = useState(false);
   const [enrichProgress, setEnrichProgress] = useState(0);
@@ -2975,21 +2994,22 @@ function GoodreadsImportSheet({ onImport, onClose }) {
     const reader = new FileReader();
     reader.onload = ev => {
       try {
-        const parsed = parseGoodreadsCSV(ev.target.result);
-        if (!parsed.length) { setError("No books found — make sure this is a Goodreads export CSV."); setPreview(null); }
-        else { setPreview(parsed); setError(""); }
+        const text = ev.target.result;
+        const counts = getGoodreadsShelfCounts(text);
+        if (!Object.keys(counts).length) { setError("No books found — make sure this is a Goodreads export CSV."); setCsvText(null); return; }
+        const mapping = {};
+        for (const gr of Object.keys(counts)) mapping[gr] = DEFAULT_GR_SHELF_MAP[gr] || "Read";
+        setCsvText(text);
+        setGrShelfCounts(counts);
+        setShelfMapping(mapping);
+        setTotalCount(Object.values(counts).reduce((a,b)=>a+b,0));
+        setError("");
       } catch { setError("Couldn't parse the file. Please use the Goodreads export CSV."); }
     };
     reader.readAsText(file);
   }
 
-  const sheetCounts = preview ? {
-    Read: preview.filter(b => b.shelf === "Read").length,
-    Reading: preview.filter(b => b.shelf === "Reading").length,
-    "The List": preview.filter(b => b.shelf === "The List").length,
-    Curious: preview.filter(b => b.shelf === "Curious").length,
-    DNF: preview.filter(b => b.shelf === "DNF").length,
-  } : null;
+  const GR_LABEL = { "read": "Read", "to-read": "To Read", "currently-reading": "Currently Reading" };
 
   return (
     <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.7)", zIndex:50, display:"flex", flexDirection:"column", justifyContent:"flex-end", animation:"fadeIn 0.15s ease" }}
@@ -3019,28 +3039,50 @@ function GoodreadsImportSheet({ onImport, onClose }) {
           fontFamily:"'DM Sans',sans-serif", fontSize:14, color:WOOD.textDim,
           marginBottom:12, textAlign:"center",
         }}>
-          {preview ? `✓ ${preview.length} books loaded — tap to change` : "Choose CSV file"}
+          {csvText ? `✓ ${totalCount} books loaded — tap to change` : "Choose CSV file"}
         </button>
         <input ref={fileRef} type="file" accept=".csv" onChange={handleFile} style={{ display:"none" }}/>
 
         {error && <p style={{ fontSize:13, color:"#c0392b", marginBottom:12, textAlign:"center" }}>{error}</p>}
 
-        {sheetCounts && (
+        {csvText && (
           <div style={{ background:"rgba(255,245,220,0.85)", borderRadius:10, padding:"12px 14px", marginBottom:16, border:"1px solid rgba(200,160,80,0.3)" }}>
-            <p style={{ fontSize:12, color:WOOD.textFaint, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8, fontFamily:"'DM Sans',sans-serif" }}>Preview</p>
-            {Object.entries(sheetCounts).map(([shelf, count]) => (
-              <div key={shelf} style={{ display:"flex", justifyContent:"space-between", fontSize:14, color:WOOD.text, fontFamily:"'DM Sans',sans-serif", padding:"2px 0" }}>
-                <span>{shelf}</span><span style={{ fontWeight:600 }}>{count} books</span>
+            <p style={{ fontSize:12, color:WOOD.textFaint, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:12, fontFamily:"'DM Sans',sans-serif" }}>Shelf Mapping</p>
+            {Object.entries(grShelfCounts).map(([grShelf, count]) => (
+              <div key={grShelf} style={{ marginBottom:10 }}>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"baseline", marginBottom:5 }}>
+                  <span style={{ fontSize:13, color:WOOD.text, fontFamily:"'DM Sans',sans-serif", fontWeight:500 }}>
+                    {GR_LABEL[grShelf] || grShelf}
+                  </span>
+                  <span style={{ fontSize:11, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif" }}>{count} books</span>
+                </div>
+                <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
+                  {SHELVES.map(s => {
+                    const active = shelfMapping[grShelf] === s;
+                    return (
+                      <button key={s} {...tc(()=>setShelfMapping(prev=>({...prev,[grShelf]:s})),true)} style={{
+                        padding:"4px 10px", borderRadius:20, cursor:"pointer", fontSize:11,
+                        fontFamily:"'DM Sans',sans-serif", fontWeight: active ? 700 : 400,
+                        textTransform:"uppercase", letterSpacing:"0.05em",
+                        background: active ? WOOD.amber : "rgba(138,90,40,0.1)",
+                        color: active ? "#1a0900" : WOOD.textDim,
+                        border: `1px solid ${active ? WOOD.amber : "rgba(138,90,40,0.25)"}`,
+                        transition:"all 0.15s",
+                      }}>{s}</button>
+                    );
+                  })}
+                </div>
               </div>
             ))}
             <p style={{ fontSize:11, color:WOOD.textFaint, marginTop:8, fontStyle:"italic" }}>Covers and genres will be fetched automatically on import.</p>
           </div>
         )}
 
-        {preview && (
+        {csvText && (
           <button onClick={async ()=>{
             setEnriching(true); setEnrichProgress(0);
-            const enriched = await enrichBooksFromOpenLibrary(preview, (done, total) => setEnrichProgress(Math.round(done/total*100)));
+            const parsed = parseGoodreadsCSV(csvText, shelfMapping);
+            const enriched = await enrichBooksFromOpenLibrary(parsed, (done, total) => setEnrichProgress(Math.round(done/total*100)));
             onImport(enriched); onClose();
           }} disabled={enriching} style={{
             width:"100%", padding:"13px", borderRadius:12, cursor: enriching ? "default" : "pointer",
@@ -3048,7 +3090,7 @@ function GoodreadsImportSheet({ onImport, onClose }) {
             fontFamily:"'DM Sans',sans-serif", fontSize:15, fontWeight:600, color:"#1a0900",
             opacity: enriching ? 0.8 : 1,
           }}>
-            {enriching ? `Fetching covers & genres… ${enrichProgress}%` : `Import ${preview.length} books`}
+            {enriching ? `Fetching covers & genres… ${enrichProgress}%` : `Import ${totalCount} books`}
           </button>
         )}
       </div>
