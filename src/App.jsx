@@ -2463,12 +2463,12 @@ function BookSearchModal({ book, onSave, onClose }) {
       style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.55)", zIndex:100, display:"flex", alignItems:"center", justifyContent:"center", animation:"fadeIn 0.15s ease" }}
       onClick={onClose}
     >
-      <div onClick={e=>e.stopPropagation()} style={{
+      <div onTouchEnd={e=>e.stopPropagation()} onClick={e=>e.stopPropagation()} style={{
         background:"#fff", borderRadius:16, padding:24, width:"min(420px, 92vw)",
         boxShadow:"0 20px 60px rgba(0,0,0,0.35)", position:"relative",
         maxHeight:"90vh", overflowY:"auto",
       }}>
-        <button onClick={onClose} style={{ position:"absolute", top:14, right:14, background:"#f3f4f6", border:"none", borderRadius:"50%", width:28, height:28, cursor:"pointer", fontSize:14, color:"#6b7280", display:"flex", alignItems:"center", justifyContent:"center" }}>âœ•</button>
+        <button {...tc(onClose, true)} style={{ position:"absolute", top:14, right:14, background:"#f3f4f6", border:"none", borderRadius:"50%", width:28, height:28, cursor:"pointer", fontSize:14, color:"#6b7280", display:"flex", alignItems:"center", justifyContent:"center" }}>✕</button>
 
         <div style={{ display:"flex", gap:16, alignItems:"flex-start", marginBottom:20 }}>
           {book.coverUrl
@@ -2489,7 +2489,7 @@ function BookSearchModal({ book, onSave, onClose }) {
           <p style={{ fontSize:11, color:"#9ca3af", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Add to Shelf</p>
           <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
             {SHELVES.map(s => (
-              <button key={s} onClick={()=>setShelf(s)} style={{
+              <button key={s} {...tc(()=>setShelf(s), true)} style={{
                 padding:"5px 12px", borderRadius:20, fontSize:12, fontWeight:600,
                 border: shelf===s ? "2px solid #b07840" : "2px solid #e5e7eb",
                 background: shelf===s ? "#b07840" : "#fff",
@@ -2507,7 +2507,7 @@ function BookSearchModal({ book, onSave, onClose }) {
           </div>
         )}
 
-        <button onClick={save} style={{
+        <button {...tc(save, true)} style={{
           width:"100%", padding:"13px",
           background: (noRating || rating) ? "#b07840" : "#f3f4f6",
           color: (noRating || rating) ? "#fff" : "#9ca3af",
@@ -2697,7 +2697,7 @@ function EditSheet({ book, onSave, onClose }) {
   return (
     <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.7)", zIndex:50, display:"flex", flexDirection:"column", justifyContent:"flex-end", animation:"fadeIn 0.15s ease" }}
       onClick={onClose}>
-      <div onClick={e=>e.stopPropagation()} style={{
+      <div onTouchEnd={e=>e.stopPropagation()} onClick={e=>e.stopPropagation()} style={{
         background:"linear-gradient(180deg, #ddb870 0%, #c89850 100%)",
         borderRadius:"20px 20px 0 0",
         padding:"0 18px 30px",
@@ -2982,7 +2982,7 @@ function GoodreadsImportSheet({ onImport, onClose }) {
   return (
     <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.7)", zIndex:50, display:"flex", flexDirection:"column", justifyContent:"flex-end", animation:"fadeIn 0.15s ease" }}
       onClick={onClose}>
-      <div onClick={e=>e.stopPropagation()} style={{
+      <div onTouchEnd={e=>e.stopPropagation()} onClick={e=>e.stopPropagation()} style={{
         background:"linear-gradient(180deg, #ddb870 0%, #c89850 100%)",
         borderRadius:"20px 20px 0 0",
         padding:"0 18px 30px",
