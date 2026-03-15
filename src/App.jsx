@@ -1187,6 +1187,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
   const [customList, setCustomList] = useState([]);
   const [apiResults, setApiResults] = useState([]);
   const [apiSearching, setApiSearching] = useState(false);
+  const [showApiResults, setShowApiResults] = useState(true);
   const [viewMode, setViewMode] = useState("card");
   const searchTimer = useRef(null);
 
@@ -1213,6 +1214,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
   function handleSearchChange(e) {
     const q = e.target.value;
     setSearch(q);
+    setShowApiResults(true);
     clearTimeout(searchTimer.current);
     setApiResults([]);
     if (q.trim().length > 1) {
@@ -1291,7 +1293,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
           </div>
 
           {/* dropdown results */}
-          {apiResults.length > 0 && (
+          {apiResults.length > 0 && showApiResults && (
             <div style={{
               position:"absolute", top:"calc(100% + 6px)", left:0, right:0, zIndex:200,
               background:"#fff",
@@ -1301,9 +1303,8 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
               maxHeight:320, overflowY:"auto",
             }}>
               {apiResults.map((book, i) => (
-                <button key={i} onClick={() => { setSearch(""); setApiResults([]); onAddBook(book); }} style={{
+                <button key={i} onClick={() => { setSearch(""); setApiResults([]); setShowApiResults(true); onAddBook(book); }} style={{
                   background:"transparent",
-                  borderBottom: i < apiResults.length-1 ? "1px solid #f3f4f6" : "none",
                   border:"none", borderBottom: i < apiResults.length-1 ? "1px solid #f3f4f6" : "none",
                   padding:"10px 14px", textAlign:"left", cursor:"pointer",
                   display:"flex", alignItems:"center", gap:10, width:"100%",
@@ -1320,7 +1321,22 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
                   <span style={{ background:GENRE_COLORS[book.genre]||GENRE_COLORS["Other"], color:"#fff", borderRadius:"20px", padding:"2px 8px", fontSize:9, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.06em", flexShrink:0 }}>{book.genre}</span>
                 </button>
               ))}
+              <button onClick={()=>setShowApiResults(false)} style={{
+                display:"block", width:"100%", padding:"9px 14px", textAlign:"center",
+                background:"#f9fafb", border:"none", borderTop:"1px solid #e5e7eb",
+                cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:12,
+                color:"#6b7280",
+              }}>View shelf results ↓</button>
             </div>
+          )}
+          {/* re-open results hint */}
+          {apiResults.length > 0 && !showApiResults && (
+            <button onClick={()=>setShowApiResults(true)} style={{
+              position:"absolute", top:"calc(100% + 6px)", right:0, zIndex:200,
+              background:"#fff", borderRadius:8, padding:"5px 10px",
+              boxShadow:"0 2px 8px rgba(0,0,0,0.12)", border:"1px solid #e5e7eb",
+              cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:11, color:"#6b7280",
+            }}>{apiResults.length} results ↑</button>
           )}
         </div>
 
