@@ -1,4 +1,4 @@
-const WORLD_BUILDING_GENRES = new Set(["Fantasy", "Sci-Fi", "Fiction"]);
+const WORLD_BUILDING_GENRES = new Set(["Fantasy", "Sci-Fi", "Fiction", "Horror", "Young Adult", "Historical Fiction"]);
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();

@@ -1,10 +1,11 @@
 import { useState, useMemo, useRef } from "react";
 
-const GENRES = ["Fiction","Non-Fiction","Fantasy","Sci-Fi","Mystery","Biography","History","Romance","Self-Help","Other"];
+const GENRES = ["Fiction","Non-Fiction","Fantasy","Sci-Fi","Mystery","Thriller","Horror","Romance","Biography","History","Historical Fiction","Young Adult","Self-Help","Graphic Novel","Other"];
 const GENRE_COLORS = {
   "Fiction":"#7b6fa0","Non-Fiction":"#4a8a8a","Fantasy":"#6b7fa8","Sci-Fi":"#4a7a8a",
-  "Mystery":"#8a5a6a","Biography":"#8a6a4a","History":"#7a7a4a","Romance":"#8a5a5a",
-  "Self-Help":"#4a7a5a","Other":"#6a6a6a",
+  "Mystery":"#8a5a6a","Thriller":"#4a5a6a","Horror":"#6a3a3a","Romance":"#8a5a5a",
+  "Biography":"#8a6a4a","History":"#7a7a4a","Historical Fiction":"#7a6a4a",
+  "Young Adult":"#5a8a7a","Self-Help":"#4a7a5a","Graphic Novel":"#7a5a8a","Other":"#6a6a6a",
 };
 const SHELVES = ["Read", "Reading", "The List", "Curious", "DNF"];
 
@@ -1669,7 +1670,7 @@ function BookCoverThumb({ book: b }) {
   );
 }
 
-const WB_GENRES = new Set(["Fantasy", "Sci-Fi", "Fiction"]);
+const WB_GENRES = new Set(["Fantasy", "Sci-Fi", "Fiction", "Horror", "Young Adult", "Historical Fiction"]);
 
 function RecCard({ rec, coverUrl, ownedBook, onAddDirect, index }) {
   const [dropOpen, setDropOpen] = useState(false);
@@ -2793,19 +2794,45 @@ function normBookKey(title) {
   return (title || '').replace(/\s*[(:].*/,'').toLowerCase().replace(/[^\w]/g, '');
 }
 
+function normalizeGenre(genre) {
+  if (!genre) return "Other";
+  if (GENRES.includes(genre)) return genre;
+  const g = genre.toLowerCase();
+  if (g.includes("young adult") || g.includes("ya ") || g === "ya" || g.includes("teen") || g.includes("juvenile") || g.includes("children")) return "Young Adult";
+  if (g.includes("graphic novel") || g.includes("comic") || g.includes("manga") || g.includes("illustrated")) return "Graphic Novel";
+  if (g.includes("historical fiction") || (g.includes("histor") && g.includes("fiction"))) return "Historical Fiction";
+  if (g.includes("horror") || g.includes("gothic") || g.includes("ghost") || g.includes("occult")) return "Horror";
+  if (g.includes("thriller") || g.includes("suspense") || g.includes("true crime")) return "Thriller";
+  if (g.includes("mystery") || g.includes("crime") || g.includes("detective") || g.includes("noir")) return "Mystery";
+  if (g.includes("romance") || g.includes("chick lit") || g.includes("love story")) return "Romance";
+  if (g.includes("fantasy") || g.includes("magic") || g.includes("fairy") || g.includes("mytholog") || g.includes("dragon") || g.includes("witch")) return "Fantasy";
+  if (g.includes("sci-fi") || g.includes("science fiction") || g.includes("scifi") || g.includes("dystop") || g.includes("cyberpunk") || g.includes("steampunk") || g.includes("space opera") || g.includes("alien")) return "Sci-Fi";
+  if (g.includes("biography") || g.includes("autobiography") || g.includes("memoir")) return "Biography";
+  if (g.includes("self-help") || g.includes("self help") || g.includes("personal develop") || g.includes("motivat") || g.includes("productivity")) return "Self-Help";
+  if (g.includes("history") || g.includes("historical")) return "History";
+  if (g.includes("non-fiction") || g.includes("nonfiction") || g.includes("essay") || g.includes("journalism") || g.includes("psychology") || g.includes("philosophy") || g.includes("politics") || g.includes("economics") || g.includes("science") || g.includes("health") || g.includes("business") || g.includes("travel") || g.includes("religion") || g.includes("spirituality") || g.includes("nature")) return "Non-Fiction";
+  if (g.includes("fiction") || g.includes("novel") || g.includes("literary") || g.includes("contemporary") || g.includes("classic") || g.includes("short stor")) return "Fiction";
+  return "Other";
+}
+
 function loadBooks() {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (!saved) return [];
     const books = JSON.parse(saved);
     const seen = new Set();
+    let changed = false;
     const deduped = books.filter(b => {
       const key = normBookKey(b.title);
-      if (seen.has(key)) return false;
+      if (seen.has(key)) { changed = true; return false; }
       seen.add(key);
       return true;
+    }).map(b => {
+      const ng = normalizeGenre(b.genre);
+      if (ng !== b.genre) { changed = true; return { ...b, genre: ng }; }
+      return b;
     });
-    if (deduped.length !== books.length) saveBooks(deduped);
+    if (changed) saveBooks(deduped);
     return deduped;
   } catch {
     return [];
@@ -3011,7 +3038,7 @@ export default function App() {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   function addBook(form) {
-    const updated = [...books, { id:Date.now(), ...form, pages:parseInt(form.pages)||0, date:new Date().toISOString().slice(0,10) }];
+    const updated = [...books, { id:Date.now(), ...form, genre:normalizeGenre(form.genre), pages:parseInt(form.pages)||0, date:new Date().toISOString().slice(0,10) }];
     setBooks(updated);
     saveBooks(updated);
   }
@@ -3030,7 +3057,7 @@ export default function App() {
 
   function importBooks(imported) {
     const existing = new Set(books.map(b => normBookKey(b.title)));
-    const newBooks = imported.filter(b => !existing.has(normBookKey(b.title)));
+    const newBooks = imported.filter(b => !existing.has(normBookKey(b.title))).map(b => ({ ...b, genre: normalizeGenre(b.genre) }));
     const updated = [...books, ...newBooks];
     setBooks(updated);
     saveBooks(updated);
@@ -3087,7 +3114,7 @@ export default function App() {
           {tab==="shelf"
             ? <ShelfTab books={books} onAdd={()=>setShowAdd(true)} onAddBook={book=>{ setAddInitialBook(book); setShowAdd(true); }} onRemove={id=>{ const next = books.filter(b=>b.id!==id); setBooks(next); saveBooks(next); }} onEdit={setEditBook} onScroll={setScrollY} onShelfChange={changeShelf} onImport={()=>setShowImport(true)} />
             : tab==="reiko"
-            ? <ReikoTab books={books} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, shelf, rating:0, date:new Date().toISOString().slice(0,10) }; const next = [...books, b]; setBooks(next); saveBooks(next); }} />
+            ? <ReikoTab books={books} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, rating:0, date:new Date().toISOString().slice(0,10) }; const next = [...books, b]; setBooks(next); saveBooks(next); }} />
             : <StatsTab books={books} />
           }
           {showAdd && !addInitialBook && <AddSheet onSave={addBook} onClose={()=>setShowAdd(false)} />}
