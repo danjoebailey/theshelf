@@ -61,17 +61,40 @@ async function googleBooksLookup(title, author) {
   }
 }
 
+const FIELDS = "title,author_name,number_of_pages_median,subject,cover_i,first_publish_year";
+
+async function olSearch(param, query, limit = 7) {
+  try {
+    const url = `https://openlibrary.org/search.json?${param}=${encodeURIComponent(query)}&limit=${limit}&fields=${FIELDS}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    return data.docs || [];
+  } catch {
+    return [];
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
 
   const { query } = req.body;
   if (!query?.trim()) return res.status(400).json({ error: "Missing query" });
 
-  const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=7&fields=title,author_name,number_of_pages_median,subject,cover_i,first_publish_year`;
-  const response = await fetch(url);
-  const data = await response.json();
+  // Run title and author searches in parallel, merge with title results first
+  const [titleDocs, authorDocs] = await Promise.all([
+    olSearch("title", query),
+    olSearch("author", query),
+  ]);
 
-  const results = await Promise.all((data.docs || []).map(async doc => {
+  const seen = new Set();
+  const merged = [];
+  for (const doc of [...titleDocs, ...authorDocs]) {
+    const key = `${(doc.title || "").toLowerCase()}|${((doc.author_name || [])[0] || "").toLowerCase()}`;
+    if (!seen.has(key)) { seen.add(key); merged.push(doc); }
+    if (merged.length === 7) break;
+  }
+
+  const results = await Promise.all(merged.map(async doc => {
     const genre = inferGenre(doc.subject || []);
     const coverUrl = doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg` : null;
 
