@@ -881,7 +881,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
           )}
             {book.date && (book.shelf||"Read")==="Read" && (
               <p style={{ color:WOOD.textFaint, fontSize:10, fontFamily:"'DM Sans',sans-serif", textAlign:"right", flexShrink:0, marginLeft:8 }}>
-                {new Date(book.date).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})}
+                {new Date(book.date + "T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})}
               </p>
             )}
           </div>
@@ -1013,7 +1013,7 @@ function BookRowExpanded({ book, onEdit, onRemove }) {
         )}
         {book.date && (book.shelf||"Read")==="Read" && (
           <p style={{ color:WOOD.textFaint, fontSize:10, fontFamily:"'DM Sans',sans-serif", textAlign:"right", flexShrink:0, marginLeft:8 }}>
-            {new Date(book.date).toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})}
+            {new Date(book.date + "T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})}
           </p>
         )}
       </div>
