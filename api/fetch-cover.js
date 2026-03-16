@@ -16,13 +16,13 @@ export default async function handler(req, res) {
       ? fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&maxResults=1`)
           .then(r => r.json()).catch(() => null)
       : null,
-    fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(`${cleanTitle} ${author || ""}`.trim())}&maxResults=3&printType=books`)
+    fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(`${cleanTitle} ${author || ""}`.trim())}&maxResults=5&printType=books`)
       .then(r => r.json()).catch(() => null),
-    fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(cleanTitle)}&author=${encodeURIComponent(author || "")}&limit=1&fields=cover_i`)
+    fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(cleanTitle)}&author=${encodeURIComponent(author || "")}&limit=5&fields=cover_i`)
       .then(r => r.json()).catch(() => null),
   ]);
 
-  const coverId = olData?.docs?.[0]?.cover_i || null;
+  const coverId = olData?.docs?.find(d => d.cover_i)?.cover_i || null;
 
   // Prefer OpenLibrary (reliable CDN) over Google Books for coverUrl
   const olCoverUrl = coverId ? `https://covers.openlibrary.org/b/id/${coverId}-M.jpg` : null;
