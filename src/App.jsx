@@ -2924,19 +2924,13 @@ function cleanThumb(url) {
 
 async function fetchCoverForBook(book) {
   try {
-    const title = encodeURIComponent(book.title.replace(/\s*\(.*$/, "").trim());
-    const author = encodeURIComponent(book.author);
-    const isbn = book.isbn;
-    const [olData, gbTitleData, gbIsbnData] = await Promise.all([
-      fetch(`https://openlibrary.org/search.json?title=${title}&author=${author}&limit=1&fields=cover_i`).then(r=>r.json()).catch(()=>null),
-      fetch(`https://www.googleapis.com/books/v1/volumes?q=intitle:${title}+inauthor:${author}&maxResults=1&printType=books`).then(r=>r.json()).catch(()=>null),
-      isbn ? fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&maxResults=1`).then(r=>r.json()).catch(()=>null) : Promise.resolve(null),
-    ]);
-    const coverId = olData?.docs?.[0]?.cover_i || null;
-    const gbIsbnThumb = gbIsbnData?.items?.[0]?.volumeInfo?.imageLinks?.thumbnail;
-    const gbTitleThumb = gbTitleData?.items?.[0]?.volumeInfo?.imageLinks?.thumbnail;
-    const coverUrl = cleanThumb(gbIsbnThumb) || cleanThumb(gbTitleThumb) || null;
-    return { coverUrl, coverId };
+    const res = await fetch("/api/fetch-cover", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ title: book.title, author: book.author, isbn: book.isbn }),
+    });
+    if (!res.ok) return { coverUrl: null, coverId: null };
+    return await res.json();
   } catch {
     return { coverUrl: null, coverId: null };
   }
@@ -3322,7 +3316,7 @@ export default function App() {
       await Promise.all(batch.map(async book => {
         const { coverUrl, coverId } = await fetchCoverForBook(book);
         if (coverUrl || coverId) {
-          found++;
+          if (coverUrl) found++;
           const updated = { ...book, coverUrl: coverUrl || book.coverUrl, coverId: coverId || book.coverId };
           setBooks(prev => prev.map(b => b.id === book.id ? updated : b));
           dbUpdateBook(updated, userId);
