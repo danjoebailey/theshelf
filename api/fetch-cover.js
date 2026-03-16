@@ -24,10 +24,11 @@ export default async function handler(req, res) {
 
   const coverId = olData?.docs?.[0]?.cover_i || null;
 
+  // Prefer OpenLibrary (reliable CDN) over Google Books for coverUrl
+  const olCoverUrl = coverId ? `https://covers.openlibrary.org/b/id/${coverId}-M.jpg` : null;
   const gbIsbnThumb = gbIsbnData?.items?.[0]?.volumeInfo?.imageLinks?.thumbnail;
-  // Find first result with a thumbnail
   const gbTitleThumb = gbTitleData?.items?.find(i => i.volumeInfo?.imageLinks?.thumbnail)?.volumeInfo?.imageLinks?.thumbnail;
-  const coverUrl = cleanThumb(gbIsbnThumb) || cleanThumb(gbTitleThumb) || null;
+  const coverUrl = olCoverUrl || cleanThumb(gbIsbnThumb) || cleanThumb(gbTitleThumb) || null;
 
   res.json({ coverUrl, coverId });
 }
