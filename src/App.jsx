@@ -2710,6 +2710,28 @@ function EditSheet({ book, onSave, onClose }) {
   const [shelf, setShelf] = useState(book.shelf || "Read");
   const [genre, setGenre] = useState(book.genre || "Other");
   const [date, setDate] = useState(book.date || new Date().toISOString().slice(0,10));
+  const [coverUrl, setCoverUrl] = useState(book.coverUrl || null);
+  const [coverId, setCoverId] = useState(book.coverId || null);
+  const [coverFetch, setCoverFetch] = useState(null); // null | "loading" | { url, id } | "notfound"
+
+  async function findCover() {
+    setCoverFetch("loading");
+    try {
+      const res = await fetch("/api/fetch-cover", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ title: book.title, author: book.author, isbn: book.isbn }) });
+      const data = await res.json();
+      setCoverFetch(data.coverUrl ? { url: data.coverUrl, id: data.coverId } : "notfound");
+    } catch {
+      setCoverFetch("notfound");
+    }
+  }
+
+  function useCover() {
+    setCoverUrl(coverFetch.url);
+    setCoverId(coverFetch.id);
+    setCoverFetch(null);
+  }
+
+  const displayBook = { ...book, coverUrl, coverId };
 
   return (
     <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.7)", zIndex:50, display:"flex", flexDirection:"column", justifyContent:"flex-end", animation:"fadeIn 0.15s ease" }}
@@ -2734,15 +2756,32 @@ function EditSheet({ book, onSave, onClose }) {
 
         {/* static book info */}
         <div style={{ display:"flex", gap:12, alignItems:"flex-start", marginBottom:16, background:"rgba(255,245,220,0.85)", borderRadius:10, padding:"12px 14px", border:"1px solid rgba(200,160,80,0.3)" }}>
-          <BookCover book={book} width={72} height={108} radius={6} shadow="0 4px 12px rgba(0,0,0,0.25)" />
-          <div style={{ minWidth:0 }}>
+          <div style={{ flexShrink:0, display:"flex", flexDirection:"column", alignItems:"center", gap:6 }}>
+            <BookCover book={displayBook} width={72} height={108} radius={6} shadow="0 4px 12px rgba(0,0,0,0.25)" />
+            <button onClick={findCover} disabled={coverFetch==="loading"} style={{ fontSize:11, fontFamily:"'DM Sans',sans-serif", color:WOOD.textDim, background:"rgba(138,90,40,0.12)", border:"1px solid rgba(138,90,40,0.25)", borderRadius:20, padding:"3px 10px", cursor: coverFetch==="loading" ? "default" : "pointer", whiteSpace:"nowrap" }}>
+              {coverFetch==="loading" ? "…" : "Find Cover"}
+            </button>
+          </div>
+          <div style={{ minWidth:0, flex:1 }}>
             <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:18, color:WOOD.text, lineHeight:1.2, marginBottom:3 }}>{book.title}</p>
             <p style={{ fontSize:13, color:WOOD.textDim, fontStyle:"italic", marginBottom:6 }}>{book.author}</p>
-            <div style={{ display:"flex", gap:6, alignItems:"center", flexWrap:"wrap" }}>
+            <div style={{ display:"flex", gap:6, alignItems:"center", flexWrap:"wrap", marginBottom: coverFetch && coverFetch !== "loading" ? 8 : 0 }}>
               <span style={{ background:GENRE_COLORS[book.genre], color:"#fff", borderRadius:"20px", padding:"3px 10px", fontSize:11, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em" }}>{book.genre}</span>
               {book.pages > 0 && <span style={{ fontSize:12, color:WOOD.textFaint }}>{book.pages} pages</span>}
               <span style={{ fontSize:12, color:WOOD.textFaint }}>{book.date}</span>
             </div>
+            {coverFetch === "notfound" && (
+              <p style={{ fontSize:12, color:WOOD.textDim, fontStyle:"italic" }}>No cover found.</p>
+            )}
+            {coverFetch && coverFetch !== "loading" && coverFetch !== "notfound" && (
+              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                <img src={coverFetch.url} alt="cover preview" style={{ width:40, height:60, objectFit:"cover", borderRadius:3, boxShadow:"0 2px 6px rgba(0,0,0,0.25)" }} />
+                <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
+                  <button onClick={useCover} style={{ fontSize:12, fontFamily:"'DM Sans',sans-serif", background:WOOD.amber, color:"#1a0900", border:"none", borderRadius:20, padding:"4px 12px", cursor:"pointer", fontWeight:600 }}>Use this</button>
+                  <button onClick={()=>setCoverFetch(null)} style={{ fontSize:12, fontFamily:"'DM Sans',sans-serif", background:"rgba(138,90,40,0.12)", color:WOOD.textDim, border:"1px solid rgba(138,90,40,0.25)", borderRadius:20, padding:"3px 10px", cursor:"pointer" }}>Cancel</button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -2822,7 +2861,7 @@ function EditSheet({ book, onSave, onClose }) {
             style={{ width:"100%", padding:"8px 12px", borderRadius:8, border:"1px solid rgba(138,90,40,0.3)", background:"#fff", fontSize:14, fontFamily:"'DM Sans',sans-serif", color:WOOD.text, outline:"none", boxSizing:"border-box" }} />
         </div>
 
-        <button onClick={()=>onSave({ id:book.id, rating, shelf, genre, date })} style={{
+        <button onClick={()=>onSave({ id:book.id, rating, shelf, genre, date, coverUrl, coverId })} style={{
           width:"100%", padding:"14px",
           background:`linear-gradient(135deg,${WOOD.amber},#f97316)`,
           color:"#1a0900", borderRadius:12, fontSize:15, fontWeight:600,
@@ -3303,7 +3342,7 @@ export default function App() {
   }
 
   function saveEdit(updated) {
-    const next = books.map(b => b.id === updated.id ? { ...b, rating: updated.rating, shelf: updated.shelf, genre: updated.genre ?? b.genre, date: updated.date ?? b.date } : b);
+    const next = books.map(b => b.id === updated.id ? { ...b, rating: updated.rating, shelf: updated.shelf, genre: updated.genre ?? b.genre, date: updated.date ?? b.date, coverUrl: updated.coverUrl ?? b.coverUrl, coverId: updated.coverId ?? b.coverId } : b);
     setBooks(next);
     dbUpdateBook(next.find(b => b.id === updated.id), userId);
   }
