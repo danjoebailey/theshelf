@@ -531,14 +531,19 @@ const COVERS = {
 
 // Fixed-size cover: renders fallback at exact w×h, overlays img on top (hides on error)
 function BookCover({ book, width, height, radius=4, shadow="2px 2px 8px rgba(0,0,0,0.3)" }) {
-  const rawSrc = book.coverUrl || (book.coverId ? `https://covers.openlibrary.org/b/id/${book.coverId}-M.jpg` : null);
-  const src = rawSrc ? rawSrc.replace("http://", "https://").replace("&edge=curl", "") : null;
+  const srcs = [
+    book.coverUrl,
+    book.coverId ? `https://covers.openlibrary.org/b/id/${book.coverId}-M.jpg` : null,
+    book.isbn ? `https://covers.openlibrary.org/b/isbn/${book.isbn}-M.jpg` : null,
+  ].filter(Boolean).map(u => u.replace("http://", "https://").replace("&edge=curl", ""));
+  const [srcIdx, setSrcIdx] = useState(0);
+  const src = srcs[srcIdx] || null;
   const color = GENRE_COLORS[book.genre] || "#94a3b8";
   const initials = book.title.split(" ").filter(Boolean).slice(0,2).map(w=>w[0]).join("").toUpperCase();
   return (
     <div style={{ width, height, borderRadius:radius, flexShrink:0, position:"relative", background:`linear-gradient(135deg,${color}22,${color}44)`, border:`1px solid ${color}44`, boxShadow:shadow, display:"flex", alignItems:"center", justifyContent:"center" }}>
       <span style={{ color, fontSize:width*0.3, fontFamily:"'Crimson Pro',serif", fontWeight:600 }}>{initials}</span>
-      {src && <img src={src} alt={book.title} style={{ position:"absolute", inset:0, width, height, objectFit:"cover", borderRadius:radius, display:"block" }} onError={e=>{e.target.style.display="none";}} />}
+      {src && <img src={src} alt={book.title} style={{ position:"absolute", inset:0, width, height, objectFit:"cover", borderRadius:radius, display:"block" }} onError={()=>setSrcIdx(i => i + 1)} />}
     </div>
   );
 }
@@ -2916,17 +2921,14 @@ async function enrichBooksFromOpenLibrary(books, onProgress) {
         const gbTitleThumb = gbTitleData?.items?.[0]?.volumeInfo?.imageLinks?.thumbnail;
         const gbIsbnThumb = gbIsbnData?.items?.[0]?.volumeInfo?.imageLinks?.thumbnail;
 
-        // Prefer ISBN-based cover (most accurate), then title/author GB, then OL cover ID
-        const coverUrl = cleanThumb(gbIsbnThumb) || cleanThumb(gbTitleThumb) || null;
-        const coverId = olDoc?.cover_i || null;
-
-        // OL ISBN cover as direct URL fallback (no search needed)
-        const olIsbnCoverUrl = isbn ? `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg` : null;
-
         return {
           ...book,
-          coverId,
-          coverUrl: coverUrl || olIsbnCoverUrl || book.coverUrl || null,
+          // Google Books thumbnails are verified (only set when items[0] exists)
+          coverUrl: cleanThumb(gbIsbnThumb) || cleanThumb(gbTitleThumb) || book.coverUrl || null,
+          // OL search cover ID — reliable when returned, BookCover uses as fallback
+          coverId: olDoc?.cover_i || null,
+          // ISBN stored so BookCover can try OL ISBN CDN as last resort
+          isbn: isbn || book.isbn || null,
           genre: olDoc ? mapSubjectsToGenre(olDoc.subject) : (book.genre || "Other"),
         };
       } catch { return book; }
