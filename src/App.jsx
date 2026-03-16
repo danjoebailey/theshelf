@@ -3243,7 +3243,7 @@ export default function App() {
   const [scrollY, setScrollY] = useState(0);
   const [showImport, setShowImport] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const [coverFetchProgress, setCoverFetchProgress] = useState(null); // null | { done, total }
+  const [coverFetchProgress, setCoverFetchProgress] = useState(null); // null | { done, total, found }
   const loadedUserRef = useRef(null);
 
   useEffect(() => {
@@ -3314,21 +3314,24 @@ export default function App() {
     const missing = books.filter(b => !b.coverUrl);
     if (!missing.length) return;
     setShowProfileMenu(false);
-    setCoverFetchProgress({ done: 0, total: missing.length });
+    let found = 0;
+    setCoverFetchProgress({ done: 0, total: missing.length, found: 0 });
     const batchSize = 4;
     for (let i = 0; i < missing.length; i += batchSize) {
       const batch = missing.slice(i, i + batchSize);
       await Promise.all(batch.map(async book => {
         const { coverUrl, coverId } = await fetchCoverForBook(book);
         if (coverUrl || coverId) {
+          found++;
           const updated = { ...book, coverUrl: coverUrl || book.coverUrl, coverId: coverId || book.coverId };
           setBooks(prev => prev.map(b => b.id === book.id ? updated : b));
           dbUpdateBook(updated, userId);
         }
       }));
-      setCoverFetchProgress({ done: Math.min(i + batchSize, missing.length), total: missing.length });
+      setCoverFetchProgress({ done: Math.min(i + batchSize, missing.length), total: missing.length, found });
     }
-    setCoverFetchProgress(null);
+    setCoverFetchProgress({ done: missing.length, total: missing.length, found, complete: true });
+    setTimeout(() => setCoverFetchProgress(null), 4000);
   }
 
   function importBooks(imported) {
@@ -3500,7 +3503,7 @@ export default function App() {
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={WOOD.textDim} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
                     </svg>
-                    {coverFetchProgress ? `Fetching covers… ${coverFetchProgress.done}/${coverFetchProgress.total}` : "Fetch missing covers"}
+                    Fetch missing covers
                   </button>
                   <button onClick={()=>{ setShowProfileMenu(false); supabase.auth.signOut(); }} style={{
                     display:"flex", alignItems:"center", gap:10,
@@ -3518,6 +3521,19 @@ export default function App() {
             )}
           </div>
         </div>
+        {coverFetchProgress && (
+          <div style={{
+            position:"fixed", bottom:24, left:"50%", transform:"translateX(-50%)",
+            background:"#2a1505", color:"#f5e8d0", borderRadius:12, padding:"12px 20px",
+            fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:500,
+            boxShadow:"0 4px 20px rgba(0,0,0,0.5)", zIndex:200,
+            animation:"slideUp 0.2s ease", whiteSpace:"nowrap",
+          }}>
+            {coverFetchProgress.complete
+              ? `Done — ${coverFetchProgress.found} cover${coverFetchProgress.found !== 1 ? "s" : ""} updated out of ${coverFetchProgress.total} checked`
+              : `Fetching covers… ${coverFetchProgress.done}/${coverFetchProgress.total}`}
+          </div>
+        )}
     </div>
   );
 }
