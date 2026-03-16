@@ -2922,6 +2922,26 @@ function cleanThumb(url) {
   return url ? url.replace("http://", "https://").replace("&edge=curl", "") : null;
 }
 
+async function fetchCoverForBook(book) {
+  try {
+    const title = encodeURIComponent(book.title.replace(/\s*\(.*$/, "").trim());
+    const author = encodeURIComponent(book.author);
+    const isbn = book.isbn;
+    const [olData, gbTitleData, gbIsbnData] = await Promise.all([
+      fetch(`https://openlibrary.org/search.json?title=${title}&author=${author}&limit=1&fields=cover_i`).then(r=>r.json()).catch(()=>null),
+      fetch(`https://www.googleapis.com/books/v1/volumes?q=intitle:${title}+inauthor:${author}&maxResults=1&printType=books`).then(r=>r.json()).catch(()=>null),
+      isbn ? fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&maxResults=1`).then(r=>r.json()).catch(()=>null) : Promise.resolve(null),
+    ]);
+    const coverId = olData?.docs?.[0]?.cover_i || null;
+    const gbIsbnThumb = gbIsbnData?.items?.[0]?.volumeInfo?.imageLinks?.thumbnail;
+    const gbTitleThumb = gbTitleData?.items?.[0]?.volumeInfo?.imageLinks?.thumbnail;
+    const coverUrl = cleanThumb(gbIsbnThumb) || cleanThumb(gbTitleThumb) || null;
+    return { coverUrl, coverId };
+  } catch {
+    return { coverUrl: null, coverId: null };
+  }
+}
+
 async function enrichBooksFromOpenLibrary(books, onProgress) {
   const results = [];
   const batchSize = 4;
@@ -3223,6 +3243,7 @@ export default function App() {
   const [scrollY, setScrollY] = useState(0);
   const [showImport, setShowImport] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [coverFetchProgress, setCoverFetchProgress] = useState(null); // null | { done, total }
   const loadedUserRef = useRef(null);
 
   useEffect(() => {
@@ -3287,6 +3308,27 @@ export default function App() {
     const next = books.map(b => b.id === id ? { ...b, shelf, ...(rating != null ? { rating } : {}) } : b);
     setBooks(next);
     dbUpdateBook(next.find(b => b.id === id), userId);
+  }
+
+  async function fetchMissingCovers() {
+    const missing = books.filter(b => !b.coverUrl && !b.coverId);
+    if (!missing.length) return;
+    setShowProfileMenu(false);
+    setCoverFetchProgress({ done: 0, total: missing.length });
+    const batchSize = 4;
+    for (let i = 0; i < missing.length; i += batchSize) {
+      const batch = missing.slice(i, i + batchSize);
+      await Promise.all(batch.map(async book => {
+        const { coverUrl, coverId } = await fetchCoverForBook(book);
+        if (coverUrl || coverId) {
+          const updated = { ...book, coverUrl: coverUrl || book.coverUrl, coverId: coverId || book.coverId };
+          setBooks(prev => prev.map(b => b.id === book.id ? updated : b));
+          dbUpdateBook(updated, userId);
+        }
+      }));
+      setCoverFetchProgress({ done: Math.min(i + batchSize, missing.length), total: missing.length });
+    }
+    setCoverFetchProgress(null);
   }
 
   function importBooks(imported) {
@@ -3447,6 +3489,18 @@ export default function App() {
                       <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
                     </svg>
                     Import from Goodreads
+                  </button>
+                  <button onClick={fetchMissingCovers} disabled={!!coverFetchProgress} style={{
+                    display:"flex", alignItems:"center", gap:10,
+                    width:"100%", padding:"12px 16px", textAlign:"left",
+                    background:"transparent", border:"none", borderTop:"1px solid rgba(138,90,40,0.15)", cursor: coverFetchProgress ? "default" : "pointer",
+                    fontFamily:"'DM Sans',sans-serif", fontSize:14, color:WOOD.text, fontWeight:400,
+                    opacity: coverFetchProgress ? 0.6 : 1,
+                  }}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={WOOD.textDim} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+                    </svg>
+                    {coverFetchProgress ? `Fetching covers… ${coverFetchProgress.done}/${coverFetchProgress.total}` : "Fetch missing covers"}
                   </button>
                   <button onClick={()=>{ setShowProfileMenu(false); supabase.auth.signOut(); }} style={{
                     display:"flex", alignItems:"center", gap:10,
