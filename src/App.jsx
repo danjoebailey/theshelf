@@ -3377,12 +3377,13 @@ export default function App() {
     setTimeout(() => setCoverFetchProgress(null), 4000);
   }
 
-  function importBooks(imported) {
+  async function importBooks(imported) {
     const existing = new Set(books.map(b => normBookKey(b.title)));
     const newBooks = imported.filter(b => !existing.has(normBookKey(b.title))).map(b => ({ ...b, genre: normalizeGenre(b.genre) }));
     if (!newBooks.length) return;
     setBooks(prev => [...prev, ...newBooks]);
-    supabase.from("books").insert(newBooks.map(b => bookToRow(b, userId)));
+    const { error } = await supabase.from("books").insert(newBooks.map(b => bookToRow(b, userId)));
+    if (error) alert("Import save failed: " + error.message);
   }
 
   return (
