@@ -3223,6 +3223,7 @@ export default function App() {
   const [scrollY, setScrollY] = useState(0);
   const [showImport, setShowImport] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const loadedUserRef = useRef(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -3236,21 +3237,23 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (!session) { setBooks([]); return; }
+    if (!session) { setBooks([]); loadedUserRef.current = null; return; }
     const userId = session.user.id;
+    // Prevent running twice for the same user (auth fires multiple events on load)
+    if (loadedUserRef.current === userId) return;
+    loadedUserRef.current = userId;
     supabase.from("books").select("*").eq("user_id", userId).order("created_at", { ascending: true })
       .then(({ data }) => {
         if (data && data.length > 0) {
           setBooks(data.map(rowToBook));
         } else {
-          // Migrate from localStorage if first sign-in
+          // Migrate from localStorage on first sign-in
           try {
             const stored = localStorage.getItem(STORAGE_KEY);
             const localBooks = stored ? JSON.parse(stored) : [];
             if (localBooks.length > 0) {
-              supabase.from("books").insert(localBooks.map(b => bookToRow(b, userId))).then(() => {
-                localStorage.removeItem(STORAGE_KEY);
-              });
+              localStorage.removeItem(STORAGE_KEY); // clear before insert to prevent re-run
+              supabase.from("books").insert(localBooks.map(b => bookToRow(b, userId)));
               setBooks(localBooks);
             }
           } catch {}
