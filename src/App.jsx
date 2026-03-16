@@ -539,10 +539,12 @@ function BookCover({ book, width, height, radius=4, shadow="2px 2px 8px rgba(0,0
   ].filter(Boolean).map(u => u.replace("http://", "https://").replace("&edge=curl", ""));
   const [srcIdx, setSrcIdx] = useState(0);
   const prevCoverUrl = useRef(book.coverUrl);
-  if (prevCoverUrl.current !== book.coverUrl) {
-    prevCoverUrl.current = book.coverUrl;
-    setSrcIdx(0);
-  }
+  useEffect(() => {
+    if (prevCoverUrl.current !== book.coverUrl) {
+      prevCoverUrl.current = book.coverUrl;
+      setSrcIdx(0);
+    }
+  }, [book.coverUrl]);
   const src = srcs[srcIdx] || null;
   const color = GENRE_COLORS[book.genre] || "#94a3b8";
   const initials = book.title.split(" ").filter(Boolean).slice(0,2).map(w=>w[0]).join("").toUpperCase();
@@ -3322,7 +3324,7 @@ export default function App() {
         const { coverUrl, coverId } = await fetchCoverForBook(book);
         if (coverUrl || coverId) {
           if (coverUrl) found++;
-          const updated = { ...book, coverUrl: coverUrl || book.coverUrl, coverId: coverId || book.coverId };
+          const updated = { ...book, coverUrl: coverUrl || book.coverUrl, coverId: book.coverId || coverId };
           setBooks(prev => prev.map(b => b.id === book.id ? updated : b));
           dbUpdateBook(updated, userId);
         }
