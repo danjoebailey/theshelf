@@ -538,6 +538,11 @@ function BookCover({ book, width, height, radius=4, shadow="2px 2px 8px rgba(0,0
     book.isbn ? `https://covers.openlibrary.org/b/isbn/${book.isbn}-M.jpg` : null,
   ].filter(Boolean).map(u => u.replace("http://", "https://").replace("&edge=curl", ""));
   const [srcIdx, setSrcIdx] = useState(0);
+  const prevCoverUrl = useRef(book.coverUrl);
+  if (prevCoverUrl.current !== book.coverUrl) {
+    prevCoverUrl.current = book.coverUrl;
+    setSrcIdx(0);
+  }
   const src = srcs[srcIdx] || null;
   const color = GENRE_COLORS[book.genre] || "#94a3b8";
   const initials = book.title.split(" ").filter(Boolean).slice(0,2).map(w=>w[0]).join("").toUpperCase();
