@@ -1,7 +1,5 @@
-import { useState, useMemo, useRef, useEffect, createContext, useContext, useCallback } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { supabase } from "./supabase.js";
-
-const CoverFailedContext = createContext(null);
 
 const GENRES = ["Fiction","Non-Fiction","Fantasy","Sci-Fi","Mystery","Thriller","Horror","Romance","Biography","History","Historical Fiction","Young Adult","Self-Help","Graphic Novel","Other"];
 const GENRE_COLORS = {
@@ -534,7 +532,6 @@ const COVERS = {
 
 // Fixed-size cover: renders fallback at exact w×h, overlays img on top (hides on error)
 function BookCover({ book, width, height, radius=4, shadow="2px 2px 8px rgba(0,0,0,0.3)" }) {
-  const onCoverFailed = useContext(CoverFailedContext);
   const srcs = [
     book.coverUrl,
     book.coverId ? `https://covers.openlibrary.org/b/id/${book.coverId}-M.jpg` : null,
@@ -551,11 +548,7 @@ function BookCover({ book, width, height, radius=4, shadow="2px 2px 8px rgba(0,0
   const src = srcs[srcIdx] || null;
   const color = GENRE_COLORS[book.genre] || "#94a3b8";
   const initials = book.title.split(" ").filter(Boolean).slice(0,2).map(w=>w[0]).join("").toUpperCase();
-  const advance = () => {
-    const next = srcIdx + 1;
-    setSrcIdx(next);
-    if (next >= srcs.length && onCoverFailed) onCoverFailed(book.id);
-  };
+  const advance = () => setSrcIdx(i => i + 1);
   return (
     <div style={{ width, height, borderRadius:radius, flexShrink:0, position:"relative", background:`linear-gradient(135deg,${color}22,${color}44)`, border:`1px solid ${color}44`, boxShadow:shadow, display:"flex", alignItems:"center", justifyContent:"center" }}>
       <span style={{ color, fontSize:width*0.3, fontFamily:"'Crimson Pro',serif", fontWeight:600 }}>{initials}</span>
@@ -3255,8 +3248,6 @@ export default function App() {
   const [showImport, setShowImport] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [coverFetchProgress, setCoverFetchProgress] = useState(null); // null | { done, total, found }
-  const [failedCoverIds, setFailedCoverIds] = useState(new Set());
-  const onCoverFailed = useCallback(id => setFailedCoverIds(prev => { const s = new Set(prev); s.add(id); return s; }), []);
   const loadedUserRef = useRef(null);
 
   useEffect(() => {
@@ -3324,7 +3315,7 @@ export default function App() {
   }
 
   async function fetchMissingCovers() {
-    const missing = books.filter(b => !b.coverUrl || failedCoverIds.has(b.id));
+    const missing = books.filter(b => !b.coverUrl);
     if (!missing.length) return;
     setShowProfileMenu(false);
     let found = 0;
@@ -3356,7 +3347,6 @@ export default function App() {
   }
 
   return (
-    <CoverFailedContext.Provider value={onCoverFailed}>
     <div style={{ width:"100%", height:"100dvh", display:"flex", flexDirection:"column", position:"relative", overflow:"hidden" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');
@@ -3549,6 +3539,5 @@ export default function App() {
           </div>
         )}
     </div>
-    </CoverFailedContext.Provider>
   );
 }
