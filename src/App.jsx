@@ -3311,7 +3311,7 @@ export default function App() {
   }
 
   async function fetchMissingCovers() {
-    const missing = books.filter(b => !b.coverUrl && !b.coverId);
+    const missing = books.filter(b => !b.coverUrl);
     if (!missing.length) return;
     setShowProfileMenu(false);
     setCoverFetchProgress({ done: 0, total: missing.length });
