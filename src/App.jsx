@@ -3312,7 +3312,7 @@ export default function App() {
   }
 
   async function fetchMissingCovers() {
-    const missing = books.filter(b => !b.coverUrl || b.coverUrl.includes("books.google.com"));
+    const missing = books.filter(b => !b.coverUrl);
     if (!missing.length) return;
     setShowProfileMenu(false);
     let found = 0;
