@@ -88,22 +88,40 @@ async function olSearch(query) {
   }
 }
 
+async function itunesSearch(query) {
+  try {
+    const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=ebook&limit=7&media=ebook`);
+    const data = await res.json();
+    return (data.results || []).map(r => ({
+      title:       r.trackName || "Unknown",
+      author:      r.artistName || "Unknown",
+      pages:       0,
+      genre:       inferGenre([r.primaryGenreName || ""]),
+      coverUrl:    r.artworkUrl100 ? r.artworkUrl100.replace("/100x100bb.", "/400x600bb.") : null,
+      publishYear: r.releaseDate ? parseInt(r.releaseDate) : null,
+    }));
+  } catch {
+    return [];
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
 
   const { query } = req.body;
   if (!query?.trim()) return res.status(400).json({ error: "Missing query" });
 
-  // Run both in parallel; Google Books is primary, OL fills gaps
-  const [googleItems, olItems] = await Promise.all([
+  // Run all three in parallel; Google Books primary, OL fills gaps, iTunes catches the rest
+  const [googleItems, olItems, itunesItems] = await Promise.all([
     googleBooksSearch(query),
     olSearch(query),
+    itunesSearch(query),
   ]);
 
   const seen = new Set();
   const results = [];
 
-  for (const item of [...googleItems, ...olItems]) {
+  for (const item of [...googleItems, ...olItems, ...itunesItems]) {
     if (results.length >= 7) break;
     const key = docKey(item.title, item.author);
     if (!seen.has(key)) { seen.add(key); results.push(item); }
