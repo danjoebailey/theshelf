@@ -19,7 +19,7 @@ export default async function handler(req, res) {
       max_tokens: 200,
       messages: [{
         role: "user",
-        content: `Write a 3–4 sentence description of "${title}" by ${author}${genre && genre !== "Other" ? ` (${genre})` : ""}. Cover what the book is about and what makes it notable or distinctive. No spoilers. No intro like "This book..." — just dive straight in.`,
+        content: `Write a 3–4 sentence description of "${title}" by ${author}${genre && genre !== "Other" ? ` (${genre})` : ""}. Cover what the book is about and what makes it notable or distinctive. No spoilers. No headings, no title, no intro like "This book..." — just dive straight in with the description.`,
       }],
     }),
   });
@@ -30,6 +30,6 @@ export default async function handler(req, res) {
   }
 
   const data = await response.json();
-  const description = data.content?.[0]?.text?.trim() || null;
+  const description = (data.content?.[0]?.text || "").replace(/^#+\s.*\n+/, "").trim() || null;
   res.json({ description });
 }
