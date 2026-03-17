@@ -2134,14 +2134,16 @@ const SCORE_CATEGORIES = [
   { key:"ending",       label:"Ending" },
 ];
 
-function RankingsTab({ books, onSaveScores }) {
+function RankingsTab({ books, onSaveScores, userId }) {
   const [mode, setMode] = useState("user");
   const [genreFilter, setGenreFilter] = useState("All");
   const [topN, setTopN] = useState(10);
   const [scoreCategory, setScoreCategory] = useState("prose");
-  const [userOrder, setUserOrder] = useState(null); // array of book IDs; null = use default
+  // Global order: all read book IDs ranked. null = use default (rating desc).
+  const [userOrder, setUserOrder] = useState(null);
   const [generating, setGenerating] = useState(false);
   const [generated, setGenerated] = useState(false);
+  const saveTimer = useRef(null);
 
   const readBooks = useMemo(() =>
     books.filter(b => (b.shelf || "Read") === "Read"),
@@ -2159,31 +2161,47 @@ function RankingsTab({ books, onSaveScores }) {
     return f;
   }, [readBooks, genreFilter]);
 
-  // Default order: rating desc, capped to topN — just IDs so books updates don't matter
-  const defaultOrderIds = useMemo(() => {
-    const sorted = [...filteredBooks].sort((a, b) => (b.rating || 0) - (a.rating || 0));
-    const cap = topN === "all" ? sorted.length : topN;
-    return sorted.slice(0, cap).map(b => b.id);
-  }, [filteredBooks, topN]);
+  // Default global order: all read books sorted by rating desc
+  const defaultAllOrderIds = useMemo(() =>
+    [...readBooks].sort((a, b) => (b.rating || 0) - (a.rating || 0)).map(b => b.id),
+    [readBooks]
+  );
 
-  // Reset custom order when filters change
-  useEffect(() => { setUserOrder(null); }, [genreFilter, topN]);
+  // Load saved ranking from Supabase on mount
+  useEffect(() => {
+    if (!userId) return;
+    supabase.from("user_rankings").select("user_order").eq("user_id", userId).single()
+      .then(({ data }) => { if (data?.user_order?.length) setUserOrder(data.user_order); });
+  }, [userId]);
 
-  // Build display list from IDs, always pulling fresh book objects from books prop
   const bookMap = useMemo(() => new Map(books.map(b => [b.id, b])), [books]);
 
+  // User ranked list: global order → filter by genre → cap to topN
   const userRankedBooks = useMemo(() => {
-    const ids = userOrder || defaultOrderIds;
-    return ids.map(id => bookMap.get(id)).filter(Boolean);
-  }, [userOrder, defaultOrderIds, bookMap]);
+    const allIds = userOrder || defaultAllOrderIds;
+    const allOrdered = allIds.map(id => bookMap.get(id)).filter(Boolean);
+    const filtered = genreFilter === "All" ? allOrdered : allOrdered.filter(b => b.genre === genreFilter);
+    const cap = topN === "all" ? filtered.length : topN;
+    return filtered.slice(0, cap);
+  }, [userOrder, defaultAllOrderIds, bookMap, genreFilter, topN]);
 
   function moveBook(i, dir) {
     const j = i + dir;
-    const currentIds = userOrder || defaultOrderIds;
-    if (j < 0 || j >= currentIds.length) return;
-    const next = currentIds.slice();
-    [next[i], next[j]] = [next[j], next[i]];
+    if (j < 0 || j >= userRankedBooks.length) return;
+    const bookA = userRankedBooks[i];
+    const bookB = userRankedBooks[j];
+    const globalIds = userOrder || defaultAllOrderIds;
+    const posA = globalIds.indexOf(bookA.id);
+    const posB = globalIds.indexOf(bookB.id);
+    if (posA === -1 || posB === -1) return;
+    const next = globalIds.slice();
+    [next[posA], next[posB]] = [next[posB], next[posA]];
     setUserOrder(next);
+    // Debounced save to Supabase
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => {
+      supabase.from("user_rankings").upsert({ user_id: userId, user_order: next });
+    }, 800);
   }
 
   async function generateAIRankings() {
@@ -3750,7 +3768,7 @@ export default function App() {
             : tab==="reiko"
             ? <ReikoTab books={books} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, rating:0, date:new Date().toISOString().slice(0,10) }; setBooks(prev => [...prev, b]); dbAddBook(b, userId); }} />
             : tab==="rankings"
-            ? <RankingsTab books={books} onSaveScores={saveScores} />
+            ? <RankingsTab books={books} onSaveScores={saveScores} userId={userId} />
             : <StatsTab books={books} />
           }
           {showAdd && !addInitialBook && <AddSheet onSave={addBook} onClose={()=>setShowAdd(false)} />}
