@@ -2143,7 +2143,6 @@ function RankingsTab({ books, onSaveScores, userId }) {
   const [userOrder, setUserOrder] = useState(null);
   const [generating, setGenerating] = useState(false);
   const [generated, setGenerated] = useState(false);
-  const saveTimer = useRef(null);
 
   const readBooks = useMemo(() =>
     books.filter(b => (b.shelf || "Read") === "Read"),
@@ -2197,11 +2196,7 @@ function RankingsTab({ books, onSaveScores, userId }) {
     const next = globalIds.slice();
     [next[posA], next[posB]] = [next[posB], next[posA]];
     setUserOrder(next);
-    // Debounced save to Supabase
-    if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(() => {
-      supabase.from("user_rankings").upsert({ user_id: userId, user_order: next });
-    }, 800);
+    supabase.from("user_rankings").upsert({ user_id: userId, user_order: next });
   }
 
   async function generateAIRankings() {
