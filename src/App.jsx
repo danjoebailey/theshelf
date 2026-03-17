@@ -831,7 +831,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
                 "Read":     { label: "Read",     bg:"rgba(138,90,40,0.5)",   color:"rgba(255,255,255,0.7)", border:"rgba(138,90,40,0.4)" },
                 "Reading":  { label: "Reading",  bg:"rgba(60,120,80,0.55)",  color:"rgba(255,255,255,0.9)", border:"rgba(60,120,80,0.4)" },
                 "The List": { label: "The List", bg:"rgba(138,90,40,0.5)",   color:"rgba(255,255,255,0.7)", border:"rgba(138,90,40,0.4)" },
-                "Curious":  { label: "🧐",       bg:"rgba(200,144,90,0.15)", color:WOOD.amber,              border:"rgba(200,144,90,0.3)" },
+                "Curious":  { label: "Curious",  bg:"rgba(200,144,90,0.15)", color:WOOD.amber,              border:"rgba(200,144,90,0.3)" },
                 "DNF":      { label: "DNF",      bg:"rgba(160,50,50,0.55)",  color:"rgba(255,255,255,0.9)", border:"rgba(160,50,50,0.4)" },
               };
               const meta = SHELF_META[shelf];
