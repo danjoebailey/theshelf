@@ -2161,20 +2161,23 @@ function RankingsTab({ books, onSaveScores }) {
 
   const limit = topN === "all" ? Infinity : topN;
 
-  // Seed userList when filter changes; preserve existing order if possible
+  // Seed userList when filters or book count changes — NOT on score/cover updates
+  // Compute directly from books to avoid filteredBooks reference instability
   useEffect(() => {
+    const readBks = books.filter(b => (b.shelf || "Read") === "Read");
+    const f = genreFilter === "All" ? readBks : readBks.filter(b => b.genre === genreFilter);
+    const sorted = [...f].sort((a, b) => (b.rating || 0) - (a.rating || 0));
+    const cap = topN === "all" ? sorted.length : topN;
+    const limited = sorted.slice(0, cap);
     setUserList(prev => {
-      const byRating = [...filteredBooks].sort((a, b) => (b.rating || 0) - (a.rating || 0));
-      const limited = byRating.slice(0, limit === Infinity ? undefined : limit);
       if (!prev) return limited;
-      // Keep existing order for books already ranked; append new books sorted by rating
-      const prevIds = prev.map(b => b.id);
-      const inPrev = limited.filter(b => prevIds.includes(b.id))
-        .sort((a, b) => prevIds.indexOf(a.id) - prevIds.indexOf(b.id));
-      const newOnes = limited.filter(b => !prevIds.includes(b.id));
-      return [...inPrev, ...newOnes].slice(0, limit === Infinity ? undefined : limit);
+      const prevIdSet = new Set(prev.map(b => b.id));
+      // Preserve user's order; drop removed books; append newly added books at end
+      const inPrev = prev.filter(b => limited.some(lb => lb.id === b.id));
+      const newOnes = limited.filter(b => !prevIdSet.has(b.id));
+      return [...inPrev, ...newOnes].slice(0, cap);
     });
-  }, [filteredBooks, genreFilter, topN]);
+  }, [genreFilter, topN, books.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function moveBook(i, dir) {
     const j = i + dir;
