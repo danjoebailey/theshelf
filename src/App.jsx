@@ -738,29 +738,23 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
   }
 
   async function fetchProse() {
-    setShowScores(false); setShowDescription(false);
-    if (prose) { setShowProse(true); return; }
+    if (showProse) { setShowProse(false); return; }
+    setShowScores(false); setShowDescription(false); setShowProse(true);
+    if (prose) return;
     setProseLoading(true);
-    setShowProse(true);
     try {
-      const res = await fetch("/api/prose-preview", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: book.title, author: book.author }),
-      });
+      const res = await fetch("/api/prose-preview", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ title:book.title, author:book.author }) });
       const data = await res.json();
       setProse(data.prose || "Unable to generate preview.");
-    } catch {
-      setProse("Unable to generate preview.");
-    }
+    } catch { setProse("Unable to generate preview."); }
     setProseLoading(false);
   }
 
   async function fetchScores() {
+    if (showScores) { setShowScores(false); return; }
     setShowProse(false); setShowDescription(false);
     if (scores) { setShowScores(true); return; }
-    setScoresLoading(true);
-    setShowScores(true);
+    setScoresLoading(true); setShowScores(true);
     try {
       const res = await fetch("/api/book-scores", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ title:book.title, author:book.author, genre:book.genre }) });
       const data = await res.json();
@@ -772,8 +766,8 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
   }
 
   async function fetchDescription() {
-    setShowProse(false); setShowScores(false);
-    setShowDescription(true);
+    if (showDescription) { setShowDescription(false); return; }
+    setShowProse(false); setShowScores(false); setShowDescription(true);
     if (fetchedDescription) return;
     setDescriptionLoading(true);
     try {
@@ -922,28 +916,22 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
               </p>
             )}
           </div>
-          {(!showProse && !showScores && !showDescription) && (
-            <div style={{ display:"flex", gap:6, marginBottom: 4 }}>
-              <button {...tc(fetchDescription, true)} style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(138,90,40,0.12)", borderRadius:20, padding:"6px 14px", border:"1px solid rgba(138,90,40,0.25)", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:500, color:WOOD.textDim }}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 6h16M4 12h16M4 18h12"/></svg>
-                About
-              </button>
-              {showProseBtn && <button {...tc(fetchProse, true)} style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(138,90,40,0.12)", borderRadius:20, padding:"6px 14px", border:"1px solid rgba(138,90,40,0.25)", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:500, color:WOOD.textDim }}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-                Prose
-              </button>}
-              <button {...tc(fetchScores, true)} style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(138,90,40,0.12)", borderRadius:20, padding:"6px 14px", border:"1px solid rgba(138,90,40,0.25)", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:500, color:WOOD.textDim }}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
-                Scores
-              </button>
-            </div>
-          )}
+          <div style={{ display:"flex", gap:6, marginBottom: (showDescription||showProse||showScores) ? 10 : 4 }}>
+            <button {...tc(fetchDescription, true)} style={{ display:"flex", alignItems:"center", gap:6, background:showDescription?WOOD.amber:"rgba(138,90,40,0.12)", borderRadius:20, padding:"6px 14px", border:`1px solid ${showDescription?WOOD.amber:"rgba(138,90,40,0.25)"}`, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:500, color:showDescription?"#1a0900":WOOD.textDim, transition:"all 0.15s" }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 6h16M4 12h16M4 18h12"/></svg>
+              About
+            </button>
+            {showProseBtn && <button {...tc(fetchProse, true)} style={{ display:"flex", alignItems:"center", gap:6, background:showProse?WOOD.amber:"rgba(138,90,40,0.12)", borderRadius:20, padding:"6px 14px", border:`1px solid ${showProse?WOOD.amber:"rgba(138,90,40,0.25)"}`, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:500, color:showProse?"#1a0900":WOOD.textDim, transition:"all 0.15s" }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+              Prose
+            </button>}
+            <button {...tc(fetchScores, true)} style={{ display:"flex", alignItems:"center", gap:6, background:showScores?WOOD.amber:"rgba(138,90,40,0.12)", borderRadius:20, padding:"6px 14px", border:`1px solid ${showScores?WOOD.amber:"rgba(138,90,40,0.25)"}`, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:500, color:showScores?"#1a0900":WOOD.textDim, transition:"all 0.15s" }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+              Scores
+            </button>
+          </div>
           {showDescription && (
             <div style={{ marginBottom: 4, animation:"fadeIn 0.18s ease" }}>
-              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
-                <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:12, color:WOOD.amber, letterSpacing:"0.08em", textTransform:"uppercase" }}>About · {book.title}</p>
-                <button {...tc(()=>setShowDescription(false), true)} style={{ background:"none", border:"none", cursor:"pointer", color:WOOD.textFaint, fontSize:16, lineHeight:1, padding:"0 2px" }}>✕</button>
-              </div>
               {descriptionLoading
                 ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.textFaint, fontStyle:"italic" }}>Loading…</p>
                 : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, lineHeight:1.72 }}>{fetchedDescription}</p>
@@ -952,10 +940,6 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
           )}
           {showProse && (
             <div style={{ marginBottom: 4, animation:"fadeIn 0.18s ease" }}>
-              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
-                <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:12, color:WOOD.amber, letterSpacing:"0.08em", textTransform:"uppercase" }}>Prose Preview · {book.author}</p>
-                <button {...tc(()=>setShowProse(false), true)} style={{ background:"none", border:"none", cursor:"pointer", color:WOOD.textFaint, fontSize:16, lineHeight:1, padding:"0 2px" }}>✕</button>
-              </div>
               {proseLoading
                 ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, color:WOOD.textFaint, fontStyle:"italic" }}>Generating…</p>
                 : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, color:WOOD.text, lineHeight:1.8, fontStyle:"italic" }}>{prose}</p>
@@ -964,10 +948,6 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
           )}
           {showScores && (
             <div style={{ marginBottom: 4, animation:"fadeIn 0.18s ease" }}>
-              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
-                <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:12, color:WOOD.amber, letterSpacing:"0.08em", textTransform:"uppercase" }}>Scores · {book.title}</p>
-                <button {...tc(()=>setShowScores(false), true)} style={{ background:"none", border:"none", cursor:"pointer", color:WOOD.textFaint, fontSize:16, lineHeight:1, padding:"0 2px" }}>✕</button>
-              </div>
               {scoresLoading
                 ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:WOOD.textFaint, fontStyle:"italic" }}>Scoring…</p>
                 : scores ? (
@@ -1032,8 +1012,8 @@ function BookRowExpanded({ book, onEdit, onRemove }) {
     else { setList([...list,a]); setOther(other.filter(x=>x!==a)); }
   }
   async function fetchProse() {
-    setShowScores(false); setShowDescription(false);
-    setShowProse(true);
+    if (showProse) { setShowProse(false); return; }
+    setShowScores(false); setShowDescription(false); setShowProse(true);
     if (prose) return;
     setProseLoading(true);
     try {
@@ -1045,10 +1025,10 @@ function BookRowExpanded({ book, onEdit, onRemove }) {
   }
 
   async function fetchScores() {
+    if (showScores) { setShowScores(false); return; }
     setShowProse(false); setShowDescription(false);
     if (scores) { setShowScores(true); return; }
-    setScoresLoading(true);
-    setShowScores(true);
+    setScoresLoading(true); setShowScores(true);
     try {
       const res = await fetch("/api/book-scores", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ title:book.title, author:book.author, genre:book.genre }) });
       const data = await res.json();
@@ -1058,8 +1038,8 @@ function BookRowExpanded({ book, onEdit, onRemove }) {
   }
 
   async function fetchDescription() {
-    setShowProse(false); setShowScores(false);
-    setShowDescription(true);
+    if (showDescription) { setShowDescription(false); return; }
+    setShowProse(false); setShowScores(false); setShowDescription(true);
     if (fetchedDescription) return;
     setDescriptionLoading(true);
     try {
@@ -1086,28 +1066,22 @@ function BookRowExpanded({ book, onEdit, onRemove }) {
           </p>
         )}
       </div>
-      {(!showProse && !showScores && !showDescription) && (
-        <div style={{ display:"flex", gap:6, marginBottom:4 }}>
-          <button {...tc(fetchDescription, true)} style={{ display:"flex", alignItems:"center", gap:5, background:"rgba(138,90,40,0.12)", borderRadius:20, padding:"5px 12px", border:"1px solid rgba(138,90,40,0.25)", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, color:WOOD.textDim }}>
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 6h16M4 12h16M4 18h12"/></svg>
-            About
-          </button>
-          {showProseBtn && <button {...tc(fetchProse, true)} style={{ display:"flex", alignItems:"center", gap:5, background:"rgba(138,90,40,0.12)", borderRadius:20, padding:"5px 12px", border:"1px solid rgba(138,90,40,0.25)", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, color:WOOD.textDim }}>
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-            Prose
-          </button>}
-          <button {...tc(fetchScores, true)} style={{ display:"flex", alignItems:"center", gap:5, background:"rgba(138,90,40,0.12)", borderRadius:20, padding:"5px 12px", border:"1px solid rgba(138,90,40,0.25)", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, color:WOOD.textDim }}>
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
-            Scores
-          </button>
-        </div>
-      )}
+      <div style={{ display:"flex", gap:6, marginBottom:(showDescription||showProse||showScores)?10:4 }}>
+        <button {...tc(fetchDescription, true)} style={{ display:"flex", alignItems:"center", gap:5, background:showDescription?WOOD.amber:"rgba(138,90,40,0.12)", borderRadius:20, padding:"5px 12px", border:`1px solid ${showDescription?WOOD.amber:"rgba(138,90,40,0.25)"}`, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, color:showDescription?"#1a0900":WOOD.textDim, transition:"all 0.15s" }}>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 6h16M4 12h16M4 18h12"/></svg>
+          About
+        </button>
+        {showProseBtn && <button {...tc(fetchProse, true)} style={{ display:"flex", alignItems:"center", gap:5, background:showProse?WOOD.amber:"rgba(138,90,40,0.12)", borderRadius:20, padding:"5px 12px", border:`1px solid ${showProse?WOOD.amber:"rgba(138,90,40,0.25)"}`, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, color:showProse?"#1a0900":WOOD.textDim, transition:"all 0.15s" }}>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          Prose
+        </button>}
+        <button {...tc(fetchScores, true)} style={{ display:"flex", alignItems:"center", gap:5, background:showScores?WOOD.amber:"rgba(138,90,40,0.12)", borderRadius:20, padding:"5px 12px", border:`1px solid ${showScores?WOOD.amber:"rgba(138,90,40,0.25)"}`, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, color:showScores?"#1a0900":WOOD.textDim, transition:"all 0.15s" }}>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+          Scores
+        </button>
+      </div>
       {showDescription && (
         <div style={{ marginBottom:4, animation:"fadeIn 0.18s ease" }}>
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
-            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:11, color:WOOD.amber, letterSpacing:"0.08em", textTransform:"uppercase" }}>About · {book.title}</p>
-            <button {...tc(()=>setShowDescription(false), true)} style={{ background:"none", border:"none", cursor:"pointer", color:WOOD.textFaint, fontSize:15, lineHeight:1, padding:"0 2px" }}>✕</button>
-          </div>
           {descriptionLoading
             ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:WOOD.textFaint, fontStyle:"italic" }}>Loading…</p>
             : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:WOOD.text, lineHeight:1.72 }}>{fetchedDescription}</p>
@@ -1116,10 +1090,6 @@ function BookRowExpanded({ book, onEdit, onRemove }) {
       )}
       {showProse && (
         <div style={{ marginBottom:4, animation:"fadeIn 0.18s ease" }}>
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
-            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:11, color:WOOD.amber, letterSpacing:"0.08em", textTransform:"uppercase" }}>Prose Preview · {book.author}</p>
-            <button {...tc(()=>setShowProse(false), true)} style={{ background:"none", border:"none", cursor:"pointer", color:WOOD.textFaint, fontSize:15, lineHeight:1, padding:"0 2px" }}>✕</button>
-          </div>
           {proseLoading
             ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.textFaint, fontStyle:"italic" }}>Generating…</p>
             : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, lineHeight:1.8, fontStyle:"italic" }}>{prose}</p>
@@ -1128,10 +1098,6 @@ function BookRowExpanded({ book, onEdit, onRemove }) {
       )}
       {showScores && (
         <div style={{ marginBottom:4, animation:"fadeIn 0.18s ease" }}>
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
-            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:11, color:WOOD.amber, letterSpacing:"0.08em", textTransform:"uppercase" }}>Scores · {book.title}</p>
-            <button {...tc(()=>setShowScores(false), true)} style={{ background:"none", border:"none", cursor:"pointer", color:WOOD.textFaint, fontSize:15, lineHeight:1, padding:"0 2px" }}>✕</button>
-          </div>
           {scoresLoading
             ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:13, color:WOOD.textFaint, fontStyle:"italic" }}>Scoring…</p>
             : scores ? (
