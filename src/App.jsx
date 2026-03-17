@@ -2124,6 +2124,253 @@ function ReikoTab({ books, onAddDirect }) {
   );
 }
 
+const SCORE_CATEGORIES = [
+  { key:"prose",        label:"Prose" },
+  { key:"plot",         label:"Plot" },
+  { key:"characters",   label:"Characters" },
+  { key:"pacing",       label:"Pacing" },
+  { key:"worldBuilding",label:"World" },
+  { key:"dialogue",     label:"Dialogue" },
+  { key:"ending",       label:"Ending" },
+];
+
+function RankingsTab({ books, onSaveScores }) {
+  const [mode, setMode] = useState("user");
+  const [genreFilter, setGenreFilter] = useState("All");
+  const [topN, setTopN] = useState(10);
+  const [scoreCategory, setScoreCategory] = useState("prose");
+  const [userList, setUserList] = useState(null);
+  const [generating, setGenerating] = useState(false);
+  const [generated, setGenerated] = useState(false);
+
+  const readBooks = useMemo(() =>
+    books.filter(b => (b.shelf || "Read") === "Read"),
+    [books]
+  );
+
+  const availableGenres = useMemo(() => {
+    const genres = [...new Set(readBooks.map(b => b.genre).filter(Boolean))].sort();
+    return ["All", ...genres];
+  }, [readBooks]);
+
+  const filteredBooks = useMemo(() => {
+    let f = readBooks;
+    if (genreFilter !== "All") f = f.filter(b => b.genre === genreFilter);
+    return f;
+  }, [readBooks, genreFilter]);
+
+  const limit = topN === "all" ? Infinity : topN;
+
+  // Seed userList when filter changes; preserve existing order if possible
+  useEffect(() => {
+    setUserList(prev => {
+      const limited = filteredBooks.slice(0, limit === Infinity ? undefined : limit);
+      if (!prev) return limited;
+      // Re-sort: keep existing order for books that are still in the filtered set
+      const prevIds = prev.map(b => b.id);
+      const inPrev = limited.filter(b => prevIds.includes(b.id))
+        .sort((a, b) => prevIds.indexOf(a.id) - prevIds.indexOf(b.id));
+      const newOnes = limited.filter(b => !prevIds.includes(b.id));
+      return [...inPrev, ...newOnes].slice(0, limit === Infinity ? undefined : limit);
+    });
+  }, [filteredBooks, genreFilter, topN]);
+
+  function moveBook(i, dir) {
+    const j = i + dir;
+    setUserList(prev => {
+      if (!prev || j < 0 || j >= prev.length) return prev;
+      const next = prev.slice();
+      [next[i], next[j]] = [next[j], next[i]];
+      return next;
+    });
+  }
+
+  async function generateAIRankings() {
+    setGenerating(true);
+    const cap = limit === Infinity ? filteredBooks.length : limit;
+    const toScore = filteredBooks.slice(0, cap).filter(b => !b.scores);
+    for (const book of toScore) {
+      try {
+        const res = await fetch("/api/book-scores", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title: book.title, author: book.author, genre: book.genre }),
+        });
+        const data = await res.json();
+        if (!data.error && onSaveScores) onSaveScores(book.id, data);
+      } catch {}
+    }
+    setGenerating(false);
+    setGenerated(true);
+  }
+
+  const aiRankedBooks = useMemo(() => {
+    const cap = limit === Infinity ? filteredBooks.length : limit;
+    const ranked = filteredBooks
+      .filter(b => b.scores?.[scoreCategory] != null)
+      .sort((a, b) => (b.scores[scoreCategory] || 0) - (a.scores[scoreCategory] || 0))
+      .slice(0, cap);
+    return ranked;
+  }, [filteredBooks, scoreCategory, topN, books]);
+
+  const displayList = mode === "user" ? (userList || []) : aiRankedBooks;
+
+  const rankBadgeStyle = (i) => ({
+    fontFamily: "'DM Sans',sans-serif", fontSize: 11, fontWeight: 700,
+    color: i === 0 ? "#1a0900" : i === 1 ? "#1a0900" : i === 2 ? "#1a0900" : "rgba(255,255,255,0.75)",
+    userSelect: "none",
+    background: i === 0 ? "rgba(212,170,80,0.85)"
+               : i === 1 ? "rgba(180,180,180,0.75)"
+               : i === 2 ? "rgba(180,120,60,0.75)"
+               : "rgba(138,90,40,0.45)",
+    border: "1px solid rgba(200,144,90,0.35)",
+    borderRadius: "50%",
+    width: 24, height: 24,
+    display: "flex", alignItems: "center", justifyContent: "center",
+    backdropFilter: "blur(4px)",
+    lineHeight: 1, paddingTop: 1,
+    flexShrink: 0,
+  });
+
+  return (
+    <div style={{ display:"flex", flexDirection:"column", height:"100%", overflow:"hidden" }}>
+      {/* Controls header */}
+      <div style={{ padding:"12px 16px 10px", flexShrink:0, background:"rgba(50,28,12,0.7)", borderBottom:"1px solid rgba(200,144,90,0.15)" }}>
+        {/* Mode toggle */}
+        <div style={{ display:"flex", gap:6, marginBottom:10 }}>
+          {[["user","Your Ranking"],["ai","AI Ranking"]].map(([m, label]) => (
+            <button key={m} {...tc(() => { setMode(m); })} style={{
+              padding:"5px 14px", borderRadius:20, border:"none", cursor:"pointer",
+              background: mode===m ? WOOD.amber : "rgba(255,235,195,0.12)",
+              color: mode===m ? "#1a0900" : "rgba(255,235,195,0.6)",
+              fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:600,
+              transition:"all 0.15s",
+            }}>{label}</button>
+          ))}
+        </div>
+
+        {/* Filters row */}
+        <div style={{ display:"flex", gap:6, flexWrap:"wrap", alignItems:"center", marginBottom: mode==="ai" ? 8 : 0 }}>
+          {/* Top N */}
+          {[10, 20, "all"].map(n => (
+            <button key={n} {...tc(() => setTopN(n))} style={{
+              padding:"3px 10px", borderRadius:20,
+              border:`1px solid ${topN===n ? WOOD.amber : "rgba(255,235,195,0.22)"}`,
+              background: topN===n ? WOOD.amber : "transparent",
+              color: topN===n ? "#1a0900" : "rgba(255,235,195,0.6)",
+              fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:600, cursor:"pointer",
+              transition:"all 0.15s",
+            }}>{n === "all" ? "All" : `Top ${n}`}</button>
+          ))}
+          <span style={{ color:"rgba(255,235,195,0.25)", fontSize:14 }}>|</span>
+          {/* Genre */}
+          <div style={{ position:"relative", display:"flex", alignItems:"center" }}>
+            <select value={genreFilter} onChange={e => setGenreFilter(e.target.value)} style={{
+              padding:"3px 22px 3px 9px", borderRadius:20,
+              border:"1px solid rgba(255,235,195,0.22)",
+              background:"rgba(255,235,195,0.08)", color:"rgba(255,235,195,0.75)",
+              fontFamily:"'DM Sans',sans-serif", fontSize:12, cursor:"pointer",
+              appearance:"none", WebkitAppearance:"none",
+            }}>
+              {availableGenres.map(g => <option key={g} value={g} style={{ background:"#5a3820" }}>{g}</option>)}
+            </select>
+            <svg style={{ position:"absolute", right:7, pointerEvents:"none" }} width="8" height="5" viewBox="0 0 8 5">
+              <path d="M0 0l4 5 4-5z" fill="rgba(255,235,195,0.5)"/>
+            </svg>
+          </div>
+        </div>
+
+        {/* AI: score category */}
+        {mode === "ai" && (
+          <div style={{ display:"flex", gap:4, flexWrap:"wrap", marginBottom:8 }}>
+            {SCORE_CATEGORIES.map(({ key, label }) => (
+              <button key={key} {...tc(() => { setScoreCategory(key); setGenerated(false); })} style={{
+                padding:"3px 9px", borderRadius:20,
+                border:`1px solid ${scoreCategory===key ? WOOD.amber : "rgba(255,235,195,0.18)"}`,
+                background: scoreCategory===key ? WOOD.amber : "transparent",
+                color: scoreCategory===key ? "#1a0900" : "rgba(255,235,195,0.5)",
+                fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600, cursor:"pointer",
+                transition:"all 0.15s",
+              }}>{label}</button>
+            ))}
+          </div>
+        )}
+
+        {/* AI: generate button */}
+        {mode === "ai" && (
+          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+            <button {...tc(generating ? ()=>{} : generateAIRankings)} style={{
+              padding:"7px 18px", borderRadius:20,
+              background: generating ? "rgba(184,104,0,0.45)" : WOOD.amber,
+              color: "#1a0900", border:"none", cursor: generating ? "default" : "pointer",
+              fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:600,
+              opacity: generating ? 0.7 : 1, transition:"all 0.15s",
+            }}>
+              {generating ? "Fetching scores…" : generated ? "Regenerate" : "Generate Rankings"}
+            </button>
+            {(generated || aiRankedBooks.length > 0) && !generating && (
+              <span style={{ fontSize:12, color:"rgba(255,235,195,0.45)", fontFamily:"'DM Sans',sans-serif" }}>
+                {aiRankedBooks.length} ranked
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Book list */}
+      <div style={{ flex:1, overflowY:"auto", padding:"4px 0 20px" }}>
+        {displayList.length === 0 && (
+          <div style={{ textAlign:"center", padding:"48px 24px" }}>
+            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, fontStyle:"italic", color:"rgba(255,235,195,0.35)" }}>
+              {mode === "ai"
+                ? "Select a category and hit Generate Rankings"
+                : readBooks.length === 0 ? "No read books yet" : "No books match this filter"}
+            </p>
+          </div>
+        )}
+        {displayList.map((book, i) => (
+          <div key={book.id} style={{ display:"flex", alignItems:"stretch" }}>
+            {/* Rank column */}
+            <div style={{
+              display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
+              width:36, flexShrink:0, paddingBottom:10, gap:2,
+            }}>
+              {mode === "user" && (
+                <button {...tc(() => moveBook(i, -1))} disabled={i===0} style={{
+                  background:"none", border:"none", cursor: i===0 ? "default" : "pointer",
+                  color: i===0 ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.45)",
+                  fontSize:12, lineHeight:1, padding:"2px 0",
+                }}>▲</button>
+              )}
+              <span style={rankBadgeStyle(i)}>{i + 1}</span>
+              {mode === "user" && (
+                <button {...tc(() => moveBook(i, 1))} disabled={i===displayList.length-1} style={{
+                  background:"none", border:"none", cursor: i===displayList.length-1 ? "default" : "pointer",
+                  color: i===displayList.length-1 ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.45)",
+                  fontSize:12, lineHeight:1, padding:"2px 0",
+                }}>▼</button>
+              )}
+              {mode === "ai" && book.scores?.[scoreCategory] != null && (
+                <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:10, fontWeight:700, color:WOOD.amber, marginTop:1 }}>
+                  {book.scores[scoreCategory]}
+                </span>
+              )}
+            </div>
+            {/* Book card */}
+            <div style={{ flex:1, minWidth:0 }}>
+              <BookCard
+                book={book} index={i}
+                onRemove={()=>{}} onEdit={()=>{}} onShelfChange={()=>{}} onOpenShelfPicker={()=>{}}
+                onSaveScores={onSaveScores} onSaveDescription={()=>{}}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function StatsTab({ books }) {
   const [timeline, setTimeline] = useState("All");
   const [filterMonth, setFilterMonth] = useState(null);
@@ -3482,6 +3729,7 @@ export default function App() {
               }}>
                 <DecorativeShelf books={books} />
                 {tab==="stats" && <div style={{ padding:"2px 20px 4px" }}><h1 style={{ fontFamily:"'Crimson Pro',serif", fontWeight:300, fontSize:30, color:WOOD.text, letterSpacing:"-0.01em" }}>Statistics</h1></div>}
+                {tab==="rankings" && <div style={{ padding:"2px 20px 4px" }}><h1 style={{ fontFamily:"'Crimson Pro',serif", fontWeight:300, fontSize:30, color:WOOD.text, letterSpacing:"-0.01em" }}>Rankings</h1></div>}
               </div>
             </div>
           );
@@ -3493,6 +3741,8 @@ export default function App() {
             ? <ShelfTab books={books} onAdd={()=>setShowAdd(true)} onAddBook={book=>{ setAddInitialBook(book); setShowAdd(true); }} onRemove={id=>{ setBooks(prev => prev.filter(b=>b.id!==id)); dbDeleteBook(id, userId); }} onEdit={setEditBook} onScroll={setScrollY} onShelfChange={changeShelf} onImport={()=>setShowImport(true)} onSaveScores={saveScores} onSaveDescription={saveDescription} hideControls={!!editBook} />
             : tab==="reiko"
             ? <ReikoTab books={books} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, rating:0, date:new Date().toISOString().slice(0,10) }; setBooks(prev => [...prev, b]); dbAddBook(b, userId); }} />
+            : tab==="rankings"
+            ? <RankingsTab books={books} onSaveScores={saveScores} />
             : <StatsTab books={books} />
           }
           {showAdd && !addInitialBook && <AddSheet onSave={addBook} onClose={()=>setShowAdd(false)} />}
@@ -3511,12 +3761,12 @@ export default function App() {
           flexShrink:0,
           position:"relative", zIndex:10,
         }}>
-          {[{ id:"shelf", label:"Shelf" },{ id:"stats", label:"Breakdown" },{ id:"reiko", label:"Reiko" }].map(({ id,label })=>(
+          {[{ id:"shelf", label:"Shelf" },{ id:"stats", label:"Breakdown" },{ id:"reiko", label:"Reiko" },{ id:"rankings", label:"Rankings" }].map(({ id,label })=>(
             <button key={id}
               onTouchEnd={e=>{ e.preventDefault(); setTab(id); }}
               onClick={()=>setTab(id)} style={{
               flex:1, background:"transparent", border:"none", cursor:"pointer",
-              display:"flex", justifyContent:"center", alignItems:"center", padding:"6px 12px",
+              display:"flex", justifyContent:"center", alignItems:"center", padding:"6px 8px",
             }}>
               <span style={{
                 padding: id==="shelf" ? "0px 6px" : id==="stats" ? "9px 10px" : "6px 10px", borderRadius:20,
@@ -3533,6 +3783,10 @@ export default function App() {
                   : id==="reiko"
                   ? <svg width="22" height="22" viewBox="0 0 24 24" fill={tab===id ? "#1a0900" : "none"} stroke={tab===id ? "#1a0900" : WOOD.textFaint} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: tab===id ? 1 : 0.7, transition:"all 0.2s" }}>
                       <path d="M12 2l2.09 6.26L20 9.27l-4.5 4.37 1.18 6.36L12 17l-4.68 3-1.5-6.36L2 9.27l5.91-1.01z"/>
+                    </svg>
+                  : id==="rankings"
+                  ? <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={tab===id ? "#1a0900" : WOOD.textFaint} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: tab===id ? 1 : 0.7, transition:"all 0.2s" }}>
+                      <rect x="2" y="10" width="5" height="11"/><rect x="9.5" y="6" width="5" height="15"/><rect x="17" y="2" width="5" height="19"/>
                     </svg>
                   : label}
               </span>
