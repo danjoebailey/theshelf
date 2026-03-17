@@ -830,7 +830,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
               const SHELF_META = {
                 "Read":     { label: "Read",     bg:"rgba(138,90,40,0.5)",   color:"rgba(255,255,255,0.7)", border:"rgba(138,90,40,0.4)" },
                 "Reading":  { label: "Reading",  bg:"rgba(60,120,80,0.55)",  color:"rgba(255,255,255,0.9)", border:"rgba(60,120,80,0.4)" },
-                "The List": { label: "The List", bg:"rgba(138,90,40,0.5)",   color:"rgba(255,255,255,0.7)", border:"rgba(138,90,40,0.4)" },
+                "The List": { label: "The List", bg:"rgba(80,120,180,0.7)",  color:"rgba(255,255,255,0.9)", border:"rgba(80,120,180,0.5)" },
                 "Curious":  { label: "Curious",  bg:"rgba(180,155,80,0.7)",  color:"rgba(255,255,255,0.9)", border:"rgba(180,155,80,0.5)" },
                 "DNF":      { label: "DNF",      bg:"rgba(160,50,50,0.55)",  color:"rgba(255,255,255,0.9)", border:"rgba(160,50,50,0.4)" },
               };
