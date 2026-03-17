@@ -2329,7 +2329,8 @@ function RankingsTab({ books, onSaveScores }) {
           </div>
         )}
         {displayList.map((book, i) => (
-          <div key={book.id} style={{ display:"flex", alignItems:"stretch" }}>
+          // key=i → position-based reconciliation so rank badge always reflects slot
+          <div key={i} style={{ display:"flex", alignItems:"stretch" }}>
             {/* Rank column */}
             <div style={{
               display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
@@ -2356,9 +2357,10 @@ function RankingsTab({ books, onSaveScores }) {
                 </span>
               )}
             </div>
-            {/* Book card */}
+            {/* Book card — key=book.id keeps its internal state tied to the correct book */}
             <div style={{ flex:1, minWidth:0 }}>
               <BookCard
+                key={book.id}
                 book={book} index={i}
                 onRemove={()=>{}} onEdit={()=>{}} onShelfChange={()=>{}} onOpenShelfPicker={()=>{}}
                 onSaveScores={onSaveScores} onSaveDescription={()=>{}}
