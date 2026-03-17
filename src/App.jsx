@@ -713,7 +713,7 @@ function BookDetailModal({ book, onClose, onEdit, onRemove }) {
   );
 }
 
-function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPicker, onSaveScores }) {
+function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPicker, onSaveScores, onSaveDescription }) {
   const [expanded, setExpanded] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [shelfDropOpen, setShelfDropOpen] = useState(false);
@@ -777,10 +777,12 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
     if (fetchedDescription) return;
     setDescriptionLoading(true);
     try {
-      const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=intitle:${encodeURIComponent(book.title)}+inauthor:${encodeURIComponent(book.author)}&maxResults=1`);
+      const res = await fetch("/api/book-description", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ title:book.title, author:book.author, genre:book.genre }) });
       const data = await res.json();
-      setFetchedDescription(data.items?.[0]?.volumeInfo?.description || "No description available.");
-    } catch { setFetchedDescription("No description available."); }
+      const desc = data.description || null;
+      setFetchedDescription(desc);
+      if (desc && onSaveDescription) onSaveDescription(book.id, desc);
+    } catch { setFetchedDescription(null); }
     setDescriptionLoading(false);
   }
 
@@ -1061,10 +1063,10 @@ function BookRowExpanded({ book, onEdit, onRemove }) {
     if (fetchedDescription) return;
     setDescriptionLoading(true);
     try {
-      const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=intitle:${encodeURIComponent(book.title)}+inauthor:${encodeURIComponent(book.author)}&maxResults=1`);
+      const res = await fetch("/api/book-description", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ title:book.title, author:book.author, genre:book.genre }) });
       const data = await res.json();
-      setFetchedDescription(data.items?.[0]?.volumeInfo?.description || "No description available.");
-    } catch { setFetchedDescription("No description available."); }
+      setFetchedDescription(data.description || null);
+    } catch { setFetchedDescription(null); }
     setDescriptionLoading(false);
   }
 
@@ -1253,7 +1255,7 @@ function BookRowPages({ book, index, onEdit, onRemove, onShelfChange, maxPages }
   );
 }
 
-function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelfChange, onImport, onSaveScores, hideControls=false }) {
+function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelfChange, onImport, onSaveScores, onSaveDescription, hideControls=false }) {
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("date");
   const [sortAsc, setSortAsc] = useState(false);
@@ -1662,7 +1664,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
                 ? <BookRow book={book} index={i} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} />
                 : viewMode==="pages"
                 ? <BookRowPages book={book} index={i} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} maxPages={Math.max(...filtered.map(b=>b.pages||0))} />
-                : <BookCard book={book} index={i} onRemove={onRemove} onEdit={onEdit} onShelfChange={onShelfChange} onOpenShelfPicker={setShelfPickerBook} onSaveScores={onSaveScores} />
+                : <BookCard book={book} index={i} onRemove={onRemove} onEdit={onEdit} onShelfChange={onShelfChange} onOpenShelfPicker={setShelfPickerBook} onSaveScores={onSaveScores} onSaveDescription={onSaveDescription} />
               }
             </div>
           </div>
@@ -2980,6 +2982,7 @@ function bookToRow(book, userId) {
     isbn: book.isbn || null,
     date: book.date || null,
     scores: book.scores || null,
+    description: book.description || null,
   };
 }
 
@@ -2997,6 +3000,7 @@ function rowToBook(row) {
     isbn: row.isbn,
     date: row.date,
     scores: row.scores || null,
+    description: row.description || null,
   };
 }
 
@@ -3415,6 +3419,12 @@ export default function App() {
     dbUpdateBook(next.find(b => b.id === id), userId);
   }
 
+  function saveDescription(id, description) {
+    const next = books.map(b => b.id === id ? { ...b, description } : b);
+    setBooks(next);
+    dbUpdateBook(next.find(b => b.id === id), userId);
+  }
+
   function saveEdit(updated) {
     const next = books.map(b => b.id === updated.id ? { ...b, rating: updated.rating, shelf: updated.shelf, genre: updated.genre ?? b.genre, date: updated.date ?? b.date, coverUrl: updated.coverUrl ?? b.coverUrl, coverId: updated.coverId ?? b.coverId } : b);
     setBooks(next);
@@ -3509,7 +3519,7 @@ export default function App() {
         {/* content */}
         <div style={{ flex:1, overflow:"hidden", position:"relative" }}>
           {tab==="shelf"
-            ? <ShelfTab books={books} onAdd={()=>setShowAdd(true)} onAddBook={book=>{ setAddInitialBook(book); setShowAdd(true); }} onRemove={id=>{ setBooks(prev => prev.filter(b=>b.id!==id)); dbDeleteBook(id, userId); }} onEdit={setEditBook} onScroll={setScrollY} onShelfChange={changeShelf} onImport={()=>setShowImport(true)} onSaveScores={saveScores} hideControls={!!editBook} />
+            ? <ShelfTab books={books} onAdd={()=>setShowAdd(true)} onAddBook={book=>{ setAddInitialBook(book); setShowAdd(true); }} onRemove={id=>{ setBooks(prev => prev.filter(b=>b.id!==id)); dbDeleteBook(id, userId); }} onEdit={setEditBook} onScroll={setScrollY} onShelfChange={changeShelf} onImport={()=>setShowImport(true)} onSaveScores={saveScores} onSaveDescription={saveDescription} hideControls={!!editBook} />
             : tab==="reiko"
             ? <ReikoTab books={books} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, rating:0, date:new Date().toISOString().slice(0,10) }; setBooks(prev => [...prev, b]); dbAddBook(b, userId); }} />
             : <StatsTab books={books} />
