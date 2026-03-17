@@ -2139,7 +2139,7 @@ function RankingsTab({ books, onSaveScores }) {
   const [genreFilter, setGenreFilter] = useState("All");
   const [topN, setTopN] = useState(10);
   const [scoreCategory, setScoreCategory] = useState("prose");
-  const [userList, setUserList] = useState(null);
+  const [userOrder, setUserOrder] = useState(null); // array of book IDs; null = use default
   const [generating, setGenerating] = useState(false);
   const [generated, setGenerated] = useState(false);
 
@@ -2159,39 +2159,36 @@ function RankingsTab({ books, onSaveScores }) {
     return f;
   }, [readBooks, genreFilter]);
 
-  const limit = topN === "all" ? Infinity : topN;
-
-  // Seed userList when filters or book count changes — NOT on score/cover updates
-  // Compute directly from books to avoid filteredBooks reference instability
-  useEffect(() => {
-    const readBks = books.filter(b => (b.shelf || "Read") === "Read");
-    const f = genreFilter === "All" ? readBks : readBks.filter(b => b.genre === genreFilter);
-    const sorted = [...f].sort((a, b) => (b.rating || 0) - (a.rating || 0));
+  // Default order: rating desc, capped to topN — just IDs so books updates don't matter
+  const defaultOrderIds = useMemo(() => {
+    const sorted = [...filteredBooks].sort((a, b) => (b.rating || 0) - (a.rating || 0));
     const cap = topN === "all" ? sorted.length : topN;
-    const limited = sorted.slice(0, cap);
-    setUserList(prev => {
-      if (!prev) return limited;
-      const prevIdSet = new Set(prev.map(b => b.id));
-      // Preserve user's order; drop removed books; append newly added books at end
-      const inPrev = prev.filter(b => limited.some(lb => lb.id === b.id));
-      const newOnes = limited.filter(b => !prevIdSet.has(b.id));
-      return [...inPrev, ...newOnes].slice(0, cap);
-    });
-  }, [genreFilter, topN, books.length]); // eslint-disable-line react-hooks/exhaustive-deps
+    return sorted.slice(0, cap).map(b => b.id);
+  }, [filteredBooks, topN]);
+
+  // Reset custom order when filters change
+  useEffect(() => { setUserOrder(null); }, [genreFilter, topN]);
+
+  // Build display list from IDs, always pulling fresh book objects from books prop
+  const bookMap = useMemo(() => new Map(books.map(b => [b.id, b])), [books]);
+
+  const userRankedBooks = useMemo(() => {
+    const ids = userOrder || defaultOrderIds;
+    return ids.map(id => bookMap.get(id)).filter(Boolean);
+  }, [userOrder, defaultOrderIds, bookMap]);
 
   function moveBook(i, dir) {
     const j = i + dir;
-    setUserList(prev => {
-      if (!prev || j < 0 || j >= prev.length) return prev;
-      const next = prev.slice();
-      [next[i], next[j]] = [next[j], next[i]];
-      return next;
-    });
+    const currentIds = userOrder || defaultOrderIds;
+    if (j < 0 || j >= currentIds.length) return;
+    const next = currentIds.slice();
+    [next[i], next[j]] = [next[j], next[i]];
+    setUserOrder(next);
   }
 
   async function generateAIRankings() {
     setGenerating(true);
-    const cap = limit === Infinity ? filteredBooks.length : limit;
+    const cap = topN === "all" ? filteredBooks.length : topN;
     const toScore = filteredBooks.slice(0, cap).filter(b => !b.scores);
     for (const book of toScore) {
       try {
@@ -2209,15 +2206,14 @@ function RankingsTab({ books, onSaveScores }) {
   }
 
   const aiRankedBooks = useMemo(() => {
-    const cap = limit === Infinity ? filteredBooks.length : limit;
-    const ranked = filteredBooks
+    const cap = topN === "all" ? filteredBooks.length : topN;
+    return filteredBooks
       .filter(b => b.scores?.[scoreCategory] != null)
       .sort((a, b) => (b.scores[scoreCategory] || 0) - (a.scores[scoreCategory] || 0))
       .slice(0, cap);
-    return ranked;
   }, [filteredBooks, scoreCategory, topN, books]);
 
-  const displayList = mode === "user" ? (userList || []) : aiRankedBooks;
+  const displayList = mode === "user" ? userRankedBooks : aiRankedBooks;
 
   const rankBadgeStyle = (i) => ({
     fontFamily: "'DM Sans',sans-serif", fontSize: 11, fontWeight: 700,
