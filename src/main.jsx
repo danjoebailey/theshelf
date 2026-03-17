@@ -5,12 +5,18 @@ import App from './App.jsx'
 // Warm up iOS Safari touch engine so first tap isn't absorbed
 document.addEventListener('touchstart', () => {}, { passive: true });
 
-// Prevent iOS Safari from scrolling the page when the keyboard opens
-document.addEventListener('focusin', (e) => {
-  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-    requestAnimationFrame(() => requestAnimationFrame(() => window.scrollTo(0, 0)));
-  }
-});
+// Prevent iOS Safari visual viewport shift when keyboard opens
+if (window.visualViewport) {
+  const onViewportChange = () => {
+    const root = document.getElementById('root');
+    if (root) {
+      root.style.height = window.visualViewport.height + 'px';
+      window.scrollTo(0, 0);
+    }
+  };
+  window.visualViewport.addEventListener('resize', onViewportChange);
+  window.visualViewport.addEventListener('scroll', onViewportChange);
+}
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
