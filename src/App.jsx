@@ -2164,9 +2164,10 @@ function RankingsTab({ books, onSaveScores }) {
   // Seed userList when filter changes; preserve existing order if possible
   useEffect(() => {
     setUserList(prev => {
-      const limited = filteredBooks.slice(0, limit === Infinity ? undefined : limit);
+      const byRating = [...filteredBooks].sort((a, b) => (b.rating || 0) - (a.rating || 0));
+      const limited = byRating.slice(0, limit === Infinity ? undefined : limit);
       if (!prev) return limited;
-      // Re-sort: keep existing order for books that are still in the filtered set
+      // Keep existing order for books already ranked; append new books sorted by rating
       const prevIds = prev.map(b => b.id);
       const inPrev = limited.filter(b => prevIds.includes(b.id))
         .sort((a, b) => prevIds.indexOf(a.id) - prevIds.indexOf(b.id));
