@@ -1241,6 +1241,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
   const [showApiResults, setShowApiResults] = useState(true);
   const [viewMode, setViewMode] = useState("card");
   const searchTimer = useRef(null);
+  const searchAbort = useRef(null);
 
   const shelfBooks = useMemo(() => books.filter(b => (b.shelf || "Read") === activeShelf), [books, activeShelf]);
   const years   = useMemo(() => [...new Set(shelfBooks.map(b => b.date?.slice(0,4)).filter(Boolean))].sort((a,b)=>b-a), [shelfBooks]);
@@ -1267,20 +1268,24 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
     setSearch(q);
     setShowApiResults(true);
     clearTimeout(searchTimer.current);
+    if (searchAbort.current) { searchAbort.current.abort(); searchAbort.current = null; }
     setApiResults([]);
-    if (q.trim().length > 1) {
+    if (q.trim().length >= 3) {
       setApiSearching(true);
       searchTimer.current = setTimeout(async () => {
+        const controller = new AbortController();
+        searchAbort.current = controller;
         try {
           const res = await fetch("/api/search-books", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ query: q }),
+            signal: controller.signal,
           });
           const data = await res.json();
           setApiResults(Array.isArray(data) ? data : []);
-        } catch {
-          setApiResults([]);
+        } catch (err) {
+          if (err.name !== "AbortError") setApiResults([]);
         }
         setApiSearching(false);
       }, 600);
