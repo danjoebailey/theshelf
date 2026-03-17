@@ -2170,7 +2170,10 @@ function RankingsTab({ books, onSaveScores, userId }) {
   useEffect(() => {
     if (!userId) return;
     supabase.from("user_rankings").select("user_order").eq("user_id", userId).single()
-      .then(({ data }) => { if (data?.user_order?.length) setUserOrder(data.user_order); });
+      .then(({ data, error }) => {
+        console.log("[rankings load]", { data, error, userId });
+        if (data?.user_order?.length) setUserOrder(data.user_order);
+      });
   }, [userId]);
 
   const bookMap = useMemo(() => new Map(books.map(b => [b.id, b])), [books]);
@@ -2196,7 +2199,9 @@ function RankingsTab({ books, onSaveScores, userId }) {
     const next = globalIds.slice();
     [next[posA], next[posB]] = [next[posB], next[posA]];
     setUserOrder(next);
-    supabase.from("user_rankings").upsert({ user_id: userId, user_order: next });
+    supabase.from("user_rankings")
+      .upsert({ user_id: userId, user_order: next }, { onConflict: "user_id" })
+      .then(({ error }) => console.log("[rankings save]", error || "ok"));
   }
 
   async function generateAIRankings() {
