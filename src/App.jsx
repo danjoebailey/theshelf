@@ -713,7 +713,7 @@ function BookDetailModal({ book, onClose, onEdit, onRemove }) {
   );
 }
 
-function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPicker }) {
+function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPicker, onSaveScores }) {
   const [expanded, setExpanded] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [shelfDropOpen, setShelfDropOpen] = useState(false);
@@ -722,7 +722,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
   const [prose, setProse] = useState(null);
   const [proseLoading, setProseLoading] = useState(false);
   const [showProse, setShowProse] = useState(false);
-  const [scores, setScores] = useState(null);
+  const [scores, setScores] = useState(book.scores || null);
   const [scoresLoading, setScoresLoading] = useState(false);
   const [showScores, setShowScores] = useState(false);
   const touchMoved = useRef(false);
@@ -760,7 +760,9 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
     try {
       const res = await fetch("/api/book-scores", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ title:book.title, author:book.author, genre:book.genre }) });
       const data = await res.json();
-      setScores(data.error ? null : data);
+      const fetched = data.error ? null : data;
+      setScores(fetched);
+      if (fetched && onSaveScores) onSaveScores(book.id, fetched);
     } catch { setScores(null); }
     setScoresLoading(false);
   }
@@ -1187,7 +1189,7 @@ function BookRowPages({ book, index, onEdit, onRemove, onShelfChange, maxPages }
   );
 }
 
-function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelfChange, onImport, hideControls=false }) {
+function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelfChange, onImport, onSaveScores, hideControls=false }) {
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("date");
   const [sortAsc, setSortAsc] = useState(false);
@@ -1596,7 +1598,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
                 ? <BookRow book={book} index={i} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} />
                 : viewMode==="pages"
                 ? <BookRowPages book={book} index={i} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} maxPages={Math.max(...filtered.map(b=>b.pages||0))} />
-                : <BookCard book={book} index={i} onRemove={onRemove} onEdit={onEdit} onShelfChange={onShelfChange} onOpenShelfPicker={setShelfPickerBook} />
+                : <BookCard book={book} index={i} onRemove={onRemove} onEdit={onEdit} onShelfChange={onShelfChange} onOpenShelfPicker={setShelfPickerBook} onSaveScores={onSaveScores} />
               }
             </div>
           </div>
@@ -2913,6 +2915,7 @@ function bookToRow(book, userId) {
     cover_id: book.coverId ? String(book.coverId) : null,
     isbn: book.isbn || null,
     date: book.date || null,
+    scores: book.scores || null,
   };
 }
 
@@ -2929,6 +2932,7 @@ function rowToBook(row) {
     coverId: row.cover_id,
     isbn: row.isbn,
     date: row.date,
+    scores: row.scores || null,
   };
 }
 
@@ -3341,6 +3345,12 @@ export default function App() {
     dbAddBook(book, userId);
   }
 
+  function saveScores(id, scores) {
+    const next = books.map(b => b.id === id ? { ...b, scores } : b);
+    setBooks(next);
+    dbUpdateBook(next.find(b => b.id === id), userId);
+  }
+
   function saveEdit(updated) {
     const next = books.map(b => b.id === updated.id ? { ...b, rating: updated.rating, shelf: updated.shelf, genre: updated.genre ?? b.genre, date: updated.date ?? b.date, coverUrl: updated.coverUrl ?? b.coverUrl, coverId: updated.coverId ?? b.coverId } : b);
     setBooks(next);
@@ -3435,7 +3445,7 @@ export default function App() {
         {/* content */}
         <div style={{ flex:1, overflow:"hidden", position:"relative" }}>
           {tab==="shelf"
-            ? <ShelfTab books={books} onAdd={()=>setShowAdd(true)} onAddBook={book=>{ setAddInitialBook(book); setShowAdd(true); }} onRemove={id=>{ setBooks(prev => prev.filter(b=>b.id!==id)); dbDeleteBook(id, userId); }} onEdit={setEditBook} onScroll={setScrollY} onShelfChange={changeShelf} onImport={()=>setShowImport(true)} hideControls={!!editBook} />
+            ? <ShelfTab books={books} onAdd={()=>setShowAdd(true)} onAddBook={book=>{ setAddInitialBook(book); setShowAdd(true); }} onRemove={id=>{ setBooks(prev => prev.filter(b=>b.id!==id)); dbDeleteBook(id, userId); }} onEdit={setEditBook} onScroll={setScrollY} onShelfChange={changeShelf} onImport={()=>setShowImport(true)} onSaveScores={saveScores} hideControls={!!editBook} />
             : tab==="reiko"
             ? <ReikoTab books={books} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, rating:0, date:new Date().toISOString().slice(0,10) }; setBooks(prev => [...prev, b]); dbAddBook(b, userId); }} />
             : <StatsTab books={books} />
