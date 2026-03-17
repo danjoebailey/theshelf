@@ -105,11 +105,21 @@ async function itunesSearch(query) {
   }
 }
 
+const STOP_WORDS = new Set(["the","a","an","and","of","by","in","on","at","to","for","with","is","it","my","his","her","their","our"]);
+
+function isRelevant(item, queryWords) {
+  if (!queryWords.length) return true;
+  const haystack = `${item.title} ${item.author}`.toLowerCase();
+  return queryWords.some(w => haystack.includes(w));
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
 
   const { query } = req.body;
   if (!query?.trim()) return res.status(400).json({ error: "Missing query" });
+
+  const queryWords = query.toLowerCase().split(/\s+/).filter(w => w.length > 2 && !STOP_WORDS.has(w));
 
   // Run all three in parallel; Google Books primary, OL fills gaps, iTunes catches the rest
   const [googleItems, olItems, itunesItems] = await Promise.all([
@@ -123,6 +133,7 @@ export default async function handler(req, res) {
 
   for (const item of [...googleItems, ...olItems, ...itunesItems]) {
     if (results.length >= 7) break;
+    if (!isRelevant(item, queryWords)) continue;
     const key = docKey(item.title, item.author);
     if (!seen.has(key)) { seen.add(key); results.push(item); }
   }
