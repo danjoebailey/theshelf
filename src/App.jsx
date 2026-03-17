@@ -2337,7 +2337,7 @@ function RankingsTab({ books, onSaveScores }) {
               width:36, flexShrink:0, paddingBottom:10, gap:2,
             }}>
               {mode === "user" && (
-                <button {...tc(() => moveBook(i, -1))} disabled={i===0} style={{
+                <button onClick={() => moveBook(i, -1)} disabled={i===0} style={{
                   background:"none", border:"none", cursor: i===0 ? "default" : "pointer",
                   color: i===0 ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.45)",
                   fontSize:12, lineHeight:1, padding:"2px 0",
@@ -2345,7 +2345,7 @@ function RankingsTab({ books, onSaveScores }) {
               )}
               <span style={rankBadgeStyle(i)}>{i + 1}</span>
               {mode === "user" && (
-                <button {...tc(() => moveBook(i, 1))} disabled={i===displayList.length-1} style={{
+                <button onClick={() => moveBook(i, 1)} disabled={i===displayList.length-1} style={{
                   background:"none", border:"none", cursor: i===displayList.length-1 ? "default" : "pointer",
                   color: i===displayList.length-1 ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.45)",
                   fontSize:12, lineHeight:1, padding:"2px 0",
