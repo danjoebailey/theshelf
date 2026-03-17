@@ -725,8 +725,10 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
   const [scores, setScores] = useState(book.scores || null);
   const [scoresLoading, setScoresLoading] = useState(false);
   const [showScores, setShowScores] = useState(false);
+  const [showDescription, setShowDescription] = useState(false);
+  const [fetchedDescription, setFetchedDescription] = useState(book.description || DESCRIPTIONS[book.title] || null);
+  const [descriptionLoading, setDescriptionLoading] = useState(false);
   const touchMoved = useRef(false);
-  const desc = book.description || DESCRIPTIONS[book.title] || "";
   const isRated = (book.shelf || "Read") !== "The List" && (book.shelf || "Read") !== "Curious" && (book.shelf || "Read") !== "Reading";
   const showProseBtn = (book.shelf || "Read") !== "Read" && (book.shelf || "Read") !== "Reading";
 
@@ -736,6 +738,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
   }
 
   async function fetchProse() {
+    setShowScores(false); setShowDescription(false);
     if (prose) { setShowProse(true); return; }
     setProseLoading(true);
     setShowProse(true);
@@ -754,6 +757,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
   }
 
   async function fetchScores() {
+    setShowProse(false); setShowDescription(false);
     if (scores) { setShowScores(true); return; }
     setScoresLoading(true);
     setShowScores(true);
@@ -765,6 +769,19 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
       if (fetched && onSaveScores) onSaveScores(book.id, fetched);
     } catch { setScores(null); }
     setScoresLoading(false);
+  }
+
+  async function fetchDescription() {
+    setShowProse(false); setShowScores(false);
+    setShowDescription(true);
+    if (fetchedDescription) return;
+    setDescriptionLoading(true);
+    try {
+      const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=intitle:${encodeURIComponent(book.title)}+inauthor:${encodeURIComponent(book.author)}&maxResults=1`);
+      const data = await res.json();
+      setFetchedDescription(data.items?.[0]?.volumeInfo?.description || "No description available.");
+    } catch { setFetchedDescription("No description available."); }
+    setDescriptionLoading(false);
   }
 
   return (
@@ -903,9 +920,12 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
               </p>
             )}
           </div>
-          {desc && <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, lineHeight:1.65, fontStyle:"italic", marginBottom: isRated ? 14 : 0 }}>{desc}</p>}
-          {(!showProse && !showScores) && (
-            <div style={{ display:"flex", gap:6, marginTop: desc ? 12 : 0, marginBottom: 4 }}>
+          {(!showProse && !showScores && !showDescription) && (
+            <div style={{ display:"flex", gap:6, marginBottom: 4 }}>
+              <button {...tc(fetchDescription, true)} style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(138,90,40,0.12)", borderRadius:20, padding:"6px 14px", border:"1px solid rgba(138,90,40,0.25)", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:500, color:WOOD.textDim }}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 6h16M4 12h16M4 18h12"/></svg>
+                About
+              </button>
               {showProseBtn && <button {...tc(fetchProse, true)} style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(138,90,40,0.12)", borderRadius:20, padding:"6px 14px", border:"1px solid rgba(138,90,40,0.25)", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:500, color:WOOD.textDim }}>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
                 Prose
@@ -916,8 +936,20 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
               </button>
             </div>
           )}
+          {showDescription && (
+            <div style={{ marginBottom: 4, animation:"fadeIn 0.18s ease" }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
+                <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:12, color:WOOD.amber, letterSpacing:"0.08em", textTransform:"uppercase" }}>About · {book.title}</p>
+                <button {...tc(()=>setShowDescription(false), true)} style={{ background:"none", border:"none", cursor:"pointer", color:WOOD.textFaint, fontSize:16, lineHeight:1, padding:"0 2px" }}>✕</button>
+              </div>
+              {descriptionLoading
+                ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.textFaint, fontStyle:"italic" }}>Loading…</p>
+                : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, lineHeight:1.72 }}>{fetchedDescription}</p>
+              }
+            </div>
+          )}
           {showProse && (
-            <div style={{ marginTop: desc ? 12 : 0, marginBottom: 4, animation:"fadeIn 0.18s ease" }}>
+            <div style={{ marginBottom: 4, animation:"fadeIn 0.18s ease" }}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
                 <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:12, color:WOOD.amber, letterSpacing:"0.08em", textTransform:"uppercase" }}>Prose Preview · {book.author}</p>
                 <button {...tc(()=>setShowProse(false), true)} style={{ background:"none", border:"none", cursor:"pointer", color:WOOD.textFaint, fontSize:16, lineHeight:1, padding:"0 2px" }}>✕</button>
@@ -929,7 +961,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
             </div>
           )}
           {showScores && (
-            <div style={{ marginTop: desc ? 12 : 0, marginBottom: 4, animation:"fadeIn 0.18s ease" }}>
+            <div style={{ marginBottom: 4, animation:"fadeIn 0.18s ease" }}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
                 <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:12, color:WOOD.amber, letterSpacing:"0.08em", textTransform:"uppercase" }}>Scores · {book.title}</p>
                 <button {...tc(()=>setShowScores(false), true)} style={{ background:"none", border:"none", cursor:"pointer", color:WOOD.textFaint, fontSize:16, lineHeight:1, padding:"0 2px" }}>✕</button>
@@ -979,7 +1011,6 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
 }
 
 function BookRowExpanded({ book, onEdit, onRemove }) {
-  const desc = book.description || DESCRIPTIONS[book.title] || "";
   const isRated = (book.shelf || "Read") !== "The List" && (book.shelf || "Read") !== "Curious" && (book.shelf || "Read") !== "Reading";
   const showProseBtn = (book.shelf || "Read") !== "Read" && (book.shelf || "Read") !== "Reading";
   const [liked, setLiked] = useState([]);
@@ -987,15 +1018,19 @@ function BookRowExpanded({ book, onEdit, onRemove }) {
   const [prose, setProse] = useState(null);
   const [proseLoading, setProseLoading] = useState(false);
   const [showProse, setShowProse] = useState(false);
-  const [scores, setScores] = useState(null);
+  const [scores, setScores] = useState(book.scores || null);
   const [scoresLoading, setScoresLoading] = useState(false);
   const [showScores, setShowScores] = useState(false);
+  const [showDescription, setShowDescription] = useState(false);
+  const [fetchedDescription, setFetchedDescription] = useState(book.description || DESCRIPTIONS[book.title] || null);
+  const [descriptionLoading, setDescriptionLoading] = useState(false);
 
   function toggleAspect(a, list, setList, other, setOther) {
     if (list.includes(a)) setList(list.filter(x=>x!==a));
     else { setList([...list,a]); setOther(other.filter(x=>x!==a)); }
   }
   async function fetchProse() {
+    setShowScores(false); setShowDescription(false);
     setShowProse(true);
     if (prose) return;
     setProseLoading(true);
@@ -1008,6 +1043,7 @@ function BookRowExpanded({ book, onEdit, onRemove }) {
   }
 
   async function fetchScores() {
+    setShowProse(false); setShowDescription(false);
     if (scores) { setShowScores(true); return; }
     setScoresLoading(true);
     setShowScores(true);
@@ -1017,6 +1053,19 @@ function BookRowExpanded({ book, onEdit, onRemove }) {
       setScores(data.error ? null : data);
     } catch { setScores(null); }
     setScoresLoading(false);
+  }
+
+  async function fetchDescription() {
+    setShowProse(false); setShowScores(false);
+    setShowDescription(true);
+    if (fetchedDescription) return;
+    setDescriptionLoading(true);
+    try {
+      const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=intitle:${encodeURIComponent(book.title)}+inauthor:${encodeURIComponent(book.author)}&maxResults=1`);
+      const data = await res.json();
+      setFetchedDescription(data.items?.[0]?.volumeInfo?.description || "No description available.");
+    } catch { setFetchedDescription("No description available."); }
+    setDescriptionLoading(false);
   }
 
   return (
@@ -1035,9 +1084,12 @@ function BookRowExpanded({ book, onEdit, onRemove }) {
           </p>
         )}
       </div>
-      {desc && <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:WOOD.text, lineHeight:1.65, fontStyle:"italic", marginBottom: isRated ? 12 : 0 }}>{desc}</p>}
-      {(!showProse && !showScores) && (
-        <div style={{ display:"flex", gap:6, marginTop:desc?10:0, marginBottom:4 }}>
+      {(!showProse && !showScores && !showDescription) && (
+        <div style={{ display:"flex", gap:6, marginBottom:4 }}>
+          <button {...tc(fetchDescription, true)} style={{ display:"flex", alignItems:"center", gap:5, background:"rgba(138,90,40,0.12)", borderRadius:20, padding:"5px 12px", border:"1px solid rgba(138,90,40,0.25)", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, color:WOOD.textDim }}>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 6h16M4 12h16M4 18h12"/></svg>
+            About
+          </button>
           {showProseBtn && <button {...tc(fetchProse, true)} style={{ display:"flex", alignItems:"center", gap:5, background:"rgba(138,90,40,0.12)", borderRadius:20, padding:"5px 12px", border:"1px solid rgba(138,90,40,0.25)", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, color:WOOD.textDim }}>
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
             Prose
@@ -1048,8 +1100,20 @@ function BookRowExpanded({ book, onEdit, onRemove }) {
           </button>
         </div>
       )}
+      {showDescription && (
+        <div style={{ marginBottom:4, animation:"fadeIn 0.18s ease" }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
+            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:11, color:WOOD.amber, letterSpacing:"0.08em", textTransform:"uppercase" }}>About · {book.title}</p>
+            <button {...tc(()=>setShowDescription(false), true)} style={{ background:"none", border:"none", cursor:"pointer", color:WOOD.textFaint, fontSize:15, lineHeight:1, padding:"0 2px" }}>✕</button>
+          </div>
+          {descriptionLoading
+            ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:WOOD.textFaint, fontStyle:"italic" }}>Loading…</p>
+            : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:WOOD.text, lineHeight:1.72 }}>{fetchedDescription}</p>
+          }
+        </div>
+      )}
       {showProse && (
-        <div style={{ marginTop:desc?10:0, marginBottom:4, animation:"fadeIn 0.18s ease" }}>
+        <div style={{ marginBottom:4, animation:"fadeIn 0.18s ease" }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
             <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:11, color:WOOD.amber, letterSpacing:"0.08em", textTransform:"uppercase" }}>Prose Preview · {book.author}</p>
             <button {...tc(()=>setShowProse(false), true)} style={{ background:"none", border:"none", cursor:"pointer", color:WOOD.textFaint, fontSize:15, lineHeight:1, padding:"0 2px" }}>✕</button>
@@ -1061,7 +1125,7 @@ function BookRowExpanded({ book, onEdit, onRemove }) {
         </div>
       )}
       {showScores && (
-        <div style={{ marginTop:desc?10:0, marginBottom:4, animation:"fadeIn 0.18s ease" }}>
+        <div style={{ marginBottom:4, animation:"fadeIn 0.18s ease" }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
             <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:11, color:WOOD.amber, letterSpacing:"0.08em", textTransform:"uppercase" }}>Scores · {book.title}</p>
             <button {...tc(()=>setShowScores(false), true)} style={{ background:"none", border:"none", cursor:"pointer", color:WOOD.textFaint, fontSize:15, lineHeight:1, padding:"0 2px" }}>✕</button>
