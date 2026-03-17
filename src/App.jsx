@@ -3442,7 +3442,7 @@ export default function App() {
   }
 
   return (
-    <div style={{ width:"100%", height:"100dvh", display:"flex", flexDirection:"column", position:"relative", overflow:"hidden" }}>
+    <div style={{ position:"fixed", inset:0, display:"flex", flexDirection:"column", overflow:"hidden" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');
         * { box-sizing:border-box; margin:0; padding:0; }
