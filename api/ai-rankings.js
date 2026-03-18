@@ -44,18 +44,5 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "Failed to parse AI response", raw: text });
   }
 
-  // Fetch covers from Google Books in parallel
-  const itemsWithCovers = await Promise.all(items.map(async item => {
-    try {
-      const q = encodeURIComponent(`${item.title} ${item.author}`);
-      const r = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${q}&maxResults=1&printType=books`);
-      const d = await r.json();
-      const thumb = d.items?.[0]?.volumeInfo?.imageLinks?.thumbnail;
-      return { ...item, coverUrl: thumb ? thumb.replace("http://", "https://").replace("&edge=curl", "") : null };
-    } catch {
-      return { ...item, coverUrl: null };
-    }
-  }));
-
-  res.json({ items: itemsWithCovers });
+  res.json({ items });
 }

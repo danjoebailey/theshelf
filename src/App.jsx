@@ -2245,14 +2245,28 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook }) {
       const data = await res.json();
       if (!data.error) {
         const items = data.items || [];
-        console.log("[ai items sample]", items.slice(0,3).map(i => ({ title: i.title, coverUrl: i.coverUrl })));
         setAiItems(items);
         setGenerated(true);
-        if (userId) {
-          supabase.from("ai_rankings")
-            .upsert({ user_id: userId, genre: genreFilter, top_n: String(topN), category: scoreCategory, items, generated_at: new Date().toISOString() }, { onConflict: "user_id,genre,top_n,category" })
-            .then(({ error }) => console.log("[ai_rankings save]", error || "ok"));
-        }
+
+        // Fetch covers client-side in parallel (avoids serverless timeout)
+        Promise.all(items.map(async item => {
+          try {
+            const q = encodeURIComponent(`${item.title} ${item.author}`);
+            const r = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${q}&maxResults=1&printType=books`);
+            const d = await r.json();
+            const thumb = d.items?.[0]?.volumeInfo?.imageLinks?.thumbnail;
+            return { ...item, coverUrl: thumb ? thumb.replace("http://", "https://").replace("&edge=curl", "") : null };
+          } catch {
+            return { ...item, coverUrl: null };
+          }
+        })).then(itemsWithCovers => {
+          setAiItems(itemsWithCovers);
+          if (userId) {
+            supabase.from("ai_rankings")
+              .upsert({ user_id: userId, genre: genreFilter, top_n: String(topN), category: scoreCategory, items: itemsWithCovers, generated_at: new Date().toISOString() }, { onConflict: "user_id,genre,top_n,category" })
+              .then(({ error }) => console.log("[ai_rankings save]", error || "ok"));
+          }
+        });
       }
     } catch (e) { console.error(e); }
     setGenerating(false);
