@@ -2259,6 +2259,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook }) {
             return { ...item, coverUrl: null };
           }
         })).then(itemsWithCovers => {
+          console.log("[covers]", itemsWithCovers.slice(0,5).map(i => ({ title: i.title, coverUrl: i.coverUrl })));
           setAiItems(itemsWithCovers);
           if (userId) {
             supabase.from("ai_rankings")
