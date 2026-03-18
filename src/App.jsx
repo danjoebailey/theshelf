@@ -2231,7 +2231,7 @@ function RankingsTab({ books, onSaveScores, userId }) {
   }
 
   const aiRankedBooks = useMemo(() => {
-    const cap = topN === "all" ? filteredBooks.length : topN;
+    const cap = topN === "all" ? Math.min(filteredBooks.length, 100) : topN;
     const getScore = (b) => scoreCategory === "all"
       ? (avgScore(b.scores) ?? -1)
       : (b.scores?.[scoreCategory] ?? -1);
@@ -2338,7 +2338,7 @@ function RankingsTab({ books, onSaveScores, userId }) {
             </button>
             {(generated || aiRankedBooks.length > 0) && !generating && (
               <span style={{ fontSize:12, color:"rgba(255,235,195,0.45)", fontFamily:"'DM Sans',sans-serif" }}>
-                {aiRankedBooks.length} ranked
+                {aiRankedBooks.length} ranked{topN === "all" && filteredBooks.length > 100 ? " · limited to 100" : ""}
               </span>
             )}
           </div>
