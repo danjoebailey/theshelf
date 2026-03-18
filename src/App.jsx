@@ -2150,6 +2150,7 @@ function RankingsTab({ books, onSaveScores, userId }) {
   const [userOrder, setUserOrder] = useState(null);
   const [generating, setGenerating] = useState(false);
   const [generated, setGenerated] = useState(false);
+  const [viewMode, setViewMode] = useState("card");
 
   const readBooks = useMemo(() =>
     books.filter(b => (b.shelf || "Read") === "Read"),
@@ -2264,8 +2265,8 @@ function RankingsTab({ books, onSaveScores, userId }) {
     <div style={{ display:"flex", flexDirection:"column", height:"100%", overflow:"hidden" }}>
       {/* Controls header */}
       <div style={{ padding:"12px 16px 10px", flexShrink:0, background:"rgba(50,28,12,0.7)", borderBottom:"1px solid rgba(200,144,90,0.15)" }}>
-        {/* Mode toggle */}
-        <div style={{ display:"flex", gap:6, marginBottom:10 }}>
+        {/* Mode toggle + view toggle */}
+        <div style={{ display:"flex", gap:6, marginBottom:10, alignItems:"center" }}>
           {[["user","Your Ranking"],["ai","AI Ranking"]].map(([m, label]) => (
             <button key={m} {...tc(() => { setMode(m); if (m === "ai") setGenerated(false); })} style={{
               padding:"5px 14px", borderRadius:20, border:"none", cursor:"pointer",
@@ -2275,6 +2276,17 @@ function RankingsTab({ books, onSaveScores, userId }) {
               transition:"all 0.15s",
             }}>{label}</button>
           ))}
+          <button {...tc(()=>setViewMode(v=>v==="card"?"row":"card"), true)} style={{
+            display:"flex", alignItems:"center", justifyContent:"center",
+            background:"rgba(15,8,2,0.55)", borderRadius:20, padding:"5px 10px",
+            border:"1px solid rgba(120,70,20,0.3)", backdropFilter:"blur(4px)",
+            cursor:"pointer", color:"#fff", marginLeft:"auto",
+          }}>
+            {viewMode==="card"
+              ? <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor"><rect x="0" y="0" width="13" height="3" rx="1.5"/><rect x="0" y="5" width="13" height="3" rx="1.5"/><rect x="0" y="10" width="13" height="3" rx="1.5"/></svg>
+              : <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor"><rect x="0" y="0" width="6" height="6" rx="1"/><rect x="7" y="0" width="6" height="6" rx="1"/><rect x="0" y="7" width="6" height="6" rx="1"/><rect x="7" y="7" width="6" height="6" rx="1"/></svg>
+            }
+          </button>
         </div>
 
         {/* Filters row */}
@@ -2394,14 +2406,12 @@ function RankingsTab({ books, onSaveScores, userId }) {
                 ) : null;
               })()}
             </div>
-            {/* Book card — key=book.id keeps its internal state tied to the correct book */}
+            {/* Book card/row — key=book.id keeps its internal state tied to the correct book */}
             <div style={{ flex:1, minWidth:0 }}>
-              <BookCard
-                key={book.id}
-                book={book} index={i}
-                onRemove={()=>{}} onEdit={()=>{}} onShelfChange={()=>{}} onOpenShelfPicker={()=>{}}
-                onSaveScores={onSaveScores} onSaveDescription={()=>{}}
-              />
+              {viewMode === "row"
+                ? <BookRow key={book.id} book={book} index={i} onEdit={()=>{}} onRemove={()=>{}} onShelfChange={()=>{}} />
+                : <BookCard key={book.id} book={book} index={i} onRemove={()=>{}} onEdit={()=>{}} onShelfChange={()=>{}} onOpenShelfPicker={()=>{}} onSaveScores={onSaveScores} onSaveDescription={()=>{}} />
+              }
             </div>
           </div>
         ))}
