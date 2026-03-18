@@ -713,7 +713,7 @@ function BookDetailModal({ book, onClose, onEdit, onRemove }) {
   );
 }
 
-function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPicker, onSaveScores, onSaveDescription }) {
+function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPicker, onSaveScores, onSaveDescription, onAdd }) {
   const [expanded, setExpanded] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [shelfDropOpen, setShelfDropOpen] = useState(false);
@@ -818,7 +818,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
                 <button {...tc(()=>setMenuOpen(m=>!m), true)} style={{ background:"transparent", border:"none", cursor:"pointer", padding:"2px 4px 0", color:"rgba(120,70,20,0.6)", fontSize:16, lineHeight:1, letterSpacing:"-1px" }}>⋮</button>
               </div>
             </div>
-            {(book.shelf || "Read") !== "The List" && (book.shelf || "Read") !== "Curious" && (book.shelf || "Read") !== "Reading" && <StarRating value={book.rating} readonly size={18} />}
+            {!onAdd && (book.shelf || "Read") !== "The List" && (book.shelf || "Read") !== "Curious" && (book.shelf || "Read") !== "Reading" && <StarRating value={book.rating} readonly size={18} />}
           </div>
           <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
             <div style={{ display:"flex", gap:7, alignItems:"center" }}>
@@ -838,14 +838,16 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
               return (
                 <div style={{ position:"relative", marginLeft:"auto", flexShrink:0 }}>
                   <span {...tc(()=>{ setShelfDropOpen(o=>!o); setMenuOpen(false); }, true)} style={{
-                    background: meta.bg, color: meta.color, border:`1px solid ${meta.border}`,
+                    background: onAdd ? "rgba(255,235,195,0.12)" : meta.bg,
+                    color: onAdd ? "rgba(255,235,195,0.75)" : meta.color,
+                    border: onAdd ? "1px solid rgba(255,235,195,0.28)" : `1px solid ${meta.border}`,
                     borderRadius:"20px", padding:"3px 10px",
                     fontSize: 9,
                     fontFamily:"'DM Sans',sans-serif", fontWeight:700,
                     textTransform:"uppercase", letterSpacing:"0.08em",
                     lineHeight:1, cursor:"pointer", display:"block",
-                    maxWidth:90, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
-                  }}>{meta.label}</span>
+                    maxWidth:110, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
+                  }}>{onAdd ? "+ Add to Shelf" : meta.label}</span>
                   {shelfDropOpen && (
                     <div onClick={e=>e.stopPropagation()} style={{
                       position:"absolute", top:"calc(100% + 4px)", right:0, zIndex:40, minWidth:120,
@@ -854,12 +856,12 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
                       animation:"fadeIn 0.12s ease",
                     }}>
                       {SHELVES.map((s, i) => (
-                        <button key={s} {...tc(()=>{ setShelfDropOpen(false); onShelfChange(book.id, s); }, true)} style={{
+                        <button key={s} {...tc(()=>{ setShelfDropOpen(false); onAdd ? onAdd(s) : onShelfChange(book.id, s); }, true)} style={{
                           display:"block", width:"100%", padding:"9px 14px", textAlign:"left",
-                          background: s===shelf ? "rgba(138,90,40,0.1)" : "transparent",
+                          background: !onAdd && s===shelf ? "rgba(138,90,40,0.1)" : "transparent",
                           border:"none", borderBottom: i<SHELVES.length-1 ? "1px solid rgba(138,90,40,0.1)" : "none",
                           cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:13,
-                          color: s===shelf ? WOOD.amber : WOOD.text, fontWeight: s===shelf ? 600 : 400,
+                          color: !onAdd && s===shelf ? WOOD.amber : WOOD.text, fontWeight: !onAdd && s===shelf ? 600 : 400,
                         }}>{s}</button>
                       ))}
                     </div>
@@ -2448,43 +2450,31 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook }) {
         {/* AI ranking list */}
         {mode === "ai" && generated && aiItems.map((item, i) => {
           const matched = findInLibrary(item.title);
-          const badge = shelfBadge(matched);
-          const isAmber = badge?.color === WOOD.amber;
+          const bookObj = matched || {
+            id: `ai_${i}`,
+            title: item.title,
+            author: item.author,
+            genre: genreFilter !== "All" ? genreFilter : "Other",
+            shelf: null,
+            rating: 0,
+            pages: 0,
+            coverUrl: null,
+            description: item.reason || null,
+          };
           return (
             <div key={i} style={{ display:"flex", alignItems:"stretch" }}>
-              {/* Rank column */}
-              <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", width:36, flexShrink:0, gap:4 }}>
+              <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", width:36, flexShrink:0, paddingBottom:10, gap:2 }}>
                 <span style={rankBadgeStyle(i)}>{i + 1}</span>
-                {!matched && onAddBook && (
-                  <button {...tc(() => onAddBook({ title: item.title, author: item.author, genre: genreFilter !== "All" ? genreFilter : "Other", shelf:"The List", pages:0, rating:0, coverUrl:null }))} style={{
-                    fontFamily:"'DM Sans',sans-serif", fontSize:9, fontWeight:700,
-                    color:"rgba(255,235,195,0.7)", background:"rgba(255,235,195,0.08)",
-                    border:"1px solid rgba(255,235,195,0.22)", borderRadius:20, padding:"2px 5px", cursor:"pointer",
-                  }}>+Add</button>
-                )}
-                {matched && badge && (
-                  <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:8, fontWeight:700, textAlign:"center", lineHeight:1.2,
-                    color: isAmber ? "#1a0900" : badge.color,
-                    background: isAmber ? WOOD.amber : "transparent",
-                    border:`1px solid ${badge.color}`, borderRadius:10, padding:"2px 4px",
-                  }}>{badge.label}</span>
-                )}
               </div>
-              {/* Card */}
               <div style={{ flex:1, minWidth:0 }}>
-                {matched
-                  ? <BookCard key={matched.id} book={matched} index={i} onRemove={()=>{}} onEdit={()=>{}} onShelfChange={()=>{}} onOpenShelfPicker={()=>{}} onSaveScores={onSaveScores} onSaveDescription={()=>{}} />
-                  : <div style={{ padding:"12px 14px 12px 4px", borderBottom:"1px solid rgba(200,144,90,0.08)" }}>
-                      <div style={{ display:"flex", gap:10, alignItems:"flex-start" }}>
-                        <div style={{ width:44, height:64, background:"rgba(255,235,195,0.05)", borderRadius:3, flexShrink:0, border:"1px solid rgba(255,235,195,0.1)" }} />
-                        <div style={{ flex:1, minWidth:0 }}>
-                          <div style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, fontWeight:600, color:"rgba(255,235,195,0.9)", lineHeight:1.3 }}>{item.title}</div>
-                          <div style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:"rgba(255,235,195,0.45)", marginTop:2 }}>{item.author}</div>
-                          {item.reason && <div style={{ fontFamily:"'Crimson Pro',serif", fontSize:13, fontStyle:"italic", color:"rgba(255,235,195,0.35)", marginTop:5, lineHeight:1.4 }}>{item.reason}</div>}
-                        </div>
-                      </div>
-                    </div>
-                }
+                <BookCard
+                  key={bookObj.id}
+                  book={bookObj}
+                  index={i}
+                  onRemove={()=>{}} onEdit={()=>{}} onShelfChange={()=>{}} onOpenShelfPicker={()=>{}}
+                  onSaveScores={matched ? onSaveScores : ()=>{}} onSaveDescription={()=>{}}
+                  onAdd={matched ? undefined : (shelf) => onAddBook({ title:item.title, author:item.author, genre: genreFilter !== "All" ? genreFilter : "Other", shelf, pages:0, rating:0, coverUrl:null })}
+                />
               </div>
             </div>
           );
