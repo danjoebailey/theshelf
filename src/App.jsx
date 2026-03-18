@@ -2231,7 +2231,7 @@ function RankingsTab({ books, onSaveScores, userId }) {
       .slice(0, cap);
   }, [filteredBooks, scoreCategory, topN, books]);
 
-  const displayList = mode === "user" ? userRankedBooks : aiRankedBooks;
+  const displayList = mode === "user" ? userRankedBooks : (generated ? aiRankedBooks : []);
 
   const rankBadgeStyle = (i) => ({
     fontFamily: "'DM Sans',sans-serif", fontSize: 11, fontWeight: 700,
@@ -2257,7 +2257,7 @@ function RankingsTab({ books, onSaveScores, userId }) {
         {/* Mode toggle */}
         <div style={{ display:"flex", gap:6, marginBottom:10 }}>
           {[["user","Your Ranking"],["ai","AI Ranking"]].map(([m, label]) => (
-            <button key={m} {...tc(() => { setMode(m); })} style={{
+            <button key={m} {...tc(() => { setMode(m); if (m === "ai") setGenerated(false); })} style={{
               padding:"5px 14px", borderRadius:20, border:"none", cursor:"pointer",
               background: mode===m ? WOOD.amber : "rgba(255,235,195,0.12)",
               color: mode===m ? "#1a0900" : "rgba(255,235,195,0.6)",
@@ -2271,7 +2271,7 @@ function RankingsTab({ books, onSaveScores, userId }) {
         <div style={{ display:"flex", gap:6, flexWrap:"wrap", alignItems:"center", marginBottom: mode==="ai" ? 8 : 0 }}>
           {/* Top N */}
           {[10, 20, "all"].map(n => (
-            <button key={n} {...tc(() => setTopN(n))} style={{
+            <button key={n} {...tc(() => { setTopN(n); setGenerated(false); })} style={{
               padding:"3px 10px", borderRadius:20,
               border:`1px solid ${topN===n ? WOOD.amber : "rgba(255,235,195,0.22)"}`,
               background: topN===n ? WOOD.amber : "transparent",
@@ -2283,7 +2283,7 @@ function RankingsTab({ books, onSaveScores, userId }) {
           <span style={{ color:"rgba(255,235,195,0.25)", fontSize:14 }}>|</span>
           {/* Genre */}
           <div style={{ position:"relative", display:"flex", alignItems:"center" }}>
-            <select value={genreFilter} onChange={e => setGenreFilter(e.target.value)} style={{
+            <select value={genreFilter} onChange={e => { setGenreFilter(e.target.value); setGenerated(false); }} style={{
               padding:"3px 22px 3px 9px", borderRadius:20,
               border:"1px solid rgba(255,235,195,0.22)",
               background:"rgba(255,235,195,0.08)", color:"rgba(255,235,195,0.75)",
