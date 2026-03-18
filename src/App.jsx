@@ -2281,11 +2281,28 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook }) {
     return m;
   }, [books]);
 
+  function coreTitle(title) {
+    return (title || "")
+      .replace(/\s*\([^)]*\)\s*/g, " ") // strip "(anything in parens)"
+      .replace(/^[^:]+:\s*/, "")         // strip "Series Name: " prefix
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "")
+      .trim();
+  }
+
   function findInLibrary(title) {
     const key = (title || "").toLowerCase().replace(/[^a-z0-9]/g, "");
     if (libTitleMap.has(key)) return libTitleMap.get(key);
+    // Try prefix/substring match on full title
     for (const [k, b] of libTitleMap) {
       if (k.length > 4 && (k.startsWith(key) || key.startsWith(k))) return b;
+    }
+    // Try normalized core title match (strips series prefixes and parentheticals)
+    const core = coreTitle(title);
+    if (core.length > 3) {
+      for (const [, b] of libTitleMap) {
+        if (coreTitle(b.title) === core) return b;
+      }
     }
     return null;
   }
