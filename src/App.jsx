@@ -713,7 +713,7 @@ function BookDetailModal({ book, onClose, onEdit, onRemove }) {
   );
 }
 
-function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPicker, onSaveScores, onSaveDescription, onAdd }) {
+function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPicker, onSaveScores, onSaveDescription, onAdd, forceProse }) {
   const [expanded, setExpanded] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [shelfDropOpen, setShelfDropOpen] = useState(false);
@@ -730,7 +730,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
   const [descriptionLoading, setDescriptionLoading] = useState(false);
   const touchMoved = useRef(false);
   const isRated = (book.shelf || "Read") !== "The List" && (book.shelf || "Read") !== "Curious" && (book.shelf || "Read") !== "Reading";
-  const showProseBtn = (book.shelf || "Read") !== "Read" && (book.shelf || "Read") !== "Reading";
+  const showProseBtn = forceProse || ((book.shelf || "Read") !== "Read" && (book.shelf || "Read") !== "Reading");
 
   function toggleAspect(aspect, list, setList, otherList, setOtherList) {
     if (list.includes(aspect)) setList(list.filter(a => a !== aspect));
@@ -2473,6 +2473,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook }) {
                   index={i}
                   onRemove={()=>{}} onEdit={()=>{}} onShelfChange={()=>{}} onOpenShelfPicker={()=>{}}
                   onSaveScores={matched ? onSaveScores : ()=>{}} onSaveDescription={()=>{}}
+                  forceProse
                   onAdd={matched ? undefined : (shelf) => onAddBook({ title:item.title, author:item.author, genre: genreFilter !== "All" ? genreFilter : "Other", shelf, pages:0, rating:0, coverUrl:null })}
                 />
               </div>
