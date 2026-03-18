@@ -2203,7 +2203,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook }) {
       .then(({ data }) => {
         if (data?.items?.length) { setAiItems(data.items); setGenerated(true); }
       });
-  }, [userId, mode, genreFilter, scoreCategory]);
+  }, [userId, mode, genreFilter, topN, scoreCategory]);
 
   const bookMap = useMemo(() => new Map(books.map(b => [b.id, b])), [books]);
 
@@ -2463,7 +2463,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook }) {
         ))}
 
         {/* AI ranking list */}
-        {mode === "ai" && generated && aiItems.map((item, i) => {
+        {mode === "ai" && generated && aiDisplayItems.map((item, i) => {
           const matched = findInLibrary(item.title);
           const bookObj = (matched && !matched.coverUrl && item.coverUrl) ? { ...matched, coverUrl: item.coverUrl } : matched || {
             id: `ai_${i}`,
