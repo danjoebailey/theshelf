@@ -1,17 +1,16 @@
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
 
-  const { topN, genre, category } = req.body;
-  if (!topN || !genre || !category) return res.status(400).json({ error: "Missing params" });
+  const { genre, category } = req.body;
+  if (!genre || !category) return res.status(400).json({ error: "Missing params" });
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return res.status(500).json({ error: "API key not configured" });
 
-  const count = topN === "all" ? 25 : Number(topN);
   const genreStr = genre === "All" ? "" : ` ${genre}`;
   const categoryStr = category === "all" ? "" : `, specifically ranked by quality of ${category}`;
 
-  const prompt = `List the top ${count}${genreStr} novels of all time in your opinion${categoryStr}. Return ONLY a valid JSON array — no markdown, no explanation, no code blocks. Each object must have exactly these keys: "rank" (number), "title" (string), "author" (string), "reason" (string — one concise sentence on what makes it exceptional). Example: [{"rank":1,"title":"The Lord of the Rings","author":"J.R.R. Tolkien","reason":"The foundational epic that established the template for modern fantasy."}]`;
+  const prompt = `List the top 100${genreStr} novels of all time in your opinion${categoryStr}. Return ONLY a valid JSON array — no markdown, no explanation, no code blocks. Each object must have exactly these keys: "rank" (number), "title" (string), "author" (string), "reason" (string — one concise sentence on what makes it exceptional). Example: [{"rank":1,"title":"The Lord of the Rings","author":"J.R.R. Tolkien","reason":"The foundational epic that established the template for modern fantasy."}]`;
 
   const response = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -23,7 +22,7 @@ export default async function handler(req, res) {
     body: JSON.stringify({
       model: "claude-sonnet-4-6",
       temperature: 0,
-      max_tokens: 3000,
+      max_tokens: 12000,
       messages: [{ role: "user", content: prompt }],
     }),
   });

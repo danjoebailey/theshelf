@@ -2189,7 +2189,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook }) {
       });
   }, [userId]);
 
-  // Load saved AI ranking from Supabase when AI filters change
+  // Load saved AI ranking from Supabase when AI filters change (topN is just a view slice)
   useEffect(() => {
     if (!userId || mode !== "ai") return;
     setGenerated(false);
@@ -2198,13 +2198,12 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook }) {
       .select("items")
       .eq("user_id", userId)
       .eq("genre", genreFilter)
-      .eq("top_n", String(topN))
       .eq("category", scoreCategory)
       .single()
       .then(({ data }) => {
         if (data?.items?.length) { setAiItems(data.items); setGenerated(true); }
       });
-  }, [userId, mode, genreFilter, topN, scoreCategory]);
+  }, [userId, mode, genreFilter, scoreCategory]);
 
   const bookMap = useMemo(() => new Map(books.map(b => [b.id, b])), [books]);
 
@@ -2240,7 +2239,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook }) {
       const res = await fetch("/api/ai-rankings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ topN, genre: genreFilter, category: scoreCategory }),
+        body: JSON.stringify({ genre: genreFilter, category: scoreCategory }),
       });
       const data = await res.json();
       if (!data.error) {
@@ -2263,7 +2262,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook }) {
           setAiItems(itemsWithCovers);
           if (userId) {
             supabase.from("ai_rankings")
-              .upsert({ user_id: userId, genre: genreFilter, top_n: String(topN), category: scoreCategory, items: itemsWithCovers, generated_at: new Date().toISOString() }, { onConflict: "user_id,genre,top_n,category" })
+              .upsert({ user_id: userId, genre: genreFilter, category: scoreCategory, items: itemsWithCovers, generated_at: new Date().toISOString() }, { onConflict: "user_id,genre,category" })
               .then(({ error }) => console.log("[ai_rankings save]", error || "ok"));
           }
         });
@@ -2272,7 +2271,8 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook }) {
     setGenerating(false);
   }
 
-  const displayList = mode === "user" ? userRankedBooks : (generated ? aiItems : []);
+  const aiDisplayItems = generated ? (topN === "all" ? aiItems : aiItems.slice(0, Number(topN))) : [];
+  const displayList = mode === "user" ? userRankedBooks : aiDisplayItems;
 
   // Library cross-reference for AI mode
   const libTitleMap = useMemo(() => {
@@ -2405,7 +2405,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook }) {
             </button>
             {generated && !generating && (
               <span style={{ fontSize:12, color:"rgba(255,235,195,0.45)", fontFamily:"'DM Sans',sans-serif" }}>
-                {aiItems.length} books{topN === "all" ? " · top 25" : ""}
+                {aiDisplayItems.length} of {aiItems.length}
               </span>
             )}
           </div>
