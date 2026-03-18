@@ -2125,6 +2125,7 @@ function ReikoTab({ books, onAddDirect }) {
 }
 
 const SCORE_CATEGORIES = [
+  { key:"all",          label:"All" },
   { key:"prose",        label:"Prose" },
   { key:"plot",         label:"Plot" },
   { key:"characters",   label:"Characters" },
@@ -2134,11 +2135,17 @@ const SCORE_CATEGORIES = [
   { key:"ending",       label:"Ending" },
 ];
 
+function avgScore(scores) {
+  if (!scores) return null;
+  const vals = Object.values(scores).filter(v => typeof v === "number");
+  return vals.length ? vals.reduce((s, v) => s + v, 0) / vals.length : null;
+}
+
 function RankingsTab({ books, onSaveScores, userId }) {
   const [mode, setMode] = useState("user");
   const [genreFilter, setGenreFilter] = useState("All");
   const [topN, setTopN] = useState(10);
-  const [scoreCategory, setScoreCategory] = useState("prose");
+  const [scoreCategory, setScoreCategory] = useState("all");
   // Global order: all read book IDs ranked. null = use default (rating desc).
   const [userOrder, setUserOrder] = useState(null);
   const [generating, setGenerating] = useState(false);
@@ -2225,9 +2232,12 @@ function RankingsTab({ books, onSaveScores, userId }) {
 
   const aiRankedBooks = useMemo(() => {
     const cap = topN === "all" ? filteredBooks.length : topN;
+    const getScore = (b) => scoreCategory === "all"
+      ? (avgScore(b.scores) ?? -1)
+      : (b.scores?.[scoreCategory] ?? -1);
     return filteredBooks
-      .filter(b => b.scores?.[scoreCategory] != null)
-      .sort((a, b) => (b.scores[scoreCategory] || 0) - (a.scores[scoreCategory] || 0))
+      .filter(b => scoreCategory === "all" ? b.scores != null : b.scores?.[scoreCategory] != null)
+      .sort((a, b) => getScore(b) - getScore(a))
       .slice(0, cap);
   }, [filteredBooks, scoreCategory, topN, books]);
 
@@ -2375,11 +2385,14 @@ function RankingsTab({ books, onSaveScores, userId }) {
                   fontSize:14, lineHeight:1, padding:"10px 0", width:"100%",
                 }}>▼</button>
               )}
-              {mode === "ai" && book.scores?.[scoreCategory] != null && (
-                <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:10, fontWeight:700, color:WOOD.amber, marginTop:1 }}>
-                  {book.scores[scoreCategory]}
-                </span>
-              )}
+              {mode === "ai" && book.scores != null && (() => {
+                const val = scoreCategory === "all" ? avgScore(book.scores) : book.scores[scoreCategory];
+                return val != null ? (
+                  <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:10, fontWeight:700, color:WOOD.amber, marginTop:1 }}>
+                    {scoreCategory === "all" ? val.toFixed(1) : val}
+                  </span>
+                ) : null;
+              })()}
             </div>
             {/* Book card — key=book.id keeps its internal state tied to the correct book */}
             <div style={{ flex:1, minWidth:0 }}>
