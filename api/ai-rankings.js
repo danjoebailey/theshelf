@@ -10,7 +10,7 @@ export default async function handler(req, res) {
   const genreStr = genre === "All" ? "" : ` ${genre}`;
   const categoryStr = category === "all" ? "" : `, specifically ranked by quality of ${category}`;
 
-  const prompt = `Give me your genuine, personal top 100${genreStr} novels of all time${categoryStr}, as if a well-read friend is sharing their true list. For each rank, ask yourself: what is the single best book that belongs in this slot compared to everything else? Judge each book on its own merits — multiple books from the same series or author are fine if they genuinely deserve it, but do not enumerate an author's catalog in sequence. Do not default to Book 1 of a series just because it is the most famous entry; rank whichever individual book is actually the best regardless of where it falls in the series. Each book must appear exactly once — do not repeat any title. Return ONLY a valid JSON array — no markdown, no explanation, no code blocks. Each object must have exactly these keys: "rank" (number), "title" (string), "author" (string), "reason" (string — one concise sentence on what makes it exceptional). Example: [{"rank":1,"title":"The Lord of the Rings","author":"J.R.R. Tolkien","reason":"The foundational epic that established the template for modern fantasy."}]`;
+  const prompt = `Give me your genuine, personal top 100${genreStr} novels of all time${categoryStr}. For each rank, ask yourself: what is the single best book that belongs in this slot compared to everything else? Judge each book purely on its individual literary merit — not its cultural prominence, not its position in a series, not how well-known it is. A later book in a series should rank higher than an earlier one if it is the superior work. For example, in the Wheel of Time, The Shadow Rising and Lord of Chaos are stronger books than The Eye of the World and should rank higher despite Eye of the World being the first entry. Apply this same logic across all series. Multiple books from the same series or author are welcome if they each genuinely deserve their slot, but do not list them consecutively — interleave the full list holistically. Each book must appear exactly once. Return ONLY a valid JSON array — no markdown, no explanation, no code blocks. Each object must have exactly these keys: "rank" (number), "title" (string), "author" (string), "reason" (string — one concise sentence on what makes it exceptional). Example: [{"rank":1,"title":"The Shadow Rising","author":"Robert Jordan","reason":"The peak of the Wheel of Time — the Aiel history, Rhuidean, and the Two Rivers defense make this the richest volume in the series."}]`;
 
   const response = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -23,6 +23,7 @@ export default async function handler(req, res) {
       model: "claude-sonnet-4-6",
       temperature: 0.3,
       max_tokens: 12000,
+      system: "You are a deeply well-read literary critic and lifelong genre fiction reader. You have strong, considered opinions and rank books the way a knowledgeable friend would — honestly, based on actual quality, not popularity or cultural default. You are not afraid to rank a book from the middle of a series above the first book if it is genuinely the better work.",
       messages: [{ role: "user", content: prompt }],
     }),
   });
