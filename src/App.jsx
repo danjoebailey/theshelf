@@ -2450,7 +2450,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook }) {
         {/* AI ranking list */}
         {mode === "ai" && generated && aiItems.map((item, i) => {
           const matched = findInLibrary(item.title);
-          const bookObj = matched || {
+          const bookObj = (matched && !matched.coverUrl && item.coverUrl) ? { ...matched, coverUrl: item.coverUrl } : matched || {
             id: `ai_${i}`,
             title: item.title,
             author: item.author,
