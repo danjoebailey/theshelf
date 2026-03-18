@@ -2245,6 +2245,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook }) {
       const data = await res.json();
       if (!data.error) {
         const items = data.items || [];
+        console.log("[ai items sample]", items.slice(0,3).map(i => ({ title: i.title, coverUrl: i.coverUrl })));
         setAiItems(items);
         setGenerated(true);
         if (userId) {
