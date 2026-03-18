@@ -2451,29 +2451,41 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook }) {
           const badge = shelfBadge(matched);
           const isAmber = badge?.color === WOOD.amber;
           return (
-            <div key={i} style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 14px 10px 10px", borderBottom:"1px solid rgba(200,144,90,0.07)" }}>
-              <span style={rankBadgeStyle(i)}>{i + 1}</span>
-              {matched?.coverUrl
-                ? <img src={matched.coverUrl} alt="" style={{ width:36, height:54, objectFit:"cover", borderRadius:3, flexShrink:0 }} />
-                : <div style={{ width:36, height:54, background:"rgba(255,235,195,0.05)", borderRadius:3, flexShrink:0, border:"1px solid rgba(255,235,195,0.1)" }} />
-              }
-              <div style={{ flex:1, minWidth:0 }}>
-                <div style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, fontWeight:600, color:"rgba(255,235,195,0.9)", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{item.title}</div>
-                <div style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:"rgba(255,235,195,0.45)", marginBottom: item.reason ? 3 : 0 }}>{item.author}</div>
-                {item.reason && <div style={{ fontFamily:"'Crimson Pro',serif", fontSize:12, fontStyle:"italic", color:"rgba(255,235,195,0.35)", lineHeight:1.4 }}>{item.reason}</div>}
-              </div>
-              {badge
-                ? <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:10, fontWeight:700, flexShrink:0,
+            <div key={i} style={{ display:"flex", alignItems:"stretch" }}>
+              {/* Rank column */}
+              <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", width:36, flexShrink:0, gap:4 }}>
+                <span style={rankBadgeStyle(i)}>{i + 1}</span>
+                {!matched && onAddBook && (
+                  <button {...tc(() => onAddBook({ title: item.title, author: item.author, genre: genreFilter !== "All" ? genreFilter : "Other", shelf:"The List", pages:0, rating:0, coverUrl:null }))} style={{
+                    fontFamily:"'DM Sans',sans-serif", fontSize:9, fontWeight:700,
+                    color:"rgba(255,235,195,0.7)", background:"rgba(255,235,195,0.08)",
+                    border:"1px solid rgba(255,235,195,0.22)", borderRadius:20, padding:"2px 5px", cursor:"pointer",
+                  }}>+Add</button>
+                )}
+                {matched && badge && (
+                  <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:8, fontWeight:700, textAlign:"center", lineHeight:1.2,
                     color: isAmber ? "#1a0900" : badge.color,
                     background: isAmber ? WOOD.amber : "transparent",
-                    border:`1px solid ${badge.color}`, borderRadius:20, padding:"2px 8px",
+                    border:`1px solid ${badge.color}`, borderRadius:10, padding:"2px 4px",
                   }}>{badge.label}</span>
-                : onAddBook && <button {...tc(() => onAddBook({ title: item.title, author: item.author, genre: genreFilter !== "All" ? genreFilter : "Other", shelf:"The List", pages:0, rating:0, coverUrl:null }))} style={{
-                    fontFamily:"'DM Sans',sans-serif", fontSize:10, fontWeight:700, flexShrink:0,
-                    color:"rgba(255,235,195,0.7)", background:"rgba(255,235,195,0.08)",
-                    border:"1px solid rgba(255,235,195,0.22)", borderRadius:20, padding:"2px 8px", cursor:"pointer",
-                  }}>+ Add</button>
-              }
+                )}
+              </div>
+              {/* Card */}
+              <div style={{ flex:1, minWidth:0 }}>
+                {matched
+                  ? <BookCard key={matched.id} book={matched} index={i} onRemove={()=>{}} onEdit={()=>{}} onShelfChange={()=>{}} onOpenShelfPicker={()=>{}} onSaveScores={onSaveScores} onSaveDescription={()=>{}} />
+                  : <div style={{ padding:"12px 14px 12px 4px", borderBottom:"1px solid rgba(200,144,90,0.08)" }}>
+                      <div style={{ display:"flex", gap:10, alignItems:"flex-start" }}>
+                        <div style={{ width:44, height:64, background:"rgba(255,235,195,0.05)", borderRadius:3, flexShrink:0, border:"1px solid rgba(255,235,195,0.1)" }} />
+                        <div style={{ flex:1, minWidth:0 }}>
+                          <div style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, fontWeight:600, color:"rgba(255,235,195,0.9)", lineHeight:1.3 }}>{item.title}</div>
+                          <div style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:"rgba(255,235,195,0.45)", marginTop:2 }}>{item.author}</div>
+                          {item.reason && <div style={{ fontFamily:"'Crimson Pro',serif", fontSize:13, fontStyle:"italic", color:"rgba(255,235,195,0.35)", marginTop:5, lineHeight:1.4 }}>{item.reason}</div>}
+                        </div>
+                      </div>
+                    </div>
+                }
+              </div>
             </div>
           );
         })}
