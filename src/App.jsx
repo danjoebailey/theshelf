@@ -2255,7 +2255,8 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook }) {
             const d = await r.json();
             const thumb = d.items?.[0]?.volumeInfo?.imageLinks?.thumbnail;
             return { ...item, coverUrl: thumb ? thumb.replace("http://", "https://").replace("&edge=curl", "") : null };
-          } catch {
+          } catch (err) {
+            console.log("[cover fetch error]", item.title, err?.message);
             return { ...item, coverUrl: null };
           }
         })).then(itemsWithCovers => {
