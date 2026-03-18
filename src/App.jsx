@@ -2374,9 +2374,9 @@ function RankingsTab({ books, onSaveScores, userId }) {
             {/* Rank column */}
             <div style={{
               display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
-              width:36, flexShrink:0, paddingBottom:10, gap:2,
+              width:36, flexShrink:0, paddingBottom: viewMode==="row" ? 0 : 10, gap:2,
             }}>
-              {mode === "user" && (
+              {mode === "user" && viewMode === "card" && (
                 <button
                   onTouchEnd={e=>{ e.preventDefault(); e.stopPropagation(); if(i>0) moveBook(i,-1); }}
                   onClick={e=>{ e.stopPropagation(); if(i>0) moveBook(i,-1); }}
@@ -2387,7 +2387,7 @@ function RankingsTab({ books, onSaveScores, userId }) {
                 }}>▲</button>
               )}
               <span style={rankBadgeStyle(i)}>{i + 1}</span>
-              {mode === "user" && (
+              {mode === "user" && viewMode === "card" && (
                 <button
                   onTouchEnd={e=>{ e.preventDefault(); e.stopPropagation(); if(i<displayList.length-1) moveBook(i,1); }}
                   onClick={e=>{ e.stopPropagation(); if(i<displayList.length-1) moveBook(i,1); }}
