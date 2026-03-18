@@ -2458,7 +2458,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook }) {
             shelf: null,
             rating: 0,
             pages: 0,
-            coverUrl: null,
+            coverUrl: item.coverUrl || null,
             description: item.reason || null,
           };
           return (
