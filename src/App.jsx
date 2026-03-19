@@ -231,7 +231,7 @@ const COVERS = {
 };
 
 // Fixed-size cover: renders fallback at exact w×h, overlays img on top (hides on error)
-function BookCover({ book, width, height, radius=4, shadow="2px 2px 8px rgba(0,0,0,0.3)" }) {
+function BookCover({ book, width, height, radius=4, shadow="2px 2px 8px rgba(0,0,0,0.3)", bookmark=0 }) {
   const srcs = [
     book.coverUrl,
     book.coverId ? `https://covers.openlibrary.org/b/id/${book.coverId}-M.jpg` : null,
@@ -249,12 +249,18 @@ function BookCover({ book, width, height, radius=4, shadow="2px 2px 8px rgba(0,0
   const color = GENRE_COLORS[book.genre] || "#94a3b8";
   const initials = book.title.split(" ").filter(Boolean).slice(0,2).map(w=>w[0]).join("").toUpperCase();
   const advance = () => setSrcIdx(i => i + 1);
+  const bkH = bookmark > 0 ? Math.max(10, bookmark * height) : 0;
   return (
     <div style={{ width, height, borderRadius:radius, flexShrink:0, position:"relative", background:`linear-gradient(135deg,${color}22,${color}44)`, border:`1px solid ${color}44`, boxShadow:shadow, display:"flex", alignItems:"center", justifyContent:"center" }}>
       <span style={{ color, fontSize:width*0.3, fontFamily:"'Crimson Pro',serif", fontWeight:600 }}>{initials}</span>
       {src && <img src={src} alt={book.title} style={{ position:"absolute", inset:0, width, height, objectFit:"cover", borderRadius:radius, display:"block" }}
         onError={advance}
         onLoad={e=>{ if (e.target.naturalWidth <= 1 || e.target.naturalHeight <= 1) advance(); }} />}
+      {bkH > 0 && (
+        <svg width="8" height={bkH} viewBox={`0 0 8 ${bkH}`} style={{ position:"absolute", top:0, right:5, zIndex:3 }} fill="none">
+          <path d={`M0,0 L8,0 L8,${bkH} L4,${Math.max(4,bkH-6)} L0,${bkH} Z`} fill="rgba(220,120,30,0.92)" />
+        </svg>
+      )}
     </div>
   );
 }
@@ -303,7 +309,7 @@ const DESCRIPTIONS = {
 
 const ASPECTS = ["Prose", "Plot", "Characters", "Dialogue", "Pacing", "World-building", "Ending"];
 
-function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPicker, onSaveScores, onSaveDescription, onAdd, forceProse }) {
+function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPicker, onSaveScores, onSaveDescription, onSaveProgress, onSavePages, onAdd, forceProse }) {
   const [expanded, setExpanded] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [shelfDropOpen, setShelfDropOpen] = useState(false);
@@ -318,9 +324,22 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
   const [showDescription, setShowDescription] = useState(false);
   const [fetchedDescription, setFetchedDescription] = useState(book.description || DESCRIPTIONS[book.title] || null);
   const [descriptionLoading, setDescriptionLoading] = useState(false);
+  const [pageInput, setPageInput] = useState(book.currentPage || 0);
+  const [pagesLoading, setPagesLoading] = useState(false);
   const touchMoved = useRef(false);
   const isRated = book.shelf === "Read" || book.shelf === "DNF";
   const showProseBtn = forceProse || (!isRated && book.shelf !== "Reading");
+  useEffect(() => { setPageInput(book.currentPage || 0); }, [book.currentPage]);
+
+  async function fetchPageCount() {
+    setPagesLoading(true);
+    try {
+      const res = await fetch("/api/book-metadata", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ title:book.title, author:book.author }) });
+      const data = await res.json();
+      if (data.pages > 0 && onSavePages) onSavePages(book.id, data.pages);
+    } catch {}
+    setPagesLoading(false);
+  }
 
   function toggleAspect(aspect, list, setList, otherList, setOtherList) {
     if (list.includes(aspect)) setList(list.filter(a => a !== aspect));
@@ -394,7 +413,8 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
     onClick={()=>{ if(menuOpen) setMenuOpen(false); else if(shelfDropOpen) setShelfDropOpen(false); else setExpanded(e=>!e); }}>
       <div style={{ display:"flex", gap:14, alignItems:"stretch" }}>
         <div style={{ alignSelf:"stretch", flexShrink:0, display:"flex" }}>
-          <BookCover book={book} width={53} height={80} radius={4} shadow="2px 2px 8px rgba(0,0,0,0.35)" />
+          <BookCover book={book} width={53} height={80} radius={4} shadow="2px 2px 8px rgba(0,0,0,0.35)"
+            bookmark={book.shelf === "Reading" && book.pages > 0 ? Math.min(1, (book.currentPage || 0) / book.pages) : 0} />
         </div>
         <div style={{ flex:1, minWidth:0, display:"flex", flexDirection:"column", justifyContent:"space-between" }}>
           <div>
@@ -558,6 +578,32 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
               }
             </div>
           )}
+          {book.shelf === "Reading" && (
+            <div style={{ marginTop:10, paddingTop:10, borderTop:"1px solid rgba(138,90,40,0.2)" }} onClick={e=>e.stopPropagation()}>
+              {book.pages > 0 && pageInput > 0 && (
+                <div style={{ marginBottom:8 }}>
+                  <div style={{ display:"flex", justifyContent:"space-between", marginBottom:3 }}>
+                    <span style={{ fontSize:10, color:"#3a7a50", fontFamily:"'DM Sans',sans-serif", fontWeight:600 }}>{Math.round(Math.min(100,(pageInput/book.pages)*100))}%</span>
+                    <span style={{ fontSize:10, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif" }}>{pageInput.toLocaleString()} / {book.pages.toLocaleString()} pages</span>
+                  </div>
+                  <div style={{ height:5, background:"rgba(138,90,40,0.15)", borderRadius:3, overflow:"hidden" }}>
+                    <div style={{ height:"100%", background:"#3a7a50", borderRadius:3, width:`${Math.min(100,(pageInput/book.pages)*100)}%`, transition:"width 0.4s" }} />
+                  </div>
+                </div>
+              )}
+              <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+                <input type="number" value={pageInput || ""} placeholder="Current page"
+                  onChange={e=>setPageInput(parseInt(e.target.value)||0)}
+                  onBlur={()=>{ if (onSaveProgress) onSaveProgress(book.id, pageInput); }}
+                  onClick={e=>e.stopPropagation()}
+                  style={{ flex:1, padding:"5px 10px", borderRadius:8, border:"1px solid rgba(138,90,40,0.3)", background:"rgba(138,90,40,0.08)", fontFamily:"'DM Sans',sans-serif", fontSize:12, color:WOOD.text, outline:"none" }} />
+                {book.pages > 0 && <span style={{ fontSize:11, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif", flexShrink:0 }}>/ {book.pages.toLocaleString()}</span>}
+                <button {...tc(fetchPageCount, true)} style={{ display:"flex", alignItems:"center", justifyContent:"center", width:28, height:28, borderRadius:8, border:"1px solid rgba(138,90,40,0.25)", background:"rgba(138,90,40,0.08)", cursor:"pointer", color:WOOD.textDim, fontSize:15, flexShrink:0 }}>
+                  {pagesLoading ? <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="6" cy="6" r="4" strokeDasharray="16" strokeDashoffset="8"><animateTransform attributeName="transform" type="rotate" from="0 6 6" to="360 6 6" dur="0.7s" repeatCount="indefinite"/></circle></svg> : "↻"}
+                </button>
+              </div>
+            </div>
+          )}
           {isRated && (
             <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
               <div>
@@ -584,7 +630,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
   );
 }
 
-function BookRowExpanded({ book, onEdit, onRemove }) {
+function BookRowExpanded({ book, onEdit, onRemove, onSaveProgress, onSavePages }) {
   const isRated = book.shelf === "Read" || book.shelf === "DNF";
   const showProseBtn = book.shelf !== "Read" && book.shelf !== "Reading";
   const [liked, setLiked] = useState([]);
@@ -598,6 +644,19 @@ function BookRowExpanded({ book, onEdit, onRemove }) {
   const [showDescription, setShowDescription] = useState(false);
   const [fetchedDescription, setFetchedDescription] = useState(book.description || DESCRIPTIONS[book.title] || null);
   const [descriptionLoading, setDescriptionLoading] = useState(false);
+  const [pageInput, setPageInput] = useState(book.currentPage || 0);
+  const [pagesLoading, setPagesLoading] = useState(false);
+  useEffect(() => { setPageInput(book.currentPage || 0); }, [book.currentPage]);
+
+  async function fetchPageCount() {
+    setPagesLoading(true);
+    try {
+      const res = await fetch("/api/book-metadata", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ title:book.title, author:book.author }) });
+      const data = await res.json();
+      if (data.pages > 0 && onSavePages) onSavePages(book.id, data.pages);
+    } catch {}
+    setPagesLoading(false);
+  }
 
   function toggleAspect(a, list, setList, other, setOther) {
     if (list.includes(a)) setList(list.filter(x=>x!==a));
@@ -708,6 +767,32 @@ function BookRowExpanded({ book, onEdit, onRemove }) {
           }
         </div>
       )}
+      {book.shelf === "Reading" && (
+        <div style={{ marginTop:8, paddingTop:8, borderTop:"1px solid rgba(138,90,40,0.18)" }}>
+          {book.pages > 0 && pageInput > 0 && (
+            <div style={{ marginBottom:7 }}>
+              <div style={{ display:"flex", justifyContent:"space-between", marginBottom:3 }}>
+                <span style={{ fontSize:10, color:"#3a7a50", fontFamily:"'DM Sans',sans-serif", fontWeight:600 }}>{Math.round(Math.min(100,(pageInput/book.pages)*100))}%</span>
+                <span style={{ fontSize:10, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif" }}>{pageInput.toLocaleString()} / {book.pages.toLocaleString()} pages</span>
+              </div>
+              <div style={{ height:4, background:"rgba(138,90,40,0.15)", borderRadius:2, overflow:"hidden" }}>
+                <div style={{ height:"100%", background:"#3a7a50", borderRadius:2, width:`${Math.min(100,(pageInput/book.pages)*100)}%`, transition:"width 0.4s" }} />
+              </div>
+            </div>
+          )}
+          <div style={{ display:"flex", gap:7, alignItems:"center" }}>
+            <input type="number" value={pageInput || ""} placeholder="Current page"
+              onChange={e=>setPageInput(parseInt(e.target.value)||0)}
+              onBlur={()=>{ if (onSaveProgress) onSaveProgress(book.id, pageInput); }}
+              onClick={e=>e.stopPropagation()}
+              style={{ flex:1, padding:"4px 9px", borderRadius:7, border:"1px solid rgba(138,90,40,0.3)", background:"rgba(138,90,40,0.08)", fontFamily:"'DM Sans',sans-serif", fontSize:11, color:WOOD.text, outline:"none" }} />
+            {book.pages > 0 && <span style={{ fontSize:10, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif", flexShrink:0 }}>/ {book.pages.toLocaleString()}</span>}
+            <button {...tc(fetchPageCount, true)} style={{ display:"flex", alignItems:"center", justifyContent:"center", width:26, height:26, borderRadius:7, border:"1px solid rgba(138,90,40,0.25)", background:"rgba(138,90,40,0.08)", cursor:"pointer", color:WOOD.textDim, fontSize:14, flexShrink:0 }}>
+              {pagesLoading ? <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="5.5" cy="5.5" r="3.5" strokeDasharray="14" strokeDashoffset="7"><animateTransform attributeName="transform" type="rotate" from="0 5.5 5.5" to="360 5.5 5.5" dur="0.7s" repeatCount="indefinite"/></circle></svg> : "↻"}
+            </button>
+          </div>
+        </div>
+      )}
       {isRated && (
         <div style={{ display:"flex", flexDirection:"column", gap:8, marginTop:4 }}>
           <div>
@@ -738,7 +823,7 @@ function BookRowExpanded({ book, onEdit, onRemove }) {
   );
 }
 
-function BookRow({ book, index, onEdit, onRemove, onShelfChange, onAdd }) {
+function BookRow({ book, index, onEdit, onRemove, onShelfChange, onAdd, onSaveProgress, onSavePages }) {
   const [expanded, setExpanded] = useState(false);
   const [shelfDropOpen, setShelfDropOpen] = useState(false);
   const touchMoved = useRef(false);
@@ -802,12 +887,12 @@ function BookRow({ book, index, onEdit, onRemove, onShelfChange, onAdd }) {
           }
         </div>
       </div>
-      {expanded && <BookRowExpanded book={book} onEdit={onEdit} onRemove={onRemove} />}
+      {expanded && <BookRowExpanded book={book} onEdit={onEdit} onRemove={onRemove} onSaveProgress={onSaveProgress} onSavePages={onSavePages} />}
     </div>
   );
 }
 
-function BookRowPages({ book, index, onEdit, onRemove, onShelfChange, maxPages }) {
+function BookRowPages({ book, index, onEdit, onRemove, onShelfChange, maxPages, onSaveProgress, onSavePages }) {
   const [expanded, setExpanded] = useState(false);
   const touchMoved = useRef(false);
   const isRated = (book.shelf || "Read") !== "The List" && (book.shelf || "Read") !== "Curious" && (book.shelf || "Read") !== "Reading";
@@ -842,12 +927,12 @@ function BookRowPages({ book, index, onEdit, onRemove, onShelfChange, maxPages }
           {isRated ? <StarRating value={book.rating} readonly size={12} /> : <div style={{ height:14 }} />}
         </div>
       </div>
-      {expanded && <BookRowExpanded book={book} onEdit={onEdit} onRemove={onRemove} />}
+      {expanded && <BookRowExpanded book={book} onEdit={onEdit} onRemove={onRemove} onSaveProgress={onSaveProgress} onSavePages={onSavePages} />}
     </div>
   );
 }
 
-function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelfChange, onImport, onSaveScores, onSaveDescription, hideControls=false }) {
+function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelfChange, onImport, onSaveScores, onSaveDescription, onSaveProgress, onSavePages, hideControls=false }) {
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("date");
   const [sortAsc, setSortAsc] = useState(false);
@@ -1258,10 +1343,10 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
             )}
             <div style={{ flex:1, minWidth:0 }}>
               {viewMode==="row"
-                ? <BookRow book={book} index={i} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} />
+                ? <BookRow book={book} index={i} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} />
                 : viewMode==="pages"
-                ? <BookRowPages book={book} index={i} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} maxPages={Math.max(...filtered.map(b=>b.pages||0))} />
-                : <BookCard book={book} index={i} onRemove={onRemove} onEdit={onEdit} onShelfChange={onShelfChange} onOpenShelfPicker={setShelfPickerBook} onSaveScores={onSaveScores} onSaveDescription={onSaveDescription} />
+                ? <BookRowPages book={book} index={i} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} maxPages={Math.max(...filtered.map(b=>b.pages||0))} onSaveProgress={onSaveProgress} onSavePages={onSavePages} />
+                : <BookCard book={book} index={i} onRemove={onRemove} onEdit={onEdit} onShelfChange={onShelfChange} onOpenShelfPicker={setShelfPickerBook} onSaveScores={onSaveScores} onSaveDescription={onSaveDescription} onSaveProgress={onSaveProgress} onSavePages={onSavePages} />
               }
             </div>
           </div>
@@ -2532,6 +2617,40 @@ function StatsTab({ books }) {
         ))}
       </div>
 
+      {(() => {
+        const readingBooks = books.filter(b => b.shelf === "Reading");
+        if (readingBooks.length === 0) return null;
+        return (
+          <div style={{ ...card, padding:16, marginBottom:10 }}>
+            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, color:WOOD.textDim, fontStyle:"italic", marginBottom:12 }}>Currently Reading</p>
+            <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+              {readingBooks.map(b => {
+                const pct = b.pages > 0 && (b.currentPage || 0) > 0 ? Math.min(100, Math.round(((b.currentPage||0) / b.pages) * 100)) : null;
+                return (
+                  <div key={b.id} style={{ display:"flex", gap:10, alignItems:"center" }}>
+                    <BookCover book={b} width={32} height={48} radius={3} shadow="1px 1px 4px rgba(0,0,0,0.25)"
+                      bookmark={b.pages > 0 ? Math.min(1, (b.currentPage||0) / b.pages) : 0} />
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:WOOD.text, lineHeight:1.2, marginBottom:2, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{b.title}</p>
+                      <p style={{ fontSize:11, color:WOOD.textDim, fontStyle:"italic", marginBottom: pct !== null ? 5 : 0 }}>{b.author}</p>
+                      {pct !== null && (
+                        <>
+                          <div style={{ height:4, background:"rgba(138,90,40,0.15)", borderRadius:2, overflow:"hidden", marginBottom:3 }}>
+                            <div style={{ height:"100%", background:"#3a7a50", borderRadius:2, width:`${pct}%`, transition:"width 0.4s" }} />
+                          </div>
+                          <span style={{ fontSize:10, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif" }}>{pct}% · {(b.currentPage||0).toLocaleString()} / {b.pages.toLocaleString()} pages</span>
+                        </>
+                      )}
+                      {pct === null && b.pages > 0 && <span style={{ fontSize:10, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif" }}>{b.pages.toLocaleString()} pages</span>}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })()}
+
       <div style={{ ...card, padding:16, marginBottom:10 }}>
         <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, color:WOOD.textDim, fontStyle:"italic", marginBottom:14 }}>Genre Breakdown</p>
         {topGenres.length===0
@@ -3027,6 +3146,7 @@ function bookToRow(book, userId) {
     date: book.date || null,
     scores: book.scores || null,
     description: book.description || null,
+    current_page: book.currentPage || 0,
   };
 }
 
@@ -3045,6 +3165,7 @@ function rowToBook(row) {
     date: row.date,
     scores: row.scores || null,
     description: row.description || null,
+    currentPage: row.current_page || 0,
   };
 }
 
@@ -3469,6 +3590,18 @@ export default function App() {
     dbUpdateBook(next.find(b => b.id === id), userId);
   }
 
+  function saveProgress(id, currentPage) {
+    const next = books.map(b => b.id === id ? { ...b, currentPage } : b);
+    setBooks(next);
+    dbUpdateBook(next.find(b => b.id === id), userId);
+  }
+
+  function savePages(id, pages) {
+    const next = books.map(b => b.id === id ? { ...b, pages } : b);
+    setBooks(next);
+    dbUpdateBook(next.find(b => b.id === id), userId);
+  }
+
   function saveEdit(updated) {
     const next = books.map(b => b.id === updated.id ? { ...b, rating: updated.rating, shelf: updated.shelf, genre: updated.genre ?? b.genre, date: updated.date ?? b.date, coverUrl: updated.coverUrl ?? b.coverUrl, coverId: updated.coverId ?? b.coverId } : b);
     setBooks(next);
@@ -3564,7 +3697,7 @@ export default function App() {
         {/* content */}
         <div style={{ flex:1, overflow:"hidden", position:"relative" }}>
           {tab==="shelf"
-            ? <ShelfTab books={books} onAdd={()=>setShowAdd(true)} onAddBook={book=>{ setAddInitialBook(book); setShowAdd(true); }} onRemove={id=>{ setBooks(prev => prev.filter(b=>b.id!==id)); dbDeleteBook(id, userId); }} onEdit={setEditBook} onScroll={setScrollY} onShelfChange={changeShelf} onImport={()=>setShowImport(true)} onSaveScores={saveScores} onSaveDescription={saveDescription} hideControls={!!editBook} />
+            ? <ShelfTab books={books} onAdd={()=>setShowAdd(true)} onAddBook={book=>{ setAddInitialBook(book); setShowAdd(true); }} onRemove={id=>{ setBooks(prev => prev.filter(b=>b.id!==id)); dbDeleteBook(id, userId); }} onEdit={setEditBook} onScroll={setScrollY} onShelfChange={changeShelf} onImport={()=>setShowImport(true)} onSaveScores={saveScores} onSaveDescription={saveDescription} onSaveProgress={saveProgress} onSavePages={savePages} hideControls={!!editBook} />
             : tab==="reiko"
             ? <ReikoTab books={books} userId={userId} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, rating:0, date:new Date().toISOString().slice(0,10) }; setBooks(prev => [...prev, b]); dbAddBook(b, userId); }} />
             : tab==="rankings"
