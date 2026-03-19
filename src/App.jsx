@@ -1173,7 +1173,7 @@ function BookRow({ book, index, onEdit, onRemove, onShelfChange }) {
           <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, lineHeight:1.2, whiteSpace:expanded?"normal":"nowrap", overflow:"hidden", textOverflow:"ellipsis", marginBottom:1 }}>{book.title}</p>
           <p style={{ fontSize:11, color:WOOD.textDim, fontStyle:"italic", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{book.author}</p>
         </div>
-        <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:3, flexShrink:0 }}>
+        <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3, flexShrink:0 }}>
           <div style={{ display:"flex", alignItems:"center", gap:5 }}>
             <span style={{ background:GENRE_COLORS[book.genre]||GENRE_COLORS["Other"], color:"#fff", borderRadius:"20px", padding:"2px 7px", fontSize:8, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.06em" }}>{book.genre}</span>
             <span style={{ color:WOOD.textFaint, fontSize:11, transition:"transform 0.2s", transform:expanded?"rotate(180deg)":"rotate(0deg)" }}>▾</span>
@@ -1181,9 +1181,9 @@ function BookRow({ book, index, onEdit, onRemove, onShelfChange }) {
           {isRated
             ? <StarRating value={book.rating} readonly size={12} />
             : showShelfLabel
-              ? <span style={{ fontSize:8, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.06em", padding:"2px 7px", borderRadius:20, background:shelfColors[book.shelf]?.bg, color:shelfColors[book.shelf]?.color }}>{book.shelf}</span>
+              ? <span {...tc(e => { e.stopPropagation(); onShelfChange(book); }, true)} style={{ fontSize:8, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.06em", padding:"2px 7px", borderRadius:20, background:shelfColors[book.shelf]?.bg, color:shelfColors[book.shelf]?.color, cursor:"pointer" }}>{book.shelf}</span>
               : showAddLabel
-                ? <span style={{ fontSize:8, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.06em", padding:"2px 7px", borderRadius:20, background:"rgba(138,90,40,0.18)", color:WOOD.textDim }}>+ Add</span>
+                ? <span {...tc(e => { e.stopPropagation(); onShelfChange(book); }, true)} style={{ fontSize:8, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.06em", padding:"2px 7px", borderRadius:20, background:"rgba(138,90,40,0.18)", color:WOOD.textDim, cursor:"pointer" }}>+ Add</span>
                 : <div style={{ height:14 }} />
           }
         </div>
