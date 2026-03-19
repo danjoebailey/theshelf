@@ -996,7 +996,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
 
 function BookRowExpanded({ book, onEdit, onRemove }) {
   const isRated = book.shelf === "Read" || book.shelf === "DNF";
-  const showProseBtn = (book.shelf || "Read") !== "Read" && (book.shelf || "Read") !== "Reading";
+  const showProseBtn = book.shelf !== "Read" && book.shelf !== "Reading";
   const [liked, setLiked] = useState([]);
   const [disliked, setDisliked] = useState([]);
   const [prose, setProse] = useState(null);
