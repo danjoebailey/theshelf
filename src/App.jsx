@@ -2018,18 +2018,27 @@ function ReikoTab({ books, userId, onAddDirect }) {
       const readKeys = new Set(books.filter(b => (b.shelf||"Read") === "Read").map(b => normBookKey(b.title)));
       const results = (data.recommendations || []).filter(r => !readKeys.has(normBookKey(r.title)));
       setRecs(results);
-      // Fetch covers in parallel from OpenLibrary
-      const coverEntries = await Promise.all(results.map(async rec => {
-        try {
-          const cleanTitle = rec.title.replace(/\s*\(.*$/, "").trim();
-          const q = encodeURIComponent(`${cleanTitle} ${rec.author}`);
-          const r = await fetch(`https://openlibrary.org/search.json?q=${q}&limit=1&fields=cover_i`);
-          const d = await r.json();
-          const coverId = d.docs?.[0]?.cover_i;
-          return [rec.title, coverId ? `https://covers.openlibrary.org/b/id/${coverId}-M.jpg` : null];
-        } catch { return [rec.title, null]; }
-      }));
-      const covers = Object.fromEntries(coverEntries.filter(([, v]) => v));
+      // Seed covers from library matches immediately
+      const covers = {};
+      const needsCover = [];
+      for (const rec of results) {
+        const owned = books.find(b => normBookKey(b.title) === normBookKey(rec.title));
+        if (owned?.coverUrl) covers[rec.title] = owned.coverUrl;
+        else needsCover.push(rec);
+      }
+      setRecCovers({ ...covers });
+      // Fetch remaining via /api/fetch-cover in batches of 5
+      const BATCH = 5;
+      for (let b = 0; b < needsCover.length; b += BATCH) {
+        await Promise.all(needsCover.slice(b, b + BATCH).map(async rec => {
+          try {
+            const r = await fetch("/api/fetch-cover", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ title:rec.title, author:rec.author }) });
+            const d = await r.json();
+            if (d.coverUrl) { covers[rec.title] = d.coverUrl; setRecCovers(prev => ({ ...prev, [rec.title]: d.coverUrl })); }
+          } catch {}
+        }));
+        if (b + BATCH < needsCover.length) await new Promise(r => setTimeout(r, 200));
+      }
       setRecCovers(covers);
       if (userId) {
         supabase.from("reiko_recommendations")
@@ -2203,7 +2212,7 @@ function ReikoTab({ books, userId, onAddDirect }) {
               <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 12 }}>Recommended for you</p>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {[...new Map(recs.map(r => [r.title.toLowerCase(), r])).values()].map((rec, i) => (
-                  <RecCard key={i} index={i} rec={rec} coverUrl={recCovers[rec.title] || null} ownedBook={books.find(b => normBookKey(b.title) === normBookKey(rec.title))} onAddDirect={onAddDirect} />
+                  <RecCard key={i} index={i} rec={rec} coverUrl={recCovers[rec.title] || books.find(b => normBookKey(b.title) === normBookKey(rec.title))?.coverUrl || null} ownedBook={books.find(b => normBookKey(b.title) === normBookKey(rec.title))} onAddDirect={onAddDirect} />
                 ))}
               </div>
             </div>
