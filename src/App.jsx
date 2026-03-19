@@ -1146,11 +1146,11 @@ function BookRowExpanded({ book, onEdit, onRemove }) {
   );
 }
 
-function BookRow({ book, index, onEdit, onRemove, onShelfChange }) {
+function BookRow({ book, index, onEdit, onRemove, onShelfChange, onAdd }) {
   const [expanded, setExpanded] = useState(false);
+  const [shelfDropOpen, setShelfDropOpen] = useState(false);
   const touchMoved = useRef(false);
   const isRated = book.shelf === "Read" || book.shelf === "DNF";
-  const shelfColors = { "Reading":{ bg:"rgba(60,120,80,0.15)", color:"#3a7a50" }, "The List":{ bg:"rgba(138,90,40,0.18)", color:WOOD.textDim }, "Curious":{ bg:"rgba(200,144,90,0.15)", color:WOOD.amber }, "DNF":{ bg:"rgba(160,50,50,0.12)", color:"#a03232" } };
   const showShelfLabel = book.shelf && !isRated;
   const showAddLabel = !book.shelf;
   return (
@@ -1166,7 +1166,7 @@ function BookRow({ book, index, onEdit, onRemove, onShelfChange }) {
     onTouchStart={()=>{ touchMoved.current=false; }}
     onTouchMove={()=>{ touchMoved.current=true; }}
     onTouchEnd={e=>{ if(!touchMoved.current){ e.preventDefault(); setExpanded(x=>!x); } }}
-    onClick={()=>setExpanded(e=>!e)}>
+    onClick={()=>{ setShelfDropOpen(false); setExpanded(e=>!e); }}>
       <div style={{ display:"flex", alignItems:"center", gap:10 }}>
         <BookCover book={book} width={29} height={44} radius={3} shadow="1px 1px 5px rgba(0,0,0,0.3)" />
         <div style={{ flex:1, minWidth:0 }}>
@@ -1180,11 +1180,33 @@ function BookRow({ book, index, onEdit, onRemove, onShelfChange }) {
           </div>
           {isRated
             ? <StarRating value={book.rating} readonly size={12} />
-            : showShelfLabel
-              ? <span {...tc(() => onShelfChange(book), true)} style={{ fontSize:8, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.06em", padding:"2px 7px", borderRadius:20, background:shelfColors[book.shelf]?.bg, color:shelfColors[book.shelf]?.color, cursor:"pointer" }}>{book.shelf}</span>
-              : showAddLabel
-                ? <span {...tc(() => onShelfChange(book), true)} style={{ fontSize:8, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.06em", padding:"2px 7px", borderRadius:20, background:"rgba(138,90,40,0.18)", color:WOOD.textDim, cursor:"pointer" }}>+ Add</span>
-                : <div style={{ height:14 }} />
+            : (showShelfLabel || showAddLabel)
+              ? <div style={{ position:"relative" }} onClick={e=>e.stopPropagation()}>
+                  <span {...tc(()=>setShelfDropOpen(o=>!o), true)} style={{ fontSize:8, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.06em", padding:"2px 7px", borderRadius:20, cursor:"pointer",
+                    background: showAddLabel ? "rgba(138,90,40,0.18)" : { "Reading":"rgba(60,120,80,0.15)", "The List":"rgba(138,90,40,0.18)", "Curious":"rgba(200,144,90,0.15)" }[book.shelf] || "rgba(138,90,40,0.18)",
+                    color: showAddLabel ? WOOD.textDim : { "Reading":"#3a7a50", "The List":WOOD.textDim, "Curious":WOOD.amber }[book.shelf] || WOOD.textDim,
+                  }}>{showAddLabel ? "+ Add" : book.shelf}</span>
+                  {shelfDropOpen && (
+                    <div onClick={e=>e.stopPropagation()} style={{
+                      position:"absolute", top:"calc(100% + 4px)", right:0, zIndex:40, minWidth:110,
+                      background:"#f5e8d0", borderRadius:10, overflow:"hidden",
+                      boxShadow:"0 4px 20px rgba(0,0,0,0.25)", border:"1px solid rgba(138,90,40,0.3)",
+                      animation:"fadeIn 0.12s ease",
+                    }}>
+                      {SHELVES.map((s, i) => (
+                        <button key={s} {...tc(()=>{ setShelfDropOpen(false); onAdd ? onAdd(s) : onShelfChange(book.id, s); }, true)} style={{
+                          display:"block", width:"100%", padding:"9px 14px", textAlign:"left",
+                          background: !onAdd && s===book.shelf ? "rgba(138,90,40,0.1)" : "transparent",
+                          border:"none", borderBottom: i<SHELVES.length-1 ? "1px solid rgba(138,90,40,0.1)" : "none",
+                          cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:13,
+                          color: !onAdd && s===book.shelf ? WOOD.amber : WOOD.text,
+                          fontWeight: !onAdd && s===book.shelf ? 600 : 400,
+                        }}>{s}</button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              : <div style={{ height:14 }} />
           }
         </div>
       </div>
@@ -2165,7 +2187,6 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onShelfChange }) 
   const [viewMode, setViewMode] = useState("card");
   const [controlsOpen, setControlsOpen] = useState(true);
   const [aiItems, setAiItems] = useState([]);
-  const [shelfPickerBook, setShelfPickerBook] = useState(null);
 
   const readBooks = useMemo(() =>
     books.filter(b => (b.shelf || "Read") === "Read"),
@@ -2492,7 +2513,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onShelfChange }) 
             </div>
             <div style={{ flex:1, minWidth:0 }}>
               {viewMode === "row"
-                ? <BookRow key={book.id} book={book} index={i} onEdit={()=>{}} onRemove={()=>{}} onShelfChange={setShelfPickerBook} />
+                ? <BookRow key={book.id} book={book} index={i} onEdit={()=>{}} onRemove={()=>{}} onShelfChange={onShelfChange} />
                 : <BookCard key={book.id} book={book} index={i} onRemove={()=>{}} onEdit={()=>{}} onShelfChange={()=>{}} onOpenShelfPicker={()=>{}} onSaveScores={onSaveScores} onSaveDescription={()=>{}} />
               }
             </div>
@@ -2520,7 +2541,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onShelfChange }) 
               </div>
               <div style={{ flex:1, minWidth:0 }}>
                 {viewMode === "row"
-                  ? <BookRow key={bookObj.id} book={bookObj} index={i} onEdit={()=>{}} onRemove={()=>{}} onShelfChange={setShelfPickerBook} />
+                  ? <BookRow key={bookObj.id} book={bookObj} index={i} onEdit={()=>{}} onRemove={()=>{}} onShelfChange={matched ? onShelfChange : ()=>{}} onAdd={matched ? undefined : (s) => onAddBook({ title:item.title, author:item.author, genre:genreFilter !== "All" ? genreFilter : "Other", shelf:s, pages:0, rating:0, coverUrl:item.coverUrl||null })} />
                   : <BookCard
                       key={bookObj.id}
                       book={bookObj}
@@ -2537,48 +2558,6 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onShelfChange }) 
         })}
       </div>
 
-      {/* Shelf picker overlay */}
-      {shelfPickerBook && (
-        <div onClick={()=>setShelfPickerBook(null)} style={{
-          position:"absolute", inset:0, zIndex:50, background:"rgba(0,0,0,0.4)",
-          display:"flex", alignItems:"flex-end", justifyContent:"center",
-          animation:"fadeIn 0.15s ease",
-        }}>
-          <div onClick={e=>e.stopPropagation()} style={{
-            background:"#f5e8d0", borderRadius:"16px 16px 0 0", width:"100%",
-            padding:"16px 16px 32px", boxShadow:"0 -4px 24px rgba(0,0,0,0.3)",
-          }}>
-            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:18, color:WOOD.textFaint, textAlign:"center", marginBottom:14, fontStyle:"italic" }}>
-              {shelfPickerBook.shelf ? `Move "${shelfPickerBook.title}" to…` : `Add "${shelfPickerBook.title}" to…`}
-            </p>
-            <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
-              {[
-                { key:"Read",     label:"✅  Read" },
-                { key:"Reading",  label:"📖  Reading" },
-                { key:"The List", label:"📋  The List" },
-                { key:"Curious",  label:"🧐  Curious" },
-                { key:"DNF",      label:"🚫  DNF" },
-              ].map(({ key, label }) => (
-                <button key={key} onClick={()=>{
-                  if (shelfPickerBook.shelf) {
-                    onShelfChange(shelfPickerBook.id, key);
-                  } else {
-                    onAddBook({ title:shelfPickerBook.title, author:shelfPickerBook.author, genre:shelfPickerBook.genre||"Other", shelf:key, pages:0, rating:0, coverUrl:shelfPickerBook.coverUrl||null });
-                  }
-                  setShelfPickerBook(null);
-                }} style={{
-                  padding:"12px 16px", borderRadius:12, textAlign:"center",
-                  background: shelfPickerBook.shelf===key ? "rgba(138,90,40,0.15)" : "rgba(138,90,40,0.05)",
-                  border:`1px solid ${shelfPickerBook.shelf===key ? WOOD.amber : "rgba(138,90,40,0.2)"}`,
-                  cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:14,
-                  color:shelfPickerBook.shelf===key ? WOOD.amber : WOOD.text,
-                  fontWeight:shelfPickerBook.shelf===key ? 700 : 400,
-                }}>{label}</button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
