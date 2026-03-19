@@ -1181,9 +1181,9 @@ function BookRow({ book, index, onEdit, onRemove, onShelfChange }) {
           {isRated
             ? <StarRating value={book.rating} readonly size={12} />
             : showShelfLabel
-              ? <span {...tc(e => { e.stopPropagation(); onShelfChange(book); }, true)} style={{ fontSize:8, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.06em", padding:"2px 7px", borderRadius:20, background:shelfColors[book.shelf]?.bg, color:shelfColors[book.shelf]?.color, cursor:"pointer" }}>{book.shelf}</span>
+              ? <span {...tc(() => onShelfChange(book), true)} style={{ fontSize:8, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.06em", padding:"2px 7px", borderRadius:20, background:shelfColors[book.shelf]?.bg, color:shelfColors[book.shelf]?.color, cursor:"pointer" }}>{book.shelf}</span>
               : showAddLabel
-                ? <span {...tc(e => { e.stopPropagation(); onShelfChange(book); }, true)} style={{ fontSize:8, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.06em", padding:"2px 7px", borderRadius:20, background:"rgba(138,90,40,0.18)", color:WOOD.textDim, cursor:"pointer" }}>+ Add</span>
+                ? <span {...tc(() => onShelfChange(book), true)} style={{ fontSize:8, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.06em", padding:"2px 7px", borderRadius:20, background:"rgba(138,90,40,0.18)", color:WOOD.textDim, cursor:"pointer" }}>+ Add</span>
                 : <div style={{ height:14 }} />
           }
         </div>
