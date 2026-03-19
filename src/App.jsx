@@ -1149,7 +1149,10 @@ function BookRowExpanded({ book, onEdit, onRemove }) {
 function BookRow({ book, index, onEdit, onRemove, onShelfChange }) {
   const [expanded, setExpanded] = useState(false);
   const touchMoved = useRef(false);
-  const isRated = book.shelf && book.shelf !== "The List" && book.shelf !== "Curious" && book.shelf !== "Reading";
+  const isRated = book.shelf === "Read" || book.shelf === "DNF";
+  const shelfColors = { "Reading":{ bg:"rgba(60,120,80,0.15)", color:"#3a7a50" }, "The List":{ bg:"rgba(138,90,40,0.18)", color:WOOD.textDim }, "Curious":{ bg:"rgba(200,144,90,0.15)", color:WOOD.amber }, "DNF":{ bg:"rgba(160,50,50,0.12)", color:"#a03232" } };
+  const showShelfLabel = book.shelf && !isRated;
+  const showAddLabel = !book.shelf;
   return (
     <div style={{
       background:WOOD.card, borderRadius:8, padding:"7px 10px", marginBottom:6,
@@ -1175,7 +1178,14 @@ function BookRow({ book, index, onEdit, onRemove, onShelfChange }) {
             <span style={{ background:GENRE_COLORS[book.genre]||GENRE_COLORS["Other"], color:"#fff", borderRadius:"20px", padding:"2px 7px", fontSize:8, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.06em" }}>{book.genre}</span>
             <span style={{ color:WOOD.textFaint, fontSize:11, transition:"transform 0.2s", transform:expanded?"rotate(180deg)":"rotate(0deg)" }}>▾</span>
           </div>
-          {isRated ? <StarRating value={book.rating} readonly size={12} /> : <div style={{ height:14 }} />}
+          {isRated
+            ? <StarRating value={book.rating} readonly size={12} />
+            : showShelfLabel
+              ? <span style={{ fontSize:8, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.06em", padding:"2px 7px", borderRadius:20, background:shelfColors[book.shelf]?.bg, color:shelfColors[book.shelf]?.color }}>{book.shelf}</span>
+              : showAddLabel
+                ? <span style={{ fontSize:8, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.06em", padding:"2px 7px", borderRadius:20, background:"rgba(138,90,40,0.18)", color:WOOD.textDim }}>+ Add</span>
+                : <div style={{ height:14 }} />
+          }
         </div>
       </div>
       {expanded && <BookRowExpanded book={book} onEdit={onEdit} onRemove={onRemove} />}
