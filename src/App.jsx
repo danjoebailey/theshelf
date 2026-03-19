@@ -2249,6 +2249,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook }) {
 
         // Fetch covers only for unmatched books, in batches of 5 to avoid rate limiting
         const unmatched = items.filter(item => !findInLibrary(item.title));
+        console.log("[unmatched]", unmatched.length, unmatched.slice(0,3).map(i => i.title));
         const itemsWithCovers = items.map(i => ({ ...i }));
         const BATCH = 5;
         for (let b = 0; b < unmatched.length; b += BATCH) {
@@ -2258,6 +2259,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook }) {
               const r = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${q}&maxResults=1&printType=books`);
               const d = await r.json();
               const thumb = d.items?.[0]?.volumeInfo?.imageLinks?.thumbnail;
+              console.log("[cover]", item.title, thumb || "no thumb");
               const idx = itemsWithCovers.findIndex(x => x.title === item.title && x.author === item.author);
               if (idx !== -1) itemsWithCovers[idx].coverUrl = thumb ? thumb.replace("http://", "https://").replace("&edge=curl", "") : null;
             } catch { /* leave coverUrl as-is */ }
