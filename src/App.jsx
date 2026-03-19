@@ -1138,10 +1138,12 @@ function BookRowExpanded({ book, onEdit, onRemove }) {
           </div>
         </div>
       )}
-      <div style={{ display:"flex", gap:8, marginTop:10 }}>
-        <button {...tc(()=>onEdit(book), true)} style={{ flex:1, padding:"7px 0", background:"rgba(138,90,40,0.1)", border:"1px solid rgba(138,90,40,0.2)", borderRadius:8, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:12, color:WOOD.text }}>Edit</button>
-        <button {...tc(()=>onRemove(book.id), true)} style={{ flex:1, padding:"7px 0", background:"rgba(192,57,43,0.08)", border:"1px solid rgba(192,57,43,0.2)", borderRadius:8, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:12, color:"#c0392b" }}>Remove</button>
-      </div>
+      {onEdit && onRemove && (
+        <div style={{ display:"flex", gap:8, marginTop:10 }}>
+          <button {...tc(()=>onEdit(book), true)} style={{ flex:1, padding:"7px 0", background:"rgba(138,90,40,0.1)", border:"1px solid rgba(138,90,40,0.2)", borderRadius:8, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:12, color:WOOD.text }}>Edit</button>
+          <button {...tc(()=>onRemove(book.id), true)} style={{ flex:1, padding:"7px 0", background:"rgba(192,57,43,0.08)", border:"1px solid rgba(192,57,43,0.2)", borderRadius:8, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:12, color:"#c0392b" }}>Remove</button>
+        </div>
+      )}
     </div>
   );
 }
@@ -2513,7 +2515,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onShelfChange }) 
             </div>
             <div style={{ flex:1, minWidth:0 }}>
               {viewMode === "row"
-                ? <BookRow key={book.id} book={book} index={i} onEdit={()=>{}} onRemove={()=>{}} onShelfChange={onShelfChange} />
+                ? <BookRow key={book.id} book={book} index={i} onEdit={null} onRemove={null} onShelfChange={onShelfChange} />
                 : <BookCard key={book.id} book={book} index={i} onRemove={()=>{}} onEdit={()=>{}} onShelfChange={()=>{}} onOpenShelfPicker={()=>{}} onSaveScores={onSaveScores} onSaveDescription={()=>{}} />
               }
             </div>
@@ -2541,7 +2543,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onShelfChange }) 
               </div>
               <div style={{ flex:1, minWidth:0 }}>
                 {viewMode === "row"
-                  ? <BookRow key={bookObj.id} book={bookObj} index={i} onEdit={()=>{}} onRemove={()=>{}} onShelfChange={matched ? onShelfChange : ()=>{}} onAdd={matched ? undefined : (s) => onAddBook({ title:item.title, author:item.author, genre:genreFilter !== "All" ? genreFilter : "Other", shelf:s, pages:0, rating:0, coverUrl:item.coverUrl||null })} />
+                  ? <BookRow key={bookObj.id} book={bookObj} index={i} onEdit={null} onRemove={null} onShelfChange={matched ? onShelfChange : ()=>{}} onAdd={matched ? undefined : (s) => onAddBook({ title:item.title, author:item.author, genre:genreFilter !== "All" ? genreFilter : "Other", shelf:s, pages:0, rating:0, coverUrl:item.coverUrl||null })} />
                   : <BookCard
                       key={bookObj.id}
                       book={bookObj}
