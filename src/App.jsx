@@ -249,16 +249,19 @@ function BookCover({ book, width, height, radius=4, shadow="2px 2px 8px rgba(0,0
   const color = GENRE_COLORS[book.genre] || "#94a3b8";
   const initials = book.title.split(" ").filter(Boolean).slice(0,2).map(w=>w[0]).join("").toUpperCase();
   const advance = () => setSrcIdx(i => i + 1);
-  const bkH = bookmark > 0 ? Math.max(10, bookmark * height) : 0;
+  const tabW = Math.round(width * 0.16);
+  const tabH = Math.round(height * 0.18);
+  const tabLeft = bookmark > 0 ? Math.min(width - tabW, Math.round(bookmark * (width - tabW))) : -1;
   return (
     <div style={{ width, height, borderRadius:radius, flexShrink:0, position:"relative", background:`linear-gradient(135deg,${color}22,${color}44)`, border:`1px solid ${color}44`, boxShadow:shadow, display:"flex", alignItems:"center", justifyContent:"center" }}>
       <span style={{ color, fontSize:width*0.3, fontFamily:"'Crimson Pro',serif", fontWeight:600 }}>{initials}</span>
       {src && <img src={src} alt={book.title} style={{ position:"absolute", inset:0, width, height, objectFit:"cover", borderRadius:radius, display:"block" }}
         onError={advance}
         onLoad={e=>{ if (e.target.naturalWidth <= 1 || e.target.naturalHeight <= 1) advance(); }} />}
-      {bkH > 0 && (
-        <svg width="8" height={bkH} viewBox={`0 0 8 ${bkH}`} style={{ position:"absolute", top:0, right:5, zIndex:3 }} fill="none">
-          <path d={`M0,0 L8,0 L8,${bkH} L4,${Math.max(4,bkH-6)} L0,${bkH} Z`} fill="rgba(220,120,30,0.92)" />
+      {bookmark > 0 && (
+        <svg width={tabW} height={tabH} viewBox={`0 0 ${tabW} ${tabH}`}
+          style={{ position:"absolute", top:-tabH, left:tabLeft, zIndex:5 }} fill="none">
+          <path d={`M0,0 L${tabW},0 L${tabW},${tabH} L${tabW/2},${tabH-Math.round(tabH*0.3)} L0,${tabH} Z`} fill="rgba(215,105,30,0.93)" />
         </svg>
       )}
     </div>
