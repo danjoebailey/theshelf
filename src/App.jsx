@@ -2153,6 +2153,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook }) {
   const [generating, setGenerating] = useState(false);
   const [generated, setGenerated] = useState(false);
   const [viewMode, setViewMode] = useState("card");
+  const [controlsOpen, setControlsOpen] = useState(true);
   const [aiItems, setAiItems] = useState([]);
 
   const readBooks = useMemo(() =>
@@ -2335,18 +2336,33 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook }) {
               transition:"all 0.15s",
             }}>{label}</button>
           ))}
-          <button {...tc(()=>setViewMode(v=>v==="card"?"row":"card"), true)} style={{
+          <div style={{ display:"flex", gap:6, marginLeft:"auto" }}>
+            <button {...tc(()=>setViewMode(v=>v==="card"?"row":"card"), true)} style={{
               display:"flex", alignItems:"center", justifyContent:"center",
               background:"rgba(15,8,2,0.55)", borderRadius:20, padding:"5px 10px",
               border:"1px solid rgba(120,70,20,0.3)", backdropFilter:"blur(4px)",
-              cursor:"pointer", color:"#fff", marginLeft:"auto",
+              cursor:"pointer", color:"#fff",
             }}>
               {viewMode==="card"
                 ? <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor"><rect x="0" y="0" width="13" height="3" rx="1.5"/><rect x="0" y="5" width="13" height="3" rx="1.5"/><rect x="0" y="10" width="13" height="3" rx="1.5"/></svg>
                 : <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor"><rect x="0" y="0" width="6" height="6" rx="1"/><rect x="7" y="0" width="6" height="6" rx="1"/><rect x="0" y="7" width="6" height="6" rx="1"/><rect x="7" y="7" width="6" height="6" rx="1"/></svg>
               }
             </button>
+            <button {...tc(()=>setControlsOpen(o=>!o), true)} style={{
+              display:"flex", alignItems:"center", justifyContent:"center",
+              background:"rgba(15,8,2,0.55)", borderRadius:20, padding:"5px 10px",
+              border:"1px solid rgba(120,70,20,0.3)", backdropFilter:"blur(4px)",
+              cursor:"pointer", color:"#fff",
+            }}>
+              <svg width="11" height="7" viewBox="0 0 11 7" fill="currentColor" style={{ transition:"transform 0.2s", transform: controlsOpen ? "rotate(0deg)" : "rotate(180deg)" }}>
+                <path d="M1 6l4.5-5L10 6" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
+              </svg>
+            </button>
+          </div>
         </div>
+
+        {/* Collapsible filters */}
+        {controlsOpen && <div>
 
         {/* Filters row */}
         <div style={{ display:"flex", gap:6, flexWrap:"wrap", alignItems:"center", marginBottom: mode==="ai" ? 8 : 0 }}>
@@ -2414,6 +2430,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook }) {
             )}
           </div>
         )}
+        </div>}
       </div>
 
       {/* Book list */}
