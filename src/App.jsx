@@ -2153,7 +2153,7 @@ function avgScore(scores) {
   return vals.length ? vals.reduce((s, v) => s + v, 0) / vals.length : null;
 }
 
-function RankingsTab({ books, onSaveScores, userId, onAddBook }) {
+function RankingsTab({ books, onSaveScores, userId, onAddBook, onShelfChange }) {
   const [mode, setMode] = useState("user");
   const [genreFilter, setGenreFilter] = useState("All");
   const [topN, setTopN] = useState(10);
@@ -2165,6 +2165,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook }) {
   const [viewMode, setViewMode] = useState("card");
   const [controlsOpen, setControlsOpen] = useState(true);
   const [aiItems, setAiItems] = useState([]);
+  const [shelfPickerBook, setShelfPickerBook] = useState(null);
 
   const readBooks = useMemo(() =>
     books.filter(b => (b.shelf || "Read") === "Read"),
@@ -2332,7 +2333,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook }) {
   });
 
   return (
-    <div style={{ display:"flex", flexDirection:"column", height:"100%", overflow:"hidden" }}>
+    <div style={{ display:"flex", flexDirection:"column", height:"100%", overflow:"hidden", position:"relative" }}>
       {/* Controls header */}
       <div style={{ padding:"12px 16px 10px", flexShrink:0, background:"rgba(50,28,12,0.7)", borderBottom:"1px solid rgba(200,144,90,0.15)" }}>
         {/* Mode toggle + view toggle */}
@@ -2491,7 +2492,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook }) {
             </div>
             <div style={{ flex:1, minWidth:0 }}>
               {viewMode === "row"
-                ? <BookRow key={book.id} book={book} index={i} onEdit={()=>{}} onRemove={()=>{}} onShelfChange={()=>{}} />
+                ? <BookRow key={book.id} book={book} index={i} onEdit={()=>{}} onRemove={()=>{}} onShelfChange={setShelfPickerBook} />
                 : <BookCard key={book.id} book={book} index={i} onRemove={()=>{}} onEdit={()=>{}} onShelfChange={()=>{}} onOpenShelfPicker={()=>{}} onSaveScores={onSaveScores} onSaveDescription={()=>{}} />
               }
             </div>
@@ -2519,7 +2520,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook }) {
               </div>
               <div style={{ flex:1, minWidth:0 }}>
                 {viewMode === "row"
-                  ? <BookRow key={bookObj.id} book={bookObj} index={i} onEdit={()=>{}} onRemove={()=>{}} onShelfChange={()=>{}} />
+                  ? <BookRow key={bookObj.id} book={bookObj} index={i} onEdit={()=>{}} onRemove={()=>{}} onShelfChange={setShelfPickerBook} />
                   : <BookCard
                       key={bookObj.id}
                       book={bookObj}
@@ -2535,6 +2536,49 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook }) {
           );
         })}
       </div>
+
+      {/* Shelf picker overlay */}
+      {shelfPickerBook && (
+        <div onClick={()=>setShelfPickerBook(null)} style={{
+          position:"absolute", inset:0, zIndex:50, background:"rgba(0,0,0,0.4)",
+          display:"flex", alignItems:"flex-end", justifyContent:"center",
+          animation:"fadeIn 0.15s ease",
+        }}>
+          <div onClick={e=>e.stopPropagation()} style={{
+            background:"#f5e8d0", borderRadius:"16px 16px 0 0", width:"100%",
+            padding:"16px 16px 32px", boxShadow:"0 -4px 24px rgba(0,0,0,0.3)",
+          }}>
+            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:18, color:WOOD.textFaint, textAlign:"center", marginBottom:14, fontStyle:"italic" }}>
+              {shelfPickerBook.shelf ? `Move "${shelfPickerBook.title}" to…` : `Add "${shelfPickerBook.title}" to…`}
+            </p>
+            <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+              {[
+                { key:"Read",     label:"✅  Read" },
+                { key:"Reading",  label:"📖  Reading" },
+                { key:"The List", label:"📋  The List" },
+                { key:"Curious",  label:"🧐  Curious" },
+                { key:"DNF",      label:"🚫  DNF" },
+              ].map(({ key, label }) => (
+                <button key={key} onClick={()=>{
+                  if (shelfPickerBook.shelf) {
+                    onShelfChange(shelfPickerBook.id, key);
+                  } else {
+                    onAddBook({ title:shelfPickerBook.title, author:shelfPickerBook.author, genre:shelfPickerBook.genre||"Other", shelf:key, pages:0, rating:0, coverUrl:shelfPickerBook.coverUrl||null });
+                  }
+                  setShelfPickerBook(null);
+                }} style={{
+                  padding:"12px 16px", borderRadius:12, textAlign:"center",
+                  background: shelfPickerBook.shelf===key ? "rgba(138,90,40,0.15)" : "rgba(138,90,40,0.05)",
+                  border:`1px solid ${shelfPickerBook.shelf===key ? WOOD.amber : "rgba(138,90,40,0.2)"}`,
+                  cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:14,
+                  color:shelfPickerBook.shelf===key ? WOOD.amber : WOOD.text,
+                  fontWeight:shelfPickerBook.shelf===key ? 700 : 400,
+                }}>{label}</button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -3910,7 +3954,7 @@ export default function App() {
             : tab==="reiko"
             ? <ReikoTab books={books} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, rating:0, date:new Date().toISOString().slice(0,10) }; setBooks(prev => [...prev, b]); dbAddBook(b, userId); }} />
             : tab==="rankings"
-            ? <RankingsTab books={books} onSaveScores={saveScores} userId={userId} onAddBook={addBook} />
+            ? <RankingsTab books={books} onSaveScores={saveScores} userId={userId} onAddBook={addBook} onShelfChange={changeShelf} />
             : <StatsTab books={books} />
           }
           {showAdd && !addInitialBook && <AddSheet onSave={addBook} onClose={()=>setShowAdd(false)} />}
