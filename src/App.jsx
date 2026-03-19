@@ -2247,24 +2247,24 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook }) {
         setAiItems(items);
         setGenerated(true);
 
-        // Fetch covers only for unmatched books, in batches of 5 to avoid rate limiting
+        // Fetch covers only for unmatched books, using fetch-cover API (all 3 sources)
         const unmatched = items.filter(item => !findInLibrary(item.title));
-        console.log("[unmatched]", unmatched.length, unmatched.slice(0,3).map(i => i.title));
         const itemsWithCovers = items.map(i => ({ ...i }));
         const BATCH = 5;
         for (let b = 0; b < unmatched.length; b += BATCH) {
           await Promise.all(unmatched.slice(b, b + BATCH).map(async item => {
             try {
-              const q = encodeURIComponent(`${item.title} ${item.author}`);
-              const r = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${q}&maxResults=1&printType=books`);
+              const r = await fetch("/api/fetch-cover", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ title: item.title, author: item.author }),
+              });
               const d = await r.json();
-              const thumb = d.items?.[0]?.volumeInfo?.imageLinks?.thumbnail;
-              console.log("[cover]", item.title, thumb || "no thumb");
               const idx = itemsWithCovers.findIndex(x => x.title === item.title && x.author === item.author);
-              if (idx !== -1) itemsWithCovers[idx].coverUrl = thumb ? thumb.replace("http://", "https://").replace("&edge=curl", "") : null;
+              if (idx !== -1) itemsWithCovers[idx].coverUrl = d.coverUrl || null;
             } catch { /* leave coverUrl as-is */ }
           }));
-          if (b + BATCH < unmatched.length) await new Promise(r => setTimeout(r, 300));
+          if (b + BATCH < unmatched.length) await new Promise(r => setTimeout(r, 200));
         }
         setAiItems([...itemsWithCovers]);
         if (userId) {
