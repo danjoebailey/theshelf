@@ -2326,16 +2326,21 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook }) {
       {/* Controls header */}
       <div style={{ padding:"12px 16px 10px", flexShrink:0, background:"rgba(50,28,12,0.7)", borderBottom:"1px solid rgba(200,144,90,0.15)" }}>
         {/* Mode toggle + view toggle */}
-        <div style={{ display:"flex", gap:6, marginBottom:10, alignItems:"center" }}>
-          {[["user","Your Ranking"],["ai","AI Ranking"]].map(([m, label]) => (
-            <button key={m} {...tc(() => { setMode(m); if (m === "ai") setGenerated(false); })} style={{
-              padding:"5px 14px", borderRadius:20, border:"none", cursor:"pointer",
-              background: mode===m ? WOOD.amber : "rgba(255,235,195,0.12)",
-              color: mode===m ? "#1a0900" : "rgba(255,235,195,0.6)",
-              fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:600,
-              transition:"all 0.15s",
-            }}>{label}</button>
-          ))}
+        <div style={{ display:"flex", gap:6, marginBottom: controlsOpen ? 10 : 0, alignItems:"center" }}>
+          {controlsOpen
+            ? [["user","Your Ranking"],["ai","AI Ranking"]].map(([m, label]) => (
+                <button key={m} {...tc(() => { setMode(m); if (m === "ai") setGenerated(false); })} style={{
+                  padding:"5px 14px", borderRadius:20, border:"none", cursor:"pointer",
+                  background: mode===m ? WOOD.amber : "rgba(255,235,195,0.12)",
+                  color: mode===m ? "#1a0900" : "rgba(255,235,195,0.6)",
+                  fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:600,
+                  transition:"all 0.15s",
+                }}>{label}</button>
+              ))
+            : <span style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:"rgba(255,235,195,0.75)", fontStyle:"italic" }}>
+                {`${mode === "user" ? "Your" : "AI"} Top ${topN === "all" ? 50 : topN}${genreFilter !== "All" ? ` ${genreFilter}` : ""} Books${mode === "ai" && scoreCategory !== "all" ? ` · ${SCORE_CATEGORIES.find(c => c.key === scoreCategory)?.label || scoreCategory}` : ""}`}
+              </span>
+          }
           <div style={{ display:"flex", gap:6, marginLeft:"auto" }}>
             <button {...tc(()=>setViewMode(v=>v==="card"?"row":"card"), true)} style={{
               display:"flex", alignItems:"center", justifyContent:"center",
