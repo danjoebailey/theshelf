@@ -1316,7 +1316,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
           </div>
         )}
         {filtered.map((book,i)=>(
-          <div key={i} style={{ display:"flex", alignItems:"stretch", gap:0 }}>
+          <div key={book.id} style={{ display:"flex", alignItems:"stretch", gap:0 }}>
             {sort==="custom" && (
               <div style={{
                 display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
