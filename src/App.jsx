@@ -1941,7 +1941,7 @@ function RecCard({ rec, coverUrl, ownedBook, onAddDirect, index }) {
   );
 }
 
-function ReikoTab({ books, onAddDirect }) {
+function ReikoTab({ books, userId, onAddDirect }) {
   const [selected, setSelected] = useState([]);
   const [loading, setLoading] = useState(false);
   const [recs, setRecs] = useState(null);
@@ -1956,6 +1956,18 @@ function ReikoTab({ books, onAddDirect }) {
 
   const availableYears = useMemo(() => [...new Set(books.map(b => b.date ? new Date(b.date).getFullYear() : null).filter(Boolean))].sort((a,b)=>b-a), [books]);
   const availableGenres = useMemo(() => [...new Set(books.map(b => b.genre).filter(Boolean))].sort(), [books]);
+
+  // Load saved recommendations on mount
+  useEffect(() => {
+    if (!userId) return;
+    supabase.from("reiko_recommendations").select("items,seeds,covers").eq("user_id", userId).single()
+      .then(({ data }) => {
+        if (!data) return;
+        if (data.items?.length) setRecs(data.items);
+        if (data.covers) setRecCovers(data.covers);
+        if (data.seeds?.length) setSelected(prev => prev.length ? prev : data.seeds.filter(id => books.some(b => b.id === id)));
+      });
+  }, [userId]);
 
   const filteredPicker = useMemo(() => {
     const filtered = books.filter(b => {
@@ -2010,7 +2022,13 @@ function ReikoTab({ books, onAddDirect }) {
           return [rec.title, coverId ? `https://covers.openlibrary.org/b/id/${coverId}-M.jpg` : null];
         } catch { return [rec.title, null]; }
       }));
-      setRecCovers(Object.fromEntries(coverEntries.filter(([, v]) => v)));
+      const covers = Object.fromEntries(coverEntries.filter(([, v]) => v));
+      setRecCovers(covers);
+      if (userId) {
+        supabase.from("reiko_recommendations")
+          .upsert({ user_id: userId, items: results, seeds: selected, covers, generated_at: new Date().toISOString() }, { onConflict: "user_id" })
+          .then(({ error }) => console.log("[reiko save]", error || "ok"));
+      }
     } catch (e) {
       setError(e.message || "Something went wrong.");
     }
@@ -3963,7 +3981,7 @@ export default function App() {
           {tab==="shelf"
             ? <ShelfTab books={books} onAdd={()=>setShowAdd(true)} onAddBook={book=>{ setAddInitialBook(book); setShowAdd(true); }} onRemove={id=>{ setBooks(prev => prev.filter(b=>b.id!==id)); dbDeleteBook(id, userId); }} onEdit={setEditBook} onScroll={setScrollY} onShelfChange={changeShelf} onImport={()=>setShowImport(true)} onSaveScores={saveScores} onSaveDescription={saveDescription} hideControls={!!editBook} />
             : tab==="reiko"
-            ? <ReikoTab books={books} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, rating:0, date:new Date().toISOString().slice(0,10) }; setBooks(prev => [...prev, b]); dbAddBook(b, userId); }} />
+            ? <ReikoTab books={books} userId={userId} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, rating:0, date:new Date().toISOString().slice(0,10) }; setBooks(prev => [...prev, b]); dbAddBook(b, userId); }} />
             : tab==="rankings"
             ? <RankingsTab books={books} onSaveScores={saveScores} userId={userId} onAddBook={addBook} onShelfChange={changeShelf} />
             : <StatsTab books={books} />
