@@ -2247,27 +2247,29 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook }) {
         setAiItems(items);
         setGenerated(true);
 
-        // Fetch covers client-side in parallel (avoids serverless timeout)
-        Promise.all(items.map(async item => {
-          try {
-            const q = encodeURIComponent(`${item.title} ${item.author}`);
-            const r = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${q}&maxResults=1&printType=books`);
-            const d = await r.json();
-            const thumb = d.items?.[0]?.volumeInfo?.imageLinks?.thumbnail;
-            return { ...item, coverUrl: thumb ? thumb.replace("http://", "https://").replace("&edge=curl", "") : null };
-          } catch (err) {
-            console.log("[cover fetch error]", item.title, err?.message);
-            return { ...item, coverUrl: null };
-          }
-        })).then(itemsWithCovers => {
-          console.log("[covers]", itemsWithCovers.slice(0,5).map(i => ({ title: i.title, coverUrl: i.coverUrl })));
-          setAiItems(itemsWithCovers);
-          if (userId) {
-            supabase.from("ai_rankings")
-              .upsert({ user_id: userId, genre: genreFilter, category: scoreCategory, items: itemsWithCovers, generated_at: new Date().toISOString() }, { onConflict: "user_id,genre,category" })
-              .then(({ error }) => console.log("[ai_rankings save]", error || "ok"));
-          }
-        });
+        // Fetch covers only for unmatched books, in batches of 5 to avoid rate limiting
+        const unmatched = items.filter(item => !findInLibrary(item.title));
+        const itemsWithCovers = items.map(i => ({ ...i }));
+        const BATCH = 5;
+        for (let b = 0; b < unmatched.length; b += BATCH) {
+          await Promise.all(unmatched.slice(b, b + BATCH).map(async item => {
+            try {
+              const q = encodeURIComponent(`${item.title} ${item.author}`);
+              const r = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${q}&maxResults=1&printType=books`);
+              const d = await r.json();
+              const thumb = d.items?.[0]?.volumeInfo?.imageLinks?.thumbnail;
+              const idx = itemsWithCovers.findIndex(x => x.title === item.title && x.author === item.author);
+              if (idx !== -1) itemsWithCovers[idx].coverUrl = thumb ? thumb.replace("http://", "https://").replace("&edge=curl", "") : null;
+            } catch { /* leave coverUrl as-is */ }
+          }));
+          if (b + BATCH < unmatched.length) await new Promise(r => setTimeout(r, 300));
+        }
+        setAiItems([...itemsWithCovers]);
+        if (userId) {
+          supabase.from("ai_rankings")
+            .upsert({ user_id: userId, genre: genreFilter, category: scoreCategory, items: itemsWithCovers, generated_at: new Date().toISOString() }, { onConflict: "user_id,genre,category" })
+            .then(({ error }) => console.log("[ai_rankings save]", error || "ok"));
+        }
       }
     } catch (e) { console.error(e); }
     setGenerating(false);
