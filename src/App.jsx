@@ -2532,7 +2532,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onShelfChange }) 
             genre: genreFilter !== "All" ? genreFilter : "Other",
             shelf: null,
             rating: 0,
-            pages: 0,
+            pages: item.pages || 0,
             coverUrl: item.coverUrl || null,
             description: item.reason || null,
             publishYear: item.publishYear || null,
