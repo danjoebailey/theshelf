@@ -231,7 +231,7 @@ const COVERS = {
 };
 
 // Fixed-size cover: renders fallback at exact w×h, overlays img on top (hides on error)
-function BookCover({ book, width, height, radius=4, shadow="2px 2px 8px rgba(0,0,0,0.3)", bookmark=0 }) {
+function BookCover({ book, width, height, radius=4, shadow="2px 2px 8px rgba(0,0,0,0.3)" }) {
   const srcs = [
     book.coverUrl,
     book.coverId ? `https://covers.openlibrary.org/b/id/${book.coverId}-M.jpg` : null,
@@ -249,21 +249,12 @@ function BookCover({ book, width, height, radius=4, shadow="2px 2px 8px rgba(0,0
   const color = GENRE_COLORS[book.genre] || "#94a3b8";
   const initials = book.title.split(" ").filter(Boolean).slice(0,2).map(w=>w[0]).join("").toUpperCase();
   const advance = () => setSrcIdx(i => i + 1);
-  const tabW = Math.round(width * 0.11);
-  const tabH = Math.round(height * 0.18);
-  const tabTop = bookmark > 0 ? Math.round((1 - bookmark) * (height - tabH)) : -1;
   return (
     <div style={{ width, height, borderRadius:radius, flexShrink:0, position:"relative", background:`linear-gradient(135deg,${color}22,${color}44)`, border:`1px solid ${color}44`, boxShadow:shadow, display:"flex", alignItems:"center", justifyContent:"center" }}>
       <span style={{ color, fontSize:width*0.3, fontFamily:"'Crimson Pro',serif", fontWeight:600 }}>{initials}</span>
       {src && <img src={src} alt={book.title} style={{ position:"absolute", inset:0, width, height, objectFit:"cover", borderRadius:radius, display:"block" }}
         onError={advance}
         onLoad={e=>{ if (e.target.naturalWidth <= 1 || e.target.naturalHeight <= 1) advance(); }} />}
-      {bookmark > 0 && (
-        <svg width={tabW} height={tabH} viewBox={`0 0 ${tabW} ${tabH}`}
-          style={{ position:"absolute", top:tabTop, left:-tabW, zIndex:5 }} fill="none">
-          <path d={`M${tabW},0 L${Math.round(tabW*0.35)},0 L0,${Math.round(tabH/2)} L${Math.round(tabW*0.35)},${tabH} L${tabW},${tabH} Z`} fill="rgba(50,140,80,0.9)" />
-        </svg>
-      )}
     </div>
   );
 }
@@ -415,9 +406,13 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
     onTouchEnd={e=>{ if(!touchMoved.current){ e.preventDefault(); if(menuOpen) setMenuOpen(false); else if(shelfDropOpen) setShelfDropOpen(false); else setExpanded(x=>!x); } }}
     onClick={()=>{ if(menuOpen) setMenuOpen(false); else if(shelfDropOpen) setShelfDropOpen(false); else setExpanded(e=>!e); }}>
       <div style={{ display:"flex", gap:14, alignItems:"stretch" }}>
-        <div style={{ alignSelf:"stretch", flexShrink:0, display:"flex" }}>
-          <BookCover book={book} width={53} height={80} radius={4} shadow="2px 2px 8px rgba(0,0,0,0.35)"
-            bookmark={book.shelf === "Reading" && book.pages > 0 ? Math.min(1, (book.currentPage || 0) / book.pages) : 0} />
+        <div style={{ alignSelf:"stretch", flexShrink:0, display:"flex", position:"relative" }}>
+          <BookCover book={book} width={53} height={80} radius={4} shadow="2px 2px 8px rgba(0,0,0,0.35)" />
+          {book.shelf === "Reading" && book.pages > 0 && (book.currentPage || 0) > 0 && (() => {
+            const prog = Math.min(1, (book.currentPage || 0) / book.pages);
+            const bkH = 5; const bkTop = Math.round((1 - prog) * (80 - bkH));
+            return <div style={{ position:"absolute", right:"100%", width:16, height:bkH, top:bkTop, background:"rgba(50,140,80,0.88)", borderRadius:"2px 0 0 2px" }} />;
+          })()}
         </div>
         <div style={{ flex:1, minWidth:0, display:"flex", flexDirection:"column", justifyContent:"space-between" }}>
           <div>
@@ -848,7 +843,14 @@ function BookRow({ book, index, onEdit, onRemove, onShelfChange, onAdd, onSavePr
     onTouchEnd={e=>{ if(!touchMoved.current){ e.preventDefault(); setExpanded(x=>!x); } }}
     onClick={()=>{ setShelfDropOpen(false); setExpanded(e=>!e); }}>
       <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-        <BookCover book={book} width={29} height={44} radius={3} shadow="1px 1px 5px rgba(0,0,0,0.3)" />
+        <div style={{ position:"relative", flexShrink:0 }}>
+          <BookCover book={book} width={29} height={44} radius={3} shadow="1px 1px 5px rgba(0,0,0,0.3)" />
+          {book.shelf === "Reading" && book.pages > 0 && (book.currentPage || 0) > 0 && (() => {
+            const prog = Math.min(1, (book.currentPage || 0) / book.pages);
+            const bkH = 4; const bkTop = Math.round((1 - prog) * (44 - bkH));
+            return <div style={{ position:"absolute", right:"100%", width:10, height:bkH, top:bkTop, background:"rgba(50,140,80,0.88)", borderRadius:"2px 0 0 2px" }} />;
+          })()}
+        </div>
         <div style={{ flex:1, minWidth:0 }}>
           <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, lineHeight:1.2, whiteSpace:expanded?"normal":"nowrap", overflow:"hidden", textOverflow:"ellipsis", marginBottom:1 }}>{book.title}</p>
           <p style={{ fontSize:11, color:WOOD.textDim, fontStyle:"italic", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{book.author}</p>
@@ -2631,8 +2633,7 @@ function StatsTab({ books }) {
                 const pct = b.pages > 0 && (b.currentPage || 0) > 0 ? Math.min(100, Math.round(((b.currentPage||0) / b.pages) * 100)) : null;
                 return (
                   <div key={b.id} style={{ display:"flex", gap:10, alignItems:"center" }}>
-                    <BookCover book={b} width={32} height={48} radius={3} shadow="1px 1px 4px rgba(0,0,0,0.25)"
-                      bookmark={b.pages > 0 ? Math.min(1, (b.currentPage||0) / b.pages) : 0} />
+                    <BookCover book={b} width={32} height={48} radius={3} shadow="1px 1px 4px rgba(0,0,0,0.25)" />
                     <div style={{ flex:1, minWidth:0 }}>
                       <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:WOOD.text, lineHeight:1.2, marginBottom:2, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{b.title}</p>
                       <p style={{ fontSize:11, color:WOOD.textDim, fontStyle:"italic", marginBottom: pct !== null ? 5 : 0 }}>{b.author}</p>
