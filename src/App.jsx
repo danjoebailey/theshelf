@@ -10,19 +10,6 @@ const GENRE_COLORS = {
 };
 const SHELVES = ["Read", "Reading", "The List", "Curious", "DNF"];
 
-const SAMPLE = [
-  { id:1,  title:"Dune",                          author:"Frank Herbert",        genre:"Sci-Fi",      pages:412, rating:5,   date:"2024-01-15", shelf:"Read" },
-  { id:2,  title:"Educated",                      author:"Tara Westover",        genre:"Biography",   pages:334, rating:4.5, date:"2024-02-03", shelf:"Read" },
-  { id:3,  title:"The Name of the Wind",          author:"Patrick Rothfuss",     genre:"Fantasy",     pages:662, rating:4.5, date:"2024-03-10", shelf:"Read" },
-  { id:4,  title:"Sapiens",                       author:"Yuval Noah Harari",    genre:"History",     pages:443, rating:4,   date:"2024-04-22", shelf:"Read" },
-  { id:5,  title:"Project Hail Mary",             author:"Andy Weir",            genre:"Sci-Fi",      pages:476, rating:5,   date:"2024-05-18", shelf:"Read" },
-  { id:6,  title:"The Great Gatsby",              author:"F. Scott Fitzgerald",  genre:"Fiction",     pages:180, rating:4,   date:"2024-06-02", shelf:"Read" },
-  { id:7,  title:"Atomic Habits",                 author:"James Clear",          genre:"Self-Help",   pages:320, rating:4.5, date:"2024-07-14", shelf:"The List" },
-  { id:8,  title:"The Girl with the Dragon Tattoo", author:"Stieg Larsson",      genre:"Mystery",     pages:672, rating:4,   date:"2024-08-08", shelf:"The List" },
-  { id:9,  title:"A Brief History of Time",       author:"Stephen Hawking",      genre:"Non-Fiction", pages:212, rating:4.5, date:"2024-09-20", shelf:"Curious" },
-  { id:10, title:"The Hobbit",                    author:"J.R.R. Tolkien",       genre:"Fantasy",     pages:310, rating:5,   date:"2024-10-31", shelf:"Curious" },
-];
-
 // Touch-click helper: fires action on touchEnd (no 300ms delay) and onClick (desktop).
 // stopProp=true also stops event propagation (for buttons inside click-to-close containers).
 function tc(action, stopProp = false) {
@@ -124,283 +111,6 @@ function RusticSpine({ book, index, w, h, tilt }) {
   );
 }
 
-// Armored knight bookend — detailed
-function WhiteKing({ flip = false }) {
-  const gid  = flip ? "kgF"  : "kgN";
-  const sgid = flip ? "sgF"  : "sgN";
-  const mgid = flip ? "mgF"  : "mgN";
-  const rgid = flip ? "rgF"  : "rgN";
-  const bgid = flip ? "bgF"  : "bgN";
-  return (
-    <svg width="28" height="72" viewBox="0 0 28 90" style={{ flexShrink:0, transform: flip ? "scaleX(-1)" : "none", filter:"drop-shadow(2px 4px 6px rgba(0,0,0,0.6))" }}>
-      <defs>
-        {/* polished steel */}
-        <linearGradient id={gid} x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%"   stopColor="#2e3340"/>
-          <stop offset="20%"  stopColor="#6a7280"/>
-          <stop offset="45%"  stopColor="#c0c8d4"/>
-          <stop offset="60%"  stopColor="#e8edf5"/>
-          <stop offset="75%"  stopColor="#8890a0"/>
-          <stop offset="100%" stopColor="#252a32"/>
-        </linearGradient>
-        {/* dark steel for shadows */}
-        <linearGradient id={sgid} x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%"   stopColor="#1a1e25"/>
-          <stop offset="40%"  stopColor="#4a5060"/>
-          <stop offset="100%" stopColor="#1a1e25"/>
-        </linearGradient>
-        {/* gold trim */}
-        <linearGradient id={mgid} x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%"   stopColor="#6a4e10"/>
-          <stop offset="30%"  stopColor="#d4a020"/>
-          <stop offset="55%"  stopColor="#f8e060"/>
-          <stop offset="80%"  stopColor="#d4a020"/>
-          <stop offset="100%" stopColor="#6a4e10"/>
-        </linearGradient>
-        {/* red cape */}
-        <linearGradient id={rgid} x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%"   stopColor="#6a0808"/>
-          <stop offset="40%"  stopColor="#c01818"/>
-          <stop offset="100%" stopColor="#4a0606"/>
-        </linearGradient>
-        {/* shield face */}
-        <linearGradient id={bgid} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%"   stopColor="#1a2040"/>
-          <stop offset="100%" stopColor="#0a1028"/>
-        </linearGradient>
-      </defs>
-
-      {/* ═══ PLINTH / BASE ═══ */}
-      <rect x="0"   y="80" width="28" height="10" rx="2" fill={`url(#${sgid})`}/>
-      <rect x="0"   y="80" width="28" height="1.2" rx="0.6" fill={`url(#${mgid})`}/>
-      <rect x="0"   y="88.5" width="28" height="1.2" rx="0.6" fill={`url(#${mgid})`}/>
-      {/* plinth fluting */}
-      {[3,7,11,15,19,23].map(x => (
-        <line key={x} x1={x} y1="81.5" x2={x} y2="88" stroke="rgba(255,255,255,0.07)" strokeWidth="0.6"/>
-      ))}
-      <rect x="2"   y="76" width="24" height="5"  rx="1" fill={`url(#${gid})`}/>
-      <rect x="2"   y="76" width="24" height="0.8" fill={`url(#${mgid})`}/>
-      <rect x="2"   y="80.2" width="24" height="0.8" fill={`url(#${mgid})`}/>
-      <rect x="4"   y="73" width="20" height="4"  rx="0.8" fill={`url(#${sgid})`}/>
-      <rect x="4"   y="73" width="20" height="0.8" fill={`url(#${mgid})`}/>
-
-      {/* ═══ SABATONS / ARMORED BOOTS ═══ */}
-      <path d="M5 73 L5 66 Q5 64 7 64 L9 64 Q11 64 11 66 L11 73 Z" fill={`url(#${gid})`}/>
-      <path d="M4 71 L12 71" stroke={`url(#${mgid})`} strokeWidth="0.6"/>
-      <path d="M4.5 68 L11.5 68" stroke="rgba(255,255,255,0.1)" strokeWidth="0.4"/>
-      {/* toe cap */}
-      <ellipse cx="7.5" cy="64.5" rx="3" ry="1.2" fill={`url(#${sgid})`}/>
-      <ellipse cx="7.5" cy="64.2" rx="2" ry="0.6" fill="rgba(255,255,255,0.15)"/>
-
-      <path d="M17 73 L17 66 Q17 64 19 64 L21 64 Q23 64 23 66 L23 73 Z" fill={`url(#${gid})`}/>
-      <path d="M16 71 L24 71" stroke={`url(#${mgid})`} strokeWidth="0.6"/>
-      <ellipse cx="20" cy="64.5" rx="3" ry="1.2" fill={`url(#${sgid})`}/>
-      <ellipse cx="20" cy="64.2" rx="2" ry="0.6" fill="rgba(255,255,255,0.15)"/>
-
-      {/* ═══ GREAVES / LOWER LEGS ═══ */}
-      <path d="M5 64 L5 54 Q5 52 7 52 L9 52 Q11 52 11 54 L11 64 Z" fill={`url(#${gid})`}/>
-      {/* articulation lines */}
-      <path d="M5 61 L11 61" stroke={`url(#${mgid})`} strokeWidth="0.5"/>
-      <path d="M5 57 L11 57" stroke={`url(#${mgid})`} strokeWidth="0.5"/>
-      <path d="M5.5 59 L10.5 59" stroke="rgba(255,255,255,0.08)" strokeWidth="0.4"/>
-      {/* shin highlight */}
-      <path d="M7 53 L7 63" stroke="rgba(255,255,255,0.18)" strokeWidth="0.7"/>
-
-      <path d="M17 64 L17 54 Q17 52 19 52 L21 52 Q23 52 23 54 L23 64 Z" fill={`url(#${gid})`}/>
-      <path d="M17 61 L23 61" stroke={`url(#${mgid})`} strokeWidth="0.5"/>
-      <path d="M17 57 L23 57" stroke={`url(#${mgid})`} strokeWidth="0.5"/>
-      <path d="M19 53 L19 63" stroke="rgba(255,255,255,0.18)" strokeWidth="0.7"/>
-
-      {/* ═══ POLEYNS / KNEE CAPS ═══ */}
-      <ellipse cx="8"  cy="54" rx="3.5" ry="2.2" fill={`url(#${gid})`}/>
-      <ellipse cx="8"  cy="54" rx="2" ry="1.2" fill="rgba(255,255,255,0.12)"/>
-      <path d="M4.5 54 Q8 56.5 11.5 54" stroke={`url(#${mgid})`} strokeWidth="0.6" fill="none"/>
-      <ellipse cx="20" cy="54" rx="3.5" ry="2.2" fill={`url(#${gid})`}/>
-      <ellipse cx="20" cy="54" rx="2" ry="1.2" fill="rgba(255,255,255,0.12)"/>
-      <path d="M16.5 54 Q20 56.5 23.5 54" stroke={`url(#${mgid})`} strokeWidth="0.6" fill="none"/>
-
-      {/* ═══ CUISSES / UPPER LEGS ═══ */}
-      <path d="M5 54 L5 44 Q5.5 41 8 41 L10 41 Q12 41 11 44 L11 54 Z" fill={`url(#${gid})`}/>
-      <path d="M5.5 50 L10.5 50" stroke="rgba(255,255,255,0.1)" strokeWidth="0.4"/>
-      <path d="M6 47 L10 47"   stroke="rgba(255,255,255,0.08)" strokeWidth="0.4"/>
-      <path d="M6.5 52 L10.5 52" stroke={`url(#${mgid})`} strokeWidth="0.4"/>
-
-      <path d="M17 54 L17 44 Q17 41 20 41 L22 41 Q24.5 41 23 44 L23 54 Z" fill={`url(#${gid})`}/>
-      <path d="M17.5 50 L22.5 50" stroke="rgba(255,255,255,0.1)" strokeWidth="0.4"/>
-      <path d="M17.5 52 L22.5 52" stroke={`url(#${mgid})`} strokeWidth="0.4"/>
-
-      {/* ═══ FAULD / HIP TASSETS ═══ */}
-      <path d="M4 44 Q3.5 40 5 38 L23 38 Q24.5 40 24 44 Z" fill={`url(#${gid})`}/>
-      {/* tasset articulation plates */}
-      <path d="M4.5 40 L23.5 40" stroke={`url(#${mgid})`} strokeWidth="0.6"/>
-      <path d="M4 43 L12 43"    stroke={`url(#${mgid})`} strokeWidth="0.5"/>
-      <path d="M16 43 L24 43"   stroke={`url(#${mgid})`} strokeWidth="0.5"/>
-      <line x1="14" y1="38" x2="14" y2="44" stroke={`url(#${mgid})`} strokeWidth="0.5"/>
-
-      {/* ═══ BREASTPLATE ═══ */}
-      <path d="M5 38 Q4 30 5 22 Q8 18 14 18 Q20 18 23 22 Q24 30 23 38 Z" fill={`url(#${gid})`}/>
-      {/* breastplate centre ridge / keel */}
-      <path d="M14 19 L14 37" stroke="rgba(255,255,255,0.2)" strokeWidth="1.2"/>
-      <path d="M14 19 L14 37" stroke="rgba(0,0,0,0.15)" strokeWidth="0.4"/>
-      {/* breast muscle curves */}
-      <path d="M7 27 Q10.5 29.5 14 27" stroke="rgba(0,0,0,0.2)"  strokeWidth="0.7" fill="none"/>
-      <path d="M14 27 Q17.5 29.5 21 27" stroke="rgba(0,0,0,0.15)" strokeWidth="0.7" fill="none"/>
-      <path d="M7.5 31 Q10.5 33 14 31"  stroke="rgba(0,0,0,0.12)" strokeWidth="0.5" fill="none"/>
-      <path d="M14 31 Q17.5 33 20.5 31" stroke="rgba(0,0,0,0.12)" strokeWidth="0.5" fill="none"/>
-      {/* upper chest highlight */}
-      <path d="M10 21 Q14 20 18 21" stroke="rgba(255,255,255,0.18)" strokeWidth="0.8" fill="none"/>
-      {/* gold breastplate border */}
-      <path d="M5 38 Q4 30 5 22 Q8 18 14 18 Q20 18 23 22 Q24 30 23 38" stroke={`url(#${mgid})`} strokeWidth="1" fill="none"/>
-      {/* belt */}
-      <rect x="4.5" y="36" width="19" height="2.5" rx="0.8" fill={`url(#${sgid})`}/>
-      <rect x="4.5" y="36" width="19" height="0.6" fill={`url(#${mgid})`}/>
-      <rect x="4.5" y="38" width="19" height="0.6" fill={`url(#${mgid})`}/>
-      {/* belt buckle */}
-      <rect x="11.5" y="35.5" width="5" height="3.5" rx="0.8" fill={`url(#${mgid})`}/>
-      <rect x="12.5" y="36.5" width="3" height="1.5" rx="0.4" fill="#1a1e25"/>
-      {/* buckle prong */}
-      <line x1="14" y1="36.5" x2="14" y2="38" stroke={`url(#${mgid})`} strokeWidth="0.5"/>
-
-      {/* ═══ CAPE / SURCOAT ═══ */}
-      <path d="M5 38 Q2 50 3 65 Q4 67 5.5 67 Q6 55 8 42 Z" fill={`url(#${rgid})`}/>
-      <path d="M23 38 Q26 50 25 65 Q24 67 22.5 67 Q22 55 20 42 Z" fill={`url(#${rgid})`}/>
-      {/* cape folds */}
-      <path d="M5.5 42 Q4 52 4.5 62" stroke="rgba(0,0,0,0.2)" strokeWidth="0.5" fill="none"/>
-      <path d="M22.5 42 Q24 52 23.5 62" stroke="rgba(0,0,0,0.2)" strokeWidth="0.5" fill="none"/>
-
-      {/* ═══ PAULDRONS / SHOULDER ARMOUR ═══ */}
-      {/* left pauldron — multi-plate */}
-      <path d="M2 26 Q0 28 1 35 L5 35 Q5 29 5 26 Z" fill={`url(#${gid})`}/>
-      <path d="M2 26 Q0 22 3 20 Q6 19 7 22 Q6 25 5 26 Z" fill={`url(#${gid})`}/>
-      <path d="M2 26 Q0 22 3 20 Q6 19 7 22" stroke={`url(#${mgid})`} strokeWidth="0.7" fill="none"/>
-      <path d="M1 29 Q0 31 1.5 33" stroke={`url(#${mgid})`} strokeWidth="0.5" fill="none"/>
-      <path d="M2 26 L5 26" stroke={`url(#${mgid})`} strokeWidth="0.6"/>
-      <path d="M1.5 30 L5 30" stroke="rgba(255,255,255,0.1)" strokeWidth="0.4"/>
-      {/* right pauldron */}
-      <path d="M26 26 Q28 28 27 35 L23 35 Q23 29 23 26 Z" fill={`url(#${gid})`}/>
-      <path d="M26 26 Q28 22 25 20 Q22 19 21 22 Q22 25 23 26 Z" fill={`url(#${gid})`}/>
-      <path d="M26 26 Q28 22 25 20 Q22 19 21 22" stroke={`url(#${mgid})`} strokeWidth="0.7" fill="none"/>
-      <path d="M27 29 Q28 31 26.5 33" stroke={`url(#${mgid})`} strokeWidth="0.5" fill="none"/>
-      <path d="M26.5 30 L23 30" stroke="rgba(255,255,255,0.1)" strokeWidth="0.4"/>
-
-      {/* ═══ VAMBRACES / ARMS ═══ */}
-      {/* left arm (shield side) */}
-      <path d="M2 35 Q0 40 1 50 Q2 52 4 51 Q4.5 43 5 35 Z" fill={`url(#${gid})`}/>
-      <path d="M1.5 42 Q1 46 2 49" stroke={`url(#${mgid})`} strokeWidth="0.5" fill="none"/>
-      {/* right arm (sword side) */}
-      <path d="M26 35 Q28 40 27 50 Q26 52 24 51 Q23.5 43 23 35 Z" fill={`url(#${gid})`}/>
-      <path d="M26.5 42 Q27 46 26 49" stroke={`url(#${mgid})`} strokeWidth="0.5" fill="none"/>
-
-      {/* ═══ GAUNTLETS ═══ */}
-      {/* left gauntlet */}
-      <rect x="0.5" y="49" width="4" height="6" rx="0.8" fill={`url(#${gid})`}/>
-      <rect x="0.5" y="49" width="4" height="0.7" fill={`url(#${mgid})`}/>
-      <rect x="0.5" y="52" width="4" height="0.5" fill={`url(#${mgid})`}/>
-      {/* fingers */}
-      <rect x="1"   y="54.5" width="3" height="1.2" rx="0.4" fill={`url(#${sgid})`}/>
-      <rect x="0.8" y="55.5" width="3.4" height="1" rx="0.4" fill={`url(#${gid})`}/>
-      {/* right gauntlet */}
-      <rect x="23.5" y="49" width="4" height="6" rx="0.8" fill={`url(#${gid})`}/>
-      <rect x="23.5" y="49" width="4" height="0.7" fill={`url(#${mgid})`}/>
-      <rect x="23.5" y="52" width="4" height="0.5" fill={`url(#${mgid})`}/>
-      <rect x="24"   y="54.5" width="3" height="1.2" rx="0.4" fill={`url(#${sgid})`}/>
-      <rect x="23.8" y="55.5" width="3.4" height="1" rx="0.4" fill={`url(#${gid})`}/>
-
-      {/* ═══ SWORD (right side) ═══ */}
-      {/* blade */}
-      <path d="M26.5 4 L27.8 4 L27.2 55 Z" fill="#c0c8d4"/>
-      <path d="M26.5 4 L27.2 4 L27.2 55" fill="rgba(255,255,255,0.3)"/>
-      {/* fuller / blood groove */}
-      <line x1="27.2" y1="8" x2="27.2" y2="50" stroke="rgba(0,0,0,0.2)" strokeWidth="0.3"/>
-      {/* crossguard */}
-      <rect x="23.5" y="47" width="8" height="2" rx="0.8" fill={`url(#${mgid})`}/>
-      <ellipse cx="23.5" cy="48" rx="1" ry="0.7" fill="#f8e060"/>
-      <ellipse cx="31.5" cy="48" rx="1" ry="0.7" fill="#f8e060"/>
-      {/* grip */}
-      <rect x="26.2" y="49" width="2" height="7" rx="0.7" fill="#3a2010"/>
-      {/* grip wrapping */}
-      {[50,51.5,53,54.5].map(y => (
-        <line key={y} x1="26.2" y1={y} x2="28.2" y2={y} stroke={`url(#${mgid})`} strokeWidth="0.4"/>
-      ))}
-      {/* pommel */}
-      <ellipse cx="27.2" cy="56.5" rx="2" ry="1.5" fill={`url(#${mgid})`}/>
-      <circle  cx="27.2" cy="56.5" r="0.8" fill="#f8e060"/>
-      {/* sword tip */}
-      <path d="M26.5 4 L27.8 4 L27.2 0 Z" fill="#8890a0"/>
-
-      {/* ═══ SHIELD (left side) ═══ */}
-      {/* shield body — heater shape */}
-      <path d="M-2 20 L6 20 L6 38 Q2 46 -2 38 Z" fill={`url(#${bgid})`}/>
-      <path d="M-2 20 L6 20 L6 38 Q2 46 -2 38 Z" stroke={`url(#${mgid})`} strokeWidth="1.2" fill="none"/>
-      {/* shield inner border */}
-      <path d="M-1.2 21 L5.2 21 L5.2 37.5 Q2 44.5 -1.2 37.5 Z" stroke="rgba(255,255,255,0.08)" strokeWidth="0.5" fill="none"/>
-      {/* heraldic cross */}
-      <line x1="2"  y1="22" x2="2"  y2="44" stroke={`url(#${mgid})`} strokeWidth="1.2"/>
-      <line x1="-2" y1="31" x2="6"  y2="31" stroke={`url(#${mgid})`} strokeWidth="1.2"/>
-      {/* quadrant colors */}
-      <path d="M2 22 L5 22 L5 31 L2 31 Z" fill="rgba(180,20,20,0.35)"/>
-      <path d="M-1 31 L2 31 L2 40 L-1 40 Z" fill="rgba(180,20,20,0.35)"/>
-      {/* shield boss */}
-      <circle cx="2" cy="31" r="2.5" fill={`url(#${mgid})`}/>
-      <circle cx="2" cy="31" r="1.2" fill="#f8e060"/>
-      <circle cx="2" cy="31" r="0.5" fill="#2a1a00"/>
-
-      {/* ═══ GORGET / NECK ═══ */}
-      <path d="M8 19 Q14 17 20 19 L20 22 Q14 21 8 22 Z" fill={`url(#${sgid})`}/>
-      <path d="M8 19 Q14 17.5 20 19" stroke={`url(#${mgid})`} strokeWidth="0.8" fill="none"/>
-      <path d="M8 22 Q14 22.5 20 22" stroke={`url(#${mgid})`} strokeWidth="0.6" fill="none"/>
-
-      {/* ═══ GREAT HELM ═══ */}
-      {/* helm dome */}
-      <path d="M6.5 18 Q6 10 14 8 Q22 10 21.5 18 L20 22 Q14 23.5 8 22 Z" fill={`url(#${gid})`}/>
-      {/* dome highlight */}
-      <ellipse cx="11.5" cy="12.5" rx="3" ry="2.5" fill="rgba(255,255,255,0.13)"/>
-      <ellipse cx="10.5" cy="11.5" rx="1.5" ry="1"   fill="rgba(255,255,255,0.1)"/>
-      {/* helm rivets */}
-      {[[9,10],[14,10],[19,13],[8,16],[20,16]].map(([x,y]) => (
-        <circle key={`${x}${y}`} cx={x} cy={y} r="0.5" fill="rgba(255,255,255,0.2)"/>
-      ))}
-      {/* T-visor — top bar */}
-      <path d="M7.5 18 Q14 19.5 20.5 18" stroke="rgba(0,0,0,0.7)" strokeWidth="1.5" fill="none"/>
-      {/* T-visor — vertical bar */}
-      <line x1="14" y1="17" x2="14" y2="22.5" stroke="rgba(0,0,0,0.6)" strokeWidth="1.2"/>
-      {/* visor eye slits */}
-      <path d="M8 18 Q11 18.8 14 18" stroke="rgba(0,0,0,0.4)" strokeWidth="0.6" fill="none"/>
-      <path d="M14 18 Q17 18.8 20.5 18" stroke="rgba(0,0,0,0.4)" strokeWidth="0.6" fill="none"/>
-      {/* breathing holes */}
-      {[10,11.5,13].map(x => (
-        <circle key={x} cx={x} cy="20.5" r="0.35" fill="rgba(0,0,0,0.5)"/>
-      ))}
-      {[15,16.5,18].map(x => (
-        <circle key={x} cx={x} cy="20.5" r="0.35" fill="rgba(0,0,0,0.5)"/>
-      ))}
-      {/* helm gold trim */}
-      <path d="M6.5 18 Q6 10 14 8 Q22 10 21.5 18" stroke={`url(#${mgid})`} strokeWidth="1.2" fill="none"/>
-      <path d="M8 22 Q14 23.5 20 22" stroke={`url(#${mgid})`} strokeWidth="0.8" fill="none"/>
-      {/* helm base band */}
-      <rect x="7" y="21.5" width="14" height="1.2" rx="0.5" fill={`url(#${mgid})`}/>
-
-      {/* ═══ PLUME / CREST ═══ */}
-      {/* crest holder */}
-      <rect x="12.5" y="7" width="3" height="2" rx="0.5" fill={`url(#${mgid})`}/>
-      {/* main plume — thick flowing feathers */}
-      <path d="M14 7 Q11 0 9  -3" stroke="#9a0a0a" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
-      <path d="M14 7 Q12 1 11 -2" stroke="#cc1010" strokeWidth="2"   fill="none" strokeLinecap="round"/>
-      <path d="M14 7 Q13 2 13 -1" stroke="#e82020" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
-      <path d="M14 7 Q15 2 15 -1" stroke="#e82020" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
-      <path d="M14 7 Q16 1 17 -2" stroke="#cc1010" strokeWidth="2"   fill="none" strokeLinecap="round"/>
-      <path d="M14 7 Q17 0 19 -3" stroke="#9a0a0a" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
-      {/* plume tips */}
-      <circle cx="9"  cy="-3" r="0.8" fill="#cc1010"/>
-      <circle cx="11" cy="-2" r="0.6" fill="#e02020"/>
-      <circle cx="13" cy="-1" r="0.5" fill="#f03030"/>
-      <circle cx="15" cy="-1" r="0.5" fill="#f03030"/>
-      <circle cx="17" cy="-2" r="0.6" fill="#e02020"/>
-      <circle cx="19" cy="-3" r="0.8" fill="#cc1010"/>
-    </svg>
-  );
-}
-
 function DecorativeShelf({ books }) {
   const shelfH = 72;
   const ledgeH = 10;
@@ -474,16 +184,6 @@ function WoodBg() {
       </radialGradient>
       <rect width="100%" height="100%" fill="url(#vignette)"/>
     </svg>
-  );
-}
-
-// Shelf ledge rendered below certain sections
-function ShelfLedge({ bottom }) {
-  return (
-    <div style={{ position:"absolute", left:0, right:0, bottom, height:14, zIndex:5, pointerEvents:"none" }}>
-      <div style={{ height:10, background:"linear-gradient(180deg, #d4a060 0%, #b07840 60%, #8a5a28 100%)", boxShadow:"0 4px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,220,140,0.3)" }}/>
-      <div style={{ height:4, background:"linear-gradient(180deg, rgba(0,0,0,0.5), transparent)" }}/>
-    </div>
   );
 }
 
@@ -602,116 +302,6 @@ const DESCRIPTIONS = {
 };
 
 const ASPECTS = ["Prose", "Plot", "Characters", "Dialogue", "Pacing", "World-building", "Ending"];
-
-function BookDetailModal({ book, onClose, onEdit, onRemove }) {
-  const [liked, setLiked] = useState([]);
-  const [disliked, setDisliked] = useState([]);
-  const desc = book.description || DESCRIPTIONS[book.title] || "";
-  const shelf = book.shelf || "Read";
-  const isRated = !["The List", "Curious", "Reading"].includes(shelf);
-
-  function toggleAspect(aspect, list, setList, otherList, setOtherList) {
-    if (list.includes(aspect)) setList(list.filter(a => a !== aspect));
-    else { setOtherList(otherList.filter(a => a !== aspect)); setList([...list, aspect]); }
-  }
-
-  const SHELF_STYLE = {
-    "Read":     { bg:"rgba(138,90,40,0.18)", color:WOOD.textDim },
-    "Reading":  { bg:"rgba(60,120,80,0.15)", color:"#3a7a50" },
-    "The List": { bg:"rgba(138,90,40,0.18)", color:WOOD.textDim },
-    "Curious":  { bg:"rgba(200,144,90,0.15)", color:WOOD.amber },
-    "DNF":      { bg:"rgba(160,50,50,0.12)", color:"#a03232" },
-  };
-  const ss = SHELF_STYLE[shelf] || SHELF_STYLE["Read"];
-
-  return (
-    <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.72)", zIndex:50, display:"flex", flexDirection:"column", justifyContent:"flex-end", animation:"fadeIn 0.15s ease" }}
-      onClick={onClose}>
-      <div onClick={e=>e.stopPropagation()} style={{
-        background:"#fdf6ec",
-        borderRadius:"22px 22px 0 0",
-        maxHeight:"88%",
-        display:"flex",
-        flexDirection:"column",
-        animation:"slideUp 0.28s cubic-bezier(0.34,1.56,0.64,1)",
-        overflow:"hidden",
-        boxShadow:"0 -8px 40px rgba(0,0,0,0.3)",
-      }}>
-        {/* drag handle */}
-        <div style={{ display:"flex", justifyContent:"center", padding:"14px 0 0" }}>
-          <div style={{ width:36, height:4, background:"rgba(0,0,0,0.12)", borderRadius:2 }}/>
-        </div>
-
-        {/* close */}
-        <div style={{ display:"flex", justifyContent:"flex-end", padding:"8px 16px 0" }}>
-          <button onClick={onClose} style={{ background:"rgba(0,0,0,0.07)", border:"none", borderRadius:"50%", width:30, height:30, cursor:"pointer", fontSize:14, display:"flex", alignItems:"center", justifyContent:"center", color:"#555" }}>✕</button>
-        </div>
-
-        {/* scrollable body */}
-        <div style={{ overflowY:"auto", padding:"4px 20px 28px", flex:1 }}>
-
-          {/* cover + meta */}
-          <div style={{ display:"flex", gap:16, alignItems:"flex-start", marginBottom:20 }}>
-            <div style={{ flexShrink:0 }}>
-              {(book.coverUrl || book.coverId)
-                ? <img
-                    src={book.coverUrl || `https://covers.openlibrary.org/b/id/${book.coverId}-M.jpg`}
-                    alt={book.title}
-                    style={{ width:80, height:120, objectFit:"cover", borderRadius:8, boxShadow:"0 6px 20px rgba(0,0,0,0.22)", display:"block" }}/>
-                : <BookSpine title={book.title} genre={book.genre} size={80}/>
-              }
-            </div>
-            <div style={{ flex:1, minWidth:0, paddingTop:2 }}>
-              <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:22, lineHeight:1.2, color:"#1a0900", marginBottom:4 }}>{book.title}</p>
-              <p style={{ fontSize:13, color:WOOD.textDim, fontStyle:"italic", marginBottom:10 }}>{book.author}</p>
-              <div style={{ display:"flex", gap:6, flexWrap:"wrap", alignItems:"center", marginBottom:8 }}>
-                <span style={{ background:GENRE_COLORS[book.genre]||GENRE_COLORS["Other"], color:"#fff", borderRadius:20, padding:"3px 10px", fontSize:10, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.07em" }}>{book.genre}</span>
-                <span style={{ background:ss.bg, color:ss.color, borderRadius:20, padding:"3px 10px", fontSize:10, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.07em", border:`1px solid ${ss.bg}` }}>{shelf}</span>
-              </div>
-              {book.pages > 0 && <p style={{ fontSize:12, color:WOOD.textFaint, marginBottom:6 }}>{book.pages.toLocaleString()} pages</p>}
-              {isRated && <StarRating value={book.rating} readonly size={20}/>}
-            </div>
-          </div>
-
-          {/* description */}
-          {desc && (
-            <div style={{ background:"rgba(138,90,40,0.06)", borderRadius:12, padding:"14px 16px", marginBottom:18, borderLeft:"3px solid rgba(138,90,40,0.22)" }}>
-              <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:"#2a1608", lineHeight:1.72, fontStyle:"italic", margin:0 }}>{desc}</p>
-            </div>
-          )}
-
-          {/* liked / disliked */}
-          {isRated && (
-            <div style={{ display:"flex", flexDirection:"column", gap:14, marginBottom:22 }}>
-              <div>
-                <p style={{ fontSize:10, fontWeight:700, color:"#4a7a5a", textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:8, fontFamily:"'DM Sans',sans-serif" }}>👍 Liked</p>
-                <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
-                  {ASPECTS.map(a => { const on=liked.includes(a); return (
-                    <button key={a} onClick={()=>toggleAspect(a,liked,setLiked,disliked,setDisliked)} style={{ padding:"5px 12px", borderRadius:20, fontSize:12, fontFamily:"'DM Sans',sans-serif", fontWeight:600, cursor:"pointer", background:on?"#4a7a5a":"rgba(74,122,90,0.1)", color:on?"#fff":"#4a7a5a", border:`1px solid ${on?"#4a7a5a":"rgba(74,122,90,0.35)"}` }}>{a}</button>
-                  ); })}
-                </div>
-              </div>
-              <div>
-                <p style={{ fontSize:10, fontWeight:700, color:"#8a4a4a", textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:8, fontFamily:"'DM Sans',sans-serif" }}>👎 Disliked</p>
-                <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
-                  {ASPECTS.map(a => { const on=disliked.includes(a); return (
-                    <button key={a} onClick={()=>toggleAspect(a,disliked,setDisliked,liked,setLiked)} style={{ padding:"5px 12px", borderRadius:20, fontSize:12, fontFamily:"'DM Sans',sans-serif", fontWeight:600, cursor:"pointer", background:on?"#8a4a4a":"rgba(138,74,74,0.1)", color:on?"#fff":"#8a4a4a", border:`1px solid ${on?"#8a4a4a":"rgba(138,74,74,0.35)"}` }}>{a}</button>
-                  ); })}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* actions */}
-          <div style={{ display:"flex", gap:8 }}>
-            <button onClick={()=>{ onEdit(book); onClose(); }} style={{ flex:1, padding:"12px", borderRadius:10, cursor:"pointer", background:"rgba(138,90,40,0.1)", border:"1px solid rgba(138,90,40,0.2)", fontFamily:"'DM Sans',sans-serif", fontSize:14, fontWeight:600, color:WOOD.text }}>Edit</button>
-            <button onClick={()=>{ onRemove(book.id); onClose(); }} style={{ padding:"12px 18px", borderRadius:10, cursor:"pointer", background:"rgba(192,57,43,0.07)", border:"1px solid rgba(192,57,43,0.18)", fontFamily:"'DM Sans',sans-serif", fontSize:14, fontWeight:600, color:"#c0392b" }}>Remove</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPicker, onSaveScores, onSaveDescription, onAdd, forceProse }) {
   const [expanded, setExpanded] = useState(false);
@@ -885,7 +475,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
           {[
           { label:"Edit",   action:()=>{ setMenuOpen(false); onEdit(book); } },
             { label:"Remove", action:()=>{ setMenuOpen(false); onRemove(book.id); } },
-          ].map(({ label, icon, action }) => (
+          ].map(({ label, action }) => (
             <button key={label} {...tc(action, true)} style={{
               display:"flex", alignItems:"center", gap:8,
               width:"100%", padding:"11px 14px",
@@ -1778,8 +1368,6 @@ function BookCoverThumb({ book: b }) {
   );
 }
 
-const WB_GENRES = new Set(["Fantasy", "Sci-Fi", "Fiction", "Horror", "Young Adult", "Historical Fiction"]);
-
 function RecCard({ rec, coverUrl, ownedBook, onAddDirect, index }) {
   const [dropOpen, setDropOpen] = useState(false);
   const [prose, setProse] = useState(null);
@@ -2001,7 +1589,7 @@ function ReikoTab({ books, userId, onAddDirect }) {
   const activeFilterCount = [filterShelf, filterGenres.length > 0 ? true : null, filterRating, filterYear].filter(Boolean).length;
 
   function toggleBook(id) {
-    setSelected(s => s.includes(id) ? s.filter(x => x !== id) : s.length < 6 ? [...s, id] : s);
+    setSelected(s => s.includes(id) ? s.filter(x => x !== id) : s.length < 10 ? [...s, id] : s);
   }
 
   async function getRecommendations() {
@@ -2234,12 +1822,6 @@ const SCORE_CATEGORIES = [
   { key:"ending",       label:"Ending" },
 ];
 
-function avgScore(scores) {
-  if (!scores) return null;
-  const vals = Object.values(scores).filter(v => typeof v === "number");
-  return vals.length ? vals.reduce((s, v) => s + v, 0) / vals.length : null;
-}
-
 function RankingsTab({ books, onSaveScores, userId, onAddBook, onShelfChange }) {
   const [mode, setMode] = useState("user");
   const [genreFilter, setGenreFilter] = useState("All");
@@ -2264,12 +1846,6 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onShelfChange }) 
   }, [readBooks]);
 
   const availableGenres = mode === "ai" ? ["All", ...GENRES.filter(g => g !== "Other")] : userGenres;
-
-  const filteredBooks = useMemo(() => {
-    let f = readBooks;
-    if (genreFilter !== "All") f = f.filter(b => b.genre === genreFilter);
-    return f;
-  }, [readBooks, genreFilter]);
 
   // Default global order: all read books sorted by rating desc
   const defaultAllOrderIds = useMemo(() =>
@@ -2392,13 +1968,6 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onShelfChange }) 
       if (k.length > 4 && (k.startsWith(key) || key.startsWith(k))) return b;
     }
     return null;
-  }
-
-  function shelfBadge(book) {
-    if (!book) return null;
-    const shelf = book.shelf || "Read";
-    const map = { "Read": "#4caf84", "Reading": "#5ba3e0", "The List": WOOD.amber, "Curious": "rgba(255,235,195,0.55)" };
-    return { label: shelf, color: map[shelf] || "rgba(255,235,195,0.45)" };
   }
 
   const rankBadgeStyle = (i) => ({
@@ -2955,7 +2524,7 @@ function StatsTab({ books }) {
           { label:"Pages Turned", value:stats.totalPages.toLocaleString(), emoji:"📄" },
           { label:"Avg Rating", value:stats.avgRating ? stats.avgRating.toFixed(2)+" ★" : "—", emoji:"⭐" },
           { label:"Genres", value:Object.keys(stats.genreMap).length, emoji:"🏷️" },
-        ].map(({ label,value,emoji })=>(
+        ].map(({ label,value })=>(
           <div key={label} style={{ ...card, padding:"8px 12px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
             <div style={{ fontSize:10, color:WOOD.textFaint, textTransform:"uppercase", letterSpacing:"0.1em" }}>{label}</div>
             <div style={{ fontFamily:"'Crimson Pro',serif", fontSize:20, fontWeight:400, color:WOOD.text, lineHeight:1 }}>{value}</div>
