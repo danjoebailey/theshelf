@@ -513,7 +513,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
 
 
       {expanded && (
-        <div style={{ marginTop:10, paddingTop:10, borderTop:"1px solid rgba(138,90,40,0.25)" }} onClick={e=>e.stopPropagation()}>
+        <div style={{ marginTop:10, paddingTop:10, borderTop:"1px solid rgba(138,90,40,0.25)" }} onClick={e=>e.stopPropagation()} onTouchEnd={e=>e.stopPropagation()}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
             {(book.publishYear || book.pages>0) && (
             <p style={{ color:WOOD.textFaint, fontSize:10, marginBottom:6, fontFamily:"'DM Sans',sans-serif" }}>
