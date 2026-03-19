@@ -249,9 +249,9 @@ function BookCover({ book, width, height, radius=4, shadow="2px 2px 8px rgba(0,0
   const color = GENRE_COLORS[book.genre] || "#94a3b8";
   const initials = book.title.split(" ").filter(Boolean).slice(0,2).map(w=>w[0]).join("").toUpperCase();
   const advance = () => setSrcIdx(i => i + 1);
-  const tabW = Math.round(width * 0.16);
-  const tabH = Math.round(height * 0.18);
-  const tabLeft = bookmark > 0 ? Math.min(width - tabW, Math.round(bookmark * (width - tabW))) : -1;
+  const tabW = Math.round(width * 0.18);
+  const tabH = Math.round(height * 0.22);
+  const tabTop = bookmark > 0 ? Math.round((1 - bookmark) * (height - tabH)) : -1;
   return (
     <div style={{ width, height, borderRadius:radius, flexShrink:0, position:"relative", background:`linear-gradient(135deg,${color}22,${color}44)`, border:`1px solid ${color}44`, boxShadow:shadow, display:"flex", alignItems:"center", justifyContent:"center" }}>
       <span style={{ color, fontSize:width*0.3, fontFamily:"'Crimson Pro',serif", fontWeight:600 }}>{initials}</span>
@@ -260,8 +260,8 @@ function BookCover({ book, width, height, radius=4, shadow="2px 2px 8px rgba(0,0
         onLoad={e=>{ if (e.target.naturalWidth <= 1 || e.target.naturalHeight <= 1) advance(); }} />}
       {bookmark > 0 && (
         <svg width={tabW} height={tabH} viewBox={`0 0 ${tabW} ${tabH}`}
-          style={{ position:"absolute", top:-tabH, left:tabLeft, zIndex:5 }} fill="none">
-          <path d={`M0,0 L${tabW},0 L${tabW},${tabH} L${tabW/2},${tabH-Math.round(tabH*0.3)} L0,${tabH} Z`} fill="rgba(215,105,30,0.93)" />
+          style={{ position:"absolute", top:tabTop, right:-tabW, zIndex:5 }} fill="none">
+          <path d={`M0,0 L${Math.round(tabW*0.65)},0 L${tabW},${Math.round(tabH/2)} L${Math.round(tabW*0.65)},${tabH} L0,${tabH} Z`} fill="rgba(215,105,30,0.93)" />
         </svg>
       )}
     </div>
