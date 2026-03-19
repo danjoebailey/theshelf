@@ -1149,7 +1149,7 @@ function BookRowExpanded({ book, onEdit, onRemove }) {
 function BookRow({ book, index, onEdit, onRemove, onShelfChange }) {
   const [expanded, setExpanded] = useState(false);
   const touchMoved = useRef(false);
-  const isRated = (book.shelf || "Read") !== "The List" && (book.shelf || "Read") !== "Curious" && (book.shelf || "Read") !== "Reading";
+  const isRated = book.shelf && book.shelf !== "The List" && book.shelf !== "Curious" && book.shelf !== "Reading";
   return (
     <div style={{
       background:WOOD.card, borderRadius:8, padding:"7px 10px", marginBottom:6,
