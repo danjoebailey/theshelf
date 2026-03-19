@@ -1161,7 +1161,7 @@ function BookRow({ book, index, onEdit, onRemove, onShelfChange, onAdd }) {
       cursor:"pointer",
       touchAction:"manipulation",
       animation:`fadeUp 0.2s ease ${index*0.03}s both`,
-      position:"relative", zIndex: expanded ? 10 : 1,
+      position:"relative", zIndex: shelfDropOpen ? 20 : expanded ? 10 : 1,
     }}
     onTouchStart={()=>{ touchMoved.current=false; }}
     onTouchMove={()=>{ touchMoved.current=true; }}
