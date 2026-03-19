@@ -1788,6 +1788,9 @@ function RecCard({ rec, coverUrl, ownedBook, onAddDirect, index }) {
   const [scores, setScores] = useState(null);
   const [scoresLoading, setScoresLoading] = useState(false);
   const [showScores, setShowScores] = useState(false);
+  const [description, setDescription] = useState(null);
+  const [descriptionLoading, setDescriptionLoading] = useState(false);
+  const [showDescription, setShowDescription] = useState(false);
 
   const SHELF_META = {
     "Read":     { bg:"rgba(138,90,40,0.5)",   color:"rgba(255,255,255,0.9)", border:"rgba(138,90,40,0.4)" },
@@ -1799,9 +1802,24 @@ function RecCard({ rec, coverUrl, ownedBook, onAddDirect, index }) {
   const dropLabel = ownedBook ? (ownedBook.shelf || "Read") : "+ Add";
   const dropMeta = ownedBook ? SHELF_META[ownedBook.shelf || "Read"] : { bg:"rgba(138,90,40,0.18)", color:WOOD.amber, border:"rgba(138,90,40,0.35)" };
 
+  async function fetchDescription() {
+    if (showDescription) { setShowDescription(false); return; }
+    setShowProse(false); setShowScores(false); setShowDescription(true);
+    if (description) return;
+    setDescriptionLoading(true);
+    try {
+      const res = await fetch("/api/book-description", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ title:rec.title, author:rec.author, genre:rec.genre }) });
+      const data = await res.json();
+      setDescription(data.description || null);
+    } catch { setDescription(null); }
+    setDescriptionLoading(false);
+  }
+
   async function fetchProse() {
-    if (prose) { setShowProse(true); return; }
-    setProseLoading(true); setShowProse(true);
+    if (showProse) { setShowProse(false); return; }
+    setShowDescription(false); setShowScores(false); setShowProse(true);
+    if (prose) return;
+    setProseLoading(true);
     try {
       const res = await fetch("/api/prose-preview", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ title:rec.title, author:rec.author }) });
       const data = await res.json();
@@ -1811,8 +1829,10 @@ function RecCard({ rec, coverUrl, ownedBook, onAddDirect, index }) {
   }
 
   async function fetchScores() {
-    if (scores) { setShowScores(true); return; }
-    setScoresLoading(true); setShowScores(true);
+    if (showScores) { setShowScores(false); return; }
+    setShowDescription(false); setShowProse(false); setShowScores(true);
+    if (scores) { return; }
+    setScoresLoading(true);
     try {
       const res = await fetch("/api/book-scores", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ title:rec.title, author:rec.author, genre:rec.genre }) });
       const data = await res.json();
@@ -1841,17 +1861,26 @@ function RecCard({ rec, coverUrl, ownedBook, onAddDirect, index }) {
         </div>
       </div>
 
-      {/* Prose / Scores */}
-      {(!showProse && !showScores) && (
-        <div style={{ display:"flex", gap:6, marginTop:10 }} onClick={e=>e.stopPropagation()}>
-          <button {...tc(fetchProse, true)} style={{ display:"flex", alignItems:"center", gap:5, background:"rgba(138,90,40,0.12)", borderRadius:20, padding:"5px 12px", border:"1px solid rgba(138,90,40,0.25)", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, color:WOOD.textDim }}>
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-            Prose
-          </button>
-          <button {...tc(fetchScores, true)} style={{ display:"flex", alignItems:"center", gap:5, background:"rgba(138,90,40,0.12)", borderRadius:20, padding:"5px 12px", border:"1px solid rgba(138,90,40,0.25)", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, color:WOOD.textDim }}>
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
-            Scores
-          </button>
+      {/* About / Prose / Scores */}
+      <div style={{ display:"flex", gap:6, marginTop:10 }} onClick={e=>e.stopPropagation()}>
+        <button {...tc(fetchDescription, true)} style={{ display:"flex", alignItems:"center", gap:5, background:showDescription?WOOD.amber:"rgba(138,90,40,0.12)", borderRadius:20, padding:"5px 12px", border:`1px solid ${showDescription?WOOD.amber:"rgba(138,90,40,0.25)"}`, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, color:showDescription?"#1a0900":WOOD.textDim }}>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 6h16M4 12h16M4 18h12"/></svg>
+          About
+        </button>
+        <button {...tc(fetchProse, true)} style={{ display:"flex", alignItems:"center", gap:5, background:showProse?WOOD.amber:"rgba(138,90,40,0.12)", borderRadius:20, padding:"5px 12px", border:`1px solid ${showProse?WOOD.amber:"rgba(138,90,40,0.25)"}`, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, color:showProse?"#1a0900":WOOD.textDim }}>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          Prose
+        </button>
+        <button {...tc(fetchScores, true)} style={{ display:"flex", alignItems:"center", gap:5, background:showScores?WOOD.amber:"rgba(138,90,40,0.12)", borderRadius:20, padding:"5px 12px", border:`1px solid ${showScores?WOOD.amber:"rgba(138,90,40,0.25)"}`, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, color:showScores?"#1a0900":WOOD.textDim }}>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+          Scores
+        </button>
+      </div>
+      {showDescription && (
+        <div style={{ marginTop:10, animation:"fadeIn 0.18s ease" }} onClick={e=>e.stopPropagation()}>
+          {descriptionLoading
+            ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:WOOD.textFaint, fontStyle:"italic" }}>Loading…</p>
+            : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:WOOD.text, lineHeight:1.72 }}>{description}</p>}
         </div>
       )}
       {showProse && (
