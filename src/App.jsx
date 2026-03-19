@@ -2335,8 +2335,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook }) {
               transition:"all 0.15s",
             }}>{label}</button>
           ))}
-          {mode === "user" && (
-            <button {...tc(()=>setViewMode(v=>v==="card"?"row":"card"), true)} style={{
+          <button {...tc(()=>setViewMode(v=>v==="card"?"row":"card"), true)} style={{
               display:"flex", alignItems:"center", justifyContent:"center",
               background:"rgba(15,8,2,0.55)", borderRadius:20, padding:"5px 10px",
               border:"1px solid rgba(120,70,20,0.3)", backdropFilter:"blur(4px)",
@@ -2347,7 +2346,6 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook }) {
                 : <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor"><rect x="0" y="0" width="6" height="6" rx="1"/><rect x="7" y="0" width="6" height="6" rx="1"/><rect x="0" y="7" width="6" height="6" rx="1"/><rect x="7" y="7" width="6" height="6" rx="1"/></svg>
               }
             </button>
-          )}
         </div>
 
         {/* Filters row */}
@@ -2488,15 +2486,18 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook }) {
                 <span style={rankBadgeStyle(i)}>{i + 1}</span>
               </div>
               <div style={{ flex:1, minWidth:0 }}>
-                <BookCard
-                  key={bookObj.id}
-                  book={bookObj}
-                  index={i}
-                  onRemove={()=>{}} onEdit={()=>{}} onShelfChange={()=>{}} onOpenShelfPicker={()=>{}}
-                  onSaveScores={matched ? onSaveScores : ()=>{}} onSaveDescription={()=>{}}
-                  forceProse
-                  onAdd={matched ? undefined : (shelf) => onAddBook({ title:item.title, author:item.author, genre: genreFilter !== "All" ? genreFilter : "Other", shelf, pages:0, rating:0, coverUrl:null })}
-                />
+                {viewMode === "row"
+                  ? <BookRow key={bookObj.id} book={bookObj} index={i} onEdit={()=>{}} onRemove={()=>{}} onShelfChange={()=>{}} />
+                  : <BookCard
+                      key={bookObj.id}
+                      book={bookObj}
+                      index={i}
+                      onRemove={()=>{}} onEdit={()=>{}} onShelfChange={()=>{}} onOpenShelfPicker={()=>{}}
+                      onSaveScores={matched ? onSaveScores : ()=>{}} onSaveDescription={()=>{}}
+                      forceProse
+                      onAdd={matched ? undefined : (shelf) => onAddBook({ title:item.title, author:item.author, genre: genreFilter !== "All" ? genreFilter : "Other", shelf, pages:0, rating:0, coverUrl:null })}
+                    />
+                }
               </div>
             </div>
           );
