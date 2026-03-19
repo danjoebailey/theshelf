@@ -2535,6 +2535,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onShelfChange }) 
             pages: 0,
             coverUrl: item.coverUrl || null,
             description: item.reason || null,
+            publishYear: item.publishYear || null,
           };
           return (
             <div key={i} style={{ display:"flex", alignItems:"stretch" }}>
