@@ -729,8 +729,8 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
   const [fetchedDescription, setFetchedDescription] = useState(book.description || DESCRIPTIONS[book.title] || null);
   const [descriptionLoading, setDescriptionLoading] = useState(false);
   const touchMoved = useRef(false);
-  const isRated = (book.shelf || "Read") !== "The List" && (book.shelf || "Read") !== "Curious" && (book.shelf || "Read") !== "Reading";
-  const showProseBtn = forceProse || ((book.shelf || "Read") !== "Read" && (book.shelf || "Read") !== "Reading");
+  const isRated = book.shelf === "Read" || book.shelf === "DNF";
+  const showProseBtn = forceProse || (!isRated && book.shelf !== "Reading");
 
   function toggleAspect(aspect, list, setList, otherList, setOtherList) {
     if (list.includes(aspect)) setList(list.filter(a => a !== aspect));
