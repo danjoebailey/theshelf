@@ -1172,8 +1172,8 @@ function BookRow({ book, index, onEdit, onRemove, onShelfChange }) {
         </div>
         <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:3, flexShrink:0 }}>
           <div style={{ display:"flex", alignItems:"center", gap:5 }}>
-            <span style={{ color:WOOD.textFaint, fontSize:11, transition:"transform 0.2s", transform:expanded?"rotate(180deg)":"rotate(0deg)" }}>▾</span>
             <span style={{ background:GENRE_COLORS[book.genre]||GENRE_COLORS["Other"], color:"#fff", borderRadius:"20px", padding:"2px 7px", fontSize:8, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.06em" }}>{book.genre}</span>
+            <span style={{ color:WOOD.textFaint, fontSize:11, transition:"transform 0.2s", transform:expanded?"rotate(180deg)":"rotate(0deg)" }}>▾</span>
           </div>
           {isRated && <StarRating value={book.rating} readonly size={12} />}
         </div>
@@ -1212,8 +1212,8 @@ function BookRowPages({ book, index, onEdit, onRemove, onShelfChange, maxPages }
         </div>
         <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:3, flexShrink:0 }}>
           <div style={{ display:"flex", alignItems:"center", gap:5 }}>
-            <span style={{ color:WOOD.textFaint, fontSize:11, transition:"transform 0.2s", transform:expanded?"rotate(180deg)":"rotate(0deg)" }}>▾</span>
             <span style={{ background:GENRE_COLORS[book.genre]||GENRE_COLORS["Other"], color:"#fff", borderRadius:"20px", padding:"2px 7px", fontSize:8, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.06em" }}>{book.genre}</span>
+            <span style={{ color:WOOD.textFaint, fontSize:11, transition:"transform 0.2s", transform:expanded?"rotate(180deg)":"rotate(0deg)" }}>▾</span>
           </div>
           {isRated && <StarRating value={book.rating} readonly size={12} />}
         </div>
