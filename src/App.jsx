@@ -1856,7 +1856,14 @@ function RecCard({ rec, coverUrl, ownedBook, onAddDirect, index }) {
             <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 17, color: WOOD.text, lineHeight: 1.2, flex: 1, paddingRight: 8 }}>{rec.title}</p>
             <span style={{ background: GENRE_COLORS[rec.genre] || GENRE_COLORS["Other"], color: "#fff", borderRadius: 20, padding: "2px 8px", fontSize: 8, fontFamily: "'DM Sans',sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", flexShrink: 0, marginTop: 2 }}>{rec.genre}</span>
           </div>
-          <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: WOOD.textDim, fontStyle: "italic", marginBottom: 6 }}>{rec.author}</p>
+          <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: WOOD.textDim, fontStyle: "italic", marginBottom: 3 }}>{rec.author}</p>
+          {(rec.publishYear || rec.pages > 0) && (
+            <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, color: WOOD.textFaint, marginBottom: 6 }}>
+              {rec.publishYear ? `Published ${rec.publishYear}` : ""}
+              {rec.publishYear && rec.pages > 0 ? " · " : ""}
+              {rec.pages > 0 ? `${rec.pages.toLocaleString()} pages` : ""}
+            </p>
+          )}
           <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 14, color: WOOD.textDim, lineHeight: 1.6, fontStyle: "italic" }}>{rec.reason}</p>
         </div>
       </div>

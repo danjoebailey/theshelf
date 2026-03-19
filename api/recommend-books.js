@@ -14,7 +14,7 @@ export default async function handler(req, res) {
     ? `\n\nThe reader has ALREADY READ the following books — do NOT recommend any of them under any circumstances:\n${owned.map(t => `- "${t}"`).join("\n")}`
     : "";
 
-  const userMessage = `Based on these books the reader has enjoyed:\n${bookList}${moodLine}${excludeLine}\n\nRecommend exactly 10 books they would love. For each, provide a concise reason (1–2 sentences) explaining why it fits their taste. Respond ONLY with a JSON object — no markdown, no explanation — in this exact format:\n{"recommendations":[{"title":"...","author":"...","genre":"...","reason":"..."},...]}\n\nGenres must be one of: Fiction, Non-Fiction, Fantasy, Sci-Fi, Mystery, Thriller, Horror, Romance, Biography, History, Historical Fiction, Young Adult, Self-Help, Graphic Novel, Other.`;
+  const userMessage = `Based on these books the reader has enjoyed:\n${bookList}${moodLine}${excludeLine}\n\nRecommend exactly 10 books they would love. For each, provide a concise reason (1–2 sentences) explaining why it fits their taste. Respond ONLY with a JSON object — no markdown, no explanation — in this exact format:\n{"recommendations":[{"title":"...","author":"...","genre":"...","publishYear":1954,"pages":320,"reason":"..."},...]}\n\nGenres must be one of: Fiction, Non-Fiction, Fantasy, Sci-Fi, Mystery, Thriller, Horror, Romance, Biography, History, Historical Fiction, Young Adult, Self-Help, Graphic Novel, Other.`;
 
   const response = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
