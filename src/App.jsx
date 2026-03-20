@@ -2949,22 +2949,22 @@ function EditSheet({ book, onSave, onClose }) {
   const [date, setDate] = useState(book.date || new Date().toISOString().slice(0,10));
   const [coverUrl, setCoverUrl] = useState(book.coverUrl || null);
   const [coverId, setCoverId] = useState(book.coverId || null);
-  const [coverFetch, setCoverFetch] = useState(null); // null | "loading" | { url, id } | "notfound"
+  const [coverFetch, setCoverFetch] = useState(null); // null | "loading" | { options: [] } | "notfound"
 
   async function findCover() {
     setCoverFetch("loading");
     try {
       const res = await fetch("/api/fetch-cover", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ title: book.title, author: book.author, isbn: book.isbn }) });
       const data = await res.json();
-      setCoverFetch(data.coverUrl ? { url: data.coverUrl, id: data.coverId } : "notfound");
+      setCoverFetch(data.options?.length ? { options: data.options } : "notfound");
     } catch {
       setCoverFetch("notfound");
     }
   }
 
-  function useCover() {
-    setCoverUrl(coverFetch.url);
-    setCoverId(coverFetch.id);
+  function pickCover(opt) {
+    setCoverUrl(opt.coverUrl);
+    setCoverId(opt.coverId || null);
     setCoverFetch(null);
   }
 
@@ -3011,12 +3011,19 @@ function EditSheet({ book, onSave, onClose }) {
               <p style={{ fontSize:12, color:WOOD.textDim, fontStyle:"italic" }}>No cover found.</p>
             )}
             {coverFetch && coverFetch !== "loading" && coverFetch !== "notfound" && (
-              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                <img src={coverFetch.url} alt="cover preview" style={{ width:40, height:60, objectFit:"cover", borderRadius:3, boxShadow:"0 2px 6px rgba(0,0,0,0.25)" }} />
-                <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
-                  <button onClick={useCover} style={{ fontSize:12, fontFamily:"'DM Sans',sans-serif", background:WOOD.amber, color:"#1a0900", border:"none", borderRadius:20, padding:"4px 12px", cursor:"pointer", fontWeight:600 }}>Use this</button>
-                  <button onClick={()=>setCoverFetch(null)} style={{ fontSize:12, fontFamily:"'DM Sans',sans-serif", background:"rgba(138,90,40,0.12)", color:WOOD.textDim, border:"1px solid rgba(138,90,40,0.25)", borderRadius:20, padding:"3px 10px", cursor:"pointer" }}>Cancel</button>
+              <div style={{ marginTop:6 }}>
+                <p style={{ fontSize:11, color:WOOD.textDim, marginBottom:6 }}>Pick a cover:</p>
+                <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+                  {coverFetch.options.map((opt, i) => (
+                    <div key={i} onClick={() => pickCover(opt)} style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3, cursor:"pointer" }}>
+                      <img src={opt.coverUrl} alt={opt.source} style={{ width:48, height:72, objectFit:"cover", borderRadius:4, boxShadow:"0 2px 6px rgba(0,0,0,0.25)", border:"2px solid transparent" }}
+                        onMouseEnter={e => e.target.style.borderColor = WOOD.amber}
+                        onMouseLeave={e => e.target.style.borderColor = "transparent"} />
+                      <span style={{ fontSize:9, color:WOOD.textDim, textAlign:"center", maxWidth:52, lineHeight:1.2 }}>{opt.source}</span>
+                    </div>
+                  ))}
                 </div>
+                <button onClick={()=>setCoverFetch(null)} style={{ marginTop:8, fontSize:11, fontFamily:"'DM Sans',sans-serif", background:"rgba(138,90,40,0.12)", color:WOOD.textDim, border:"1px solid rgba(138,90,40,0.25)", borderRadius:20, padding:"3px 10px", cursor:"pointer" }}>Cancel</button>
               </div>
             )}
           </div>

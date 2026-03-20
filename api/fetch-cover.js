@@ -18,20 +18,57 @@ export default async function handler(req, res) {
       : null,
     fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(`${cleanTitle} ${author || ""}`.trim())}&maxResults=5&printType=books`)
       .then(r => r.json()).catch(() => null),
-    fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(cleanTitle)}&author=${encodeURIComponent(author || "")}&limit=5&fields=cover_i`)
+    fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(cleanTitle)}&author=${encodeURIComponent(author || "")}&limit=10&fields=cover_i`)
       .then(r => r.json()).catch(() => null),
     fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(`${cleanTitle} ${author || ""}`.trim())}&entity=ebook&limit=5&media=ebook`)
       .then(r => r.json()).catch(() => null),
   ]);
 
-  const coverId = olData?.docs?.find(d => d.cover_i)?.cover_i || null;
-  const itunesThumb = itunesData?.results?.find(r => r.artworkUrl100)?.artworkUrl100?.replace("/100x100bb.", "/400x600bb.") || null;
+  // Collect all candidates
+  const seen = new Set();
+  const options = [];
 
-  // Prefer OpenLibrary (reliable CDN) over Google Books for coverUrl; iTunes as fallback
-  const olCoverUrl = coverId ? `https://covers.openlibrary.org/b/id/${coverId}-M.jpg` : null;
+  function add(source, coverUrl, coverId = null) {
+    const url = cleanThumb(coverUrl);
+    if (!url || seen.has(url)) return;
+    seen.add(url);
+    options.push({ source, coverUrl: url, coverId });
+  }
+
+  // Google Books by ISBN (most precise)
   const gbIsbnThumb = gbIsbnData?.items?.[0]?.volumeInfo?.imageLinks?.thumbnail;
-  const gbTitleThumb = gbTitleData?.items?.find(i => i.volumeInfo?.imageLinks?.thumbnail)?.volumeInfo?.imageLinks?.thumbnail;
-  const coverUrl = itunesThumb || cleanThumb(gbIsbnThumb) || cleanThumb(gbTitleThumb) || olCoverUrl || null;
+  if (gbIsbnThumb) add("Google Books (ISBN)", gbIsbnThumb);
 
-  res.json({ coverUrl, coverId });
+  // Google Books by title — up to 3 distinct results
+  (gbTitleData?.items || [])
+    .map(i => i.volumeInfo?.imageLinks?.thumbnail)
+    .filter(Boolean)
+    .slice(0, 3)
+    .forEach((url, i) => add(i === 0 ? "Google Books" : `Google Books (${i + 1})`, url));
+
+  // iTunes — up to 3 distinct results
+  (itunesData?.results || [])
+    .map(r => r.artworkUrl100?.replace("/100x100bb.", "/600x600bb."))
+    .filter(Boolean)
+    .slice(0, 3)
+    .forEach((url, i) => add(i === 0 ? "iTunes" : `iTunes (${i + 1})`, url));
+
+  // Open Library by ISBN (direct, no search needed)
+  if (isbn) add("Open Library (ISBN)", `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg`);
+
+  // Open Library by cover_i from search — up to 3
+  (olData?.docs || [])
+    .filter(d => d.cover_i)
+    .slice(0, 3)
+    .forEach((d, i) => add(
+      i === 0 ? "Open Library" : `Open Library (${i + 1})`,
+      `https://covers.openlibrary.org/b/id/${d.cover_i}-L.jpg`,
+      d.cover_i
+    ));
+
+  const best = options[0] || null;
+  const coverUrl = best?.coverUrl || null;
+  const coverId = options.find(o => o.coverId)?.coverId || null;
+
+  res.json({ coverUrl, coverId, options });
 }
