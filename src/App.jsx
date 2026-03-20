@@ -2150,6 +2150,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onShelfChange }) 
   const [viewMode, setViewMode] = useState("card");
   const [controlsOpen, setControlsOpen] = useState(true);
   const [aiItems, setAiItems] = useState([]);
+  const [rankingMode, setRankingMode] = useState("alltime");
   const fetchSession = useRef(0);
 
   const readBooks = useMemo(() =>
@@ -2184,32 +2185,39 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onShelfChange }) 
   useEffect(() => {
     if (!userId || mode !== "ai") return;
     const sid = ++fetchSession.current;
-    if (genreFilter === "All" && scoreCategory === "all") {
-      const base = claude100CoversCache || CLAUDE_100;
-      setAiItems(base);
-      setGenerated(true);
-      if (!claude100CoversCache) fetchClaude100Covers(CLAUDE_100, setAiItems, sid);
-      return;
+    if (rankingMode === "alltime") {
+      if (genreFilter === "All" && scoreCategory === "all") {
+        const base = claude100CoversCache || CLAUDE_100;
+        setAiItems(base);
+        setGenerated(true);
+        if (!claude100CoversCache) fetchClaude100Covers(CLAUDE_100, setAiItems, sid);
+        return;
+      }
+      if (genreFilter === "All" && scoreCategory === "prose") {
+        const base = claudeProse100CoversCache || CLAUDE_PROSE_100;
+        setAiItems(base);
+        setGenerated(true);
+        if (!claudeProse100CoversCache) fetchProse100Covers(CLAUDE_PROSE_100, setAiItems, sid);
+        return;
+      }
+      // Other alltime combos: load from Supabase cache
+      setGenerated(false);
+      setAiItems([]);
+      supabase.from("ai_rankings")
+        .select("items")
+        .eq("user_id", userId)
+        .eq("genre", genreFilter)
+        .eq("category", scoreCategory)
+        .single()
+        .then(({ data }) => {
+          if (data?.items?.length) { setAiItems(data.items); setGenerated(true); }
+        });
+    } else {
+      // vacuum / foryou — always require explicit generate
+      setGenerated(false);
+      setAiItems([]);
     }
-    if (genreFilter === "All" && scoreCategory === "prose") {
-      const base = claudeProse100CoversCache || CLAUDE_PROSE_100;
-      setAiItems(base);
-      setGenerated(true);
-      if (!claudeProse100CoversCache) fetchProse100Covers(CLAUDE_PROSE_100, setAiItems, sid);
-      return;
-    }
-    setGenerated(false);
-    setAiItems([]);
-    supabase.from("ai_rankings")
-      .select("items")
-      .eq("user_id", userId)
-      .eq("genre", genreFilter)
-      .eq("category", scoreCategory)
-      .single()
-      .then(({ data }) => {
-        if (data?.items?.length) { setAiItems(data.items); setGenerated(true); }
-      });
-  }, [userId, mode, genreFilter, topN, scoreCategory]);
+  }, [userId, mode, genreFilter, topN, scoreCategory, rankingMode]);
 
   const bookMap = useMemo(() => new Map(books.map(b => [b.id, b])), [books]);
 
@@ -2289,26 +2297,31 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onShelfChange }) 
 
   async function generateAIRankings() {
     const sid = ++fetchSession.current;
-    if (genreFilter === "All" && scoreCategory === "all") {
-      const base = claude100CoversCache || CLAUDE_100;
-      setAiItems(base);
-      setGenerated(true);
-      if (!claude100CoversCache) fetchClaude100Covers(CLAUDE_100, setAiItems, sid);
-      return;
-    }
-    if (genreFilter === "All" && scoreCategory === "prose") {
-      const base = claudeProse100CoversCache || CLAUDE_PROSE_100;
-      setAiItems(base);
-      setGenerated(true);
-      if (!claudeProse100CoversCache) fetchProse100Covers(CLAUDE_PROSE_100, setAiItems, sid);
-      return;
+    if (rankingMode === "alltime") {
+      if (genreFilter === "All" && scoreCategory === "all") {
+        const base = claude100CoversCache || CLAUDE_100;
+        setAiItems(base);
+        setGenerated(true);
+        if (!claude100CoversCache) fetchClaude100Covers(CLAUDE_100, setAiItems, sid);
+        return;
+      }
+      if (genreFilter === "All" && scoreCategory === "prose") {
+        const base = claudeProse100CoversCache || CLAUDE_PROSE_100;
+        setAiItems(base);
+        setGenerated(true);
+        if (!claudeProse100CoversCache) fetchProse100Covers(CLAUDE_PROSE_100, setAiItems, sid);
+        return;
+      }
     }
     setGenerating(true);
     try {
+      const library = rankingMode === "foryou"
+        ? books.filter(b => b.rating > 0).map(b => ({ title: b.title, author: b.author, genre: b.genre, rating: b.rating, likedAspects: b.likedAspects || [], dislikedAspects: b.dislikedAspects || [] }))
+        : [];
       const res = await fetch("/api/ai-rankings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ genre: genreFilter, category: scoreCategory }),
+        body: JSON.stringify({ genre: genreFilter, category: scoreCategory, rankingMode, library }),
       });
       const data = await res.json();
       if (!data.error) {
@@ -2316,11 +2329,11 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onShelfChange }) 
         setAiItems(items);
         setGenerated(true);
 
-        // Fetch covers only for unmatched books, using fetch-cover API (all 3 sources)
         const unmatched = items.filter(item => !findInLibrary(item.title));
         const itemsWithCovers = items.map(i => ({ ...i }));
         const BATCH = 5;
         for (let b = 0; b < unmatched.length; b += BATCH) {
+          if (fetchSession.current !== sid) break;
           await Promise.all(unmatched.slice(b, b + BATCH).map(async item => {
             try {
               const r = await fetch("/api/fetch-cover", {
@@ -2335,8 +2348,9 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onShelfChange }) 
           }));
           if (b + BATCH < unmatched.length) await new Promise(r => setTimeout(r, 200));
         }
-        setAiItems([...itemsWithCovers]);
-        if (userId) {
+        if (fetchSession.current === sid) setAiItems([...itemsWithCovers]);
+        // Only cache alltime results to Supabase
+        if (rankingMode === "alltime" && userId) {
           supabase.from("ai_rankings")
             .upsert({ user_id: userId, genre: genreFilter, category: scoreCategory, items: itemsWithCovers, generated_at: new Date().toISOString() }, { onConflict: "user_id,genre,category" })
             .then(({ error }) => console.log("[ai_rankings save]", error || "ok"));
@@ -2460,6 +2474,22 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onShelfChange }) 
             </svg>
           </div>
         </div>
+
+        {/* AI: ranking mode */}
+        {mode === "ai" && (
+          <div style={{ display:"flex", gap:4, marginBottom:8 }}>
+            {[["alltime","All Time"],["vacuum","Vacuum"],["foryou","For You"]].map(([m, label]) => (
+              <button key={m} {...tc(() => { setRankingMode(m); setGenerated(false); setAiItems([]); })} style={{
+                padding:"3px 10px", borderRadius:20,
+                border:`1px solid ${rankingMode===m ? WOOD.amber : "rgba(255,235,195,0.18)"}`,
+                background: rankingMode===m ? WOOD.amber : "transparent",
+                color: rankingMode===m ? "#1a0900" : "rgba(255,235,195,0.5)",
+                fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600, cursor:"pointer",
+                transition:"all 0.15s",
+              }}>{label}</button>
+            ))}
+          </div>
+        )}
 
         {/* AI: score category */}
         {mode === "ai" && (
