@@ -2117,6 +2117,16 @@ const CLAUDE_PROSE_100 = [
   { title:"Dream of the Red Chamber", author:"Cao Xueqin", publishYear:1791, genre:"Fiction", pages:2339 },
 ];
 
+// Canned lists available as static JSON files in /public/rankings/
+// Key format: {genre-lowercase-hyphenated}-{rankingMode}-{scoreCategory}
+const CANNED_LISTS = new Set([
+  "fantasy-vacuum-all",
+]);
+function cannedKey(genre, rankingMode, scoreCategory) {
+  return `${genre.toLowerCase().replace(/[^a-z0-9]/g, "-")}-${rankingMode}-${scoreCategory}`;
+}
+const cannedCoversCache = {};
+
 const CLAUDE100_CACHE_KEY = "claude100_covers_v1";
 let claude100CoversCache = (() => {
   try { const s = localStorage.getItem(CLAUDE100_CACHE_KEY); return s ? JSON.parse(s) : null; } catch { return null; }
@@ -2212,8 +2222,14 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onShelfChange }) 
         .then(({ data }) => {
           if (data?.items?.length) { setAiItems(data.items); setGenerated(true); }
         });
+    } else if (rankingMode !== "foryou" && CANNED_LISTS.has(cannedKey(genreFilter, rankingMode, scoreCategory))) {
+      const key = cannedKey(genreFilter, rankingMode, scoreCategory);
+      const base = cannedCoversCache[key] || [];
+      setAiItems(base);
+      setGenerated(base.length > 0);
+      fetchCannedList(genreFilter, rankingMode, scoreCategory, (items) => { setAiItems(items); setGenerated(true); }, sid);
     } else {
-      // vacuum / foryou — always require explicit generate
+      // vacuum / foryou without canned list — require explicit generate
       setGenerated(false);
       setAiItems([]);
     }
@@ -2295,6 +2311,42 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onShelfChange }) 
     onUpdate([...enriched]);
   }
 
+  async function fetchCannedList(genre, rankingMode, scoreCategory, onUpdate, sid) {
+    const key = cannedKey(genre, rankingMode, scoreCategory);
+    const cacheKey = `canned_${key}_v1`;
+    if (cannedCoversCache[key]) { if (fetchSession.current === sid) onUpdate(cannedCoversCache[key]); return; }
+    let cached = null;
+    try { const s = localStorage.getItem(cacheKey); cached = s ? JSON.parse(s) : null; } catch {}
+    if (cached) { cannedCoversCache[key] = cached; if (fetchSession.current === sid) onUpdate(cached); return; }
+    try {
+      const r = await fetch(`/rankings/${key}.json`);
+      if (!r.ok) return;
+      const items = await r.json();
+      if (fetchSession.current !== sid) return;
+      onUpdate(items);
+      const enriched = items.map(i => ({ ...i }));
+      const BATCH = 5;
+      for (let b = 0; b < enriched.length; b += BATCH) {
+        if (fetchSession.current !== sid) return;
+        await Promise.all(enriched.slice(b, b + BATCH).map(async item => {
+          if (item.coverUrl) return;
+          try {
+            const r = await fetch("/api/fetch-cover", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ title: item.title, author: item.author }) });
+            const d = await r.json();
+            item.coverUrl = d.coverUrl || null;
+          } catch {}
+        }));
+        if (fetchSession.current !== sid) return;
+        onUpdate([...enriched]);
+        if (b + BATCH < enriched.length) await new Promise(r => setTimeout(r, 200));
+      }
+      if (fetchSession.current !== sid) return;
+      cannedCoversCache[key] = enriched;
+      try { localStorage.setItem(cacheKey, JSON.stringify(enriched)); } catch {}
+      onUpdate([...enriched]);
+    } catch {}
+  }
+
   async function generateAIRankings() {
     const sid = ++fetchSession.current;
     if (rankingMode === "alltime") {
@@ -2312,6 +2364,10 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onShelfChange }) 
         if (!claudeProse100CoversCache) fetchProse100Covers(CLAUDE_PROSE_100, setAiItems, sid);
         return;
       }
+    }
+    if (rankingMode !== "foryou" && CANNED_LISTS.has(cannedKey(genreFilter, rankingMode, scoreCategory))) {
+      fetchCannedList(genreFilter, rankingMode, scoreCategory, (items) => { setAiItems(items); setGenerated(true); }, sid);
+      return;
     }
     setGenerating(true);
     try {
