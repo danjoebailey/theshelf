@@ -3548,9 +3548,23 @@ export default function App() {
     if (loadedUserRef.current === userId) return;
     loadedUserRef.current = userId;
     supabase.from("books").select("*").eq("user_id", userId).order("created_at", { ascending: true })
-      .then(({ data }) => {
+      .then(async ({ data }) => {
         if (data && data.length > 0) {
-          setBooks(data.map(rowToBook));
+          const loadedBooks = data.map(rowToBook);
+          setBooks(loadedBooks);
+          // Silently fetch covers in background for books missing one
+          const missing = loadedBooks.filter(b => !b.coverUrl);
+          for (let i = 0; i < missing.length; i += 4) {
+            const batch = missing.slice(i, i + 4);
+            await Promise.all(batch.map(async book => {
+              const { coverUrl, coverId } = await fetchCoverForBook(book);
+              if (coverUrl || coverId) {
+                const updated = { ...book, coverUrl: coverUrl || book.coverUrl, coverId: book.coverId || coverId };
+                setBooks(prev => prev.map(b => b.id === book.id ? updated : b));
+                dbUpdateBook(updated, userId);
+              }
+            }));
+          }
         } else {
           // Migrate from localStorage on first sign-in
           try {
