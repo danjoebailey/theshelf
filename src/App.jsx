@@ -305,12 +305,12 @@ const DESCRIPTIONS = {
 
 const ASPECTS = ["Prose", "Plot", "Characters", "Dialogue", "Pacing", "World-building", "Ending"];
 
-function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPicker, onSaveScores, onSaveDescription, onSaveProgress, onSavePages, onAdd, forceProse }) {
+function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPicker, onSaveScores, onSaveDescription, onSaveProgress, onSavePages, onSaveAspects, onAdd, forceProse }) {
   const [expanded, setExpanded] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [shelfDropOpen, setShelfDropOpen] = useState(false);
-  const [liked, setLiked] = useState([]);
-  const [disliked, setDisliked] = useState([]);
+  const [liked, setLiked] = useState(book.likedAspects || []);
+  const [disliked, setDisliked] = useState(book.dislikedAspects || []);
   const [prose, setProse] = useState(null);
   const [proseLoading, setProseLoading] = useState(false);
   const [showProse, setShowProse] = useState(false);
@@ -338,8 +338,12 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
   }
 
   function toggleAspect(aspect, list, setList, otherList, setOtherList) {
-    if (list.includes(aspect)) setList(list.filter(a => a !== aspect));
-    else { setOtherList(otherList.filter(a => a !== aspect)); setList([...list, aspect]); }
+    const isLikedList = setList === setLiked;
+    const nextList = list.includes(aspect) ? list.filter(a => a !== aspect) : [...list, aspect];
+    const nextOther = otherList.filter(a => a !== aspect);
+    setList(nextList);
+    setOtherList(nextOther);
+    if (onSaveAspects) onSaveAspects(book.id, isLikedList ? nextList : nextOther, isLikedList ? nextOther : nextList);
   }
 
   async function fetchProse() {
@@ -630,11 +634,11 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
   );
 }
 
-function BookRowExpanded({ book, onEdit, onRemove, onSaveProgress, onSavePages }) {
+function BookRowExpanded({ book, onEdit, onRemove, onSaveProgress, onSavePages, onSaveAspects }) {
   const isRated = book.shelf === "Read" || book.shelf === "DNF";
   const showProseBtn = book.shelf !== "Read" && book.shelf !== "Reading";
-  const [liked, setLiked] = useState([]);
-  const [disliked, setDisliked] = useState([]);
+  const [liked, setLiked] = useState(book.likedAspects || []);
+  const [disliked, setDisliked] = useState(book.dislikedAspects || []);
   const [prose, setProse] = useState(null);
   const [proseLoading, setProseLoading] = useState(false);
   const [showProse, setShowProse] = useState(false);
@@ -659,8 +663,12 @@ function BookRowExpanded({ book, onEdit, onRemove, onSaveProgress, onSavePages }
   }
 
   function toggleAspect(a, list, setList, other, setOther) {
-    if (list.includes(a)) setList(list.filter(x=>x!==a));
-    else { setList([...list,a]); setOther(other.filter(x=>x!==a)); }
+    const isLikedList = setList === setLiked;
+    const nextList = list.includes(a) ? list.filter(x=>x!==a) : [...list,a];
+    const nextOther = other.filter(x=>x!==a);
+    setList(nextList);
+    setOther(nextOther);
+    if (onSaveAspects) onSaveAspects(book.id, isLikedList ? nextList : nextOther, isLikedList ? nextOther : nextList);
   }
   async function fetchProse() {
     if (showProse) { setShowProse(false); return; }
@@ -823,7 +831,7 @@ function BookRowExpanded({ book, onEdit, onRemove, onSaveProgress, onSavePages }
   );
 }
 
-function BookRow({ book, index, onEdit, onRemove, onShelfChange, onAdd, onSaveProgress, onSavePages }) {
+function BookRow({ book, index, onEdit, onRemove, onShelfChange, onAdd, onSaveProgress, onSavePages, onSaveAspects }) {
   const [expanded, setExpanded] = useState(false);
   const [shelfDropOpen, setShelfDropOpen] = useState(false);
   const touchMoved = useRef(false);
@@ -894,7 +902,7 @@ function BookRow({ book, index, onEdit, onRemove, onShelfChange, onAdd, onSavePr
           }
         </div>
       </div>
-      {expanded && <BookRowExpanded book={book} onEdit={onEdit} onRemove={onRemove} onSaveProgress={onSaveProgress} onSavePages={onSavePages} />}
+      {expanded && <BookRowExpanded book={book} onEdit={onEdit} onRemove={onRemove} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} />}
     </div>
   );
 }
@@ -934,12 +942,12 @@ function BookRowPages({ book, index, onEdit, onRemove, onShelfChange, maxPages, 
           {isRated ? <StarRating value={book.rating} readonly size={12} /> : <div style={{ height:14 }} />}
         </div>
       </div>
-      {expanded && <BookRowExpanded book={book} onEdit={onEdit} onRemove={onRemove} onSaveProgress={onSaveProgress} onSavePages={onSavePages} />}
+      {expanded && <BookRowExpanded book={book} onEdit={onEdit} onRemove={onRemove} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} />}
     </div>
   );
 }
 
-function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelfChange, onImport, onSaveScores, onSaveDescription, onSaveProgress, onSavePages, hideControls=false }) {
+function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelfChange, onImport, onSaveScores, onSaveDescription, onSaveProgress, onSavePages, onSaveAspects, hideControls=false }) {
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("date");
   const [sortAsc, setSortAsc] = useState(false);
@@ -1350,10 +1358,10 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
             )}
             <div style={{ flex:1, minWidth:0 }}>
               {viewMode==="row"
-                ? <BookRow book={book} index={i} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} />
+                ? <BookRow book={book} index={i} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} />
                 : viewMode==="pages"
                 ? <BookRowPages book={book} index={i} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} maxPages={Math.max(...filtered.map(b=>b.pages||0))} onSaveProgress={onSaveProgress} onSavePages={onSavePages} />
-                : <BookCard book={book} index={i} onRemove={onRemove} onEdit={onEdit} onShelfChange={onShelfChange} onOpenShelfPicker={setShelfPickerBook} onSaveScores={onSaveScores} onSaveDescription={onSaveDescription} onSaveProgress={onSaveProgress} onSavePages={onSavePages} />
+                : <BookCard book={book} index={i} onRemove={onRemove} onEdit={onEdit} onShelfChange={onShelfChange} onOpenShelfPicker={setShelfPickerBook} onSaveScores={onSaveScores} onSaveDescription={onSaveDescription} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} />
               }
             </div>
           </div>
@@ -3460,6 +3468,8 @@ function bookToRow(book, userId) {
     scores: book.scores || null,
     description: book.description || null,
     current_page: book.currentPage || 0,
+    liked_aspects: book.likedAspects?.length ? book.likedAspects : null,
+    disliked_aspects: book.dislikedAspects?.length ? book.dislikedAspects : null,
   };
 }
 
@@ -3479,6 +3489,8 @@ function rowToBook(row) {
     scores: row.scores || null,
     description: row.description || null,
     currentPage: row.current_page || 0,
+    likedAspects: row.liked_aspects || [],
+    dislikedAspects: row.disliked_aspects || [],
   };
 }
 
@@ -3931,6 +3943,12 @@ export default function App() {
     dbUpdateBook(next.find(b => b.id === id), userId);
   }
 
+  function saveAspects(id, likedAspects, dislikedAspects) {
+    const next = books.map(b => b.id === id ? { ...b, likedAspects, dislikedAspects } : b);
+    setBooks(next);
+    dbUpdateBook(next.find(b => b.id === id), userId);
+  }
+
   function saveEdit(updated) {
     const next = books.map(b => b.id === updated.id ? { ...b, rating: updated.rating, shelf: updated.shelf, genre: updated.genre ?? b.genre, date: updated.date ?? b.date, coverUrl: updated.coverUrl ?? b.coverUrl, coverId: updated.coverId ?? b.coverId } : b);
     setBooks(next);
@@ -4026,7 +4044,7 @@ export default function App() {
         {/* content */}
         <div style={{ flex:1, overflow:"hidden", position:"relative" }}>
           {tab==="shelf"
-            ? <ShelfTab books={books} onAdd={()=>setShowAdd(true)} onAddBook={book=>{ setAddInitialBook(book); setShowAdd(true); }} onRemove={id=>{ setBooks(prev => prev.filter(b=>b.id!==id)); dbDeleteBook(id, userId); }} onEdit={setEditBook} onScroll={setScrollY} onShelfChange={changeShelf} onImport={()=>setShowImport(true)} onSaveScores={saveScores} onSaveDescription={saveDescription} onSaveProgress={saveProgress} onSavePages={savePages} hideControls={!!editBook} />
+            ? <ShelfTab books={books} onAdd={()=>setShowAdd(true)} onAddBook={book=>{ setAddInitialBook(book); setShowAdd(true); }} onRemove={id=>{ setBooks(prev => prev.filter(b=>b.id!==id)); dbDeleteBook(id, userId); }} onEdit={setEditBook} onScroll={setScrollY} onShelfChange={changeShelf} onImport={()=>setShowImport(true)} onSaveScores={saveScores} onSaveDescription={saveDescription} onSaveProgress={saveProgress} onSavePages={savePages} onSaveAspects={saveAspects} hideControls={!!editBook} />
             : tab==="reiko"
             ? <ReikoTab books={books} userId={userId} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, rating:0, date:new Date().toISOString().slice(0,10) }; setBooks(prev => [...prev, b]); dbAddBook(b, userId); }} />
             : tab==="rankings"
