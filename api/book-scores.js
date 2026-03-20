@@ -26,7 +26,17 @@ export default async function handler(req, res) {
       max_tokens: 300,
       messages: [{
         role: "user",
-        content: `Score "${title}" by ${author} on a scale of 1–10 for each of the following categories. Be discerning — reserve 9–10 for truly exceptional works. Respond ONLY with a JSON object, no markdown, no explanation:\n${exampleJson}`,
+        content: `Score "${title}" by ${author} on a scale of 1–10 for each category below. Scores are relative and contextual — use the following anchors as your frame of reference:
+
+Prose: 10 = Lolita (Nabokov), Ulysses (Joyce); 9 = Beloved (Morrison), Anna Karenina (Tolstoy); 7 = The Girl with the Dragon Tattoo; 4 = Twilight; 1 = barely literate self-published fiction
+Plot: 10 = Crime and Punishment, The Brothers Karamazov; 9 = Gone Girl, The Count of Monte Cristo; 7 = The Da Vinci Code; 4 = slow literary fiction with minimal plot; 1 = no discernible story
+Characters: 10 = Middlemarch (Eliot), The Brothers Karamazov; 9 = Jane Eyre, To Kill a Mockingbird; 7 = competent genre fiction; 4 = flat stereotypes; 1 = cardboard cutouts
+Pacing: 10 = The Road (McCarthy), No Country for Old Men; 9 = Gone Girl, Rebecca; 7 = average thriller; 4 = In Search of Lost Time; 1 = unreadably slow or erratic
+Dialogue: 10 = Hemingway, Elmore Leonard; 9 = Jane Austen, Cormac McCarthy; 7 = competent mainstream fiction; 4 = stilted or expository; 1 = no one speaks like a human
+Ending: 10 = Anna Karenina, Crime and Punishment; 9 = Never Let Me Go, Atonement; 7 = satisfying but unremarkable; 4 = rushed or unearned; 1 = no resolution
+World-building: 10 = Dune (Herbert), The Lord of the Rings; 9 = 1984, Ursula K. Le Guin's Hainish Cycle; 7 = standard genre world-building; 4 = thin backdrop; 1 = no sense of place
+
+Respond ONLY with a JSON object, no markdown, no explanation:\n${exampleJson}`,
       }],
     }),
   });
