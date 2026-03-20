@@ -31,7 +31,7 @@ export default async function handler(req, res) {
   const olCoverUrl = coverId ? `https://covers.openlibrary.org/b/id/${coverId}-M.jpg` : null;
   const gbIsbnThumb = gbIsbnData?.items?.[0]?.volumeInfo?.imageLinks?.thumbnail;
   const gbTitleThumb = gbTitleData?.items?.find(i => i.volumeInfo?.imageLinks?.thumbnail)?.volumeInfo?.imageLinks?.thumbnail;
-  const coverUrl = olCoverUrl || cleanThumb(gbIsbnThumb) || cleanThumb(gbTitleThumb) || itunesThumb || null;
+  const coverUrl = itunesThumb || cleanThumb(gbIsbnThumb) || cleanThumb(gbTitleThumb) || olCoverUrl || null;
 
   res.json({ coverUrl, coverId });
 }

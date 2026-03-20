@@ -234,8 +234,8 @@ const COVERS = {
 function BookCover({ book, width, height, radius=4, shadow="2px 2px 8px rgba(0,0,0,0.3)" }) {
   const srcs = [
     book.coverUrl,
-    book.coverId ? `https://covers.openlibrary.org/b/id/${book.coverId}-M.jpg` : null,
-    book.isbn ? `https://covers.openlibrary.org/b/isbn/${book.isbn}-M.jpg` : null,
+    book.coverId ? `https://covers.openlibrary.org/b/id/${book.coverId}-L.jpg` : null,
+    book.isbn ? `https://covers.openlibrary.org/b/isbn/${book.isbn}-L.jpg` : null,
   ].filter(Boolean).map(u => u.replace("http://", "https://").replace("&edge=curl", ""));
   const [srcIdx, setSrcIdx] = useState(0);
   const [imgLoaded, setImgLoaded] = useState(false);
@@ -254,7 +254,7 @@ function BookCover({ book, width, height, radius=4, shadow="2px 2px 8px rgba(0,0
   return (
     <div style={{ width, height, borderRadius:radius, flexShrink:0, position:"relative", background: imgLoaded ? "transparent" : `linear-gradient(160deg,${color}dd,${color}99)`, border:`1px solid ${color}66`, boxShadow:shadow, display:"flex", alignItems:"center", justifyContent:"center" }}>
       {!imgLoaded && <span style={{ color:"rgba(255,255,255,0.85)", fontSize:width*0.3, fontFamily:"'Crimson Pro',serif", fontWeight:600 }}>{initials}</span>}
-      {src && <img src={src} alt={book.title} style={{ position:"absolute", inset:0, width, height, objectFit:"cover", borderRadius:radius, display:"block" }}
+      {src && <img src={src} alt={book.title} style={{ position:"absolute", inset:0, width, height, objectFit:"cover", borderRadius:radius, display:"block", filter:"brightness(1.08) saturate(1.05)" }}
         onError={advance}
         onLoad={e=>{ if (e.target.naturalWidth <= 1 || e.target.naturalHeight <= 1) advance(); else setImgLoaded(true); }} />}
     </div>
@@ -3554,8 +3554,10 @@ export default function App() {
         if (data && data.length > 0) {
           const loadedBooks = data.map(rowToBook);
           setBooks(loadedBooks);
-          // Silently fetch covers in background for books missing one
-          const missing = loadedBooks.filter(b => !b.coverUrl);
+          // Silently fetch covers: missing ones always, + one-time re-fetch for all to upgrade to iTunes art
+          const needsUpgrade = !localStorage.getItem("coversV3");
+          const missing = loadedBooks.filter(b => !b.coverUrl || needsUpgrade);
+          if (needsUpgrade) localStorage.setItem("coversV3", "1");
           for (let i = 0; i < missing.length; i += 4) {
             const batch = missing.slice(i, i + 4);
             await Promise.all(batch.map(async book => {
@@ -3635,7 +3637,7 @@ export default function App() {
   }
 
   async function fetchMissingCovers() {
-    const missing = books.filter(b => !b.coverUrl);
+    const missing = books;
     if (!missing.length) return;
     setShowProfileMenu(false);
     let found = 0;
