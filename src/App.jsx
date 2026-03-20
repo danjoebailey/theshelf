@@ -2006,7 +2006,10 @@ const CLAUDE_100 = [
   { title:"Dream of the Red Chamber", author:"Cao Xueqin", publishYear:1791, genre:"Fiction", pages:2339 },
 ];
 
-let claude100CoversCache = null; // session-level cache so covers are only fetched once
+const CLAUDE100_CACHE_KEY = "claude100_covers_v1";
+let claude100CoversCache = (() => {
+  try { const s = localStorage.getItem(CLAUDE100_CACHE_KEY); return s ? JSON.parse(s) : null; } catch { return null; }
+})();
 
 const SCORE_CATEGORIES = [
   { key:"all",          label:"All" },
@@ -2128,6 +2131,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onShelfChange }) 
       if (b + BATCH < enriched.length) await new Promise(r => setTimeout(r, 200));
     }
     claude100CoversCache = enriched;
+    try { localStorage.setItem(CLAUDE100_CACHE_KEY, JSON.stringify(enriched)); } catch { /* storage full */ }
     onUpdate([...enriched]);
   }
 
