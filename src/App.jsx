@@ -2006,6 +2006,8 @@ const CLAUDE_100 = [
   { title:"Dream of the Red Chamber", author:"Cao Xueqin", publishYear:1791, genre:"Fiction", pages:2339 },
 ];
 
+let claude100CoversCache = null; // session-level cache so covers are only fetched once
+
 const SCORE_CATEGORIES = [
   { key:"all",          label:"All" },
   { key:"prose",        label:"Prose" },
@@ -2062,8 +2064,10 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onShelfChange }) 
   useEffect(() => {
     if (!userId || mode !== "ai") return;
     if (genreFilter === "All" && scoreCategory === "all") {
-      setAiItems(CLAUDE_100);
+      const base = claude100CoversCache || CLAUDE_100;
+      setAiItems(base);
       setGenerated(true);
+      if (!claude100CoversCache) fetchClaude100Covers(CLAUDE_100, setAiItems);
       return;
     }
     setGenerated(false);
@@ -2107,10 +2111,32 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onShelfChange }) 
       .then(({ error }) => console.log("[rankings save]", error || "ok"));
   }
 
+  async function fetchClaude100Covers(items, onUpdate) {
+    if (claude100CoversCache) { onUpdate(claude100CoversCache); return; }
+    const enriched = items.map(i => ({ ...i }));
+    const BATCH = 5;
+    for (let b = 0; b < enriched.length; b += BATCH) {
+      await Promise.all(enriched.slice(b, b + BATCH).map(async item => {
+        if (item.coverUrl) return;
+        try {
+          const r = await fetch("/api/fetch-cover", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ title: item.title, author: item.author }) });
+          const d = await r.json();
+          item.coverUrl = d.coverUrl || null;
+        } catch { /* leave null */ }
+      }));
+      onUpdate([...enriched]);
+      if (b + BATCH < enriched.length) await new Promise(r => setTimeout(r, 200));
+    }
+    claude100CoversCache = enriched;
+    onUpdate([...enriched]);
+  }
+
   async function generateAIRankings() {
     if (genreFilter === "All" && scoreCategory === "all") {
-      setAiItems(CLAUDE_100);
+      const base = claude100CoversCache || CLAUDE_100;
+      setAiItems(base);
       setGenerated(true);
+      if (!claude100CoversCache) fetchClaude100Covers(CLAUDE_100, setAiItems);
       return;
     }
     setGenerating(true);
