@@ -250,8 +250,8 @@ function BookCover({ book, width, height, radius=4, shadow="2px 2px 8px rgba(0,0
   const initials = book.title.split(" ").filter(Boolean).slice(0,2).map(w=>w[0]).join("").toUpperCase();
   const advance = () => setSrcIdx(i => i + 1);
   return (
-    <div style={{ width, height, borderRadius:radius, flexShrink:0, position:"relative", background:`linear-gradient(135deg,${color}22,${color}44)`, border:`1px solid ${color}44`, boxShadow:shadow, display:"flex", alignItems:"center", justifyContent:"center" }}>
-      <span style={{ color, fontSize:width*0.3, fontFamily:"'Crimson Pro',serif", fontWeight:600 }}>{initials}</span>
+    <div style={{ width, height, borderRadius:radius, flexShrink:0, position:"relative", background:`linear-gradient(160deg,${color}dd,${color}99)`, border:`1px solid ${color}66`, boxShadow:shadow, display:"flex", alignItems:"center", justifyContent:"center" }}>
+      <span style={{ color:"rgba(255,255,255,0.85)", fontSize:width*0.3, fontFamily:"'Crimson Pro',serif", fontWeight:600 }}>{initials}</span>
       {src && <img src={src} alt={book.title} style={{ position:"absolute", inset:0, width, height, objectFit:"cover", borderRadius:radius, display:"block" }}
         onError={advance}
         onLoad={e=>{ if (e.target.naturalWidth <= 1 || e.target.naturalHeight <= 1) advance(); }} />}
