@@ -2142,6 +2142,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onShelfChange }) 
   const [viewMode, setViewMode] = useState("card");
   const [controlsOpen, setControlsOpen] = useState(true);
   const [aiItems, setAiItems] = useState([]);
+  const fetchSession = useRef(0);
 
   const readBooks = useMemo(() =>
     books.filter(b => (b.shelf || "Read") === "Read"),
@@ -2174,18 +2175,19 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onShelfChange }) 
   // Load saved AI ranking from Supabase when AI filters change (topN is just a view slice)
   useEffect(() => {
     if (!userId || mode !== "ai") return;
+    const sid = ++fetchSession.current;
     if (genreFilter === "All" && scoreCategory === "all") {
       const base = claude100CoversCache || CLAUDE_100;
       setAiItems(base);
       setGenerated(true);
-      if (!claude100CoversCache) fetchClaude100Covers(CLAUDE_100, setAiItems);
+      if (!claude100CoversCache) fetchClaude100Covers(CLAUDE_100, setAiItems, sid);
       return;
     }
     if (genreFilter === "All" && scoreCategory === "prose") {
       const base = claudeProse100CoversCache || CLAUDE_PROSE_100;
       setAiItems(base);
       setGenerated(true);
-      if (!claudeProse100CoversCache) fetchProse100Covers(CLAUDE_PROSE_100, setAiItems);
+      if (!claudeProse100CoversCache) fetchProse100Covers(CLAUDE_PROSE_100, setAiItems, sid);
       return;
     }
     setGenerated(false);
@@ -2229,11 +2231,12 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onShelfChange }) 
       .then(({ error }) => console.log("[rankings save]", error || "ok"));
   }
 
-  async function fetchClaude100Covers(items, onUpdate) {
-    if (claude100CoversCache) { onUpdate(claude100CoversCache); return; }
+  async function fetchClaude100Covers(items, onUpdate, sid) {
+    if (claude100CoversCache) { if (fetchSession.current === sid) onUpdate(claude100CoversCache); return; }
     const enriched = items.map(i => ({ ...i }));
     const BATCH = 5;
     for (let b = 0; b < enriched.length; b += BATCH) {
+      if (fetchSession.current !== sid) return;
       await Promise.all(enriched.slice(b, b + BATCH).map(async item => {
         if (item.coverUrl) return;
         try {
@@ -2242,19 +2245,22 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onShelfChange }) 
           item.coverUrl = d.coverUrl || null;
         } catch { /* leave null */ }
       }));
+      if (fetchSession.current !== sid) return;
       onUpdate([...enriched]);
       if (b + BATCH < enriched.length) await new Promise(r => setTimeout(r, 200));
     }
+    if (fetchSession.current !== sid) return;
     claude100CoversCache = enriched;
     try { localStorage.setItem(CLAUDE100_CACHE_KEY, JSON.stringify(enriched)); } catch { /* storage full */ }
     onUpdate([...enriched]);
   }
 
-  async function fetchProse100Covers(items, onUpdate) {
-    if (claudeProse100CoversCache) { onUpdate(claudeProse100CoversCache); return; }
+  async function fetchProse100Covers(items, onUpdate, sid) {
+    if (claudeProse100CoversCache) { if (fetchSession.current === sid) onUpdate(claudeProse100CoversCache); return; }
     const enriched = items.map(i => ({ ...i }));
     const BATCH = 5;
     for (let b = 0; b < enriched.length; b += BATCH) {
+      if (fetchSession.current !== sid) return;
       await Promise.all(enriched.slice(b, b + BATCH).map(async item => {
         if (item.coverUrl) return;
         try {
@@ -2263,27 +2269,30 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onShelfChange }) 
           item.coverUrl = d.coverUrl || null;
         } catch { /* leave null */ }
       }));
+      if (fetchSession.current !== sid) return;
       onUpdate([...enriched]);
       if (b + BATCH < enriched.length) await new Promise(r => setTimeout(r, 200));
     }
+    if (fetchSession.current !== sid) return;
     claudeProse100CoversCache = enriched;
     try { localStorage.setItem(CLAUDEPROSE100_CACHE_KEY, JSON.stringify(enriched)); } catch { /* storage full */ }
     onUpdate([...enriched]);
   }
 
   async function generateAIRankings() {
+    const sid = ++fetchSession.current;
     if (genreFilter === "All" && scoreCategory === "all") {
       const base = claude100CoversCache || CLAUDE_100;
       setAiItems(base);
       setGenerated(true);
-      if (!claude100CoversCache) fetchClaude100Covers(CLAUDE_100, setAiItems);
+      if (!claude100CoversCache) fetchClaude100Covers(CLAUDE_100, setAiItems, sid);
       return;
     }
     if (genreFilter === "All" && scoreCategory === "prose") {
       const base = claudeProse100CoversCache || CLAUDE_PROSE_100;
       setAiItems(base);
       setGenerated(true);
-      if (!claudeProse100CoversCache) fetchProse100Covers(CLAUDE_PROSE_100, setAiItems);
+      if (!claudeProse100CoversCache) fetchProse100Covers(CLAUDE_PROSE_100, setAiItems, sid);
       return;
     }
     setGenerating(true);
