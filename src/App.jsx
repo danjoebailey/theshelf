@@ -1903,6 +1903,109 @@ function ReikoTab({ books, userId, onAddDirect }) {
   );
 }
 
+const CLAUDE_100 = [
+  { title:"Don Quixote", author:"Miguel de Cervantes", publishYear:1605, genre:"Fiction", pages:1023 },
+  { title:"Pride and Prejudice", author:"Jane Austen", publishYear:1813, genre:"Fiction", pages:432 },
+  { title:"Moby-Dick", author:"Herman Melville", publishYear:1851, genre:"Fiction", pages:654 },
+  { title:"Anna Karenina", author:"Leo Tolstoy", publishYear:1878, genre:"Fiction", pages:864 },
+  { title:"The Brothers Karamazov", author:"Fyodor Dostoevsky", publishYear:1880, genre:"Fiction", pages:796 },
+  { title:"Crime and Punishment", author:"Fyodor Dostoevsky", publishYear:1866, genre:"Fiction", pages:671 },
+  { title:"War and Peace", author:"Leo Tolstoy", publishYear:1869, genre:"Fiction", pages:1225 },
+  { title:"Madame Bovary", author:"Gustave Flaubert", publishYear:1857, genre:"Fiction", pages:329 },
+  { title:"Middlemarch", author:"George Eliot", publishYear:1871, genre:"Fiction", pages:785 },
+  { title:"Great Expectations", author:"Charles Dickens", publishYear:1861, genre:"Fiction", pages:505 },
+  { title:"Jane Eyre", author:"Charlotte Brontë", publishYear:1847, genre:"Fiction", pages:532 },
+  { title:"Wuthering Heights", author:"Emily Brontë", publishYear:1847, genre:"Fiction", pages:342 },
+  { title:"Les Misérables", author:"Victor Hugo", publishYear:1862, genre:"Fiction", pages:1463 },
+  { title:"The Adventures of Huckleberry Finn", author:"Mark Twain", publishYear:1884, genre:"Fiction", pages:366 },
+  { title:"The Picture of Dorian Gray", author:"Oscar Wilde", publishYear:1890, genre:"Fiction", pages:254 },
+  { title:"Frankenstein", author:"Mary Shelley", publishYear:1818, genre:"Sci-Fi", pages:280 },
+  { title:"Ulysses", author:"James Joyce", publishYear:1922, genre:"Fiction", pages:730 },
+  { title:"In Search of Lost Time", author:"Marcel Proust", publishYear:1913, genre:"Fiction", pages:4215 },
+  { title:"The Sound and the Fury", author:"William Faulkner", publishYear:1929, genre:"Fiction", pages:326 },
+  { title:"To the Lighthouse", author:"Virginia Woolf", publishYear:1927, genre:"Fiction", pages:209 },
+  { title:"Mrs. Dalloway", author:"Virginia Woolf", publishYear:1925, genre:"Fiction", pages:194 },
+  { title:"The Trial", author:"Franz Kafka", publishYear:1925, genre:"Fiction", pages:255 },
+  { title:"The Metamorphosis", author:"Franz Kafka", publishYear:1915, genre:"Fiction", pages:96 },
+  { title:"One Hundred Years of Solitude", author:"Gabriel García Márquez", publishYear:1967, genre:"Fiction", pages:417 },
+  { title:"The Magic Mountain", author:"Thomas Mann", publishYear:1924, genre:"Fiction", pages:706 },
+  { title:"The Great Gatsby", author:"F. Scott Fitzgerald", publishYear:1925, genre:"Fiction", pages:180 },
+  { title:"As I Lay Dying", author:"William Faulkner", publishYear:1930, genre:"Fiction", pages:267 },
+  { title:"The Grapes of Wrath", author:"John Steinbeck", publishYear:1939, genre:"Fiction", pages:464 },
+  { title:"To Kill a Mockingbird", author:"Harper Lee", publishYear:1960, genre:"Fiction", pages:281 },
+  { title:"Invisible Man", author:"Ralph Ellison", publishYear:1952, genre:"Fiction", pages:581 },
+  { title:"Catch-22", author:"Joseph Heller", publishYear:1961, genre:"Fiction", pages:453 },
+  { title:"Slaughterhouse-Five", author:"Kurt Vonnegut", publishYear:1969, genre:"Fiction", pages:215 },
+  { title:"Beloved", author:"Toni Morrison", publishYear:1987, genre:"Fiction", pages:321 },
+  { title:"Blood Meridian", author:"Cormac McCarthy", publishYear:1985, genre:"Fiction", pages:337 },
+  { title:"Lolita", author:"Vladimir Nabokov", publishYear:1955, genre:"Fiction", pages:317 },
+  { title:"Their Eyes Were Watching God", author:"Zora Neale Hurston", publishYear:1937, genre:"Fiction", pages:286 },
+  { title:"1984", author:"George Orwell", publishYear:1949, genre:"Sci-Fi", pages:328 },
+  { title:"Brave New World", author:"Aldous Huxley", publishYear:1932, genre:"Sci-Fi", pages:311 },
+  { title:"Lord of the Flies", author:"William Golding", publishYear:1954, genre:"Fiction", pages:224 },
+  { title:"The Remains of the Day", author:"Kazuo Ishiguro", publishYear:1989, genre:"Fiction", pages:258 },
+  { title:"Never Let Me Go", author:"Kazuo Ishiguro", publishYear:2005, genre:"Fiction", pages:288 },
+  { title:"Atonement", author:"Ian McEwan", publishYear:2001, genre:"Fiction", pages:351 },
+  { title:"Things Fall Apart", author:"Chinua Achebe", publishYear:1958, genre:"Fiction", pages:209 },
+  { title:"The Master and Margarita", author:"Mikhail Bulgakov", publishYear:1967, genre:"Fiction", pages:412 },
+  { title:"The Stranger", author:"Albert Camus", publishYear:1942, genre:"Fiction", pages:123 },
+  { title:"The Plague", author:"Albert Camus", publishYear:1947, genre:"Fiction", pages:308 },
+  { title:"The Unbearable Lightness of Being", author:"Milan Kundera", publishYear:1984, genre:"Fiction", pages:314 },
+  { title:"Midnight's Children", author:"Salman Rushdie", publishYear:1981, genre:"Fiction", pages:647 },
+  { title:"The God of Small Things", author:"Arundhati Roy", publishYear:1997, genre:"Fiction", pages:321 },
+  { title:"Dune", author:"Frank Herbert", publishYear:1965, genre:"Sci-Fi", pages:688 },
+  { title:"The Left Hand of Darkness", author:"Ursula K. Le Guin", publishYear:1969, genre:"Sci-Fi", pages:286 },
+  { title:"Fahrenheit 451", author:"Ray Bradbury", publishYear:1953, genre:"Sci-Fi", pages:256 },
+  { title:"Solaris", author:"Stanisław Lem", publishYear:1961, genre:"Sci-Fi", pages:204 },
+  { title:"The Handmaid's Tale", author:"Margaret Atwood", publishYear:1985, genre:"Sci-Fi", pages:311 },
+  { title:"Neuromancer", author:"William Gibson", publishYear:1984, genre:"Sci-Fi", pages:271 },
+  { title:"The Lord of the Rings", author:"J.R.R. Tolkien", publishYear:1954, genre:"Fantasy", pages:1178 },
+  { title:"Pedro Páramo", author:"Juan Rulfo", publishYear:1955, genre:"Fiction", pages:124 },
+  { title:"Ficciones", author:"Jorge Luis Borges", publishYear:1944, genre:"Fiction", pages:174 },
+  { title:"Love in the Time of Cholera", author:"Gabriel García Márquez", publishYear:1985, genre:"Fiction", pages:348 },
+  { title:"The House of the Spirits", author:"Isabel Allende", publishYear:1982, genre:"Fiction", pages:433 },
+  { title:"Stoner", author:"John Williams", publishYear:1965, genre:"Fiction", pages:278 },
+  { title:"Gilead", author:"Marilynne Robinson", publishYear:2004, genre:"Fiction", pages:247 },
+  { title:"White Noise", author:"Don DeLillo", publishYear:1985, genre:"Fiction", pages:310 },
+  { title:"American Pastoral", author:"Philip Roth", publishYear:1997, genre:"Fiction", pages:423 },
+  { title:"Infinite Jest", author:"David Foster Wallace", publishYear:1996, genre:"Fiction", pages:1079 },
+  { title:"Giovanni's Room", author:"James Baldwin", publishYear:1956, genre:"Fiction", pages:159 },
+  { title:"Doctor Zhivago", author:"Boris Pasternak", publishYear:1957, genre:"Fiction", pages:592 },
+  { title:"The Tin Drum", author:"Günter Grass", publishYear:1959, genre:"Fiction", pages:600 },
+  { title:"If on a winter's night a traveler", author:"Italo Calvino", publishYear:1979, genre:"Fiction", pages:260 },
+  { title:"The Name of the Rose", author:"Umberto Eco", publishYear:1980, genre:"Mystery", pages:502 },
+  { title:"Siddhartha", author:"Hermann Hesse", publishYear:1922, genre:"Fiction", pages:152 },
+  { title:"The Old Man and the Sea", author:"Ernest Hemingway", publishYear:1952, genre:"Fiction", pages:127 },
+  { title:"A Farewell to Arms", author:"Ernest Hemingway", publishYear:1929, genre:"Fiction", pages:332 },
+  { title:"The Sun Also Rises", author:"Ernest Hemingway", publishYear:1926, genre:"Fiction", pages:251 },
+  { title:"Disgrace", author:"J.M. Coetzee", publishYear:1999, genre:"Fiction", pages:220 },
+  { title:"The Bell Jar", author:"Sylvia Plath", publishYear:1963, genre:"Fiction", pages:244 },
+  { title:"Season of Migration to the North", author:"Tayeb Salih", publishYear:1966, genre:"Fiction", pages:139 },
+  { title:"Silence", author:"Shusaku Endo", publishYear:1966, genre:"Fiction", pages:276 },
+  { title:"The Woman in the Dunes", author:"Kobo Abe", publishYear:1964, genre:"Fiction", pages:239 },
+  { title:"The Tale of Genji", author:"Murasaki Shikibu", publishYear:1000, genre:"Fiction", pages:1216 },
+  { title:"Half of a Yellow Sun", author:"Chimamanda Ngozi Adichie", publishYear:2006, genre:"Fiction", pages:433 },
+  { title:"A Fine Balance", author:"Rohinton Mistry", publishYear:1995, genre:"Fiction", pages:603 },
+  { title:"The English Patient", author:"Michael Ondaatje", publishYear:1992, genre:"Fiction", pages:301 },
+  { title:"Life and Fate", author:"Vasily Grossman", publishYear:1980, genre:"Fiction", pages:896 },
+  { title:"We", author:"Yevgeny Zamyatin", publishYear:1924, genre:"Sci-Fi", pages:226 },
+  { title:"Housekeeping", author:"Marilynne Robinson", publishYear:1980, genre:"Fiction", pages:219 },
+  { title:"Notes from Underground", author:"Fyodor Dostoevsky", publishYear:1864, genre:"Fiction", pages:136 },
+  { title:"A Passage to India", author:"E.M. Forster", publishYear:1924, genre:"Fiction", pages:362 },
+  { title:"Sons and Lovers", author:"D.H. Lawrence", publishYear:1913, genre:"Fiction", pages:432 },
+  { title:"The Portrait of a Lady", author:"Henry James", publishYear:1881, genre:"Fiction", pages:626 },
+  { title:"Independent People", author:"Halldór Laxness", publishYear:1934, genre:"Fiction", pages:470 },
+  { title:"Brideshead Revisited", author:"Evelyn Waugh", publishYear:1945, genre:"Fiction", pages:315 },
+  { title:"The Road", author:"Cormac McCarthy", publishYear:2006, genre:"Fiction", pages:287 },
+  { title:"East of Eden", author:"John Steinbeck", publishYear:1952, genre:"Fiction", pages:601 },
+  { title:"Herzog", author:"Saul Bellow", publishYear:1964, genre:"Fiction", pages:341 },
+  { title:"Go Tell It on the Mountain", author:"James Baldwin", publishYear:1953, genre:"Fiction", pages:303 },
+  { title:"The Dispossessed", author:"Ursula K. Le Guin", publishYear:1974, genre:"Sci-Fi", pages:341 },
+  { title:"Rebecca", author:"Daphne du Maurier", publishYear:1938, genre:"Mystery", pages:449 },
+  { title:"Snow Country", author:"Yasunari Kawabata", publishYear:1956, genre:"Fiction", pages:175 },
+  { title:"Dream of the Red Chamber", author:"Cao Xueqin", publishYear:1791, genre:"Fiction", pages:2339 },
+];
+
 const SCORE_CATEGORIES = [
   { key:"all",          label:"All" },
   { key:"prose",        label:"Prose" },
@@ -1958,6 +2061,11 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onShelfChange }) 
   // Load saved AI ranking from Supabase when AI filters change (topN is just a view slice)
   useEffect(() => {
     if (!userId || mode !== "ai") return;
+    if (genreFilter === "All" && scoreCategory === "all") {
+      setAiItems(CLAUDE_100);
+      setGenerated(true);
+      return;
+    }
     setGenerated(false);
     setAiItems([]);
     supabase.from("ai_rankings")
@@ -2000,6 +2108,11 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onShelfChange }) 
   }
 
   async function generateAIRankings() {
+    if (genreFilter === "All" && scoreCategory === "all") {
+      setAiItems(CLAUDE_100);
+      setGenerated(true);
+      return;
+    }
     setGenerating(true);
     try {
       const res = await fetch("/api/ai-rankings", {
@@ -2253,7 +2366,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onShelfChange }) 
             id: `ai_${i}`,
             title: item.title,
             author: item.author,
-            genre: genreFilter !== "All" ? genreFilter : "Other",
+            genre: genreFilter !== "All" ? genreFilter : (item.genre || "Other"),
             shelf: null,
             rating: 0,
             pages: item.pages || 0,
@@ -2276,7 +2389,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onShelfChange }) 
                       onRemove={()=>{}} onEdit={()=>{}} onShelfChange={()=>{}} onOpenShelfPicker={()=>{}}
                       onSaveScores={matched ? onSaveScores : ()=>{}} onSaveDescription={()=>{}}
                       forceProse
-                      onAdd={matched ? undefined : (shelf) => onAddBook({ title:item.title, author:item.author, genre: genreFilter !== "All" ? genreFilter : "Other", shelf, pages:0, rating:0, coverUrl:null })}
+                      onAdd={matched ? undefined : (shelf) => onAddBook({ title:item.title, author:item.author, genre: genreFilter !== "All" ? genreFilter : (item.genre || "Other"), shelf, pages:0, rating:0, coverUrl:null })}
                     />
                 }
               </div>
