@@ -2664,10 +2664,7 @@ function StatsTab({ books }) {
           : topGenres.map(([genre,count])=>(
             <div key={genre} style={{ marginBottom:11 }}>
               <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
-                <div style={{ display:"flex", alignItems:"center", gap:7 }}>
-                  <div style={{ width:8, height:8, borderRadius:"50%", background:GENRE_COLORS[genre]||"#94a3b8" }}/>
-                  <span style={{ fontSize:13, color:WOOD.text, fontFamily:"'Crimson Pro',serif" }}>{genre}</span>
-                </div>
+                <span style={{ background:GENRE_COLORS[genre]||"#94a3b8", color:"#fff", borderRadius:20, padding:"3px 10px", fontSize:11, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em" }}>{genre}</span>
                 <span style={{ fontSize:12, color:WOOD.textDim }}>{count} · {(stats.genrePages[genre]||0).toLocaleString()} pages</span>
               </div>
               <div style={{ height:5, background:"rgba(100,60,20,0.2)", borderRadius:3, overflow:"hidden" }}>
@@ -2682,8 +2679,7 @@ function StatsTab({ books }) {
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
           <div style={{ ...card, padding:14 }}>
             <p style={{ fontSize:13, fontWeight:700, color:WOOD.textDim, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Top Genre</p>
-            <div style={{ width:10, height:10, borderRadius:"50%", background:GENRE_COLORS[stats.topGenre[0]], marginBottom:7 }}/>
-            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, color:WOOD.text }}>{stats.topGenre[0]}</p>
+            <span style={{ background:GENRE_COLORS[stats.topGenre[0]]||"#94a3b8", color:"#fff", borderRadius:20, padding:"3px 10px", fontSize:11, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", display:"inline-block", marginBottom:7 }}>{stats.topGenre[0]}</span>
             <p style={{ fontSize:12, color:WOOD.textDim }}>{stats.topGenre[1]} books</p>
           </div>
           {stats.topRated && (
