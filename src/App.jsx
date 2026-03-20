@@ -2628,8 +2628,8 @@ function StatsTab({ books }) {
         const readingBooks = books.filter(b => b.shelf === "Reading");
         if (readingBooks.length === 0) return null;
         return (
+          <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, color:WOOD.textDim, fontStyle:"italic", marginBottom:10, paddingLeft:2 }}>Currently Reading</p>
           <div style={{ ...card, padding:16, marginBottom:10 }}>
-            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, color:WOOD.textDim, fontStyle:"italic", marginBottom:12 }}>Currently Reading</p>
             <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
               {readingBooks.map(b => {
                 const pct = b.pages > 0 && (b.currentPage || 0) > 0 ? Math.min(100, Math.round(((b.currentPage||0) / b.pages) * 100)) : null;
