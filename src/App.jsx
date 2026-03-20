@@ -2657,8 +2657,8 @@ function StatsTab({ books }) {
         );
       })()}
 
+      <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, color:WOOD.textDim, fontStyle:"italic", marginBottom:10, paddingLeft:2 }}>Genre Breakdown</p>
       <div style={{ ...card, padding:16, marginBottom:10 }}>
-        <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, color:WOOD.textDim, fontStyle:"italic", marginBottom:14 }}>Genre Breakdown</p>
         {topGenres.length===0
           ? <p style={{ color:WOOD.textFaint, fontSize:13 }}>No data yet</p>
           : topGenres.map(([genre,count])=>(
