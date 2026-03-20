@@ -2006,9 +2006,117 @@ const CLAUDE_100 = [
   { title:"Dream of the Red Chamber", author:"Cao Xueqin", publishYear:1791, genre:"Fiction", pages:2339 },
 ];
 
+const CLAUDE_PROSE_100 = [
+  { title:"Lolita", author:"Vladimir Nabokov", publishYear:1955, genre:"Fiction", pages:317 },
+  { title:"Ulysses", author:"James Joyce", publishYear:1922, genre:"Fiction", pages:730 },
+  { title:"To the Lighthouse", author:"Virginia Woolf", publishYear:1927, genre:"Fiction", pages:209 },
+  { title:"In Search of Lost Time", author:"Marcel Proust", publishYear:1913, genre:"Fiction", pages:4215 },
+  { title:"Pale Fire", author:"Vladimir Nabokov", publishYear:1962, genre:"Fiction", pages:315 },
+  { title:"Blood Meridian", author:"Cormac McCarthy", publishYear:1985, genre:"Fiction", pages:337 },
+  { title:"Mrs. Dalloway", author:"Virginia Woolf", publishYear:1925, genre:"Fiction", pages:194 },
+  { title:"The Sound and the Fury", author:"William Faulkner", publishYear:1929, genre:"Fiction", pages:326 },
+  { title:"As I Lay Dying", author:"William Faulkner", publishYear:1930, genre:"Fiction", pages:267 },
+  { title:"Their Eyes Were Watching God", author:"Zora Neale Hurston", publishYear:1937, genre:"Fiction", pages:286 },
+  { title:"Beloved", author:"Toni Morrison", publishYear:1987, genre:"Fiction", pages:321 },
+  { title:"Song of Solomon", author:"Toni Morrison", publishYear:1977, genre:"Fiction", pages:337 },
+  { title:"One Hundred Years of Solitude", author:"Gabriel García Márquez", publishYear:1967, genre:"Fiction", pages:417 },
+  { title:"Pedro Páramo", author:"Juan Rulfo", publishYear:1955, genre:"Fiction", pages:124 },
+  { title:"The Waves", author:"Virginia Woolf", publishYear:1931, genre:"Fiction", pages:229 },
+  { title:"Ficciones", author:"Jorge Luis Borges", publishYear:1944, genre:"Fiction", pages:174 },
+  { title:"Anna Karenina", author:"Leo Tolstoy", publishYear:1878, genre:"Fiction", pages:864 },
+  { title:"Madame Bovary", author:"Gustave Flaubert", publishYear:1857, genre:"Fiction", pages:329 },
+  { title:"The Brothers Karamazov", author:"Fyodor Dostoevsky", publishYear:1880, genre:"Fiction", pages:796 },
+  { title:"Notes from Underground", author:"Fyodor Dostoevsky", publishYear:1864, genre:"Fiction", pages:136 },
+  { title:"The Stranger", author:"Albert Camus", publishYear:1942, genre:"Fiction", pages:123 },
+  { title:"Absalom, Absalom!", author:"William Faulkner", publishYear:1936, genre:"Fiction", pages:313 },
+  { title:"Middlemarch", author:"George Eliot", publishYear:1871, genre:"Fiction", pages:785 },
+  { title:"Wuthering Heights", author:"Emily Brontë", publishYear:1847, genre:"Fiction", pages:342 },
+  { title:"The Remains of the Day", author:"Kazuo Ishiguro", publishYear:1989, genre:"Fiction", pages:258 },
+  { title:"Never Let Me Go", author:"Kazuo Ishiguro", publishYear:2005, genre:"Fiction", pages:288 },
+  { title:"Stoner", author:"John Williams", publishYear:1965, genre:"Fiction", pages:278 },
+  { title:"Gilead", author:"Marilynne Robinson", publishYear:2004, genre:"Fiction", pages:247 },
+  { title:"Housekeeping", author:"Marilynne Robinson", publishYear:1980, genre:"Fiction", pages:219 },
+  { title:"Atonement", author:"Ian McEwan", publishYear:2001, genre:"Fiction", pages:351 },
+  { title:"The English Patient", author:"Michael Ondaatje", publishYear:1992, genre:"Fiction", pages:301 },
+  { title:"Disgrace", author:"J.M. Coetzee", publishYear:1999, genre:"Fiction", pages:220 },
+  { title:"Giovanni's Room", author:"James Baldwin", publishYear:1956, genre:"Fiction", pages:159 },
+  { title:"Invisible Man", author:"Ralph Ellison", publishYear:1952, genre:"Fiction", pages:581 },
+  { title:"The Bell Jar", author:"Sylvia Plath", publishYear:1963, genre:"Fiction", pages:244 },
+  { title:"A Portrait of the Artist as a Young Man", author:"James Joyce", publishYear:1916, genre:"Fiction", pages:288 },
+  { title:"Doctor Zhivago", author:"Boris Pasternak", publishYear:1957, genre:"Fiction", pages:592 },
+  { title:"The Old Man and the Sea", author:"Ernest Hemingway", publishYear:1952, genre:"Fiction", pages:127 },
+  { title:"A Farewell to Arms", author:"Ernest Hemingway", publishYear:1929, genre:"Fiction", pages:332 },
+  { title:"The Sun Also Rises", author:"Ernest Hemingway", publishYear:1926, genre:"Fiction", pages:251 },
+  { title:"A Sentimental Education", author:"Gustave Flaubert", publishYear:1869, genre:"Fiction", pages:432 },
+  { title:"The Portrait of a Lady", author:"Henry James", publishYear:1881, genre:"Fiction", pages:626 },
+  { title:"The Wings of the Dove", author:"Henry James", publishYear:1902, genre:"Fiction", pages:544 },
+  { title:"Great Expectations", author:"Charles Dickens", publishYear:1861, genre:"Fiction", pages:505 },
+  { title:"Bleak House", author:"Charles Dickens", publishYear:1853, genre:"Fiction", pages:989 },
+  { title:"Pride and Prejudice", author:"Jane Austen", publishYear:1813, genre:"Fiction", pages:432 },
+  { title:"Persuasion", author:"Jane Austen", publishYear:1817, genre:"Fiction", pages:261 },
+  { title:"Snow Country", author:"Yasunari Kawabata", publishYear:1956, genre:"Fiction", pages:175 },
+  { title:"The Sound of Waves", author:"Yukio Mishima", publishYear:1954, genre:"Fiction", pages:182 },
+  { title:"The Woman in the Dunes", author:"Kobo Abe", publishYear:1964, genre:"Fiction", pages:239 },
+  { title:"Silence", author:"Shusaku Endo", publishYear:1966, genre:"Fiction", pages:276 },
+  { title:"Season of Migration to the North", author:"Tayeb Salih", publishYear:1966, genre:"Fiction", pages:139 },
+  { title:"The Unbearable Lightness of Being", author:"Milan Kundera", publishYear:1984, genre:"Fiction", pages:314 },
+  { title:"Midnight's Children", author:"Salman Rushdie", publishYear:1981, genre:"Fiction", pages:647 },
+  { title:"The Magic Mountain", author:"Thomas Mann", publishYear:1924, genre:"Fiction", pages:706 },
+  { title:"Siddhartha", author:"Hermann Hesse", publishYear:1922, genre:"Fiction", pages:152 },
+  { title:"If on a winter's night a traveler", author:"Italo Calvino", publishYear:1979, genre:"Fiction", pages:260 },
+  { title:"Invisible Cities", author:"Italo Calvino", publishYear:1972, genre:"Fiction", pages:165 },
+  { title:"Love in the Time of Cholera", author:"Gabriel García Márquez", publishYear:1985, genre:"Fiction", pages:348 },
+  { title:"The Master and Margarita", author:"Mikhail Bulgakov", publishYear:1967, genre:"Fiction", pages:412 },
+  { title:"Don Quixote", author:"Miguel de Cervantes", publishYear:1605, genre:"Fiction", pages:1023 },
+  { title:"Brideshead Revisited", author:"Evelyn Waugh", publishYear:1945, genre:"Fiction", pages:315 },
+  { title:"The Picture of Dorian Gray", author:"Oscar Wilde", publishYear:1890, genre:"Fiction", pages:254 },
+  { title:"Things Fall Apart", author:"Chinua Achebe", publishYear:1958, genre:"Fiction", pages:209 },
+  { title:"A Passage to India", author:"E.M. Forster", publishYear:1924, genre:"Fiction", pages:362 },
+  { title:"A Room with a View", author:"E.M. Forster", publishYear:1908, genre:"Fiction", pages:226 },
+  { title:"Tess of the d'Urbervilles", author:"Thomas Hardy", publishYear:1891, genre:"Fiction", pages:518 },
+  { title:"Far from the Madding Crowd", author:"Thomas Hardy", publishYear:1874, genre:"Fiction", pages:464 },
+  { title:"The Road", author:"Cormac McCarthy", publishYear:2006, genre:"Fiction", pages:287 },
+  { title:"All the Pretty Horses", author:"Cormac McCarthy", publishYear:1992, genre:"Fiction", pages:302 },
+  { title:"Sula", author:"Toni Morrison", publishYear:1973, genre:"Fiction", pages:174 },
+  { title:"East of Eden", author:"John Steinbeck", publishYear:1952, genre:"Fiction", pages:601 },
+  { title:"The Grapes of Wrath", author:"John Steinbeck", publishYear:1939, genre:"Fiction", pages:464 },
+  { title:"The House of the Spirits", author:"Isabel Allende", publishYear:1982, genre:"Fiction", pages:433 },
+  { title:"The God of Small Things", author:"Arundhati Roy", publishYear:1997, genre:"Fiction", pages:321 },
+  { title:"Go Tell It on the Mountain", author:"James Baldwin", publishYear:1953, genre:"Fiction", pages:303 },
+  { title:"Half of a Yellow Sun", author:"Chimamanda Ngozi Adichie", publishYear:2006, genre:"Fiction", pages:433 },
+  { title:"The Hour of the Star", author:"Clarice Lispector", publishYear:1977, genre:"Fiction", pages:96 },
+  { title:"Orlando", author:"Virginia Woolf", publishYear:1928, genre:"Fiction", pages:294 },
+  { title:"The Trial", author:"Franz Kafka", publishYear:1925, genre:"Fiction", pages:255 },
+  { title:"Light in August", author:"William Faulkner", publishYear:1932, genre:"Fiction", pages:507 },
+  { title:"Ada, or Ardor", author:"Vladimir Nabokov", publishYear:1969, genre:"Fiction", pages:589 },
+  { title:"Steppenwolf", author:"Hermann Hesse", publishYear:1927, genre:"Fiction", pages:218 },
+  { title:"The Name of the Rose", author:"Umberto Eco", publishYear:1980, genre:"Mystery", pages:502 },
+  { title:"Independent People", author:"Halldór Laxness", publishYear:1934, genre:"Fiction", pages:470 },
+  { title:"Doctor Faustus", author:"Thomas Mann", publishYear:1947, genre:"Fiction", pages:534 },
+  { title:"Life and Fate", author:"Vasily Grossman", publishYear:1980, genre:"Fiction", pages:896 },
+  { title:"Waiting for the Barbarians", author:"J.M. Coetzee", publishYear:1980, genre:"Fiction", pages:156 },
+  { title:"The Buried Giant", author:"Kazuo Ishiguro", publishYear:2015, genre:"Fiction", pages:317 },
+  { title:"The Line of Beauty", author:"Alan Hollinghurst", publishYear:2004, genre:"Fiction", pages:438 },
+  { title:"The Corrections", author:"Jonathan Franzen", publishYear:2001, genre:"Fiction", pages:566 },
+  { title:"American Pastoral", author:"Philip Roth", publishYear:1997, genre:"Fiction", pages:423 },
+  { title:"The Plot Against America", author:"Philip Roth", publishYear:2004, genre:"Fiction", pages:391 },
+  { title:"Herzog", author:"Saul Bellow", publishYear:1964, genre:"Fiction", pages:341 },
+  { title:"The Tin Drum", author:"Günter Grass", publishYear:1959, genre:"Fiction", pages:600 },
+  { title:"Jane Eyre", author:"Charlotte Brontë", publishYear:1847, genre:"Fiction", pages:532 },
+  { title:"Les Misérables", author:"Victor Hugo", publishYear:1862, genre:"Fiction", pages:1463 },
+  { title:"War and Peace", author:"Leo Tolstoy", publishYear:1869, genre:"Fiction", pages:1225 },
+  { title:"Água Viva", author:"Clarice Lispector", publishYear:1973, genre:"Fiction", pages:96 },
+  { title:"Dream of the Red Chamber", author:"Cao Xueqin", publishYear:1791, genre:"Fiction", pages:2339 },
+];
+
 const CLAUDE100_CACHE_KEY = "claude100_covers_v1";
 let claude100CoversCache = (() => {
   try { const s = localStorage.getItem(CLAUDE100_CACHE_KEY); return s ? JSON.parse(s) : null; } catch { return null; }
+})();
+
+const CLAUDEPROSE100_CACHE_KEY = "claudeprose100_covers_v1";
+let claudeProse100CoversCache = (() => {
+  try { const s = localStorage.getItem(CLAUDEPROSE100_CACHE_KEY); return s ? JSON.parse(s) : null; } catch { return null; }
 })();
 
 const SCORE_CATEGORIES = [
@@ -2073,6 +2181,13 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onShelfChange }) 
       if (!claude100CoversCache) fetchClaude100Covers(CLAUDE_100, setAiItems);
       return;
     }
+    if (genreFilter === "All" && scoreCategory === "prose") {
+      const base = claudeProse100CoversCache || CLAUDE_PROSE_100;
+      setAiItems(base);
+      setGenerated(true);
+      if (!claudeProse100CoversCache) fetchProse100Covers(CLAUDE_PROSE_100, setAiItems);
+      return;
+    }
     setGenerated(false);
     setAiItems([]);
     supabase.from("ai_rankings")
@@ -2135,12 +2250,40 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onShelfChange }) 
     onUpdate([...enriched]);
   }
 
+  async function fetchProse100Covers(items, onUpdate) {
+    if (claudeProse100CoversCache) { onUpdate(claudeProse100CoversCache); return; }
+    const enriched = items.map(i => ({ ...i }));
+    const BATCH = 5;
+    for (let b = 0; b < enriched.length; b += BATCH) {
+      await Promise.all(enriched.slice(b, b + BATCH).map(async item => {
+        if (item.coverUrl) return;
+        try {
+          const r = await fetch("/api/fetch-cover", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ title: item.title, author: item.author }) });
+          const d = await r.json();
+          item.coverUrl = d.coverUrl || null;
+        } catch { /* leave null */ }
+      }));
+      onUpdate([...enriched]);
+      if (b + BATCH < enriched.length) await new Promise(r => setTimeout(r, 200));
+    }
+    claudeProse100CoversCache = enriched;
+    try { localStorage.setItem(CLAUDEPROSE100_CACHE_KEY, JSON.stringify(enriched)); } catch { /* storage full */ }
+    onUpdate([...enriched]);
+  }
+
   async function generateAIRankings() {
     if (genreFilter === "All" && scoreCategory === "all") {
       const base = claude100CoversCache || CLAUDE_100;
       setAiItems(base);
       setGenerated(true);
       if (!claude100CoversCache) fetchClaude100Covers(CLAUDE_100, setAiItems);
+      return;
+    }
+    if (genreFilter === "All" && scoreCategory === "prose") {
+      const base = claudeProse100CoversCache || CLAUDE_PROSE_100;
+      setAiItems(base);
+      setGenerated(true);
+      if (!claudeProse100CoversCache) fetchProse100Covers(CLAUDE_PROSE_100, setAiItems);
       return;
     }
     setGenerating(true);
