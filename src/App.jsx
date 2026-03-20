@@ -2628,6 +2628,7 @@ function StatsTab({ books }) {
         const readingBooks = books.filter(b => b.shelf === "Reading");
         if (readingBooks.length === 0) return null;
         return (
+          <>
           <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, color:WOOD.textDim, fontStyle:"italic", marginBottom:10, paddingLeft:2 }}>Currently Reading</p>
           <div style={{ ...card, padding:16, marginBottom:10 }}>
             <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
@@ -2654,6 +2655,7 @@ function StatsTab({ books }) {
               })}
             </div>
           </div>
+          </>
         );
       })()}
 
