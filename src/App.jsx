@@ -2326,9 +2326,11 @@ function StatsTab({ books }) {
     const avgRating = filteredBooks.length ? filteredBooks.reduce((s,b)=>s+b.rating,0)/filteredBooks.length : 0;
     const genreMap={}, genrePages={};
     filteredBooks.forEach(b=>{ genreMap[b.genre]=(genreMap[b.genre]||0)+1; genrePages[b.genre]=(genrePages[b.genre]||0)+(b.pages||0); });
-    const topGenre = Object.entries(genreMap).sort((a,b)=>b[1]-a[1])[0];
-    const topRated = [...filteredBooks].sort((a,b)=>b.rating-a.rating)[0];
-    return { totalPages, avgRating, genreMap, genrePages, topGenre, topRated };
+    const authorMap = {};
+    filteredBooks.forEach(b=>{ if(b.author) authorMap[b.author]=(authorMap[b.author]||0)+1; });
+    const topAuthor = Object.entries(authorMap).sort((a,b)=>b[1]-a[1])[0] || null;
+    const longestBook = filteredBooks.filter(b=>b.pages>0).sort((a,b)=>b.pages-a.pages)[0] || null;
+    return { totalPages, avgRating, genreMap, genrePages, topAuthor, longestBook };
   }, [filteredBooks]);
   const topGenres = Object.entries(stats.genreMap).sort((a,b)=>b[1]-a[1]);
 
@@ -2677,19 +2679,20 @@ function StatsTab({ books }) {
         }
       </div>
 
-      {stats.topGenre && (
+      {(stats.topAuthor || stats.longestBook) && (
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
-          <div style={{ ...card, padding:14 }}>
-            <p style={{ fontSize:13, fontWeight:700, color:WOOD.textDim, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Top Genre</p>
-            <span style={{ background:GENRE_COLORS[stats.topGenre[0]]||"#94a3b8", color:"#fff", borderRadius:20, padding:"3px 10px", fontSize:11, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", display:"inline-block", marginBottom:7 }}>{stats.topGenre[0]}</span>
-            <p style={{ fontSize:12, color:WOOD.textDim }}>{stats.topGenre[1]} books</p>
-          </div>
-          {stats.topRated && (
+          {stats.topAuthor && (
             <div style={{ ...card, padding:14 }}>
-              <p style={{ fontSize:13, fontWeight:700, color:WOOD.textDim, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Top Rated</p>
-              <BookSpine title={stats.topRated.title} genre={stats.topRated.genre} size={32} />
-              <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:13, color:WOOD.text, lineHeight:1.2, marginTop:7, marginBottom:2 }}>{stats.topRated.title}</p>
-              <p style={{ fontSize:12, color:WOOD.amber }}>{stats.topRated.rating.toFixed(1)} ★</p>
+              <p style={{ fontSize:13, fontWeight:700, color:WOOD.textDim, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Top Author</p>
+              <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, lineHeight:1.2, marginBottom:4 }}>{stats.topAuthor[0]}</p>
+              <p style={{ fontSize:12, color:WOOD.textDim }}>{stats.topAuthor[1]} {stats.topAuthor[1] === 1 ? "book" : "books"}</p>
+            </div>
+          )}
+          {stats.longestBook && (
+            <div style={{ ...card, padding:14 }}>
+              <p style={{ fontSize:13, fontWeight:700, color:WOOD.textDim, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Longest Book</p>
+              <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, lineHeight:1.2, marginBottom:4, overflow:"hidden", display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical" }}>{stats.longestBook.title}</p>
+              <p style={{ fontSize:12, color:WOOD.textDim }}>{stats.longestBook.pages.toLocaleString()} pages</p>
             </div>
           )}
         </div>
