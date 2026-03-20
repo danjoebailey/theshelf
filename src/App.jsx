@@ -238,23 +238,25 @@ function BookCover({ book, width, height, radius=4, shadow="2px 2px 8px rgba(0,0
     book.isbn ? `https://covers.openlibrary.org/b/isbn/${book.isbn}-M.jpg` : null,
   ].filter(Boolean).map(u => u.replace("http://", "https://").replace("&edge=curl", ""));
   const [srcIdx, setSrcIdx] = useState(0);
+  const [imgLoaded, setImgLoaded] = useState(false);
   const prevCoverUrl = useRef(book.coverUrl);
   useEffect(() => {
     if (prevCoverUrl.current !== book.coverUrl) {
       prevCoverUrl.current = book.coverUrl;
       setSrcIdx(0);
+      setImgLoaded(false);
     }
   }, [book.coverUrl]);
   const src = srcs[srcIdx] || null;
   const color = GENRE_COLORS[book.genre] || "#94a3b8";
   const initials = book.title.split(" ").filter(Boolean).slice(0,2).map(w=>w[0]).join("").toUpperCase();
-  const advance = () => setSrcIdx(i => i + 1);
+  const advance = () => { setSrcIdx(i => i + 1); setImgLoaded(false); };
   return (
-    <div style={{ width, height, borderRadius:radius, flexShrink:0, position:"relative", background:`linear-gradient(160deg,${color}dd,${color}99)`, border:`1px solid ${color}66`, boxShadow:shadow, display:"flex", alignItems:"center", justifyContent:"center" }}>
-      <span style={{ color:"rgba(255,255,255,0.85)", fontSize:width*0.3, fontFamily:"'Crimson Pro',serif", fontWeight:600 }}>{initials}</span>
+    <div style={{ width, height, borderRadius:radius, flexShrink:0, position:"relative", background: imgLoaded ? "transparent" : `linear-gradient(160deg,${color}dd,${color}99)`, border:`1px solid ${color}66`, boxShadow:shadow, display:"flex", alignItems:"center", justifyContent:"center" }}>
+      {!imgLoaded && <span style={{ color:"rgba(255,255,255,0.85)", fontSize:width*0.3, fontFamily:"'Crimson Pro',serif", fontWeight:600 }}>{initials}</span>}
       {src && <img src={src} alt={book.title} style={{ position:"absolute", inset:0, width, height, objectFit:"cover", borderRadius:radius, display:"block" }}
         onError={advance}
-        onLoad={e=>{ if (e.target.naturalWidth <= 1 || e.target.naturalHeight <= 1) advance(); }} />}
+        onLoad={e=>{ if (e.target.naturalWidth <= 1 || e.target.naturalHeight <= 1) advance(); else setImgLoaded(true); }} />}
     </div>
   );
 }
