@@ -3441,7 +3441,7 @@ function EditSheet({ book, onSave, onClose }) {
       <div onClick={e=>e.stopPropagation()} onTouchEnd={e=>e.stopPropagation()} style={{ background:CR.bg, borderRadius:"24px 24px 0 0", height:"92%", display:"flex", flexDirection:"column", boxShadow:"0 -4px 40px rgba(0,0,0,0.18)" }}>
 
         {/* Header */}
-        <div style={{ padding:"20px 52px 0 22px", marginBottom:20, position:"relative", flexShrink:0 }}>
+        <div style={{ padding:"20px 16px 0 22px", marginBottom:20, position:"relative", flexShrink:0 }}>
           <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:22, fontWeight:400, color:CR.text, letterSpacing:"-0.01em", lineHeight:1.2 }}>{book.title}</p>
           <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:13, fontStyle:"italic", color:CR.textDim, marginTop:2 }}>{book.author}</p>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:7, flexWrap:"wrap", gap:6 }}>
@@ -3450,7 +3450,7 @@ function EditSheet({ book, onSave, onClose }) {
               {book.pages > 0 && <><span style={{ color:CR.border }}>·</span><span>{book.pages} pages</span></>}
               {book.year && <><span style={{ color:CR.border }}>·</span><span>{book.year}</span></>}
             </div>
-            <div style={{ display:"flex", gap:2, background:CR.panel, borderRadius:6, padding:2, flexShrink:0, marginLeft:"auto" }}>
+            <div style={{ display:"flex", gap:2, background:CR.panel, borderRadius:6, padding:2, flexShrink:0 }}>
               {tabs.map(t => (
                 <button key={t.key} onClick={() => setActiveTab(t.key)} title={t.label} style={{ display:"flex", alignItems:"center", gap:4, padding:"4px 8px", border:"none", borderRadius:4, background:activeTab===t.key ? CR.bg : "transparent", color:activeTab===t.key ? CR.text : CR.textDim, fontSize:11, fontFamily:"'DM Sans',sans-serif", cursor:"pointer", boxShadow:activeTab===t.key ? "0 1px 3px rgba(0,0,0,0.08)" : "none", transition:"all 0.12s", whiteSpace:"nowrap" }}>
                   {t.icon}{activeTab===t.key && <span style={{ marginLeft:2 }}>{t.label}</span>}
