@@ -3952,6 +3952,8 @@ export default function App() {
   const [tab, setTab] = useState("shelf");
   const [showAdd, setShowAdd] = useState(false);
   const [addInitialBook, setAddInitialBook] = useState(null);
+  const [toast, setToast] = useState(null);
+  const toastTimer = useRef(null);
   const [editBook, setEditBook] = useState(null);
   const [scrollY, setScrollY] = useState(0);
   const [showImport, setShowImport] = useState(false);
@@ -4025,6 +4027,9 @@ export default function App() {
     const book = { id: Date.now(), ...form, genre: normalizeGenre(form.genre), pages: parseInt(form.pages)||0, date: new Date().toISOString().slice(0,10) };
     setBooks(prev => [...prev, book]);
     dbAddBook(book, userId);
+    clearTimeout(toastTimer.current);
+    setToast({ title: book.title, shelf: book.shelf || "Read" });
+    toastTimer.current = setTimeout(() => setToast(null), 3000);
   }
 
   function saveScores(id, scores) {
@@ -4163,6 +4168,22 @@ export default function App() {
           {addInitialBook && <BookSearchModal book={addInitialBook} onSave={addBook} onClose={()=>{ setAddInitialBook(null); setShowAdd(false); }} />}
           {editBook && <EditSheet book={editBook} onSave={updated=>{ saveEdit(updated); setEditBook(null); }} onClose={()=>setEditBook(null)} />}
           {showImport && <GoodreadsImportSheet onImport={importBooks} onClose={()=>setShowImport(false)} />}
+          {toast && (
+            <div style={{
+              position:"fixed", bottom:90, left:"50%", transform:"translateX(-50%)",
+              background:"rgba(30,15,5,0.92)", border:"1px solid rgba(180,120,50,0.4)",
+              borderRadius:12, padding:"11px 18px", zIndex:200,
+              display:"flex", alignItems:"center", gap:10,
+              boxShadow:"0 4px 20px rgba(0,0,0,0.4)",
+              animation:"slideUp 0.2s ease",
+              maxWidth:"85vw",
+            }}>
+              <span style={{ fontSize:16, color:"#6fcf97" }}>✓</span>
+              <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:13, color:WOOD.text, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
+                <strong>{toast.title}</strong> added to {toast.shelf}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* tab bar */}
