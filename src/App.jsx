@@ -4170,17 +4170,16 @@ export default function App() {
           {showImport && <GoodreadsImportSheet onImport={importBooks} onClose={()=>setShowImport(false)} />}
           {toast && (
             <div style={{
-              position:"fixed", bottom:90, left:"50%", transform:"translateX(-50%)",
-              background:"rgba(30,15,5,0.92)", border:"1px solid rgba(180,120,50,0.4)",
-              borderRadius:12, padding:"11px 18px", zIndex:200,
-              display:"flex", alignItems:"center", gap:10,
-              boxShadow:"0 4px 20px rgba(0,0,0,0.4)",
+              position:"fixed", bottom:90, left:0, right:0,
+              background:"#22c55e", zIndex:200,
+              display:"flex", alignItems:"center", justifyContent:"center", gap:8,
+              padding:"13px 20px",
+              boxShadow:"0 -2px 12px rgba(0,0,0,0.2)",
               animation:"slideUp 0.2s ease",
-              maxWidth:"85vw",
             }}>
-              <span style={{ fontSize:16, color:"#6fcf97" }}>✓</span>
-              <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:13, color:WOOD.text, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
-                <strong>{toast.title}</strong> added to {toast.shelf}
+              <span style={{ fontSize:15, color:"#fff" }}>✓</span>
+              <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:14, fontWeight:600, color:"#fff", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                {toast.title} added to {toast.shelf}
               </span>
             </div>
           )}
