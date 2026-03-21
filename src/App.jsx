@@ -2431,11 +2431,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onShelfChange }) 
 
   function findInLibrary(title) {
     const key = (title || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-    if (libTitleMap.has(key)) return libTitleMap.get(key);
-    for (const [k, b] of libTitleMap) {
-      if (k.length > 4 && (k.startsWith(key) || key.startsWith(k))) return b;
-    }
-    return null;
+    return libTitleMap.get(key) || null;
   }
 
   const rankBadgeStyle = (i) => ({
