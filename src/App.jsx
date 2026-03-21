@@ -2121,6 +2121,7 @@ const CLAUDE_PROSE_100 = [
 // Key format: {genre-lowercase-hyphenated}-{rankingMode}-{scoreCategory}
 const CANNED_LISTS = new Set([
   "fantasy-vacuum-all",
+  "fantasy-alltime-all",
 ]);
 function cannedKey(genre, rankingMode, scoreCategory) {
   return `${genre.toLowerCase().replace(/[^a-z0-9]/g, "-")}-${rankingMode}-${scoreCategory}`;
@@ -3097,7 +3098,7 @@ function StatsTab({ books }) {
 function BookSearchModal({ book, onSave, onClose }) {
   const [rating, setRating] = useState(0);
   const [shelf, setShelf] = useState("Read");
-  const noRating = ["Reading", "The List", "DNF"].includes(shelf);
+  const noRating = ["Reading", "The List", "Curious", "DNF"].includes(shelf);
 
   function save() {
     if (!noRating && !rating) return;
@@ -3174,6 +3175,7 @@ function AddSheet({ onSave, onClose, initialBook = null }) {
   const [searching, setSearching] = useState(false);
   const [selected, setSelected] = useState(initialBook);
   const [rating, setRating] = useState(0);
+  const [shelf, setShelf] = useState("Read");
   const searchTimer = useRef(null);
 
   const inputStyle = {
@@ -3216,12 +3218,15 @@ function AddSheet({ onSave, onClose, initialBook = null }) {
   function pick(book) {
     setSelected({ ...book, rating: 0 });
     setRating(0);
+    setShelf("Read");
     setStep("confirm");
   }
 
+  const noRating = ["Reading", "The List", "Curious", "DNF"].includes(shelf);
+
   function save() {
-    if (!selected || !rating) return;
-    onSave({ ...selected, rating, pages: selected.pages || 0 });
+    if (!selected || (!noRating && !rating)) return;
+    onSave({ ...selected, rating: noRating ? 0 : rating, shelf, pages: selected.pages || 0 });
     onClose();
   }
 
@@ -3315,19 +3320,36 @@ function AddSheet({ onSave, onClose, initialBook = null }) {
             <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, lineHeight:1.65, fontStyle:"italic", marginBottom:16 }}>{selected.description}</p>
           )}
 
-          <div style={{ background:"rgba(10,5,1,0.5)", border:`1px solid rgba(120,70,20,0.3)`, borderRadius:10, padding:14, marginBottom:16 }}>
-            <p style={{ fontSize:11, color:WOOD.textFaint, marginBottom:10, textTransform:"uppercase", letterSpacing:"0.1em" }}>Your Rating</p>
-            <StarRating value={rating} onChange={setRating} size={44} stretch />
+          <div style={{ marginBottom:16 }}>
+            <p style={{ fontSize:11, color:WOOD.textFaint, marginBottom:10, textTransform:"uppercase", letterSpacing:"0.1em" }}>Add to Shelf</p>
+            <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
+              {SHELVES.map(s => (
+                <button key={s} {...tc(()=>setShelf(s), true)} style={{
+                  padding:"5px 12px", borderRadius:20, fontSize:12, fontWeight:600,
+                  border: shelf===s ? `2px solid ${WOOD.amber}` : "2px solid rgba(120,70,20,0.3)",
+                  background: shelf===s ? WOOD.amber : "rgba(10,5,1,0.4)",
+                  color: shelf===s ? "#1a0900" : WOOD.textDim,
+                  cursor:"pointer", transition:"all 0.15s",
+                }}>{s}</button>
+              ))}
+            </div>
           </div>
+
+          {!noRating && (
+            <div style={{ background:"rgba(10,5,1,0.5)", border:`1px solid rgba(120,70,20,0.3)`, borderRadius:10, padding:14, marginBottom:16 }}>
+              <p style={{ fontSize:11, color:WOOD.textFaint, marginBottom:10, textTransform:"uppercase", letterSpacing:"0.1em" }}>Your Rating</p>
+              <StarRating value={rating} onChange={setRating} size={44} stretch />
+            </div>
+          )}
 
           <button onClick={save} style={{
             width:"100%", padding:"14px",
-            background: rating ? `linear-gradient(135deg,${WOOD.amber},#f97316)` : "rgba(10,5,1,0.5)",
-            color: rating ? "#1a0900" : WOOD.textFaint,
+            background: (noRating || rating) ? `linear-gradient(135deg,${WOOD.amber},#f97316)` : "rgba(10,5,1,0.5)",
+            color: (noRating || rating) ? "#1a0900" : WOOD.textFaint,
             borderRadius:12, fontSize:15, fontWeight:600,
             fontFamily:"'DM Sans',sans-serif",
-            border:`1px solid ${rating ? WOOD.amber : "rgba(100,60,20,0.25)"}`,
-            cursor: rating ? "pointer" : "default", transition:"all 0.2s",
+            border:`1px solid ${(noRating || rating) ? WOOD.amber : "rgba(100,60,20,0.25)"}`,
+            cursor: (noRating || rating) ? "pointer" : "default", transition:"all 0.2s",
           }}>Add to Shelf</button>
         </>}
       </div>
