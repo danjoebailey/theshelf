@@ -3383,6 +3383,12 @@ function EditSheet({ book, onSave, onClose }) {
     textDim: "#8a7060", textFaint: "#b8a888", border: "#d8ceba", amber: "#b86800",
   };
   const noRating = ["The List", "Curious", "Reading"];
+  function hiResCoverUrl(url) {
+    if (!url) return url;
+    if (url.includes("mzstatic.com") || url.includes("itunes.apple.com")) return url.replace(/\/\d+x\d+bb\./, "/600x600bb.");
+    if (url.includes("covers.openlibrary.org")) return url.replace(/-[SML]\.jpg$/, "-L.jpg");
+    return url;
+  }
   const [modalCoverUrl, setModalCoverUrl] = useState(coverUrl);
 
   // On open, fetch the highest-res version of the same cover from the same source
@@ -3474,7 +3480,7 @@ function EditSheet({ book, onSave, onClose }) {
               <p style={{ fontSize:11, color:CR.textDim, marginBottom:8 }}>Pick a cover:</p>
               <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
                 {coverFetch.options.map((opt, i) => (
-                  <div key={i} onClick={() => { setCoverUrl(hiResCoverUrl(opt.coverUrl)); setCoverId(opt.coverId||null); setCoverFetch(null); }} style={{ cursor:"pointer" }}>
+                  <div key={i} onClick={() => { const u = hiResCoverUrl(opt.coverUrl); setCoverUrl(u); setModalCoverUrl(u); setCoverId(opt.coverId||null); setCoverFetch(null); }} style={{ cursor:"pointer" }}>
                     <img src={opt.coverUrl} alt={opt.source} style={{ width:48, height:72, objectFit:"cover", borderRadius:4, boxShadow:"0 2px 6px rgba(0,0,0,0.2)" }} />
                     <span style={{ fontSize:9, color:CR.textDim, display:"block", textAlign:"center", maxWidth:52 }}>{opt.source}</span>
                   </div>
