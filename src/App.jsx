@@ -3383,17 +3383,32 @@ function EditSheet({ book, onSave, onClose }) {
     textDim: "#8a7060", textFaint: "#b8a888", border: "#d8ceba", amber: "#b86800",
   };
   const noRating = ["The List", "Curious", "Reading"];
-  function hiResCoverUrl(url) {
-    if (!url) return url;
-    if (url.includes("books.google.com") || url.includes("books.googleusercontent.com")) {
-      return url.replace(/zoom=\d+/, "zoom=5");
+  const [modalCoverUrl, setModalCoverUrl] = useState(coverUrl);
+
+  // On open, fetch the highest-res version of the same cover from the same source
+  useEffect(() => {
+    async function fetchHiResCover() {
+      try {
+        // Google Books: extract volume ID and request large/extraLarge image link
+        if (coverUrl && (coverUrl.includes("books.google.com") || coverUrl.includes("books.googleusercontent.com"))) {
+          const id = new URLSearchParams(coverUrl.split("?")[1]).get("id");
+          if (id) {
+            const data = await fetch(`https://www.googleapis.com/books/v1/volumes/${id}`).then(r => r.json());
+            const links = data?.volumeInfo?.imageLinks;
+            const hiRes = links?.extraLarge || links?.large || links?.medium || links?.thumbnail;
+            if (hiRes) { setModalCoverUrl(hiRes.replace("http://", "https://").replace("&edge=curl", "")); return; }
+          }
+        }
+        // iTunes: just bump to 600x600
+        if (coverUrl && (coverUrl.includes("mzstatic.com") || coverUrl.includes("itunes.apple.com"))) {
+          setModalCoverUrl(coverUrl.replace(/\/\d+x\d+bb\./, "/600x600bb."));
+        }
+      } catch { /* keep original */ }
     }
-    if (url.includes("mzstatic.com") || url.includes("itunes.apple.com")) {
-      return url.replace(/\/\d+x\d+bb\./, "/600x600bb.");
-    }
-    return url;
-  }
-  const displayBook = { ...book, coverUrl: hiResCoverUrl(coverUrl), coverId };
+    fetchHiResCover();
+  }, []);
+
+  const displayBook = { ...book, coverUrl: modalCoverUrl, coverId };
   const lbl = { fontSize:10, letterSpacing:"0.2em", textTransform:"uppercase", color:CR.textDim, marginBottom:8, fontWeight:500 };
 
   async function findCover() {
