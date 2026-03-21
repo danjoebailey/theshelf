@@ -4240,7 +4240,7 @@ export default function App() {
               display:"flex", justifyContent:"center", alignItems:"center", padding:"6px 8px",
             }}>
               <span style={{
-                padding: id==="shelf" ? "0px 6px" : id==="stats" ? "9px 10px" : id==="reiko" ? "4px 10px" : "6px 10px", borderRadius:20,
+                padding: id==="shelf" ? "0px 6px" : id==="stats" ? "9px 10px" : id==="reiko" || id==="rankings" ? "4px 10px" : "6px 10px", borderRadius:20,
                 background: tab===id ? WOOD.amber : "rgba(0,0,0,0.18)",
                 color: tab===id ? "#1a0900" : WOOD.textFaint,
                 fontSize:13, fontFamily:"'DM Sans',sans-serif", fontWeight:600,
@@ -4254,9 +4254,7 @@ export default function App() {
                   : id==="reiko"
                   ? <img src="/recommend_book.png" alt="Reiko" style={{ height:28, width:"auto", display:"block", opacity: tab===id ? 1 : 0.55, transition:"opacity 0.2s" }} />
                   : id==="rankings"
-                  ? <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={tab===id ? "#1a0900" : WOOD.textFaint} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: tab===id ? 1 : 0.7, transition:"all 0.2s" }}>
-                      <rect x="2" y="10" width="5" height="11"/><rect x="9.5" y="6" width="5" height="15"/><rect x="17" y="2" width="5" height="19"/>
-                    </svg>
+                  ? <img src="/books_1_2_no_bg.png" alt="Rankings" style={{ height:28, width:"auto", display:"block", opacity: tab===id ? 1 : 0.55, transition:"opacity 0.2s" }} />
                   : label}
               </span>
             </button>
