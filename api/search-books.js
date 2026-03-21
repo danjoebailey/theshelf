@@ -112,11 +112,14 @@ function toTitleCase(str) {
   const words = str.split(" ");
   return words.map((word, i) => {
     if (!word) return word;
-    const lower = word.toLowerCase();
+    const m = word.match(/^([^a-zA-Z]*)([a-zA-Z].*)$/);
+    if (!m) return word;
+    const prefix = m[1];
+    const rest = m[2].toLowerCase();
     const isFirst = i === 0;
     const isLast = i === words.length - 1;
-    if (!isFirst && !isLast && TITLE_LOWER.has(lower)) return lower;
-    return lower.charAt(0).toUpperCase() + lower.slice(1);
+    if (!isFirst && !isLast && !prefix && TITLE_LOWER.has(rest)) return rest;
+    return prefix + rest.charAt(0).toUpperCase() + rest.slice(1);
   }).join(" ");
 }
 

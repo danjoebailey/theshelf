@@ -3540,11 +3540,16 @@ function toTitleCase(str) {
   const words = str.split(" ");
   return words.map((word, i) => {
     if (!word) return word;
-    const lower = word.toLowerCase();
+    // Split off any leading non-letter chars (e.g. "(") so we capitalize the actual word
+    const m = word.match(/^([^a-zA-Z]*)([a-zA-Z].*)$/);
+    if (!m) return word; // no letters (e.g. "#1)"), return as-is
+    const prefix = m[1];
+    const rest = m[2].toLowerCase();
     const isFirst = i === 0;
     const isLast = i === words.length - 1;
-    if (!isFirst && !isLast && TITLE_LOWER_WORDS.has(lower)) return lower;
-    return lower.charAt(0).toUpperCase() + lower.slice(1);
+    // Only lowercase stop words when there's no leading punctuation (e.g. not after "(")
+    if (!isFirst && !isLast && !prefix && TITLE_LOWER_WORDS.has(rest)) return rest;
+    return prefix + rest.charAt(0).toUpperCase() + rest.slice(1);
   }).join(" ");
 }
 
@@ -3998,8 +4003,8 @@ export default function App() {
           const loadedBooks = data.map(rowToBook);
           setBooks(loadedBooks);
           // One-time title case normalization for books added before the fix
-          if (!localStorage.getItem("titlesCorrected")) {
-            localStorage.setItem("titlesCorrected", "1");
+          if (!localStorage.getItem("titlesCorrected2")) {
+            localStorage.setItem("titlesCorrected2", "1");
             const toFix = loadedBooks.filter(b => b.title && b.title !== toTitleCase(b.title));
             for (const book of toFix) {
               const updated = { ...book, title: toTitleCase(book.title) };
