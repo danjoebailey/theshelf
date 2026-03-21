@@ -3368,174 +3368,175 @@ function AddSheet({ onSave, onClose, initialBook = null }) {
 }
 
 function EditSheet({ book, onSave, onClose }) {
-  const [rating, setRating] = useState(book.rating);
+  const [rating, setRating] = useState(book.rating || 0);
   const [shelf, setShelf] = useState(book.shelf || "Read");
   const [genre, setGenre] = useState(book.genre || "Other");
   const [date, setDate] = useState(book.date || new Date().toISOString().slice(0,10));
+  const [notes, setNotes] = useState(book.notes || "");
   const [coverUrl, setCoverUrl] = useState(book.coverUrl || null);
   const [coverId, setCoverId] = useState(book.coverId || null);
-  const [coverFetch, setCoverFetch] = useState(null); // null | "loading" | { options: [] } | "notfound"
+  const [coverFetch, setCoverFetch] = useState(null);
+  const [activeTab, setActiveTab] = useState("edit");
+
+  const CR = {
+    bg: "#f5f0e8", panel: "#ece5d8", text: "#2a1e10",
+    textDim: "#8a7060", textFaint: "#b8a888", border: "#d8ceba", amber: "#b86800",
+  };
+  const noRating = ["The List", "Curious", "Reading"];
+  const displayBook = { ...book, coverUrl, coverId };
+  const lbl = { fontSize:10, letterSpacing:"0.2em", textTransform:"uppercase", color:CR.textDim, marginBottom:8, fontWeight:500 };
 
   async function findCover() {
     setCoverFetch("loading");
     try {
-      const res = await fetch("/api/fetch-cover", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ title: book.title, author: book.author, isbn: book.isbn }) });
+      const res = await fetch("/api/fetch-cover", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ title:book.title, author:book.author, isbn:book.isbn }) });
       const data = await res.json();
       setCoverFetch(data.options?.length ? { options: data.options } : "notfound");
-    } catch {
-      setCoverFetch("notfound");
-    }
+    } catch { setCoverFetch("notfound"); }
   }
 
-  function pickCover(opt) {
-    setCoverUrl(opt.coverUrl);
-    setCoverId(opt.coverId || null);
-    setCoverFetch(null);
-  }
-
-  const displayBook = { ...book, coverUrl, coverId };
+  const tabs = [
+    { key:"edit",     label:"Edit",     icon:<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M11 2l3 3-8 8H3v-3l8-8z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/></svg> },
+    { key:"details",  label:"Details",  icon:<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.4"/><path d="M8 7v5M8 5.5v.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg> },
+    { key:"rankings", label:"Rankings", icon:<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 12V9M8 12V5M13 12V7" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg> },
+  ];
 
   return (
-    <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.7)", zIndex:50, display:"flex", flexDirection:"column", justifyContent:"flex-end", animation:"fadeIn 0.15s ease" }}
-      onClick={onClose}>
-      <div onTouchEnd={e=>e.stopPropagation()} onClick={e=>e.stopPropagation()} style={{
-        background:"linear-gradient(180deg, #ddb870 0%, #c89850 100%)",
-        borderRadius:"20px 20px 0 0",
-        padding:"0 18px 30px",
-        maxHeight:"90%", overflowY:"auto",
-        borderTop:`1px solid rgba(220,180,100,0.5)`,
-        boxShadow:"0 -8px 32px rgba(0,0,0,0.3)",
-        animation:"slideUp 0.25s cubic-bezier(0.34,1.56,0.64,1)",
-      }}>
-        <div style={{ height:3, background:"linear-gradient(90deg, rgba(0,0,0,0.3), rgba(255,200,100,0.1) 40%, rgba(0,0,0,0.3))" }}/>
-        <div style={{ display:"flex", justifyContent:"center", paddingTop:12, marginBottom:14 }}>
-          <div style={{ width:34, height:4, background:"rgba(100,60,20,0.5)", borderRadius:2 }}/>
-        </div>
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:18 }}>
-          <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:22, fontWeight:300, color:WOOD.text }}>Edit Book</p>
-          <button {...tc(onClose, true)} style={{ background:"rgba(100,60,20,0.15)", border:"none", borderRadius:"50%", width:30, height:30, cursor:"pointer", fontSize:14, color:WOOD.textDim, display:"flex", alignItems:"center", justifyContent:"center" }}>✕</button>
-        </div>
+    <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.5)", zIndex:50, display:"flex", flexDirection:"column", justifyContent:"flex-end" }} onClick={onClose}>
+      <div onClick={e=>e.stopPropagation()} onTouchEnd={e=>e.stopPropagation()} style={{ background:CR.bg, borderRadius:"24px 24px 0 0", height:"92%", display:"flex", flexDirection:"column", boxShadow:"0 -4px 40px rgba(0,0,0,0.18)" }}>
 
-        {/* static book info */}
-        <div style={{ display:"flex", gap:12, alignItems:"flex-start", marginBottom:16, background:"rgba(255,245,220,0.85)", borderRadius:10, padding:"12px 14px", border:"1px solid rgba(200,160,80,0.3)" }}>
-          <div style={{ flexShrink:0, display:"flex", flexDirection:"column", alignItems:"center", gap:6 }}>
-            <BookCover book={displayBook} width={72} height={108} radius={6} shadow="0 4px 12px rgba(0,0,0,0.25)" />
-            <button onClick={findCover} disabled={coverFetch==="loading"} style={{ fontSize:11, fontFamily:"'DM Sans',sans-serif", color:WOOD.textDim, background:"rgba(138,90,40,0.12)", border:"1px solid rgba(138,90,40,0.25)", borderRadius:20, padding:"3px 10px", cursor: coverFetch==="loading" ? "default" : "pointer", whiteSpace:"nowrap" }}>
-              {coverFetch==="loading" ? "…" : "Find Cover"}
-            </button>
-          </div>
-          <div style={{ minWidth:0, flex:1 }}>
-            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:18, color:WOOD.text, lineHeight:1.2, marginBottom:3 }}>{book.title}</p>
-            <p style={{ fontSize:13, color:WOOD.textDim, fontStyle:"italic", marginBottom:6 }}>{book.author}</p>
-            <div style={{ display:"flex", gap:6, alignItems:"center", flexWrap:"wrap", marginBottom: coverFetch && coverFetch !== "loading" ? 8 : 0 }}>
-              <span style={{ background:GENRE_COLORS[book.genre], color:"#fff", borderRadius:"20px", padding:"3px 10px", fontSize:11, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em" }}>{book.genre}</span>
-              {book.pages > 0 && <span style={{ fontSize:12, color:WOOD.textFaint }}>{book.pages} pages</span>}
-              <span style={{ fontSize:12, color:WOOD.textFaint }}>{book.date}</span>
+        {/* Header */}
+        <div style={{ padding:"20px 52px 0 22px", marginBottom:20, position:"relative", flexShrink:0 }}>
+          <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:22, fontWeight:400, color:CR.text, letterSpacing:"-0.01em", lineHeight:1.2 }}>{book.title}</p>
+          <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:13, fontStyle:"italic", color:CR.textDim, marginTop:2 }}>{book.author}</p>
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:7, flexWrap:"wrap", gap:6 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:6, fontSize:11, color:CR.textFaint, flexWrap:"wrap" }}>
+              <span style={{ background:(GENRE_COLORS[book.genre]||"#888")+"22", color:GENRE_COLORS[book.genre]||"#888", border:`1px solid ${(GENRE_COLORS[book.genre]||"#888")}55`, borderRadius:3, padding:"3px 10px", fontSize:10, fontWeight:500, textTransform:"uppercase", letterSpacing:"0.12em" }}>{book.genre}</span>
+              {book.pages > 0 && <><span style={{ color:CR.border }}>·</span><span>{book.pages} pp</span></>}
+              {book.year && <><span style={{ color:CR.border }}>·</span><span>{book.year}</span></>}
             </div>
-            {coverFetch === "notfound" && (
-              <p style={{ fontSize:12, color:WOOD.textDim, fontStyle:"italic" }}>No cover found.</p>
-            )}
-            {coverFetch && coverFetch !== "loading" && coverFetch !== "notfound" && (
-              <div style={{ marginTop:6 }}>
-                <p style={{ fontSize:11, color:WOOD.textDim, marginBottom:6 }}>Pick a cover:</p>
-                <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
-                  {coverFetch.options.map((opt, i) => (
-                    <div key={i} onClick={() => pickCover(opt)} style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3, cursor:"pointer" }}>
-                      <img src={opt.coverUrl} alt={opt.source} style={{ width:48, height:72, objectFit:"cover", borderRadius:4, boxShadow:"0 2px 6px rgba(0,0,0,0.25)", border:"2px solid transparent" }}
-                        onMouseEnter={e => e.target.style.borderColor = WOOD.amber}
-                        onMouseLeave={e => e.target.style.borderColor = "transparent"} />
-                      <span style={{ fontSize:9, color:WOOD.textDim, textAlign:"center", maxWidth:52, lineHeight:1.2 }}>{opt.source}</span>
-                    </div>
-                  ))}
-                </div>
-                <button onClick={()=>setCoverFetch(null)} style={{ marginTop:8, fontSize:11, fontFamily:"'DM Sans',sans-serif", background:"rgba(138,90,40,0.12)", color:WOOD.textDim, border:"1px solid rgba(138,90,40,0.25)", borderRadius:20, padding:"3px 10px", cursor:"pointer" }}>Cancel</button>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* shelf selector */}
-        <div style={{ background:"rgba(255,245,220,0.85)", border:`1px solid rgba(200,160,80,0.3)`, borderRadius:10, padding:14, marginBottom:12 }}>
-          <p style={{ fontSize:14, color:WOOD.textDim, marginBottom:10, letterSpacing:"0.1em", textAlign:"center" }}>Shelf</p>
-          <div style={{ display:"flex", gap:6, flexWrap:"wrap", justifyContent:"center" }}>
-            {SHELVES.map(s => (
-              <button key={s} onClick={()=>setShelf(s)} style={{
-                padding:"6px 14px", borderRadius:20, cursor:"pointer",
-                background: shelf===s ? WOOD.amber : "rgba(138,90,40,0.1)",
-                color: shelf===s ? "#1a0900" : WOOD.textDim,
-                border: `1px solid ${shelf===s ? WOOD.amber : "rgba(138,90,40,0.25)"}`,
-                fontSize:13, fontFamily:"'Crimson Pro',serif", fontWeight: shelf===s ? 600 : 400,
-                transition:"all 0.15s",
-              }}>{s}</button>
-            ))}
-          </div>
-        </div>
-
-        {/* editable rating */}
-        {shelf !== "The List" && shelf !== "Curious" && shelf !== "Reading" && (
-        <div style={{ background:"rgba(255,245,220,0.85)", border:`1px solid rgba(200,160,80,0.3)`, borderRadius:10, padding:14, marginBottom:16 }}>
-          <div style={{ display:"flex", flexDirection:"column", alignItems:"center", marginBottom:12 }}>
-            <p style={{ fontSize:14, color:WOOD.textDim, letterSpacing:"0.1em", textAlign:"center", width:"100%", marginBottom:12 }}>Rating</p>
-          </div>
-          <div style={{ display:"flex", gap:6, justifyContent:"space-between" }}>
-            {[1,2,3,4,5].map(star => {
-              const full = rating >= star, half = !full && rating >= star - 0.5;
-              const id = `edit-star-${star}`;
-              const sz = 44;
-              return (
-                <div key={star} style={{ position:"relative", width:sz, height:sz }}>
-                  <svg width={sz} height={sz} viewBox="0 0 20 20" style={{ position:"absolute" }}>
-                    <polygon points="10,2 12.4,7.5 18.5,7.5 13.7,11.4 15.5,17.5 10,13.8 4.5,17.5 6.3,11.4 1.5,7.5 7.6,7.5" fill="rgba(0,0,0,0.2)" stroke="rgba(100,60,20,0.3)" strokeWidth="1"/>
-                  </svg>
-                  {(full||half) && (
-                    <svg width={sz} height={sz} viewBox="0 0 20 20" style={{ position:"absolute" }}>
-                      <defs><clipPath id={id}><rect x="0" y="0" width={full?20:10} height="20"/></clipPath></defs>
-                      <polygon points="10,2 12.4,7.5 18.5,7.5 13.7,11.4 15.5,17.5 10,13.8 4.5,17.5 6.3,11.4 1.5,7.5 7.6,7.5" fill={WOOD.amber} clipPath={`url(#${id})`}/>
-                    </svg>
-                  )}
-                  <div style={{ position:"absolute", left:0, top:0, width:"50%", height:"100%", zIndex:10, cursor:"pointer" }} onClick={()=>setRating(star-0.5)}/>
-                  <div style={{ position:"absolute", left:"50%", top:0, width:"50%", height:"100%", zIndex:10, cursor:"pointer" }} onClick={()=>setRating(star)}/>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-        )}
-
-        {/* genre picker — Read shelf only */}
-        {shelf === "Read" && (
-          <div style={{ background:"rgba(255,245,220,0.85)", border:`1px solid rgba(200,160,80,0.3)`, borderRadius:10, padding:14, marginBottom:12 }}>
-            <p style={{ fontSize:14, color:WOOD.textDim, marginBottom:10, letterSpacing:"0.1em", textAlign:"center" }}>Genre</p>
-            <div style={{ display:"flex", gap:6, flexWrap:"wrap", justifyContent:"center" }}>
-              {GENRES.map(g => (
-                <button key={g} onClick={()=>setGenre(g)} style={{
-                  padding:"5px 12px", borderRadius:20, cursor:"pointer",
-                  background: genre===g ? (GENRE_COLORS[g]||WOOD.amber) : "rgba(138,90,40,0.1)",
-                  color: genre===g ? "#fff" : WOOD.textDim,
-                  border: `1px solid ${genre===g ? (GENRE_COLORS[g]||WOOD.amber) : "rgba(138,90,40,0.25)"}`,
-                  fontSize:12, fontFamily:"'DM Sans',sans-serif", fontWeight: genre===g ? 700 : 400,
-                  textTransform:"uppercase", letterSpacing:"0.06em",
-                  transition:"all 0.15s",
-                }}>{g}</button>
+            <div style={{ display:"flex", gap:2, background:CR.panel, borderRadius:6, padding:2, flexShrink:0 }}>
+              {tabs.map(t => (
+                <button key={t.key} onClick={() => setActiveTab(t.key)} title={t.label} style={{ display:"flex", alignItems:"center", gap:4, padding:"4px 8px", border:"none", borderRadius:4, background:activeTab===t.key ? CR.bg : "transparent", color:activeTab===t.key ? CR.text : CR.textDim, fontSize:11, fontFamily:"'DM Sans',sans-serif", cursor:"pointer", boxShadow:activeTab===t.key ? "0 1px 3px rgba(0,0,0,0.08)" : "none", transition:"all 0.12s", whiteSpace:"nowrap" }}>
+                  {t.icon}{activeTab===t.key && <span style={{ marginLeft:2 }}>{t.label}</span>}
+                </button>
               ))}
             </div>
           </div>
-        )}
-
-        {/* date */}
-        <div style={{ background:"rgba(255,245,220,0.85)", border:`1px solid rgba(200,160,80,0.3)`, borderRadius:10, padding:14, marginBottom:12 }}>
-          <p style={{ fontSize:14, color:WOOD.textDim, marginBottom:10, letterSpacing:"0.1em", textAlign:"center" }}>{shelf === "Read" ? "Date Read" : "Date Added"}</p>
-          <input type="date" value={date} onChange={e=>setDate(e.target.value)}
-            onTouchEnd={e=>e.stopPropagation()}
-            style={{ width:"100%", padding:"8px 12px", borderRadius:8, border:"1px solid rgba(138,90,40,0.3)", background:"#fff", fontSize:14, fontFamily:"'DM Sans',sans-serif", color:WOOD.text, outline:"none", boxSizing:"border-box" }} />
+          <button onClick={onClose} style={{ position:"absolute", top:20, right:16, background:CR.panel, border:"none", borderRadius:"50%", width:30, height:30, cursor:"pointer", color:CR.textDim, fontSize:13, display:"flex", alignItems:"center", justifyContent:"center" }}>✕</button>
         </div>
 
-        <button onClick={()=>onSave({ id:book.id, rating, shelf, genre, date, coverUrl, coverId })} style={{
-          width:"100%", padding:"14px",
-          background:`linear-gradient(135deg,${WOOD.amber},#f97316)`,
-          color:"#1a0900", borderRadius:12, fontSize:15, fontWeight:600,
-          fontFamily:"'DM Sans',sans-serif", border:"none", cursor:"pointer",
-        }}>Save Changes</button>
+        {/* Scrollable body */}
+        <div style={{ overflowY:"auto", flex:1, paddingBottom:40 }}>
+
+          {/* Hero cover */}
+          <div style={{ display:"flex", justifyContent:"center", borderTop:`1px solid ${CR.border}`, borderBottom:`1px solid ${CR.border}`, padding:"20px 0 34px", marginBottom:24 }}>
+            <div style={{ position:"relative" }}>
+              <BookCover book={displayBook} width={173} height={255} radius={6} shadow="3px 3px 0 rgba(0,0,0,0.12)" />
+              <button onClick={findCover} disabled={coverFetch==="loading"} style={{ position:"absolute", bottom:-14, left:"50%", transform:"translateX(-50%)", fontSize:10, color:CR.textDim, background:CR.bg, border:`1px solid ${CR.border}`, borderRadius:20, padding:"3px 12px", cursor:"pointer", whiteSpace:"nowrap", fontFamily:"'DM Sans',sans-serif" }}>
+                {coverFetch==="loading" ? "…" : "Change Cover"}
+              </button>
+            </div>
+          </div>
+
+          {/* Cover picker */}
+          {coverFetch && coverFetch !== "loading" && coverFetch !== "notfound" && (
+            <div style={{ padding:"0 22px", marginBottom:20 }}>
+              <p style={{ fontSize:11, color:CR.textDim, marginBottom:8 }}>Pick a cover:</p>
+              <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+                {coverFetch.options.map((opt, i) => (
+                  <div key={i} onClick={() => { setCoverUrl(opt.coverUrl); setCoverId(opt.coverId||null); setCoverFetch(null); }} style={{ cursor:"pointer" }}>
+                    <img src={opt.coverUrl} alt={opt.source} style={{ width:48, height:72, objectFit:"cover", borderRadius:4, boxShadow:"0 2px 6px rgba(0,0,0,0.2)" }} />
+                    <span style={{ fontSize:9, color:CR.textDim, display:"block", textAlign:"center", maxWidth:52 }}>{opt.source}</span>
+                  </div>
+                ))}
+              </div>
+              <button onClick={() => setCoverFetch(null)} style={{ marginTop:8, fontSize:11, background:CR.panel, color:CR.textDim, border:`1px solid ${CR.border}`, borderRadius:20, padding:"3px 10px", cursor:"pointer", fontFamily:"'DM Sans',sans-serif" }}>Cancel</button>
+            </div>
+          )}
+          {coverFetch === "notfound" && <p style={{ padding:"0 22px", marginBottom:16, fontSize:12, color:CR.textDim, fontStyle:"italic" }}>No cover found.</p>}
+
+          {/* EDIT TAB */}
+          {activeTab === "edit" && <>
+            {/* Shelf */}
+            <div style={{ padding:"0 22px", marginBottom:20 }}>
+              <p style={lbl}>Shelf</p>
+              <div style={{ display:"grid", gridTemplateColumns:"repeat(5,1fr)", gap:5 }}>
+                {SHELVES.map(s => (
+                  <button key={s} onClick={() => setShelf(s)} style={{ padding:"8px 4px", border:`1px solid ${shelf===s ? CR.text : CR.border}`, background:shelf===s ? CR.text : CR.panel, color:shelf===s ? CR.bg : CR.textDim, fontSize:12, fontFamily:"'DM Sans',sans-serif", borderRadius:4, cursor:"pointer", textAlign:"center", transition:"all 0.12s" }}>{s}</button>
+                ))}
+              </div>
+            </div>
+
+            {/* Rating */}
+            {!noRating.includes(shelf) && (
+              <div style={{ padding:"0 22px", marginBottom:20 }}>
+                <p style={lbl}>Rating</p>
+                <div style={{ display:"flex", gap:6 }}>
+                  {[1,2,3,4,5].map(star => {
+                    const full = rating >= star, half = !full && rating >= star-0.5, sz = 38;
+                    return (
+                      <div key={star} style={{ position:"relative", width:sz, height:sz }}>
+                        <svg width={sz} height={sz} viewBox="0 0 20 20" style={{ position:"absolute" }}>
+                          <polygon points="10,2 12.4,7.5 18.5,7.5 13.7,11.4 15.5,17.5 10,13.8 4.5,17.5 6.3,11.4 1.5,7.5 7.6,7.5" fill={CR.panel} stroke={CR.border} strokeWidth="1"/>
+                        </svg>
+                        {(full||half) && <svg width={sz} height={sz} viewBox="0 0 20 20" style={{ position:"absolute" }}>
+                          <defs><clipPath id={`es${star}`}><rect x="0" y="0" width={full?20:10} height="20"/></clipPath></defs>
+                          <polygon points="10,2 12.4,7.5 18.5,7.5 13.7,11.4 15.5,17.5 10,13.8 4.5,17.5 6.3,11.4 1.5,7.5 7.6,7.5" fill={CR.amber} clipPath={`url(#es${star})`}/>
+                        </svg>}
+                        <div style={{ position:"absolute", left:0, top:0, width:"50%", height:"100%", zIndex:10, cursor:"pointer" }} onClick={() => setRating(star-0.5)}/>
+                        <div style={{ position:"absolute", left:"50%", top:0, width:"50%", height:"100%", zIndex:10, cursor:"pointer" }} onClick={() => setRating(star)}/>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Genre + Date */}
+            {shelf === "Read" && (
+              <div style={{ padding:"0 22px", marginBottom:20 }}>
+                <div style={{ display:"flex", gap:20, alignItems:"flex-end", flexWrap:"wrap" }}>
+                  <div>
+                    <p style={lbl}>Genre</p>
+                    <select value={genre} onChange={e => setGenre(e.target.value)} style={{ padding:"9px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'DM Sans',sans-serif", color:CR.text, outline:"none", cursor:"pointer" }}>
+                      {GENRES.map(g => <option key={g} value={g}>{g}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <p style={lbl}>Date Read</p>
+                    <input type="date" value={date} onChange={e => setDate(e.target.value)} onTouchEnd={e=>e.stopPropagation()} style={{ padding:"9px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'DM Sans',sans-serif", color:CR.text, outline:"none" }} />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Notes */}
+            <div style={{ padding:"0 22px", marginBottom:20 }}>
+              <p style={lbl}>Notes</p>
+              <textarea rows={3} value={notes} onChange={e => setNotes(e.target.value)} placeholder="Your thoughts on the book…" style={{ width:"100%", padding:"10px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'Crimson Pro',serif", color:CR.text, resize:"none", outline:"none", lineHeight:1.6, boxSizing:"border-box" }} />
+            </div>
+          </>}
+
+          {/* DETAILS TAB */}
+          {activeTab === "details" && (
+            <div style={{ padding:"0 22px" }}>
+              {book.description
+                ? <p style={{ fontSize:14, color:CR.textDim, lineHeight:1.75, fontFamily:"'Crimson Pro',serif" }}>{book.description}</p>
+                : <p style={{ fontSize:13, color:CR.textFaint, fontStyle:"italic" }}>No description available.</p>}
+            </div>
+          )}
+
+          {/* RANKINGS TAB */}
+          {activeTab === "rankings" && (
+            <div style={{ padding:"0 22px" }}>
+              <p style={{ fontSize:13, color:CR.textFaint, fontStyle:"italic" }}>Rankings coming soon.</p>
+            </div>
+          )}
+
+          {/* Save */}
+          <button onClick={() => onSave({ id:book.id, rating, shelf, genre, date, notes, coverUrl, coverId })} style={{ display:"block", width:"calc(100% - 44px)", margin:"20px 22px 0", padding:14, background:CR.text, border:"none", borderRadius:8, color:CR.bg, fontSize:14, fontFamily:"'DM Sans',sans-serif", fontWeight:500, letterSpacing:"0.05em", cursor:"pointer" }}>Save changes</button>
+        </div>
       </div>
     </div>
   );
@@ -3606,6 +3607,7 @@ function bookToRow(book, userId) {
     current_page: book.currentPage || 0,
     liked_aspects: book.likedAspects?.length ? book.likedAspects : null,
     disliked_aspects: book.dislikedAspects?.length ? book.dislikedAspects : null,
+    notes: book.notes || null,
   };
 }
 
@@ -3627,6 +3629,7 @@ function rowToBook(row) {
     currentPage: row.current_page || 0,
     likedAspects: row.liked_aspects || [],
     dislikedAspects: row.disliked_aspects || [],
+    notes: row.notes || "",
   };
 }
 
@@ -4101,7 +4104,7 @@ export default function App() {
   }
 
   function saveEdit(updated) {
-    const next = books.map(b => b.id === updated.id ? { ...b, rating: updated.rating, shelf: updated.shelf, genre: updated.genre ?? b.genre, date: updated.date ?? b.date, coverUrl: updated.coverUrl ?? b.coverUrl, coverId: updated.coverId ?? b.coverId } : b);
+    const next = books.map(b => b.id === updated.id ? { ...b, rating: updated.rating, shelf: updated.shelf, genre: updated.genre ?? b.genre, date: updated.date ?? b.date, notes: updated.notes ?? b.notes, coverUrl: updated.coverUrl ?? b.coverUrl, coverId: updated.coverId ?? b.coverId } : b);
     setBooks(next);
     dbUpdateBook(next.find(b => b.id === updated.id), userId);
   }
