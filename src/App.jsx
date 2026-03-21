@@ -3450,7 +3450,7 @@ function EditSheet({ book, onSave, onClose }) {
               {book.pages > 0 && <><span style={{ color:CR.border }}>·</span><span>{book.pages} pages</span></>}
               {book.year && <><span style={{ color:CR.border }}>·</span><span>{book.year}</span></>}
             </div>
-            <div style={{ display:"flex", gap:2, background:CR.panel, borderRadius:6, padding:2, flexShrink:0 }}>
+            <div style={{ display:"flex", gap:2, background:CR.panel, borderRadius:6, padding:2, flexShrink:0, marginLeft:"auto" }}>
               {tabs.map(t => (
                 <button key={t.key} onClick={() => setActiveTab(t.key)} title={t.label} style={{ display:"flex", alignItems:"center", gap:4, padding:"4px 8px", border:"none", borderRadius:4, background:activeTab===t.key ? CR.bg : "transparent", color:activeTab===t.key ? CR.text : CR.textDim, fontSize:11, fontFamily:"'DM Sans',sans-serif", cursor:"pointer", boxShadow:activeTab===t.key ? "0 1px 3px rgba(0,0,0,0.08)" : "none", transition:"all 0.12s", whiteSpace:"nowrap" }}>
                   {t.icon}{activeTab===t.key && <span style={{ marginLeft:2 }}>{t.label}</span>}
