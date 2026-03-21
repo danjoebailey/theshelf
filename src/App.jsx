@@ -2470,7 +2470,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onShelfChange }) 
         <div style={{ display:"flex", gap:6, marginBottom: controlsOpen ? 10 : 0, alignItems:"center" }}>
           {controlsOpen
             ? [["user","Your Ranking"],["ai","AI Ranking"]].map(([m, label]) => (
-                <button key={m} {...tc(() => { setMode(m); if (m === "ai") setGenerated(false); })} style={{
+                <button key={m} {...tc(() => { setMode(m); if (m === "ai") { setGenerated(false); setGenreFilter("Fiction"); setTopN("all"); } else { setGenreFilter("All"); } })} style={{
                   padding:"5px 14px", borderRadius:20, border:"none", cursor:"pointer",
                   background: mode===m ? WOOD.amber : "rgba(255,235,195,0.12)",
                   color: mode===m ? "#1a0900" : "rgba(255,235,195,0.6)",
