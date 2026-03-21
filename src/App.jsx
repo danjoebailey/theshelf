@@ -2316,7 +2316,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onShelfChange }) 
 
   async function fetchCannedList(genre, rankingMode, scoreCategory, onUpdate, sid) {
     const key = cannedKey(genre, rankingMode, scoreCategory);
-    const cacheKey = `canned_${key}_v1`;
+    const cacheKey = `canned_${key}_v2`;
     if (cannedCoversCache[key]) { if (fetchSession.current === sid) onUpdate(cannedCoversCache[key]); return; }
     let cached = null;
     try { const s = localStorage.getItem(cacheKey); cached = s ? JSON.parse(s) : null; } catch {}

@@ -2,6 +2,17 @@ function cleanThumb(url) {
   return url ? url.replace("http://", "https://").replace("&edge=curl", "") : null;
 }
 
+function titleMatches(returned, query) {
+  const normalize = s => s.toLowerCase().replace(/[^a-z0-9,:\s]/g, "").replace(/\s+/g, " ").trim();
+  const r = normalize(returned);
+  const q = normalize(query);
+  if (r === q) return true;
+  if (r.startsWith(q + ":") || r.startsWith(q + ", ") || r.startsWith(q + ",")) return true;
+  const rPre = r.split(/\s*[,:]\s*/)[0].trim();
+  const qPre = q.split(/\s*[,:]\s*/)[0].trim();
+  return rPre.length > 0 && rPre === qPre;
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
 
@@ -39,15 +50,17 @@ export default async function handler(req, res) {
   const gbIsbnThumb = gbIsbnData?.items?.[0]?.volumeInfo?.imageLinks?.thumbnail;
   if (gbIsbnThumb) add("Google Books (ISBN)", gbIsbnThumb);
 
-  // Google Books by title — up to 3 distinct results
+  // Google Books by title — up to 3 distinct results, filtered by title match
   (gbTitleData?.items || [])
+    .filter(i => titleMatches(i.volumeInfo?.title || "", cleanTitle))
     .map(i => i.volumeInfo?.imageLinks?.thumbnail)
     .filter(Boolean)
     .slice(0, 3)
     .forEach((url, i) => add(i === 0 ? "Google Books" : `Google Books (${i + 1})`, url));
 
-  // iTunes — up to 3 distinct results
+  // iTunes — up to 3 distinct results, filtered by title match
   (itunesData?.results || [])
+    .filter(r => titleMatches(r.trackName || "", cleanTitle))
     .map(r => r.artworkUrl100?.replace("/100x100bb.", "/600x600bb."))
     .filter(Boolean)
     .slice(0, 3)
