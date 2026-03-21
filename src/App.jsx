@@ -3534,6 +3534,20 @@ function EditSheet({ book, onSave, onClose }) {
 
 const STORAGE_KEY = "theshelf_books";
 
+const TITLE_LOWER_WORDS = new Set(["a","an","the","and","but","or","nor","for","so","yet","at","by","in","of","on","to","up","as","vs","via"]);
+function toTitleCase(str) {
+  if (!str) return str;
+  const words = str.split(" ");
+  return words.map((word, i) => {
+    if (!word) return word;
+    const lower = word.toLowerCase();
+    const isFirst = i === 0;
+    const isLast = i === words.length - 1;
+    if (!isFirst && !isLast && TITLE_LOWER_WORDS.has(lower)) return lower;
+    return lower.charAt(0).toUpperCase() + lower.slice(1);
+  }).join(" ");
+}
+
 function normBookKey(title) {
   return (title || '').replace(/\s*[(:].*/,'').toLowerCase().replace(/[^\w]/g, '');
 }
@@ -3983,6 +3997,16 @@ export default function App() {
         if (data && data.length > 0) {
           const loadedBooks = data.map(rowToBook);
           setBooks(loadedBooks);
+          // One-time title case normalization for books added before the fix
+          if (!localStorage.getItem("titlesCorrected")) {
+            localStorage.setItem("titlesCorrected", "1");
+            const toFix = loadedBooks.filter(b => b.title && b.title !== toTitleCase(b.title));
+            for (const book of toFix) {
+              const updated = { ...book, title: toTitleCase(book.title) };
+              setBooks(prev => prev.map(b => b.id === book.id ? updated : b));
+              dbUpdateBook(updated, userId);
+            }
+          }
           // Silently fetch covers: missing ones always, + one-time re-fetch for all to upgrade to iTunes art
           const needsUpgrade = !localStorage.getItem("coversV3");
           const missing = loadedBooks.filter(b => !b.coverUrl || needsUpgrade);
