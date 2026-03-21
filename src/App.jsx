@@ -4255,7 +4255,7 @@ export default function App() {
                   : id==="reiko"
                   ? <img src="/recommend_book.png" alt="Reiko" style={{ width:44, height:32, objectFit:"contain", display:"block", opacity: tab===id ? 1 : 0.55, transition:"opacity 0.2s" }} />
                   : id==="rankings"
-                  ? <img src="/books_1_2_no_bg.png" alt="Rankings" style={{ width:44, height:32, objectFit:"contain", display:"block", opacity: tab===id ? 1 : 0.55, transition:"opacity 0.2s" }} />
+                  ? <img src="/all_3_books_no_bg.png" alt="Rankings" style={{ width:44, height:32, objectFit:"contain", display:"block", opacity: tab===id ? 1 : 0.55, transition:"opacity 0.2s" }} />
                   : label}
               </span>
             </button>
