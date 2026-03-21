@@ -2213,6 +2213,15 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onShelfChange }) 
         if (!claudeProse100CoversCache) fetchProse100Covers(CLAUDE_PROSE_100, setAiItems, sid);
         return;
       }
+      // Check canned list before falling back to Supabase
+      if (CANNED_LISTS.has(cannedKey(genreFilter, rankingMode, scoreCategory))) {
+        const key = cannedKey(genreFilter, rankingMode, scoreCategory);
+        const base = cannedCoversCache[key] || [];
+        setAiItems(base);
+        setGenerated(base.length > 0);
+        fetchCannedList(genreFilter, rankingMode, scoreCategory, (items) => { setAiItems(items); setGenerated(true); }, sid);
+        return;
+      }
       // Other alltime combos: load from Supabase cache
       setGenerated(false);
       setAiItems([]);
