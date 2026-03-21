@@ -442,8 +442,8 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
             {(() => {
               const shelf = book.shelf || "Read";
               const SHELF_META = {
-                "Read":     { label: "Read",     bg:"rgba(138,90,40,0.5)",   color:"rgba(255,255,255,0.7)", border:"rgba(138,90,40,0.4)" },
-                "Reading":  { label: "Reading",  bg:"rgba(60,120,80,0.55)",  color:"rgba(255,255,255,0.9)", border:"rgba(60,120,80,0.4)" },
+                "Read":     { label: "Read",     bg:"rgba(60,120,80,0.55)",  color:"rgba(255,255,255,0.9)", border:"rgba(60,120,80,0.4)"  },
+                "Reading":  { label: "Reading",  bg:"rgba(210,100,30,0.55)", color:"rgba(255,255,255,0.9)", border:"rgba(210,100,30,0.4)" },
                 "The List": { label: "The List", bg:"rgba(80,120,180,0.7)",  color:"rgba(255,255,255,0.9)", border:"rgba(80,120,180,0.5)" },
                 "Curious":  { label: "Curious",  bg:"rgba(180,155,80,0.7)",  color:"rgba(255,255,255,0.9)", border:"rgba(180,155,80,0.5)" },
                 "DNF":      { label: "DNF",      bg:"rgba(160,50,50,0.55)",  color:"rgba(255,255,255,0.9)", border:"rgba(160,50,50,0.4)" },
@@ -875,8 +875,8 @@ function BookRow({ book, index, onEdit, onRemove, onShelfChange, onAdd, onSavePr
             : (showShelfLabel || showAddLabel)
               ? <div style={{ position:"relative" }} onClick={e=>e.stopPropagation()}>
                   <span {...tc(()=>setShelfDropOpen(o=>!o), true)} style={{ fontSize:8, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.06em", padding:"2px 7px", borderRadius:20, cursor:"pointer",
-                    background: showAddLabel ? "rgba(138,90,40,0.18)" : { "Reading":"rgba(60,120,80,0.15)", "The List":"rgba(138,90,40,0.18)", "Curious":"rgba(200,144,90,0.15)" }[book.shelf] || "rgba(138,90,40,0.18)",
-                    color: showAddLabel ? WOOD.textDim : { "Reading":"#3a7a50", "The List":WOOD.textDim, "Curious":WOOD.amber }[book.shelf] || WOOD.textDim,
+                    background: showAddLabel ? "rgba(138,90,40,0.18)" : { "Read":"rgba(60,120,80,0.15)", "Reading":"rgba(210,100,30,0.15)", "The List":"rgba(138,90,40,0.18)", "Curious":"rgba(200,144,90,0.15)" }[book.shelf] || "rgba(138,90,40,0.18)",
+                    color: showAddLabel ? WOOD.textDim : { "Read":"#3a7a50", "Reading":"#d06420", "The List":WOOD.textDim, "Curious":WOOD.amber }[book.shelf] || WOOD.textDim,
                   }}>{showAddLabel ? "+ Add" : book.shelf}</span>
                   {shelfDropOpen && (
                     <div onClick={e=>e.stopPropagation()} style={{
@@ -1481,8 +1481,8 @@ function RecCard({ rec, coverUrl, ownedBook, onAddDirect, index }) {
   const [showDescription, setShowDescription] = useState(false);
 
   const SHELF_META = {
-    "Read":     { bg:"rgba(138,90,40,0.5)",   color:"rgba(255,255,255,0.9)", border:"rgba(138,90,40,0.4)" },
-    "Reading":  { bg:"rgba(60,120,80,0.55)",  color:"rgba(255,255,255,0.9)", border:"rgba(60,120,80,0.4)" },
+    "Read":     { bg:"rgba(60,120,80,0.55)",  color:"rgba(255,255,255,0.9)", border:"rgba(60,120,80,0.4)"  },
+    "Reading":  { bg:"rgba(210,100,30,0.55)", color:"rgba(255,255,255,0.9)", border:"rgba(210,100,30,0.4)" },
     "The List": { bg:"rgba(138,90,40,0.5)",   color:"rgba(255,255,255,0.9)", border:"rgba(138,90,40,0.4)" },
     "Curious":  { bg:"rgba(200,144,90,0.15)", color:WOOD.amber,              border:"rgba(200,144,90,0.3)" },
     "DNF":      { bg:"rgba(160,50,50,0.55)",  color:"rgba(255,255,255,0.9)", border:"rgba(160,50,50,0.4)" },
