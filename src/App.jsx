@@ -2122,6 +2122,7 @@ const CLAUDE_PROSE_100 = [
 const CANNED_LISTS = new Set([
   "fantasy-vacuum-all",
   "fantasy-alltime-all",
+  "scifi-vacuum-all",
 ]);
 function cannedKey(genre, rankingMode, scoreCategory) {
   return `${genre.toLowerCase().replace(/[^a-z0-9]/g, "-")}-${rankingMode}-${scoreCategory}`;
