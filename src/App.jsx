@@ -3399,9 +3399,13 @@ function EditSheet({ book, onSave, onClose }) {
             if (hiRes) { setModalCoverUrl(hiRes.replace("http://", "https://").replace("&edge=curl", "")); return; }
           }
         }
-        // iTunes: just bump to 600x600
+        // iTunes: bump to 600x600
         if (coverUrl && (coverUrl.includes("mzstatic.com") || coverUrl.includes("itunes.apple.com"))) {
-          setModalCoverUrl(coverUrl.replace(/\/\d+x\d+bb\./, "/600x600bb."));
+          setModalCoverUrl(coverUrl.replace(/\/\d+x\d+bb\./, "/600x600bb.")); return;
+        }
+        // OpenLibrary: upgrade to -L.jpg
+        if (coverUrl && coverUrl.includes("covers.openlibrary.org")) {
+          setModalCoverUrl(coverUrl.replace(/-[SML]\.jpg$/, "-L.jpg"));
         }
       } catch { /* keep original */ }
     }
