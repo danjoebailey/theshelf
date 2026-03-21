@@ -322,6 +322,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
   const [descriptionLoading, setDescriptionLoading] = useState(false);
   const [pageInput, setPageInput] = useState(book.currentPage || 0);
   const [pagesLoading, setPagesLoading] = useState(false);
+  useEffect(() => { if (book.description && !fetchedDescription) setFetchedDescription(book.description); }, [book.description]);
   const touchMoved = useRef(false);
   const isRated = book.shelf === "Read" || book.shelf === "DNF";
   const showProseBtn = forceProse || (!isRated && book.shelf !== "Reading");
@@ -650,6 +651,7 @@ function BookRowExpanded({ book, onEdit, onRemove, onSaveProgress, onSavePages, 
   const [descriptionLoading, setDescriptionLoading] = useState(false);
   const [pageInput, setPageInput] = useState(book.currentPage || 0);
   const [pagesLoading, setPagesLoading] = useState(false);
+  useEffect(() => { if (book.description && !fetchedDescription) setFetchedDescription(book.description); }, [book.description]);
   useEffect(() => { setPageInput(book.currentPage || 0); }, [book.currentPage]);
 
   async function fetchPageCount() {
