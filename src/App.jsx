@@ -3447,7 +3447,7 @@ function EditSheet({ book, onSave, onClose }) {
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:7, flexWrap:"wrap", gap:6 }}>
             <div style={{ display:"flex", alignItems:"center", gap:6, fontSize:11, color:CR.textFaint, flexWrap:"wrap" }}>
               <span style={{ background:GENRE_COLORS[book.genre]||"#94a3b8", color:"#fff", borderRadius:"20px", padding:"3px 10px", fontSize:9, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", lineHeight:1 }}>{book.genre}</span>
-              {book.pages > 0 && <><span style={{ color:CR.border }}>·</span><span>{book.pages} pp</span></>}
+              {book.pages > 0 && <><span style={{ color:CR.border }}>·</span><span>{book.pages} pages</span></>}
               {book.year && <><span style={{ color:CR.border }}>·</span><span>{book.year}</span></>}
             </div>
             <div style={{ display:"flex", gap:2, background:CR.panel, borderRadius:6, padding:2, flexShrink:0 }}>
