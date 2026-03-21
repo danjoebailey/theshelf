@@ -3367,7 +3367,7 @@ function AddSheet({ onSave, onClose, initialBook = null }) {
   );
 }
 
-function EditSheet({ book, onSave, onClose }) {
+function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores }) {
   const [rating, setRating] = useState(book.rating || 0);
   const [shelf, setShelf] = useState(book.shelf || "Read");
   const [genre, setGenre] = useState(book.genre || "Other");
@@ -3445,7 +3445,9 @@ function EditSheet({ book, onSave, onClose }) {
     try {
       const res = await fetch("/api/book-description", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ title:book.title, author:book.author, genre:book.genre }) });
       const data = await res.json();
-      setDescription(data.description || null);
+      const desc = data.description || null;
+      setDescription(desc);
+      if (desc && onSaveDescription) onSaveDescription(book.id, desc);
     } catch { setDescription(null); }
     setDescLoading(false);
   }
@@ -3471,7 +3473,9 @@ function EditSheet({ book, onSave, onClose }) {
     try {
       const res = await fetch("/api/book-scores", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ title:book.title, author:book.author, genre:book.genre }) });
       const data = await res.json();
-      setScores(data.error ? null : data);
+      const fetched = data.error ? null : data;
+      setScores(fetched);
+      if (fetched && onSaveScores) onSaveScores(book.id, fetched);
     } catch { setScores(null); }
     setScoresLoading(false);
   }
@@ -4334,7 +4338,7 @@ export default function App() {
           }
           {showAdd && !addInitialBook && <AddSheet onSave={addBook} onClose={()=>setShowAdd(false)} />}
           {addInitialBook && <BookSearchModal book={addInitialBook} onSave={addBook} onClose={()=>{ setAddInitialBook(null); setShowAdd(false); }} />}
-          {editBook && <EditSheet book={editBook} onSave={updated=>{ saveEdit(updated); setEditBook(null); }} onClose={()=>setEditBook(null)} />}
+          {editBook && <EditSheet book={editBook} onSave={updated=>{ saveEdit(updated); setEditBook(null); }} onClose={()=>setEditBook(null)} onSaveDescription={saveDescription} onSaveScores={saveScores} />}
           {showImport && <GoodreadsImportSheet onImport={importBooks} onClose={()=>setShowImport(false)} />}
           {toast && (
             <div style={{
