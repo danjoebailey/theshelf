@@ -452,16 +452,16 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
               return (
                 <div style={{ position:"relative", marginLeft:"auto", flexShrink:0 }}>
                   <span {...tc(()=>{ setShelfDropOpen(o=>!o); setMenuOpen(false); }, true)} style={{
-                    background: onAdd ? "rgba(255,235,195,0.12)" : meta.bg,
-                    color: onAdd ? "rgba(255,235,195,0.75)" : meta.color,
-                    border: onAdd ? "1px solid rgba(255,235,195,0.28)" : `1px solid ${meta.border}`,
+                    background: onAdd ? "rgba(138,90,40,0.18)" : meta.bg,
+                    color: onAdd ? WOOD.textDim : meta.color,
+                    border: onAdd ? "1px solid rgba(138,90,40,0.3)" : `1px solid ${meta.border}`,
                     borderRadius:"20px", padding:"3px 10px",
                     fontSize: 9,
                     fontFamily:"'DM Sans',sans-serif", fontWeight:700,
                     textTransform:"uppercase", letterSpacing:"0.08em",
                     lineHeight:1, cursor:"pointer", display:"block",
                     maxWidth:110, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap",
-                  }}>{onAdd ? "+ Add to Shelf" : meta.label}</span>
+                  }}>{onAdd ? "+ Add" : meta.label}</span>
                   {shelfDropOpen && (
                     <div onClick={e=>e.stopPropagation()} style={{
                       position:"absolute", top:"calc(100% + 4px)", right:0, zIndex:40, minWidth:120,
