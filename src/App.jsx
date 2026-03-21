@@ -3377,6 +3377,13 @@ function EditSheet({ book, onSave, onClose }) {
   const [coverId, setCoverId] = useState(book.coverId || null);
   const [coverFetch, setCoverFetch] = useState(null);
   const [activeTab, setActiveTab] = useState("edit");
+  const [detailPanel, setDetailPanel] = useState(null); // "about" | "prose" | "scores"
+  const [description, setDescription] = useState(book.description || null);
+  const [descLoading, setDescLoading] = useState(false);
+  const [prose, setProse] = useState(null);
+  const [proseLoading, setProseLoading] = useState(false);
+  const [scores, setScores] = useState(book.scores || null);
+  const [scoresLoading, setScoresLoading] = useState(false);
 
   const CR = {
     bg: "#f5f0e8", panel: "#ece5d8", text: "#2a1e10",
@@ -3428,6 +3435,45 @@ function EditSheet({ book, onSave, onClose }) {
       const data = await res.json();
       setCoverFetch(data.options?.length ? { options: data.options } : "notfound");
     } catch { setCoverFetch("notfound"); }
+  }
+
+  async function fetchAbout() {
+    if (detailPanel === "about") { setDetailPanel(null); return; }
+    setDetailPanel("about");
+    if (description) return;
+    setDescLoading(true);
+    try {
+      const res = await fetch("/api/book-description", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ title:book.title, author:book.author, genre:book.genre }) });
+      const data = await res.json();
+      setDescription(data.description || null);
+    } catch { setDescription(null); }
+    setDescLoading(false);
+  }
+
+  async function fetchProse() {
+    if (detailPanel === "prose") { setDetailPanel(null); return; }
+    setDetailPanel("prose");
+    if (prose) return;
+    setProseLoading(true);
+    try {
+      const res = await fetch("/api/prose-preview", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ title:book.title, author:book.author }) });
+      const data = await res.json();
+      setProse(data.prose || "Unable to generate preview.");
+    } catch { setProse("Unable to generate preview."); }
+    setProseLoading(false);
+  }
+
+  async function fetchScores() {
+    if (detailPanel === "scores") { setDetailPanel(null); return; }
+    setDetailPanel("scores");
+    if (scores) return;
+    setScoresLoading(true);
+    try {
+      const res = await fetch("/api/book-scores", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ title:book.title, author:book.author, genre:book.genre }) });
+      const data = await res.json();
+      setScores(data.error ? null : data);
+    } catch { setScores(null); }
+    setScoresLoading(false);
   }
 
   const tabs = [
@@ -3556,9 +3602,55 @@ function EditSheet({ book, onSave, onClose }) {
           {/* DETAILS TAB */}
           {activeTab === "details" && (
             <div style={{ padding:"0 22px" }}>
-              {book.description
-                ? <p style={{ fontSize:14, color:CR.textDim, lineHeight:1.75, fontFamily:"'Crimson Pro',serif" }}>{book.description}</p>
-                : <p style={{ fontSize:13, color:CR.textFaint, fontStyle:"italic" }}>No description available.</p>}
+              {/* Button row */}
+              <div style={{ display:"flex", gap:6, marginBottom:16 }}>
+                {[
+                  { key:"about",  label:"About",  icon:<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 6h16M4 12h16M4 18h12"/></svg> },
+                  { key:"prose",  label:"Prose",  icon:<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> },
+                  { key:"scores", label:"Scores", icon:<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12V9M8 12V5M13 12V7M18 12V3"/></svg> },
+                ].map(({ key, label, icon }) => (
+                  <button key={key} onClick={key==="about"?fetchAbout:key==="prose"?fetchProse:fetchScores} style={{ display:"flex", alignItems:"center", gap:5, padding:"6px 12px", borderRadius:20, border:"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:500, transition:"all 0.15s", background:detailPanel===key ? CR.text : CR.panel, color:detailPanel===key ? CR.bg : CR.textDim }}>
+                    {icon}{label}
+                  </button>
+                ))}
+              </div>
+              {/* Panel content */}
+              {detailPanel === "about" && (
+                <div style={{ animation:"fadeIn 0.18s ease" }}>
+                  {descLoading
+                    ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:CR.textFaint, fontStyle:"italic" }}>Loading…</p>
+                    : description
+                      ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:CR.text, lineHeight:1.75 }}>{description}</p>
+                      : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:CR.textFaint, fontStyle:"italic" }}>No description available.</p>}
+                </div>
+              )}
+              {detailPanel === "prose" && (
+                <div style={{ animation:"fadeIn 0.18s ease" }}>
+                  {proseLoading
+                    ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:CR.textFaint, fontStyle:"italic" }}>Generating…</p>
+                    : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:CR.text, lineHeight:1.8, fontStyle:"italic" }}>{prose}</p>}
+                </div>
+              )}
+              {detailPanel === "scores" && (
+                <div style={{ animation:"fadeIn 0.18s ease" }}>
+                  {scoresLoading
+                    ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:CR.textFaint, fontStyle:"italic" }}>Scoring…</p>
+                    : scores
+                      ? <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+                          {[["Prose",scores.prose],["Plot",scores.plot],["Characters",scores.characters],["Pacing",scores.pacing],["World-building",scores.worldBuilding],["Dialogue",scores.dialogue],["Ending",scores.ending]].map(([label,val]) => val != null && (
+                            <div key={label} style={{ display:"flex", alignItems:"center", gap:10 }}>
+                              <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:CR.textDim, width:96, flexShrink:0 }}>{label}</span>
+                              <div style={{ flex:1, height:6, borderRadius:3, background:CR.border, overflow:"hidden" }}>
+                                <div style={{ height:"100%", borderRadius:3, background:CR.amber, width:`${val*10}%`, transition:"width 0.4s ease" }}/>
+                              </div>
+                              <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:700, color:CR.amber, width:20, textAlign:"right", flexShrink:0 }}>{val}</span>
+                            </div>
+                          ))}
+                        </div>
+                      : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:CR.textFaint, fontStyle:"italic" }}>Unable to score.</p>}
+                </div>
+              )}
+              {!detailPanel && <p style={{ fontSize:13, color:CR.textFaint, fontStyle:"italic" }}>Select a section above.</p>}
             </div>
           )}
 
