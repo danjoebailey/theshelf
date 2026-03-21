@@ -3437,6 +3437,20 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores }) {
     } catch { setCoverFetch("notfound"); }
   }
 
+  useEffect(() => {
+    if (activeTab === "details") {
+      setDetailPanel("about");
+      if (!description) {
+        setDescLoading(true);
+        fetch("/api/book-description", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ title:book.title, author:book.author, genre:book.genre }) })
+          .then(r => r.json())
+          .then(data => { const desc = data.description || null; setDescription(desc); if (desc && onSaveDescription) onSaveDescription(book.id, desc); })
+          .catch(() => setDescription(null))
+          .finally(() => setDescLoading(false));
+      }
+    }
+  }, [activeTab]);
+
   async function fetchAbout() {
     if (detailPanel === "about") { setDetailPanel(null); return; }
     setDetailPanel("about");
