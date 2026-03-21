@@ -3383,7 +3383,14 @@ function EditSheet({ book, onSave, onClose }) {
     textDim: "#8a7060", textFaint: "#b8a888", border: "#d8ceba", amber: "#b86800",
   };
   const noRating = ["The List", "Curious", "Reading"];
-  const displayBook = { ...book, coverUrl, coverId };
+  function hiResCoverUrl(url) {
+    if (!url) return url;
+    if (url.includes("books.google.com") || url.includes("books.googleusercontent.com")) {
+      return url.replace(/zoom=\d+/, "zoom=5");
+    }
+    return url;
+  }
+  const displayBook = { ...book, coverUrl: hiResCoverUrl(coverUrl), coverId };
   const lbl = { fontSize:10, letterSpacing:"0.2em", textTransform:"uppercase", color:CR.textDim, marginBottom:8, fontWeight:500 };
 
   async function findCover() {
@@ -3445,7 +3452,7 @@ function EditSheet({ book, onSave, onClose }) {
               <p style={{ fontSize:11, color:CR.textDim, marginBottom:8 }}>Pick a cover:</p>
               <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
                 {coverFetch.options.map((opt, i) => (
-                  <div key={i} onClick={() => { setCoverUrl(opt.coverUrl); setCoverId(opt.coverId||null); setCoverFetch(null); }} style={{ cursor:"pointer" }}>
+                  <div key={i} onClick={() => { setCoverUrl(hiResCoverUrl(opt.coverUrl)); setCoverId(opt.coverId||null); setCoverFetch(null); }} style={{ cursor:"pointer" }}>
                     <img src={opt.coverUrl} alt={opt.source} style={{ width:48, height:72, objectFit:"cover", borderRadius:4, boxShadow:"0 2px 6px rgba(0,0,0,0.2)" }} />
                     <span style={{ fontSize:9, color:CR.textDim, display:"block", textAlign:"center", maxWidth:52 }}>{opt.source}</span>
                   </div>
