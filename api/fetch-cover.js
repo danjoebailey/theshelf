@@ -46,7 +46,7 @@ export default async function handler(req, res) {
     options.push({ source, coverUrl: url, coverId });
   }
 
-  // Google Books by ISBN (most precise)
+  // Google Books by ISBN (most precise match)
   const gbIsbnThumb = gbIsbnData?.items?.[0]?.volumeInfo?.imageLinks?.thumbnail;
   if (gbIsbnThumb) add("Google Books (ISBN)", gbIsbnThumb);
 
@@ -79,8 +79,10 @@ export default async function handler(req, res) {
       d.cover_i
     ));
 
+  // Prefer iTunes image (600x600, high quality) but keep Google Books ISBN match for book identity
+  const itunesOption = options.find(o => o.source?.startsWith("iTunes"));
   const best = options[0] || null;
-  const coverUrl = best?.coverUrl || null;
+  const coverUrl = itunesOption?.coverUrl || best?.coverUrl || null;
   const coverId = options.find(o => o.coverId)?.coverId || null;
 
   res.json({ coverUrl, coverId, options });
