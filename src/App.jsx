@@ -4240,7 +4240,7 @@ export default function App() {
               display:"flex", justifyContent:"center", alignItems:"center", padding:"6px 8px",
             }}>
               <span style={{
-                padding: id==="shelf" ? "0px 6px" : id==="stats" || id==="rankings" ? "9px 10px" : id==="reiko" ? "4px 10px" : "6px 10px", borderRadius:20,
+                padding: id==="shelf" ? "0px 6px" : id==="stats" ? "9px 10px" : id==="reiko" || id==="rankings" ? "0px 10px" : "6px 10px", borderRadius:20,
                 background: tab===id ? WOOD.amber : "rgba(0,0,0,0.18)",
                 color: tab===id ? "#1a0900" : WOOD.textFaint,
                 fontSize:13, fontFamily:"'DM Sans',sans-serif", fontWeight:600,
@@ -4254,7 +4254,7 @@ export default function App() {
                   : id==="reiko"
                   ? <img src="/recommend_book.png" alt="Reiko" style={{ height:28, width:"auto", display:"block", opacity: tab===id ? 1 : 0.55, transition:"opacity 0.2s" }} />
                   : id==="rankings"
-                  ? <img src="/books_1_2_no_bg.png" alt="Rankings" style={{ width:62, height:"auto", display:"block", margin:"-6px -8px", opacity: tab===id ? 1 : 0.55, transition:"opacity 0.2s" }} />
+                  ? <img src="/books_1_2_no_bg.png" alt="Rankings" style={{ height:46, width:"auto", display:"block", margin:"-5px 0", opacity: tab===id ? 1 : 0.55, transition:"opacity 0.2s" }} />
                   : label}
               </span>
             </button>
