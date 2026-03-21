@@ -3388,6 +3388,9 @@ function EditSheet({ book, onSave, onClose }) {
     if (url.includes("books.google.com") || url.includes("books.googleusercontent.com")) {
       return url.replace(/zoom=\d+/, "zoom=5");
     }
+    if (url.includes("mzstatic.com") || url.includes("itunes.apple.com")) {
+      return url.replace(/\/\d+x\d+bb\./, "/600x600bb.");
+    }
     return url;
   }
   const displayBook = { ...book, coverUrl: hiResCoverUrl(coverUrl), coverId };
