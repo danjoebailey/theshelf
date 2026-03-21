@@ -56,7 +56,7 @@ async function googleBooksSearch(query) {
       const info = item.volumeInfo || {};
       const thumb = info.imageLinks?.thumbnail;
       return {
-        title:       info.title || "Unknown",
+        title:       toTitleCase(info.title || "Unknown"),
         author:      (info.authors || [])[0] || "Unknown",
         pages:       info.pageCount || 0,
         genre:       inferGenre(info.categories || []),
@@ -76,7 +76,7 @@ async function olSearch(query) {
     const res = await fetch(url);
     const data = await res.json();
     return (data.docs || []).map(doc => ({
-      title:       doc.title || "Unknown",
+      title:       toTitleCase(doc.title || "Unknown"),
       author:      (doc.author_name || [])[0] || "Unknown",
       pages:       doc.number_of_pages_median || 0,
       genre:       inferGenre(doc.subject || []),
@@ -93,7 +93,7 @@ async function itunesSearch(query) {
     const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=ebook&limit=7&media=ebook`);
     const data = await res.json();
     return (data.results || []).map(r => ({
-      title:       r.trackName || "Unknown",
+      title:       toTitleCase(r.trackName || "Unknown"),
       author:      r.artistName || "Unknown",
       pages:       0,
       genre:       inferGenre([r.primaryGenreName || ""]),
@@ -103,6 +103,21 @@ async function itunesSearch(query) {
   } catch {
     return [];
   }
+}
+
+const TITLE_LOWER = new Set(["a","an","the","and","but","or","nor","for","so","yet","at","by","in","of","on","to","up","as","vs","via"]);
+
+function toTitleCase(str) {
+  if (!str || str === "Unknown") return str;
+  const words = str.split(" ");
+  return words.map((word, i) => {
+    if (!word) return word;
+    const lower = word.toLowerCase();
+    const isFirst = i === 0;
+    const isLast = i === words.length - 1;
+    if (!isFirst && !isLast && TITLE_LOWER.has(lower)) return lower;
+    return lower.charAt(0).toUpperCase() + lower.slice(1);
+  }).join(" ");
 }
 
 const STOP_WORDS = new Set(["the","a","an","and","of","by","in","on","at","to","for","with","is","it","my","his","her","their","our"]);
