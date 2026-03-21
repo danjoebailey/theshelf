@@ -4249,7 +4249,7 @@ export default function App() {
                 flexShrink:0,
               }}>
                 {id==="shelf"
-                  ? <img src="/books_no_bg.png" alt="Shelf" style={{ width:64, height:44, objectFit:"contain", display:"block", opacity: tab===id ? 1 : 0.55, transition:"opacity 0.2s" }} />
+                  ? <img src="/books_no_bg.png" alt="Shelf" style={{ width:72, height:50, objectFit:"contain", display:"block", opacity: tab===id ? 1 : 0.55, transition:"opacity 0.2s" }} />
                   : id==="stats"
                   ? <img src="/three_books_breakdown.png" alt="Breakdown" style={{ width:44, height:32, objectFit:"contain", display:"block", opacity: tab===id ? 1 : 0.55, transition:"opacity 0.2s" }} />
                   : id==="reiko"
