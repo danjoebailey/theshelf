@@ -4234,7 +4234,7 @@ export default function App() {
               display:"flex", justifyContent:"center", alignItems:"center", padding:"6px 8px",
             }}>
               <span style={{
-                padding: id==="shelf" ? "0px 6px" : id==="stats" || id==="reiko" ? "9px 10px" : "6px 10px", borderRadius:20,
+                padding: id==="shelf" ? "0px 6px" : id==="stats" ? "9px 10px" : id==="reiko" ? "4px 10px" : "6px 10px", borderRadius:20,
                 background: tab===id ? WOOD.amber : "rgba(0,0,0,0.18)",
                 color: tab===id ? "#1a0900" : WOOD.textFaint,
                 fontSize:13, fontFamily:"'DM Sans',sans-serif", fontWeight:600,
