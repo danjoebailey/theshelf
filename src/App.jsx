@@ -1753,9 +1753,15 @@ function ReikoTab({ books, userId, onAddDirect }) {
     <div style={{ height: "100%", overflowY: "auto", overflowX: "hidden", padding: "0 0 100px" }}>
       {/* Header */}
       <div style={{ padding: "20px 18px 14px" }}>
-<div style={{ display:"flex", flexDirection:"column", alignItems:"center", margin:"10px 0 14px" }}>
-          <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:22, fontWeight:300, color:"#fff", marginBottom:8 }}>Reiko Mend</p>
-          <img src="/reiko-mend.png" alt="" style={{ width:120, height:120, objectFit:"contain" }} />
+<div style={{ display:"flex", justifyContent:"center", gap:24, margin:"10px 0 14px" }}>
+          <div style={{ display:"flex", flexDirection:"column", alignItems:"center" }}>
+            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:22, fontWeight:300, color:"#fff", marginBottom:8 }}>Paige Turner</p>
+            <img src="/page-turner.png" alt="" style={{ width:120, height:120, objectFit:"contain" }} />
+          </div>
+          <div style={{ display:"flex", flexDirection:"column", alignItems:"center" }}>
+            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:22, fontWeight:300, color:"#fff", marginBottom:8 }}>Reiko Mend</p>
+            <img src="/reiko-mend.png" alt="" style={{ width:120, height:120, objectFit:"contain" }} />
+          </div>
         </div>
         <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: "rgba(255,255,255,0.6)" }}>Select up to 6 books you've loved — AI will find your next read.</p>
       </div>
