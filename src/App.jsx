@@ -2683,7 +2683,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onShelfChange, on
                       onRemove={()=>{}} onEdit={matched ? onEdit : ()=>{}} onShelfChange={()=>{}} onOpenShelfPicker={()=>{}}
                       onSaveScores={matched ? onSaveScores : ()=>{}} onSaveDescription={()=>{}}
                       forceProse
-                      onAdd={matched ? undefined : (shelf) => onAddBook({ title:item.title, author:item.author, genre: genreFilter !== "All" ? genreFilter : (item.genre || "Other"), shelf, pages:0, rating:0, coverUrl:null })}
+                      onAdd={matched ? undefined : (shelf) => onAddBook({ title:item.title, author:item.author, genre: genreFilter !== "All" ? genreFilter : (item.genre || "Other"), shelf, pages:0, rating:0, coverUrl:item.coverUrl||null })}
                     />
                 }
               </div>
