@@ -429,7 +429,6 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
                 <p style={{ fontSize:12, color:WOOD.textDim, fontStyle:"italic", marginBottom:2 }}>{book.author}</p>
               </div>
               <div style={{ display:"flex", alignItems:"center", gap:6, flexShrink:0 }}>
-                <span style={{ color:WOOD.textFaint, fontSize:12, display:"inline-block", transition:"transform 0.2s", transform:expanded?"rotate(180deg)":"rotate(0deg)" }}>▾</span>
                 <button {...tc(()=>setMenuOpen(m=>!m), true)} style={{ background:"transparent", border:"none", cursor:"pointer", padding:"2px 4px 0", color:"rgba(120,70,20,0.6)", fontSize:16, lineHeight:1, letterSpacing:"-1px" }}>⋮</button>
               </div>
             </div>
@@ -875,7 +874,6 @@ function BookRow({ book, index, onEdit, onRemove, onShelfChange, onAdd, onSavePr
         <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3, flexShrink:0 }}>
           <div style={{ display:"flex", alignItems:"center", gap:5 }}>
             <span style={{ background:GENRE_COLORS[book.genre]||GENRE_COLORS["Other"], color:"#fff", borderRadius:"20px", padding:"2px 7px", fontSize:8, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.06em" }}>{book.genre}</span>
-            <span style={{ color:WOOD.textFaint, fontSize:11, transition:"transform 0.2s", transform:expanded?"rotate(180deg)":"rotate(0deg)" }}>▾</span>
           </div>
           {isRated
             ? <StarRating value={book.rating} readonly size={12} />
@@ -944,7 +942,6 @@ function BookRowPages({ book, index, onEdit, onRemove, onShelfChange, maxPages, 
         <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:3, flexShrink:0 }}>
           <div style={{ display:"flex", alignItems:"center", gap:5 }}>
             <span style={{ background:GENRE_COLORS[book.genre]||GENRE_COLORS["Other"], color:"#fff", borderRadius:"20px", padding:"2px 7px", fontSize:8, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.06em" }}>{book.genre}</span>
-            <span style={{ color:WOOD.textFaint, fontSize:11, transition:"transform 0.2s", transform:expanded?"rotate(180deg)":"rotate(0deg)" }}>▾</span>
           </div>
           {isRated ? <StarRating value={book.rating} readonly size={12} /> : <div style={{ height:14 }} />}
         </div>
