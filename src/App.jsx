@@ -3999,7 +3999,7 @@ function parseGoodreadsCSV(text, shelfMap = DEFAULT_GR_SHELF_MAP) {
   }).filter(b => b.title);
 }
 
-function AuthorModal({ author, books, onClose }) {
+function AuthorModal({ author, books, onClose, onEdit }) {
   const [activeTab, setActiveTab] = useState("books");
   const [bio, setBio] = useState(null);
   const [bioLoading, setBioLoading] = useState(false);
@@ -4062,7 +4062,7 @@ function AuthorModal({ author, books, onClose }) {
             authorBooks.length === 0
               ? <p style={{ color:CR.textDim, fontStyle:"italic", textAlign:"center", paddingTop:40 }}>No books by this author in your library.</p>
               : authorBooks.map(book => (
-                  <div key={book.id} style={{ display:"flex", gap:12, padding:"12px 0", borderBottom:`1px solid ${CR.border}` }}>
+                  <div key={book.id} onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); onEdit&&onEdit(book); }} onClick={()=>onEdit&&onEdit(book)} style={{ display:"flex", gap:12, padding:"12px 0", borderBottom:`1px solid ${CR.border}`, cursor:"pointer" }}>
                     <BookCover book={book} width={42} height={62} radius={3} shadow="1px 1px 5px rgba(0,0,0,0.2)" />
                     <div style={{ flex:1, minWidth:0 }}>
                       <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:17, color:CR.text, lineHeight:1.2, marginBottom:4 }}>{book.title}</p>
@@ -4488,7 +4488,7 @@ export default function App() {
           {showAdd && <AddSheet onSave={addBook} onClose={()=>setShowAdd(false)} />}
           {addBookDraft && <EditSheet book={addBookDraft} onSave={updated=>{ addBook({...addBookDraft,...updated}); setAddBookDraft(null); }} onClose={()=>setAddBookDraft(null)} onSaveDescription={()=>{}} onSaveScores={()=>{}} onAuthor={setAuthorModal} />}
           {editBook && <EditSheet book={editBook} onSave={updated=>{ saveEdit(updated); setEditBook(null); }} onClose={()=>setEditBook(null)} onSaveDescription={saveDescription} onSaveScores={saveScores} onAuthor={setAuthorModal} />}
-          {authorModal && <AuthorModal author={authorModal} books={books} onClose={()=>setAuthorModal(null)} />}
+          {authorModal && <AuthorModal author={authorModal} books={books} onClose={()=>setAuthorModal(null)} onEdit={book=>{ setAuthorModal(null); setEditBook(book); }} />}
           {showImport && <GoodreadsImportSheet onImport={importBooks} onClose={()=>setShowImport(false)} />}
           {toast && (
             <div style={{
