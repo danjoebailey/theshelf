@@ -3443,8 +3443,12 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores }) {
         }
         // OpenLibrary: upgrade to -L.jpg
         if (coverUrl && coverUrl.includes("covers.openlibrary.org")) {
-          setModalCoverUrl(coverUrl.replace(/-[SML]\.jpg$/, "-L.jpg"));
+          setModalCoverUrl(coverUrl.replace(/-[SML]\.jpg$/, "-L.jpg")); return;
         }
+        // Fallback: re-fetch cover for best available quality
+        const r = await fetch("/api/fetch-cover", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ title:book.title, author:book.author, isbn:book.isbn }) });
+        const d = await r.json();
+        if (d.coverUrl) setModalCoverUrl(d.coverUrl);
       } catch { /* keep original */ }
     }
     fetchHiResCover();
