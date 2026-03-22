@@ -69,9 +69,9 @@ export default async function handler(req, res) {
   // Open Library by ISBN (direct, no search needed)
   if (isbn) add("Open Library (ISBN)", `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg`);
 
-  // Open Library by cover_i from search — up to 3
+  // Open Library by cover_i from search — up to 3, filtered by title match
   (olData?.docs || [])
-    .filter(d => d.cover_i)
+    .filter(d => d.cover_i && titleMatches(d.title || "", cleanTitle))
     .slice(0, 3)
     .forEach((d, i) => add(
       i === 0 ? "Open Library" : `Open Library (${i + 1})`,
