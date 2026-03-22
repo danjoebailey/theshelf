@@ -3038,7 +3038,11 @@ function StatsTab({ books }) {
         if (readingBooks.length === 0) return null;
         return (
           <>
-          <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, color:WOOD.textDim, fontStyle:"italic", marginBottom:10, paddingLeft:2 }}>Currently Reading</p>
+          <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
+            <div style={{ flex:1, height:1, background:"rgba(200,144,90,0.35)" }}/>
+            <span style={{ fontSize:9, color:WOOD.shine, textTransform:"uppercase", letterSpacing:"0.18em", fontFamily:"'DM Sans',sans-serif", fontWeight:500, whiteSpace:"nowrap" }}>Currently Reading</span>
+            <div style={{ flex:1, height:1, background:"rgba(200,144,90,0.35)" }}/>
+          </div>
           <div style={{ ...card, padding:16, marginBottom:10 }}>
             <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
               {readingBooks.map(b => {
@@ -3068,7 +3072,11 @@ function StatsTab({ books }) {
         );
       })()}
 
-      <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, color:WOOD.textDim, fontStyle:"italic", marginBottom:10, paddingLeft:2 }}>Genre Breakdown</p>
+      <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
+        <div style={{ flex:1, height:1, background:"rgba(200,144,90,0.35)" }}/>
+        <span style={{ fontSize:9, color:WOOD.shine, textTransform:"uppercase", letterSpacing:"0.18em", fontFamily:"'DM Sans',sans-serif", fontWeight:500, whiteSpace:"nowrap" }}>Genre Breakdown</span>
+        <div style={{ flex:1, height:1, background:"rgba(200,144,90,0.35)" }}/>
+      </div>
       <div style={{ ...card, padding:16, marginBottom:10 }}>
         {topGenres.length===0
           ? <p style={{ color:WOOD.textFaint, fontSize:13 }}>No data yet</p>
@@ -3090,7 +3098,11 @@ function StatsTab({ books }) {
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
           {stats.topAuthor && (
             <div style={{ display:"flex", flexDirection:"column" }}>
-              <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, color:WOOD.textDim, fontStyle:"italic", marginBottom:10, paddingLeft:2 }}>Top Author</p>
+              <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
+                <div style={{ flex:1, height:1, background:"rgba(200,144,90,0.35)" }}/>
+                <span style={{ fontSize:9, color:WOOD.shine, textTransform:"uppercase", letterSpacing:"0.18em", fontFamily:"'DM Sans',sans-serif", fontWeight:500, whiteSpace:"nowrap" }}>Top Author</span>
+                <div style={{ flex:1, height:1, background:"rgba(200,144,90,0.35)" }}/>
+              </div>
               <div style={{ ...card, padding:14 }}>
                 <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, lineHeight:1.2, marginBottom:4 }}>{stats.topAuthor[0]}</p>
                 <p style={{ fontSize:12, color:WOOD.textDim }}>{stats.topAuthor[1]} {stats.topAuthor[1] === 1 ? "book" : "books"}</p>
@@ -3099,7 +3111,11 @@ function StatsTab({ books }) {
           )}
           {stats.longestBook && (
             <div style={{ display:"flex", flexDirection:"column" }}>
-              <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, color:WOOD.textDim, fontStyle:"italic", marginBottom:10, paddingLeft:2 }}>Longest Book</p>
+              <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
+                <div style={{ flex:1, height:1, background:"rgba(200,144,90,0.35)" }}/>
+                <span style={{ fontSize:9, color:WOOD.shine, textTransform:"uppercase", letterSpacing:"0.18em", fontFamily:"'DM Sans',sans-serif", fontWeight:500, whiteSpace:"nowrap" }}>Longest Book</span>
+                <div style={{ flex:1, height:1, background:"rgba(200,144,90,0.35)" }}/>
+              </div>
               <div style={{ ...card, padding:14 }}>
                 <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, lineHeight:1.2, marginBottom:4, overflow:"hidden", display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical" }}>{stats.longestBook.title}</p>
                 <p style={{ fontSize:12, color:WOOD.textDim }}>{stats.longestBook.pages.toLocaleString()} pages</p>
