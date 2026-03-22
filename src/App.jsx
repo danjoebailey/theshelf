@@ -1753,7 +1753,7 @@ function ReikoTab({ books, userId, onAddDirect }) {
     <div style={{ height: "100%", overflowY: "auto", overflowX: "hidden", padding: "0 0 100px" }}>
       {/* Header */}
       <div style={{ padding: "20px 18px 14px" }}>
-        <h1 style={{ fontFamily: "'Crimson Pro',serif", fontWeight: 300, fontSize: 30, color: "#fff", letterSpacing: "-0.01em", marginBottom: 4 }}>Reiko Mend</h1>
+        <h1 style={{ fontFamily: "'Crimson Pro',serif", fontWeight: 300, fontSize: 30, color: "#fff", letterSpacing: "-0.01em", marginBottom: 4 }}>Recommendations</h1>
         <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: "rgba(255,255,255,0.6)" }}>Select up to 6 books you've loved — AI will find your next read.</p>
       </div>
 
