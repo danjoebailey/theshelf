@@ -497,10 +497,10 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
           boxShadow:"0 4px 20px rgba(0,0,0,0.25)", border:"1px solid rgba(138,90,40,0.3)",
           minWidth:120, animation:"fadeIn 0.12s ease",
         }}>
-          {[
-          { label:"Edit",   action:()=>{ setMenuOpen(false); onEdit(book); } },
-            { label:"Remove", action:()=>{ setMenuOpen(false); onRemove(book.id); } },
-          ].map(({ label, action }) => (
+          {(onAdd
+            ? [{ label:"Details", action:()=>{ setMenuOpen(false); onAdd("Read"); } }]
+            : [{ label:"Edit", action:()=>{ setMenuOpen(false); onEdit(book); } }, { label:"Remove", action:()=>{ setMenuOpen(false); onRemove(book.id); } }]
+          ).map(({ label, action }) => (
             <button key={label} {...tc(action, true)} style={{
               display:"flex", alignItems:"center", gap:8,
               width:"100%", padding:"11px 14px",
@@ -635,7 +635,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
   );
 }
 
-function BookRowExpanded({ book, onEdit, onRemove, onSaveProgress, onSavePages, onSaveAspects }) {
+function BookRowExpanded({ book, onEdit, onRemove, onAdd, onSaveProgress, onSavePages, onSaveAspects }) {
   const isRated = book.shelf === "Read" || book.shelf === "DNF";
   const showProseBtn = book.shelf !== "Read" && book.shelf !== "Reading";
   const [liked, setLiked] = useState(book.likedAspects || []);
@@ -823,12 +823,17 @@ function BookRowExpanded({ book, onEdit, onRemove, onSaveProgress, onSavePages, 
           </div>
         </div>
       )}
-      {onEdit && onRemove && (
-        <div style={{ display:"flex", gap:8, marginTop:10 }}>
-          <button {...tc(()=>onEdit(book), true)} style={{ flex:1, padding:"7px 0", background:"rgba(138,90,40,0.1)", border:"1px solid rgba(138,90,40,0.2)", borderRadius:8, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:12, color:WOOD.text }}>Edit</button>
-          <button {...tc(()=>onRemove(book.id), true)} style={{ flex:1, padding:"7px 0", background:"rgba(192,57,43,0.08)", border:"1px solid rgba(192,57,43,0.2)", borderRadius:8, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:12, color:"#c0392b" }}>Remove</button>
-        </div>
-      )}
+      {onAdd
+        ? <div style={{ marginTop:10 }}>
+            <button {...tc(()=>onAdd("Read"), true)} style={{ width:"100%", padding:"7px 0", background:"rgba(138,90,40,0.1)", border:"1px solid rgba(138,90,40,0.2)", borderRadius:8, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:12, color:WOOD.text }}>Details</button>
+          </div>
+        : onEdit && onRemove && (
+            <div style={{ display:"flex", gap:8, marginTop:10 }}>
+              <button {...tc(()=>onEdit(book), true)} style={{ flex:1, padding:"7px 0", background:"rgba(138,90,40,0.1)", border:"1px solid rgba(138,90,40,0.2)", borderRadius:8, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:12, color:WOOD.text }}>Edit</button>
+              <button {...tc(()=>onRemove(book.id), true)} style={{ flex:1, padding:"7px 0", background:"rgba(192,57,43,0.08)", border:"1px solid rgba(192,57,43,0.2)", borderRadius:8, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:12, color:"#c0392b" }}>Remove</button>
+            </div>
+          )
+      }
     </div>
   );
 }
@@ -904,7 +909,7 @@ function BookRow({ book, index, onEdit, onRemove, onShelfChange, onAdd, onSavePr
           }
         </div>
       </div>
-      {expanded && <BookRowExpanded book={book} onEdit={onEdit} onRemove={onRemove} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} />}
+      {expanded && <BookRowExpanded book={book} onEdit={onEdit} onRemove={onRemove} onAdd={onAdd} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} />}
     </div>
   );
 }
