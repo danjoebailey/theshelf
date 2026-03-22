@@ -4001,6 +4001,7 @@ function AuthorModal({ author, books, onClose, onEdit }) {
   const [bio, setBio] = useState(null);
   const [bioLoading, setBioLoading] = useState(false);
   const [wikiImage, setWikiImage] = useState(null);
+  const touchMoved = useRef(false);
 
   const CR = {
     bg: "#f5f0e8", panel: "#ece5d8", text: "#2a1e10",
@@ -4059,7 +4060,7 @@ function AuthorModal({ author, books, onClose, onEdit }) {
             authorBooks.length === 0
               ? <p style={{ color:CR.textDim, fontStyle:"italic", textAlign:"center", paddingTop:40 }}>No books by this author in your library.</p>
               : authorBooks.map(book => (
-                  <div key={book.id} onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); onEdit&&onEdit(book); }} onClick={()=>onEdit&&onEdit(book)} style={{ display:"flex", gap:12, padding:"12px 0", borderBottom:`1px solid ${CR.border}`, cursor:"pointer" }}>
+                  <div key={book.id} onTouchStart={()=>{ touchMoved.current=false; }} onTouchMove={()=>{ touchMoved.current=true; }} onTouchEnd={e=>{ if(!touchMoved.current){ e.stopPropagation(); e.preventDefault(); onEdit&&onEdit(book); } }} onClick={()=>onEdit&&onEdit(book)} style={{ display:"flex", gap:12, padding:"12px 0", borderBottom:`1px solid ${CR.border}`, cursor:"pointer" }}>
                     <BookCover book={book} width={42} height={62} radius={3} shadow="1px 1px 5px rgba(0,0,0,0.2)" />
                     <div style={{ flex:1, minWidth:0 }}>
                       <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:17, color:CR.text, lineHeight:1.2, marginBottom:4 }}>{book.title}</p>
