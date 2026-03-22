@@ -4352,7 +4352,7 @@ export default function App() {
             : tab==="reiko"
             ? <ReikoTab books={books} userId={userId} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, rating:0, date:new Date().toISOString().slice(0,10) }; setBooks(prev => [...prev, b]); dbAddBook(b, userId); }} />
             : tab==="rankings"
-            ? <RankingsTab books={books} onSaveScores={saveScores} userId={userId} onAddBook={addBook} onShelfChange={changeShelf} onEdit={setEditBook} />
+            ? <RankingsTab books={books} onSaveScores={saveScores} userId={userId} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"" }); }} onShelfChange={changeShelf} onEdit={setEditBook} />
             : <StatsTab books={books} />
           }
           {showAdd && <AddSheet onSave={addBook} onClose={()=>setShowAdd(false)} />}
