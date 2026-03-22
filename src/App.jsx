@@ -3691,7 +3691,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores }) {
           )}
 
           {/* Save */}
-          <button onClick={() => onSave({ id:book.id, rating, shelf, genre, date, notes, coverUrl, coverId })} style={{ display:"block", width:"calc(100% - 44px)", margin:"20px 22px 0", padding:14, background:CR.text, border:"none", borderRadius:8, color:CR.bg, fontSize:14, fontFamily:"'DM Sans',sans-serif", fontWeight:500, letterSpacing:"0.05em", cursor:"pointer" }}>Save changes</button>
+          {activeTab === "edit" && <button onClick={() => onSave({ id:book.id, rating, shelf, genre, date, notes, coverUrl, coverId })} style={{ display:"block", width:"calc(100% - 44px)", margin:"20px 22px 0", padding:14, background:CR.text, border:"none", borderRadius:8, color:CR.bg, fontSize:14, fontFamily:"'DM Sans',sans-serif", fontWeight:500, letterSpacing:"0.05em", cursor:"pointer" }}>Save changes</button>}
         </div>
       </div>
     </div>
