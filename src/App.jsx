@@ -4119,8 +4119,7 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd }) {
                 </div>
                 <div style={{ flex:1, minWidth:0 }}>
                   <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:17, color:CR.text, lineHeight:1.2, marginBottom:4 }}>{book.title}</p>
-                  {book.publishYear && <p style={{ fontSize:11, color:CR.textDim, fontFamily:"'DM Sans',sans-serif", marginBottom:4 }}>{book.publishYear}{book.pages ? ` · ${book.pages} pp` : ""}</p>}
-                  {book.reason && <p style={{ fontSize:11, color:CR.textDim, fontFamily:"'DM Sans',sans-serif", lineHeight:1.4 }}>{book.reason}</p>}
+                  {book.publishYear && <p style={{ fontSize:11, color:CR.textDim, fontFamily:"'DM Sans',sans-serif" }}>{book.publishYear}{book.pages ? ` · ${book.pages} pp` : ""}</p>}
                 </div>
               </div>
             ));
