@@ -3039,9 +3039,9 @@ function StatsTab({ books }) {
         return (
           <>
           <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
-            <div style={{ flex:1, height:1, background:"rgba(200,144,90,0.35)" }}/>
+            <div style={{ flex:1, height:1, background:"rgba(255,255,255,0.35)" }}/>
             <span style={{ fontSize:9, color:"#fff", textTransform:"uppercase", letterSpacing:"0.18em", fontFamily:"'DM Sans',sans-serif", fontWeight:700, whiteSpace:"nowrap" }}>Currently Reading</span>
-            <div style={{ flex:1, height:1, background:"rgba(200,144,90,0.35)" }}/>
+            <div style={{ flex:1, height:1, background:"rgba(255,255,255,0.35)" }}/>
           </div>
           <div style={{ ...card, padding:16, marginBottom:10 }}>
             <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
@@ -3073,9 +3073,9 @@ function StatsTab({ books }) {
       })()}
 
       <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
-        <div style={{ flex:1, height:1, background:"rgba(200,144,90,0.35)" }}/>
+        <div style={{ flex:1, height:1, background:"rgba(255,255,255,0.35)" }}/>
         <span style={{ fontSize:9, color:"#fff", textTransform:"uppercase", letterSpacing:"0.18em", fontFamily:"'DM Sans',sans-serif", fontWeight:700, whiteSpace:"nowrap" }}>Genre Breakdown</span>
-        <div style={{ flex:1, height:1, background:"rgba(200,144,90,0.35)" }}/>
+        <div style={{ flex:1, height:1, background:"rgba(255,255,255,0.35)" }}/>
       </div>
       <div style={{ ...card, padding:16, marginBottom:10 }}>
         {topGenres.length===0
@@ -3099,9 +3099,9 @@ function StatsTab({ books }) {
           {stats.topAuthor && (
             <div style={{ display:"flex", flexDirection:"column" }}>
               <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
-                <div style={{ flex:1, height:1, background:"rgba(200,144,90,0.35)" }}/>
+                <div style={{ flex:1, height:1, background:"rgba(255,255,255,0.35)" }}/>
                 <span style={{ fontSize:9, color:"#fff", textTransform:"uppercase", letterSpacing:"0.18em", fontFamily:"'DM Sans',sans-serif", fontWeight:700, whiteSpace:"nowrap" }}>Top Author</span>
-                <div style={{ flex:1, height:1, background:"rgba(200,144,90,0.35)" }}/>
+                <div style={{ flex:1, height:1, background:"rgba(255,255,255,0.35)" }}/>
               </div>
               <div style={{ ...card, padding:14 }}>
                 <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, lineHeight:1.2, marginBottom:4 }}>{stats.topAuthor[0]}</p>
@@ -3112,9 +3112,9 @@ function StatsTab({ books }) {
           {stats.longestBook && (
             <div style={{ display:"flex", flexDirection:"column" }}>
               <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
-                <div style={{ flex:1, height:1, background:"rgba(200,144,90,0.35)" }}/>
+                <div style={{ flex:1, height:1, background:"rgba(255,255,255,0.35)" }}/>
                 <span style={{ fontSize:9, color:"#fff", textTransform:"uppercase", letterSpacing:"0.18em", fontFamily:"'DM Sans',sans-serif", fontWeight:700, whiteSpace:"nowrap" }}>Longest Book</span>
-                <div style={{ flex:1, height:1, background:"rgba(200,144,90,0.35)" }}/>
+                <div style={{ flex:1, height:1, background:"rgba(255,255,255,0.35)" }}/>
               </div>
               <div style={{ ...card, padding:14 }}>
                 <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, lineHeight:1.2, marginBottom:4, overflow:"hidden", display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical" }}>{stats.longestBook.title}</p>
