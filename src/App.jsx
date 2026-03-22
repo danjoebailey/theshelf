@@ -1753,7 +1753,7 @@ function ReikoTab({ books, userId, onAddDirect }) {
     <div style={{ height: "100%", overflowY: "auto", overflowX: "hidden", padding: "0 0 100px" }}>
       {/* Header */}
       <div style={{ padding: "20px 18px 14px" }}>
-        <h1 style={{ fontFamily: "'Crimson Pro',serif", fontWeight: 300, fontSize: 30, color: "#fff", letterSpacing: "-0.01em", marginBottom: 4 }}>Recommendations</h1>
+        <h1 style={{ fontFamily: "'Crimson Pro',serif", fontWeight: 300, fontSize: 30, color: "#fff", letterSpacing: "-0.01em", marginBottom: 4, textAlign:"center" }}>Recommendations</h1>
         <div style={{ display:"flex", justifyContent:"center", margin:"10px 0 14px" }}>
           <img src="/reiko-mend.png" alt="" style={{ width:120, height:120, objectFit:"contain" }} />
         </div>
