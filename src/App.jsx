@@ -2128,6 +2128,7 @@ const CANNED_LISTS = new Set([
   "sci-fi-alltime-all",
   "fiction-vacuum-all",
   "fiction-alltime-all",
+  "nonfiction-alltime-all",
 ]);
 function cannedKey(genre, rankingMode, scoreCategory) {
   return `${genre.toLowerCase().replace(/[^a-z0-9]/g, "-")}-${rankingMode}-${scoreCategory}`;
