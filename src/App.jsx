@@ -3541,14 +3541,16 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores }) {
           <div style={{ display:"flex", justifyContent:"center", borderTop:`1px solid ${CR.border}`, borderBottom:`1px solid ${CR.border}`, padding:"20px 0 34px", marginBottom:24 }}>
             <div style={{ position:"relative" }}>
               <BookCover book={displayBook} width={173} height={255} radius={6} shadow="3px 3px 0 rgba(0,0,0,0.12)" />
-              <button onClick={findCover} disabled={coverFetch==="loading"} style={{ position:"absolute", bottom:-14, left:"50%", transform:"translateX(-50%)", fontSize:10, color:CR.textDim, background:CR.bg, border:`1px solid ${CR.border}`, borderRadius:20, padding:"3px 12px", cursor:"pointer", whiteSpace:"nowrap", fontFamily:"'DM Sans',sans-serif" }}>
-                {coverFetch==="loading" ? "…" : "Change Cover"}
-              </button>
+              {activeTab === "edit" && (
+                <button onClick={findCover} disabled={coverFetch==="loading"} style={{ position:"absolute", bottom:-14, left:"50%", transform:"translateX(-50%)", fontSize:10, color:CR.textDim, background:CR.bg, border:`1px solid ${CR.border}`, borderRadius:20, padding:"3px 12px", cursor:"pointer", whiteSpace:"nowrap", fontFamily:"'DM Sans',sans-serif" }}>
+                  {coverFetch==="loading" ? "…" : "Change Cover"}
+                </button>
+              )}
             </div>
           </div>
 
-          {/* Cover picker */}
-          {coverFetch && coverFetch !== "loading" && coverFetch !== "notfound" && (
+          {/* Cover picker — edit tab only */}
+          {activeTab === "edit" && coverFetch && coverFetch !== "loading" && coverFetch !== "notfound" && (
             <div style={{ padding:"0 22px", marginBottom:20 }}>
               <p style={{ fontSize:11, color:CR.textDim, marginBottom:8 }}>Pick a cover:</p>
               <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
@@ -3562,7 +3564,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores }) {
               <button onClick={() => setCoverFetch(null)} style={{ marginTop:8, fontSize:11, background:CR.panel, color:CR.textDim, border:`1px solid ${CR.border}`, borderRadius:20, padding:"3px 10px", cursor:"pointer", fontFamily:"'DM Sans',sans-serif" }}>Cancel</button>
             </div>
           )}
-          {coverFetch === "notfound" && <p style={{ padding:"0 22px", marginBottom:16, fontSize:12, color:CR.textDim, fontStyle:"italic" }}>No cover found.</p>}
+          {activeTab === "edit" && coverFetch === "notfound" && <p style={{ padding:"0 22px", marginBottom:16, fontSize:12, color:CR.textDim, fontStyle:"italic" }}>No cover found.</p>}
 
           {/* EDIT TAB */}
           {activeTab === "edit" && <>
