@@ -3093,7 +3093,6 @@ function StatsTab({ books }) {
               </div>
             </div>
           )})}
-        }
       </div>
 
       {(stats.topAuthor || stats.longestBook) && (
