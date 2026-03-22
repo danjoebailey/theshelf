@@ -3040,7 +3040,7 @@ function StatsTab({ books }) {
           <>
           <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
             <div style={{ flex:1, height:1, background:"rgba(200,144,90,0.35)" }}/>
-            <span style={{ fontSize:9, color:WOOD.shine, textTransform:"uppercase", letterSpacing:"0.18em", fontFamily:"'DM Sans',sans-serif", fontWeight:500, whiteSpace:"nowrap" }}>Currently Reading</span>
+            <span style={{ fontSize:9, color:WOOD.amber, textTransform:"uppercase", letterSpacing:"0.18em", fontFamily:"'DM Sans',sans-serif", fontWeight:700, whiteSpace:"nowrap" }}>Currently Reading</span>
             <div style={{ flex:1, height:1, background:"rgba(200,144,90,0.35)" }}/>
           </div>
           <div style={{ ...card, padding:16, marginBottom:10 }}>
@@ -3074,7 +3074,7 @@ function StatsTab({ books }) {
 
       <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
         <div style={{ flex:1, height:1, background:"rgba(200,144,90,0.35)" }}/>
-        <span style={{ fontSize:9, color:WOOD.shine, textTransform:"uppercase", letterSpacing:"0.18em", fontFamily:"'DM Sans',sans-serif", fontWeight:500, whiteSpace:"nowrap" }}>Genre Breakdown</span>
+        <span style={{ fontSize:9, color:WOOD.amber, textTransform:"uppercase", letterSpacing:"0.18em", fontFamily:"'DM Sans',sans-serif", fontWeight:700, whiteSpace:"nowrap" }}>Genre Breakdown</span>
         <div style={{ flex:1, height:1, background:"rgba(200,144,90,0.35)" }}/>
       </div>
       <div style={{ ...card, padding:16, marginBottom:10 }}>
@@ -3100,7 +3100,7 @@ function StatsTab({ books }) {
             <div style={{ display:"flex", flexDirection:"column" }}>
               <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
                 <div style={{ flex:1, height:1, background:"rgba(200,144,90,0.35)" }}/>
-                <span style={{ fontSize:9, color:WOOD.shine, textTransform:"uppercase", letterSpacing:"0.18em", fontFamily:"'DM Sans',sans-serif", fontWeight:500, whiteSpace:"nowrap" }}>Top Author</span>
+                <span style={{ fontSize:9, color:WOOD.amber, textTransform:"uppercase", letterSpacing:"0.18em", fontFamily:"'DM Sans',sans-serif", fontWeight:700, whiteSpace:"nowrap" }}>Top Author</span>
                 <div style={{ flex:1, height:1, background:"rgba(200,144,90,0.35)" }}/>
               </div>
               <div style={{ ...card, padding:14 }}>
@@ -3113,7 +3113,7 @@ function StatsTab({ books }) {
             <div style={{ display:"flex", flexDirection:"column" }}>
               <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
                 <div style={{ flex:1, height:1, background:"rgba(200,144,90,0.35)" }}/>
-                <span style={{ fontSize:9, color:WOOD.shine, textTransform:"uppercase", letterSpacing:"0.18em", fontFamily:"'DM Sans',sans-serif", fontWeight:500, whiteSpace:"nowrap" }}>Longest Book</span>
+                <span style={{ fontSize:9, color:WOOD.amber, textTransform:"uppercase", letterSpacing:"0.18em", fontFamily:"'DM Sans',sans-serif", fontWeight:700, whiteSpace:"nowrap" }}>Longest Book</span>
                 <div style={{ flex:1, height:1, background:"rgba(200,144,90,0.35)" }}/>
               </div>
               <div style={{ ...card, padding:14 }}>
