@@ -946,7 +946,7 @@ function BookRowPages({ book, index, onEdit, onRemove, onShelfChange, maxPages, 
           {isRated ? <StarRating value={book.rating} readonly size={12} /> : <div style={{ height:14 }} />}
         </div>
       </div>
-      {expanded && <BookRowExpanded book={book} onEdit={onEdit} onRemove={onRemove} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} />}
+      {expanded && <BookRowExpanded book={book} onEdit={onEdit} onRemove={onRemove} onSaveProgress={onSaveProgress} onSavePages={onSavePages} />}
     </div>
   );
 }
