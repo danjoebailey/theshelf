@@ -2731,13 +2731,13 @@ function StatsTab({ books }) {
   const stats = useMemo(() => {
     const totalPages = filteredBooks.reduce((s,b)=>s+(b.pages||0),0);
     const avgRating = filteredBooks.length ? filteredBooks.reduce((s,b)=>s+b.rating,0)/filteredBooks.length : 0;
-    const genreMap={}, genrePages={};
-    filteredBooks.forEach(b=>{ genreMap[b.genre]=(genreMap[b.genre]||0)+1; genrePages[b.genre]=(genrePages[b.genre]||0)+(b.pages||0); });
+    const genreMap={}, genrePages={}, genreRatingSum={};
+    filteredBooks.forEach(b=>{ genreMap[b.genre]=(genreMap[b.genre]||0)+1; genrePages[b.genre]=(genrePages[b.genre]||0)+(b.pages||0); if(b.rating) genreRatingSum[b.genre]=(genreRatingSum[b.genre]||0)+b.rating; });
     const authorMap = {};
     filteredBooks.forEach(b=>{ if(b.author) authorMap[b.author]=(authorMap[b.author]||0)+1; });
     const topAuthor = Object.entries(authorMap).sort((a,b)=>b[1]-a[1])[0] || null;
     const longestBook = filteredBooks.filter(b=>b.pages>0).sort((a,b)=>b.pages-a.pages)[0] || null;
-    return { totalPages, avgRating, genreMap, genrePages, topAuthor, longestBook };
+    return { totalPages, avgRating, genreMap, genrePages, genreRatingSum, topAuthor, longestBook };
   }, [filteredBooks]);
   const topGenres = Object.entries(stats.genreMap).sort((a,b)=>b[1]-a[1]);
 
@@ -3080,17 +3080,32 @@ function StatsTab({ books }) {
       <div style={{ ...card, padding:16, marginBottom:10 }}>
         {topGenres.length===0
           ? <p style={{ color:WOOD.textFaint, fontSize:13 }}>No data yet</p>
-          : topGenres.map(([genre,count])=>(
-            <div key={genre} style={{ marginBottom:11 }}>
-              <div style={{ display:"flex", justifyContent:"space-between", marginBottom:4 }}>
+          : topGenres.map(([genre,count])=>{
+            const avgGenreRating = stats.genreRatingSum[genre] ? (stats.genreRatingSum[genre] / count).toFixed(2) : null;
+            return (
+            <div key={genre} style={{ marginBottom:10, border:`1px solid ${GENRE_COLORS[genre]||"#94a3b8"}33`, borderRadius:8, padding:"10px 12px" }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
                 <span style={{ background:GENRE_COLORS[genre]||"#94a3b8", color:"#fff", borderRadius:20, padding:"3px 10px", fontSize:11, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em" }}>{genre}</span>
-                <span style={{ fontSize:12, color:WOOD.textDim }}>{count} · {(stats.genrePages[genre]||0).toLocaleString()} pages</span>
               </div>
-              <div style={{ height:5, background:"rgba(100,60,20,0.2)", borderRadius:3, overflow:"hidden" }}>
+              <div style={{ display:"flex", gap:12, marginBottom:8 }}>
+                <div style={{ flex:1, textAlign:"center" }}>
+                  <div style={{ fontFamily:"'Crimson Pro',serif", fontSize:18, color:WOOD.text, lineHeight:1 }}>{count}</div>
+                  <div style={{ fontSize:9, color:WOOD.textFaint, textTransform:"uppercase", letterSpacing:"0.1em", marginTop:2 }}>Books</div>
+                </div>
+                <div style={{ flex:1, textAlign:"center" }}>
+                  <div style={{ fontFamily:"'Crimson Pro',serif", fontSize:18, color:WOOD.text, lineHeight:1 }}>{(stats.genrePages[genre]||0).toLocaleString()}</div>
+                  <div style={{ fontSize:9, color:WOOD.textFaint, textTransform:"uppercase", letterSpacing:"0.1em", marginTop:2 }}>Pages</div>
+                </div>
+                <div style={{ flex:1, textAlign:"center" }}>
+                  <div style={{ fontFamily:"'Crimson Pro',serif", fontSize:18, color:WOOD.text, lineHeight:1 }}>{avgGenreRating ? `${avgGenreRating} ★` : "—"}</div>
+                  <div style={{ fontSize:9, color:WOOD.textFaint, textTransform:"uppercase", letterSpacing:"0.1em", marginTop:2 }}>Avg Rating</div>
+                </div>
+              </div>
+              <div style={{ height:4, background:"rgba(100,60,20,0.2)", borderRadius:3, overflow:"hidden" }}>
                 <div style={{ height:"100%", width:`${(count/filteredBooks.length)*100}%`, background:GENRE_COLORS[genre]||"#94a3b8", borderRadius:3, transition:"width 0.6s" }}/>
               </div>
             </div>
-          ))
+          )})}
         }
       </div>
 
