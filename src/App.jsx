@@ -2157,7 +2157,7 @@ const SCORE_CATEGORIES = [
   { key:"ending",       label:"Ending" },
 ];
 
-function RankingsTab({ books, onSaveScores, userId, onAddBook, onShelfChange }) {
+function RankingsTab({ books, onSaveScores, userId, onAddBook, onShelfChange, onEdit }) {
   const [mode, setMode] = useState("user");
   const [genreFilter, setGenreFilter] = useState("All");
   const [topN, setTopN] = useState(10);
@@ -2642,8 +2642,8 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onShelfChange }) 
             </div>
             <div style={{ flex:1, minWidth:0 }}>
               {viewMode === "row"
-                ? <BookRow key={book.id} book={book} index={i} onEdit={null} onRemove={null} onShelfChange={onShelfChange} />
-                : <BookCard key={book.id} book={book} index={i} onRemove={()=>{}} onEdit={()=>{}} onShelfChange={()=>{}} onOpenShelfPicker={()=>{}} onSaveScores={onSaveScores} onSaveDescription={()=>{}} />
+                ? <BookRow key={book.id} book={book} index={i} onEdit={onEdit} onRemove={null} onShelfChange={onShelfChange} />
+                : <BookCard key={book.id} book={book} index={i} onRemove={()=>{}} onEdit={onEdit} onShelfChange={()=>{}} onOpenShelfPicker={()=>{}} onSaveScores={onSaveScores} onSaveDescription={()=>{}} />
               }
             </div>
           </div>
@@ -2671,12 +2671,12 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onShelfChange }) 
               </div>
               <div style={{ flex:1, minWidth:0 }}>
                 {viewMode === "row"
-                  ? <BookRow key={bookObj.id} book={bookObj} index={i} onEdit={null} onRemove={null} onShelfChange={matched ? onShelfChange : ()=>{}} onAdd={matched ? undefined : (s) => onAddBook({ title:item.title, author:item.author, genre:genreFilter !== "All" ? genreFilter : "Other", shelf:s, pages:0, rating:0, coverUrl:item.coverUrl||null })} />
+                  ? <BookRow key={bookObj.id} book={bookObj} index={i} onEdit={matched ? onEdit : null} onRemove={null} onShelfChange={matched ? onShelfChange : ()=>{}} onAdd={matched ? undefined : (s) => onAddBook({ title:item.title, author:item.author, genre:genreFilter !== "All" ? genreFilter : "Other", shelf:s, pages:0, rating:0, coverUrl:item.coverUrl||null })} />
                   : <BookCard
                       key={bookObj.id}
                       book={bookObj}
                       index={i}
-                      onRemove={()=>{}} onEdit={()=>{}} onShelfChange={()=>{}} onOpenShelfPicker={()=>{}}
+                      onRemove={()=>{}} onEdit={matched ? onEdit : ()=>{}} onShelfChange={()=>{}} onOpenShelfPicker={()=>{}}
                       onSaveScores={matched ? onSaveScores : ()=>{}} onSaveDescription={()=>{}}
                       forceProse
                       onAdd={matched ? undefined : (shelf) => onAddBook({ title:item.title, author:item.author, genre: genreFilter !== "All" ? genreFilter : (item.genre || "Other"), shelf, pages:0, rating:0, coverUrl:null })}
@@ -4352,7 +4352,7 @@ export default function App() {
             : tab==="reiko"
             ? <ReikoTab books={books} userId={userId} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, rating:0, date:new Date().toISOString().slice(0,10) }; setBooks(prev => [...prev, b]); dbAddBook(b, userId); }} />
             : tab==="rankings"
-            ? <RankingsTab books={books} onSaveScores={saveScores} userId={userId} onAddBook={addBook} onShelfChange={changeShelf} />
+            ? <RankingsTab books={books} onSaveScores={saveScores} userId={userId} onAddBook={addBook} onShelfChange={changeShelf} onEdit={setEditBook} />
             : <StatsTab books={books} />
           }
           {showAdd && <AddSheet onSave={addBook} onClose={()=>setShowAdd(false)} />}
