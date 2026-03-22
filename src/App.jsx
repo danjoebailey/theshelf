@@ -1754,6 +1754,9 @@ function ReikoTab({ books, userId, onAddDirect }) {
       {/* Header */}
       <div style={{ padding: "20px 18px 14px" }}>
         <h1 style={{ fontFamily: "'Crimson Pro',serif", fontWeight: 300, fontSize: 30, color: "#fff", letterSpacing: "-0.01em", marginBottom: 4 }}>Recommendations</h1>
+        <div style={{ display:"flex", justifyContent:"center", margin:"10px 0 14px" }}>
+          <img src="/reiko-mend.png" alt="" style={{ width:120, height:120, objectFit:"contain" }} />
+        </div>
         <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: "rgba(255,255,255,0.6)" }}>Select up to 6 books you've loved — AI will find your next read.</p>
       </div>
 
