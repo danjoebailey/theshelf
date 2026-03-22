@@ -305,7 +305,7 @@ const DESCRIPTIONS = {
 
 const ASPECTS = ["Prose", "Plot", "Characters", "Dialogue", "Pacing", "World-building", "Ending"];
 
-function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPicker, onSaveScores, onSaveDescription, onSaveProgress, onSavePages, onSaveAspects, onAdd, forceProse }) {
+function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPicker, onSaveScores, onSaveDescription, onSaveProgress, onSavePages, onSaveAspects, onAdd, forceProse, onAuthor }) {
   const [expanded, setExpanded] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [shelfDropOpen, setShelfDropOpen] = useState(false);
@@ -426,7 +426,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
               <div style={{ minWidth:0, flex:1 }}>
                 <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:21, color:WOOD.text, lineHeight:1.2, marginBottom:1, whiteSpace:expanded?"normal":"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{book.title}</p>
-                <p style={{ fontSize:12, color:WOOD.textDim, fontStyle:"italic", marginBottom:2 }}>{book.author}</p>
+                <p onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); onAuthor&&onAuthor(book.author); }} onClick={e=>{ e.stopPropagation(); onAuthor&&onAuthor(book.author); }} style={{ fontSize:12, color:WOOD.textDim, fontStyle:"italic", marginBottom:2, cursor:onAuthor?"pointer":"default", textDecorationLine:onAuthor?"underline":"none", textDecorationStyle:"dotted" }}>{book.author}</p>
               </div>
               <div style={{ display:"flex", alignItems:"center", gap:6, flexShrink:0 }}>
                 <span style={{ color:WOOD.textFaint, fontSize:12, display:"inline-block", transition:"transform 0.2s", transform:expanded?"rotate(180deg)":"rotate(0deg)" }}>▾</span>
@@ -838,7 +838,7 @@ function BookRowExpanded({ book, onEdit, onRemove, onAdd, onSaveProgress, onSave
   );
 }
 
-function BookRow({ book, index, onEdit, onRemove, onShelfChange, onAdd, onSaveProgress, onSavePages, onSaveAspects }) {
+function BookRow({ book, index, onEdit, onRemove, onShelfChange, onAdd, onSaveProgress, onSavePages, onSaveAspects, onAuthor }) {
   const [expanded, setExpanded] = useState(false);
   const [shelfDropOpen, setShelfDropOpen] = useState(false);
   const touchMoved = useRef(false);
@@ -870,7 +870,7 @@ function BookRow({ book, index, onEdit, onRemove, onShelfChange, onAdd, onSavePr
         </div>
         <div style={{ flex:1, minWidth:0 }}>
           <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, lineHeight:1.2, whiteSpace:expanded?"normal":"nowrap", overflow:"hidden", textOverflow:"ellipsis", marginBottom:1 }}>{book.title}</p>
-          <p style={{ fontSize:11, color:WOOD.textDim, fontStyle:"italic", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{book.author}</p>
+          <p onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); onAuthor&&onAuthor(book.author); }} onClick={e=>{ e.stopPropagation(); onAuthor&&onAuthor(book.author); }} style={{ fontSize:11, color:WOOD.textDim, fontStyle:"italic", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", cursor:onAuthor?"pointer":"default", textDecorationLine:onAuthor?"underline":"none", textDecorationStyle:"dotted" }}>{book.author}</p>
         </div>
         <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3, flexShrink:0 }}>
           <div style={{ display:"flex", alignItems:"center", gap:5 }}>
@@ -954,7 +954,7 @@ function BookRowPages({ book, index, onEdit, onRemove, onShelfChange, maxPages, 
   );
 }
 
-function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelfChange, onImport, onSaveScores, onSaveDescription, onSaveProgress, onSavePages, onSaveAspects, hideControls=false }) {
+function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelfChange, onImport, onSaveScores, onSaveDescription, onSaveProgress, onSavePages, onSaveAspects, hideControls=false, onAuthor }) {
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("date");
   const [sortAsc, setSortAsc] = useState(false);
@@ -1365,10 +1365,10 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
             )}
             <div style={{ flex:1, minWidth:0 }}>
               {viewMode==="row"
-                ? <BookRow book={book} index={i} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} />
+                ? <BookRow book={book} index={i} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} />
                 : viewMode==="pages"
                 ? <BookRowPages book={book} index={i} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} maxPages={Math.max(...filtered.map(b=>b.pages||0))} onSaveProgress={onSaveProgress} onSavePages={onSavePages} />
-                : <BookCard book={book} index={i} onRemove={onRemove} onEdit={onEdit} onShelfChange={onShelfChange} onOpenShelfPicker={setShelfPickerBook} onSaveScores={onSaveScores} onSaveDescription={onSaveDescription} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} />
+                : <BookCard book={book} index={i} onRemove={onRemove} onEdit={onEdit} onShelfChange={onShelfChange} onOpenShelfPicker={setShelfPickerBook} onSaveScores={onSaveScores} onSaveDescription={onSaveDescription} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} />
               }
             </div>
           </div>
@@ -3401,7 +3401,7 @@ function AddSheet({ onSave, onClose, initialBook = null }) {
   );
 }
 
-function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores }) {
+function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onAuthor }) {
   const [rating, setRating] = useState(book.rating || 0);
   const [shelf, setShelf] = useState(book.shelf || "Read");
   const [genre, setGenre] = useState(book.genre || "Other");
@@ -3545,7 +3545,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores }) {
         {/* Header */}
         <div style={{ padding:"20px 16px 0 22px", marginBottom:20, position:"relative", flexShrink:0 }}>
           <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:22, fontWeight:400, color:CR.text, letterSpacing:"-0.01em", lineHeight:1.2 }}>{book.title}</p>
-          <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:13, fontStyle:"italic", color:CR.textDim, marginTop:2 }}>{book.author}</p>
+          <p onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); onAuthor&&onAuthor(book.author); }} onClick={()=>onAuthor&&onAuthor(book.author)} style={{ fontFamily:"'Crimson Pro',serif", fontSize:13, fontStyle:"italic", color:CR.textDim, marginTop:2, cursor:onAuthor?"pointer":"default", textDecorationLine:onAuthor?"underline":"none", textDecorationStyle:"dotted" }}>{book.author}</p>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:7, flexWrap:"wrap", gap:6 }}>
             <div style={{ display:"flex", alignItems:"center", gap:6, fontSize:11, color:CR.textFaint, flexWrap:"wrap" }}>
               <span style={{ background:GENRE_COLORS[book.genre]||"#94a3b8", color:"#fff", borderRadius:"20px", padding:"3px 10px", fontSize:9, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", lineHeight:1 }}>{book.genre}</span>
@@ -3999,6 +3999,99 @@ function parseGoodreadsCSV(text, shelfMap = DEFAULT_GR_SHELF_MAP) {
   }).filter(b => b.title);
 }
 
+function AuthorModal({ author, books, onClose }) {
+  const [activeTab, setActiveTab] = useState("books");
+  const [bio, setBio] = useState(null);
+  const [bioLoading, setBioLoading] = useState(false);
+  const [wikiImage, setWikiImage] = useState(null);
+
+  const CR = {
+    bg: "#f5f0e8", panel: "#ece5d8", text: "#2a1e10",
+    textDim: "#8a7060", textFaint: "#b8a888", border: "#d8ceba", amber: "#b86800",
+  };
+
+  const authorBooks = books.filter(b => b.author?.toLowerCase() === author?.toLowerCase());
+
+  const tabs = [
+    { key:"books",   label:"Books",   icon:<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 2h8a1 1 0 011 1v10a1 1 0 01-1 1H3a1 1 0 01-1-1V3a1 1 0 011-1z" stroke="currentColor" strokeWidth="1.4"/><path d="M5 6h6M5 9h4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg> },
+    { key:"bio",     label:"Bio",     icon:<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="6" r="3" stroke="currentColor" strokeWidth="1.4"/><path d="M2 14c0-3 2.7-5 6-5s6 2 6 5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg> },
+    { key:"series",  label:"Series",  icon:<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M2 4h3v8H2zM6 4h3v8H6zM10 4h3v8h-3z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/></svg> },
+    { key:"awards",  label:"Awards",  icon:<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M8 2l1.5 3 3.5.5-2.5 2.5.5 3.5L8 10l-3 1.5.5-3.5L3 5.5 6.5 5z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/></svg> },
+    { key:"related", label:"Related", icon:<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><circle cx="4" cy="8" r="2" stroke="currentColor" strokeWidth="1.4"/><circle cx="12" cy="4" r="2" stroke="currentColor" strokeWidth="1.4"/><circle cx="12" cy="12" r="2" stroke="currentColor" strokeWidth="1.4"/><path d="M6 8h2M10 4.5L6.5 7M10 11.5L6.5 9" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg> },
+  ];
+
+  useEffect(() => {
+    if (activeTab === "bio" && !bio) {
+      setBioLoading(true);
+      const q = encodeURIComponent(author);
+      fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${q}`)
+        .then(r => r.json())
+        .then(data => {
+          setBio(data.extract || null);
+          if (data.thumbnail?.source) setWikiImage(data.thumbnail.source);
+        })
+        .catch(() => setBio(null))
+        .finally(() => setBioLoading(false));
+    }
+  }, [activeTab]);
+
+  return (
+    <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.5)", zIndex:400, display:"flex", flexDirection:"column", justifyContent:"flex-end" }} onClick={onClose}>
+      <div onClick={e=>e.stopPropagation()} onTouchEnd={e=>e.stopPropagation()} style={{ background:CR.bg, borderRadius:"24px 24px 0 0", height:"98%", display:"flex", flexDirection:"column", boxShadow:"0 -4px 40px rgba(0,0,0,0.18)" }}>
+
+        {/* Header */}
+        <div style={{ padding:"20px 16px 0 22px", marginBottom:20, position:"relative", flexShrink:0 }}>
+          <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:22, fontWeight:400, color:CR.text, letterSpacing:"-0.01em" }}>{author}</p>
+          <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, color:CR.textDim, marginTop:3 }}>{authorBooks.length} book{authorBooks.length !== 1 ? "s" : ""} in your library</p>
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"flex-end", marginTop:10 }}>
+            <div style={{ display:"flex", gap:2, background:CR.panel, borderRadius:6, padding:2 }}>
+              {tabs.map(t => (
+                <button key={t.key} onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); setActiveTab(t.key); }} onClick={()=>setActiveTab(t.key)} title={t.label} style={{ display:"flex", alignItems:"center", gap:4, padding:"8px 10px", border:"none", borderRadius:4, background:activeTab===t.key ? CR.bg : "transparent", color:activeTab===t.key ? CR.text : CR.textDim, fontSize:11, fontFamily:"'DM Sans',sans-serif", cursor:"pointer", boxShadow:activeTab===t.key ? "0 1px 3px rgba(0,0,0,0.08)" : "none", transition:"all 0.12s", whiteSpace:"nowrap" }}>
+                  {t.icon}{activeTab===t.key && <span style={{ marginLeft:2 }}>{t.label}</span>}
+                </button>
+              ))}
+            </div>
+          </div>
+          <button onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); onClose(); }} onClick={onClose} style={{ position:"absolute", top:20, right:16, background:CR.panel, border:"none", borderRadius:"50%", width:30, height:30, cursor:"pointer", color:CR.textDim, fontSize:13, display:"flex", alignItems:"center", justifyContent:"center" }}>✕</button>
+        </div>
+
+        {/* Content */}
+        <div style={{ flex:1, overflowY:"auto", padding:"0 18px 20px" }}>
+
+          {activeTab === "books" && (
+            authorBooks.length === 0
+              ? <p style={{ color:CR.textDim, fontStyle:"italic", textAlign:"center", paddingTop:40 }}>No books by this author in your library.</p>
+              : authorBooks.map(book => (
+                  <div key={book.id} style={{ display:"flex", gap:12, padding:"12px 0", borderBottom:`1px solid ${CR.border}` }}>
+                    <BookCover book={book} width={42} height={62} radius={3} shadow="1px 1px 5px rgba(0,0,0,0.2)" />
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:17, color:CR.text, lineHeight:1.2, marginBottom:4 }}>{book.title}</p>
+                      <p style={{ fontSize:11, color:CR.textDim, marginBottom:4 }}>{book.shelf}{book.pages > 0 ? ` · ${book.pages}p` : ""}{book.year ? ` · ${book.year}` : ""}</p>
+                      {book.rating > 0 && <StarRating value={book.rating} readonly size={14} />}
+                    </div>
+                  </div>
+                ))
+          )}
+
+          {activeTab === "bio" && (
+            <div style={{ paddingTop:8 }}>
+              {bioLoading && <p style={{ color:CR.textDim, textAlign:"center", paddingTop:40 }}>Loading…</p>}
+              {!bioLoading && wikiImage && <img src={wikiImage} alt={author} style={{ width:90, height:90, objectFit:"cover", borderRadius:8, float:"right", margin:"0 0 12px 12px" }} />}
+              {!bioLoading && bio && <p style={{ fontSize:14, color:CR.text, lineHeight:1.75 }}>{bio}</p>}
+              {!bioLoading && !bio && <p style={{ color:CR.textDim, fontStyle:"italic", textAlign:"center", paddingTop:40 }}>No bio available.</p>}
+            </div>
+          )}
+
+          {(activeTab === "series" || activeTab === "awards" || activeTab === "related") && (
+            <p style={{ color:CR.textDim, fontStyle:"italic", textAlign:"center", paddingTop:40 }}>Coming soon.</p>
+          )}
+
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function GoodreadsImportSheet({ onImport, onClose }) {
   const [csvText, setCsvText] = useState(null);
   const [totalCount, setTotalCount] = useState(0);
@@ -4168,6 +4261,7 @@ export default function App() {
   const [tab, setTab] = useState("shelf");
   const [showAdd, setShowAdd] = useState(false);
   const [addBookDraft, setAddBookDraft] = useState(null);
+  const [authorModal, setAuthorModal] = useState(null);
 
   const [toast, setToast] = useState(null);
   const toastTimer = useRef(null);
@@ -4384,7 +4478,7 @@ export default function App() {
         {/* content */}
         <div style={{ flex:1, overflow:"hidden", position:"relative" }}>
           {tab==="shelf"
-            ? <ShelfTab books={books} onAdd={()=>setShowAdd(true)} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"" }); }} onRemove={id=>{ setBooks(prev => prev.filter(b=>b.id!==id)); dbDeleteBook(id, userId); }} onEdit={setEditBook} onScroll={setScrollY} onShelfChange={changeShelf} onImport={()=>setShowImport(true)} onSaveScores={saveScores} onSaveDescription={saveDescription} onSaveProgress={saveProgress} onSavePages={savePages} onSaveAspects={saveAspects} hideControls={!!editBook} />
+            ? <ShelfTab books={books} onAdd={()=>setShowAdd(true)} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"" }); }} onRemove={id=>{ setBooks(prev => prev.filter(b=>b.id!==id)); dbDeleteBook(id, userId); }} onEdit={setEditBook} onScroll={setScrollY} onShelfChange={changeShelf} onImport={()=>setShowImport(true)} onSaveScores={saveScores} onSaveDescription={saveDescription} onSaveProgress={saveProgress} onSavePages={savePages} onSaveAspects={saveAspects} hideControls={!!editBook} onAuthor={setAuthorModal} />
             : tab==="reiko"
             ? <ReikoTab books={books} userId={userId} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, rating:0, date:new Date().toISOString().slice(0,10) }; setBooks(prev => [...prev, b]); dbAddBook(b, userId); }} />
             : tab==="rankings"
@@ -4392,8 +4486,9 @@ export default function App() {
             : <StatsTab books={books} />
           }
           {showAdd && <AddSheet onSave={addBook} onClose={()=>setShowAdd(false)} />}
-          {addBookDraft && <EditSheet book={addBookDraft} onSave={updated=>{ addBook({...addBookDraft,...updated}); setAddBookDraft(null); }} onClose={()=>setAddBookDraft(null)} onSaveDescription={()=>{}} onSaveScores={()=>{}} />}
-          {editBook && <EditSheet book={editBook} onSave={updated=>{ saveEdit(updated); setEditBook(null); }} onClose={()=>setEditBook(null)} onSaveDescription={saveDescription} onSaveScores={saveScores} />}
+          {addBookDraft && <EditSheet book={addBookDraft} onSave={updated=>{ addBook({...addBookDraft,...updated}); setAddBookDraft(null); }} onClose={()=>setAddBookDraft(null)} onSaveDescription={()=>{}} onSaveScores={()=>{}} onAuthor={setAuthorModal} />}
+          {editBook && <EditSheet book={editBook} onSave={updated=>{ saveEdit(updated); setEditBook(null); }} onClose={()=>setEditBook(null)} onSaveDescription={saveDescription} onSaveScores={saveScores} onAuthor={setAuthorModal} />}
+          {authorModal && <AuthorModal author={authorModal} books={books} onClose={()=>setAuthorModal(null)} />}
           {showImport && <GoodreadsImportSheet onImport={importBooks} onClose={()=>setShowImport(false)} />}
           {toast && (
             <div style={{
