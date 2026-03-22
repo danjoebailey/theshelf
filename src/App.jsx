@@ -3526,7 +3526,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores }) {
               ))}
             </div>
           </div>
-          <button onClick={onClose} style={{ position:"absolute", top:20, right:16, background:CR.panel, border:"none", borderRadius:"50%", width:30, height:30, cursor:"pointer", color:CR.textDim, fontSize:13, display:"flex", alignItems:"center", justifyContent:"center" }}>✕</button>
+          <button onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); onClose(); }} onClick={onClose} style={{ position:"absolute", top:20, right:16, background:CR.panel, border:"none", borderRadius:"50%", width:30, height:30, cursor:"pointer", color:CR.textDim, fontSize:13, display:"flex", alignItems:"center", justifyContent:"center" }}>✕</button>
         </div>
 
         {/* Scrollable body */}
