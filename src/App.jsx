@@ -3996,11 +3996,15 @@ function parseGoodreadsCSV(text, shelfMap = DEFAULT_GR_SHELF_MAP) {
   }).filter(b => b.title);
 }
 
-function AuthorModal({ author, books, onClose, onEdit }) {
+function AuthorModal({ author, books, onClose, onEdit, onAdd }) {
   const [activeTab, setActiveTab] = useState("books");
   const [bio, setBio] = useState(null);
   const [bioLoading, setBioLoading] = useState(false);
   const [wikiImage, setWikiImage] = useState(null);
+  const [biblio, setBiblio] = useState(null);
+  const [biblioLoading, setBiblioLoading] = useState(false);
+  const [biblioError, setBiblioError] = useState(null);
+  const [unreadVisible, setUnreadVisible] = useState(10);
   const touchMoved = useRef(false);
 
   const CR = {
@@ -4009,6 +4013,25 @@ function AuthorModal({ author, books, onClose, onEdit }) {
   };
 
   const authorBooks = books.filter(b => b.author?.toLowerCase() === author?.toLowerCase());
+
+  // Fetch bibliography when books tab is active and we have no biblio yet
+  useEffect(() => {
+    if (activeTab !== "books" || biblio !== null || biblioLoading) return;
+    setBiblioLoading(true);
+    setBiblioError(null);
+    fetch("/api/author-bibliography", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ author }),
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (data.error) { setBiblioError(data.error); setBiblio([]); }
+        else setBiblio(data.items || []);
+      })
+      .catch(() => { setBiblioError("Failed to load bibliography."); setBiblio([]); })
+      .finally(() => setBiblioLoading(false));
+  }, [activeTab, author]);
 
   const tabs = [
     { key:"books",   label:"Books",   icon:<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 2h8a1 1 0 011 1v10a1 1 0 01-1 1H3a1 1 0 01-1-1V3a1 1 0 011-1z" stroke="currentColor" strokeWidth="1.4"/><path d="M5 6h6M5 9h4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg> },
@@ -4056,38 +4079,70 @@ function AuthorModal({ author, books, onClose, onEdit }) {
         {/* Content */}
         <div style={{ flex:1, overflowY:"auto", padding:"0 18px 20px" }}>
 
-          {activeTab === "books" && (
-            authorBooks.length === 0
-              ? <p style={{ color:CR.textDim, fontStyle:"italic", textAlign:"center", paddingTop:40 }}>No books by this author in your library.</p>
-              : authorBooks.map(book => (
-                  <div key={book.id} onTouchStart={()=>{ touchMoved.current=false; }} onTouchMove={()=>{ touchMoved.current=true; }} onTouchEnd={e=>{ if(!touchMoved.current){ e.stopPropagation(); e.preventDefault(); onEdit&&onEdit(book); } }} onClick={()=>onEdit&&onEdit(book)} style={{ display:"flex", gap:12, padding:"12px 0", borderBottom:`1px solid ${CR.border}`, cursor:"pointer" }}>
-                    <BookCover book={book} width={42} height={62} radius={3} shadow="1px 1px 5px rgba(0,0,0,0.2)" />
-                    <div style={{ flex:1, minWidth:0, display:"flex", alignItems:"stretch", gap:8 }}>
-                      <div style={{ flex:1, minWidth:0 }}>
-                        <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:17, color:CR.text, lineHeight:1.2, marginBottom:4 }}>{book.title}</p>
-                        {book.rating > 0 && <StarRating value={book.rating} readonly size={14} />}
-                        <div style={{ marginTop:6 }}>
-                          <span style={{ background:GENRE_COLORS[book.genre]||"#94a3b8", color:"#fff", borderRadius:"20px", padding:"3px 8px", fontSize:8, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", lineHeight:1 }}>{book.genre}</span>
-                        </div>
-                      </div>
-                      <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", justifyContent:"flex-end", flexShrink:0 }}>
-                        {(() => {
-                          const shelf = book.shelf || "Read";
-                          const SM = {
-                            "Read":     { bg:"rgba(60,120,80,0.55)",  color:"rgba(255,255,255,0.9)", border:"rgba(60,120,80,0.4)"  },
-                            "Reading":  { bg:"rgba(210,100,30,0.55)", color:"rgba(255,255,255,0.9)", border:"rgba(210,100,30,0.4)" },
-                            "The List": { bg:"rgba(80,120,180,0.7)",  color:"rgba(255,255,255,0.9)", border:"rgba(80,120,180,0.5)" },
-                            "Curious":  { bg:"rgba(180,155,80,0.7)",  color:"rgba(255,255,255,0.9)", border:"rgba(180,155,80,0.5)" },
-                            "DNF":      { bg:"rgba(160,50,50,0.55)",  color:"rgba(255,255,255,0.9)", border:"rgba(160,50,50,0.4)" },
-                          };
-                          const m = SM[shelf] || SM["Read"];
-                          return <span style={{ background:m.bg, color:m.color, border:`1px solid ${m.border}`, borderRadius:"20px", padding:"3px 8px", fontSize:8, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", lineHeight:1 }}>{shelf}</span>;
-                        })()}
-                      </div>
+          {activeTab === "books" && (() => {
+            const SM = {
+              "Read":     { bg:"rgba(60,120,80,0.55)",  color:"rgba(255,255,255,0.9)", border:"rgba(60,120,80,0.4)"  },
+              "Reading":  { bg:"rgba(210,100,30,0.55)", color:"rgba(255,255,255,0.9)", border:"rgba(210,100,30,0.4)" },
+              "The List": { bg:"rgba(80,120,180,0.7)",  color:"rgba(255,255,255,0.9)", border:"rgba(80,120,180,0.5)" },
+              "Curious":  { bg:"rgba(180,155,80,0.7)",  color:"rgba(255,255,255,0.9)", border:"rgba(180,155,80,0.5)" },
+              "DNF":      { bg:"rgba(160,50,50,0.55)",  color:"rgba(255,255,255,0.9)", border:"rgba(160,50,50,0.4)" },
+            };
+
+            // Books already in library
+            const libraryRows = authorBooks.map(book => (
+              <div key={book.id} onTouchStart={()=>{ touchMoved.current=false; }} onTouchMove={()=>{ touchMoved.current=true; }} onTouchEnd={e=>{ if(!touchMoved.current){ e.stopPropagation(); e.preventDefault(); onEdit&&onEdit(book); } }} onClick={()=>onEdit&&onEdit(book)} style={{ display:"flex", gap:12, padding:"12px 0", borderBottom:`1px solid ${CR.border}`, cursor:"pointer" }}>
+                <BookCover book={book} width={42} height={62} radius={3} shadow="1px 1px 5px rgba(0,0,0,0.2)" />
+                <div style={{ flex:1, minWidth:0, display:"flex", alignItems:"stretch", gap:8 }}>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:17, color:CR.text, lineHeight:1.2, marginBottom:4 }}>{book.title}</p>
+                    {book.rating > 0 && <StarRating value={book.rating} readonly size={14} />}
+                    <div style={{ marginTop:6 }}>
+                      <span style={{ background:GENRE_COLORS[book.genre]||"#94a3b8", color:"#fff", borderRadius:"20px", padding:"3px 8px", fontSize:8, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", lineHeight:1 }}>{book.genre}</span>
                     </div>
                   </div>
-                ))
-          )}
+                  <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", justifyContent:"flex-end", flexShrink:0 }}>
+                    {(() => { const shelf = book.shelf || "Read"; const m = SM[shelf] || SM["Read"]; return <span style={{ background:m.bg, color:m.color, border:`1px solid ${m.border}`, borderRadius:"20px", padding:"3px 8px", fontSize:8, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", lineHeight:1 }}>{shelf}</span>; })()}
+                  </div>
+                </div>
+              </div>
+            ));
+
+            // Unread books from bibliography (not already in library by title)
+            const libraryTitles = new Set(authorBooks.map(b => b.title?.toLowerCase().trim()));
+            const unreadBooks = (biblio || []).filter(b => !libraryTitles.has(b.title?.toLowerCase().trim()));
+            const unreadSlice = unreadBooks.slice(0, unreadVisible);
+
+            const unreadRows = unreadSlice.map((book, i) => (
+              <div key={`unread-${i}`} onTouchStart={()=>{ touchMoved.current=false; }} onTouchMove={()=>{ touchMoved.current=true; }} onTouchEnd={e=>{ if(!touchMoved.current){ e.stopPropagation(); e.preventDefault(); onAdd&&onAdd({ title:book.title, author, pages:book.pages||null }); } }} onClick={()=>onAdd&&onAdd({ title:book.title, author, pages:book.pages||null })} style={{ display:"flex", gap:12, padding:"12px 0", borderBottom:`1px solid ${CR.border}`, cursor:"pointer", opacity:0.75 }}>
+                <div style={{ width:42, height:62, borderRadius:3, background:CR.panel, border:`1px solid ${CR.border}`, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center" }}>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke={CR.textFaint} strokeWidth="1.8" strokeLinecap="round"/></svg>
+                </div>
+                <div style={{ flex:1, minWidth:0 }}>
+                  <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:17, color:CR.text, lineHeight:1.2, marginBottom:4 }}>{book.title}</p>
+                  {book.publishYear && <p style={{ fontSize:11, color:CR.textDim, fontFamily:"'DM Sans',sans-serif", marginBottom:4 }}>{book.publishYear}{book.pages ? ` · ${book.pages} pp` : ""}</p>}
+                  {book.reason && <p style={{ fontSize:11, color:CR.textDim, fontFamily:"'DM Sans',sans-serif", lineHeight:1.4 }}>{book.reason}</p>}
+                </div>
+              </div>
+            ));
+
+            return (
+              <div>
+                {libraryRows}
+                {biblioLoading && !biblio && (
+                  <p style={{ color:CR.textDim, fontSize:13, fontFamily:"'DM Sans',sans-serif", textAlign:"center", padding:"20px 0" }}>Loading bibliography…</p>
+                )}
+                {biblioError && (
+                  <p style={{ color:CR.textDim, fontSize:12, fontFamily:"'DM Sans',sans-serif", textAlign:"center", padding:"16px 0", fontStyle:"italic" }}>{biblioError}</p>
+                )}
+                {unreadRows}
+                {unreadBooks.length > unreadVisible && (
+                  <button onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); setUnreadVisible(v => v + 10); }} onClick={()=>setUnreadVisible(v => v + 10)} style={{ width:"100%", padding:"12px", marginTop:4, background:"transparent", border:`1px solid ${CR.border}`, borderRadius:8, color:CR.textDim, fontSize:13, fontFamily:"'DM Sans',sans-serif", cursor:"pointer" }}>
+                    Show next 10
+                  </button>
+                )}
+              </div>
+            );
+          })()}
 
           {activeTab === "bio" && (
             <div style={{ paddingTop:8 }}>
@@ -4504,7 +4559,7 @@ export default function App() {
           {showAdd && <AddSheet onSave={addBook} onClose={()=>setShowAdd(false)} />}
           {addBookDraft && <EditSheet book={addBookDraft} onSave={updated=>{ addBook({...addBookDraft,...updated}); setAddBookDraft(null); }} onClose={()=>setAddBookDraft(null)} onSaveDescription={()=>{}} onSaveScores={()=>{}} onAuthor={setAuthorModal} />}
           {editBook && <EditSheet key={editBook.id} book={editBook} onSave={updated=>{ saveEdit(updated); setEditBook(null); }} onClose={()=>setEditBook(null)} onSaveDescription={saveDescription} onSaveScores={saveScores} onAuthor={setAuthorModal} />}
-          {authorModal && <AuthorModal author={authorModal} books={books} onClose={()=>setAuthorModal(null)} onEdit={book=>{ setAuthorModal(null); setEditBook(book); }} />}
+          {authorModal && <AuthorModal author={authorModal} books={books} onClose={()=>setAuthorModal(null)} onEdit={book=>{ setAuthorModal(null); setEditBook(book); }} onAdd={draft=>{ setAuthorModal(null); setAddBookDraft({ id:Date.now(), title:draft.title, author:draft.author, genre:"Fiction", pages:draft.pages||0, rating:0, shelf:"Read", coverUrl:null, coverId:null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"" }); }} />}
           {showImport && <GoodreadsImportSheet onImport={importBooks} onClose={()=>setShowImport(false)} />}
           {toast && (
             <div style={{
