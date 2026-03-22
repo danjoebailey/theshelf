@@ -2550,9 +2550,9 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onShelfChange, on
           </div>
         </div>
 
-        {/* AI: ranking mode */}
+        {/* AI: ranking mode + category */}
         {mode === "ai" && (
-          <div style={{ display:"flex", gap:4, marginBottom:8 }}>
+          <div style={{ display:"flex", gap:4, alignItems:"center", flexWrap:"wrap", marginBottom:8, paddingTop:8, borderTop:"1px solid rgba(200,144,90,0.15)" }}>
             {[["alltime","All Time"],["vacuum","Vacuum"],["foryou","For You"]].map(([m, label]) => (
               <button key={m} {...tc(() => { setRankingMode(m); setGenerated(false); setAiItems([]); })} style={{
                 padding:"3px 10px", borderRadius:20,
@@ -2563,22 +2563,21 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onShelfChange, on
                 transition:"all 0.15s",
               }}>{label}</button>
             ))}
-          </div>
-        )}
-
-        {/* AI: score category */}
-        {mode === "ai" && (
-          <div style={{ display:"flex", gap:4, flexWrap:"wrap", marginBottom:8 }}>
-            {SCORE_CATEGORIES.map(({ key, label }) => (
-              <button key={key} {...tc(() => { setScoreCategory(key); setGenerated(false); })} style={{
-                padding:"3px 9px", borderRadius:20,
-                border:`1px solid ${scoreCategory===key ? WOOD.amber : "rgba(255,235,195,0.18)"}`,
-                background: scoreCategory===key ? WOOD.amber : "transparent",
-                color: scoreCategory===key ? "#1a0900" : "rgba(255,235,195,0.5)",
-                fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600, cursor:"pointer",
-                transition:"all 0.15s",
-              }}>{label}</button>
-            ))}
+            <span style={{ color:"rgba(255,235,195,0.25)", fontSize:14 }}>|</span>
+            <div style={{ position:"relative", display:"flex", alignItems:"center" }}>
+              <select value={scoreCategory} onChange={e => { setScoreCategory(e.target.value); setGenerated(false); }} style={{
+                padding:"3px 22px 3px 9px", borderRadius:20,
+                border:"1px solid rgba(255,235,195,0.22)",
+                background:"rgba(255,235,195,0.08)", color:"rgba(255,235,195,0.75)",
+                fontFamily:"'DM Sans',sans-serif", fontSize:11, cursor:"pointer",
+                appearance:"none", WebkitAppearance:"none",
+              }}>
+                {SCORE_CATEGORIES.map(({ key, label }) => <option key={key} value={key} style={{ background:"#5a3820" }}>{label}</option>)}
+              </select>
+              <svg style={{ position:"absolute", right:7, pointerEvents:"none" }} width="8" height="5" viewBox="0 0 8 5">
+                <path d="M0 0l4 5 4-5z" fill="rgba(255,235,195,0.5)"/>
+              </svg>
+            </div>
           </div>
         )}
 
