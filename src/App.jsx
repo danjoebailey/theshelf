@@ -3049,7 +3049,7 @@ function StatsTab({ books }) {
                 const pct = b.pages > 0 && (b.currentPage || 0) > 0 ? Math.min(100, Math.round(((b.currentPage||0) / b.pages) * 100)) : null;
                 return (
                   <div key={b.id} style={{ display:"flex", gap:10, alignItems:"center" }}>
-                    <BookCover book={b} width={32} height={48} radius={3} shadow="1px 1px 4px rgba(0,0,0,0.25)" />
+                    <BookCover book={b} width={38} height={58} radius={3} shadow="1px 1px 4px rgba(0,0,0,0.25)" />
                     <div style={{ flex:1, minWidth:0 }}>
                       <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:WOOD.text, lineHeight:1.2, marginBottom:2, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{b.title}</p>
                       <p style={{ fontSize:11, color:WOOD.textDim, fontStyle:"italic", marginBottom: pct !== null ? 5 : 0 }}>{b.author}</p>
