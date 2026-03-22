@@ -4066,6 +4066,9 @@ function AuthorModal({ author, books, onClose, onEdit }) {
                       <div style={{ flex:1, minWidth:0 }}>
                         <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:17, color:CR.text, lineHeight:1.2, marginBottom:4 }}>{book.title}</p>
                         {book.rating > 0 && <StarRating value={book.rating} readonly size={14} />}
+                        <div style={{ marginTop:6 }}>
+                          <span style={{ background:GENRE_COLORS[book.genre]||"#94a3b8", color:"#fff", borderRadius:"20px", padding:"3px 8px", fontSize:8, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", lineHeight:1 }}>{book.genre}</span>
+                        </div>
                       </div>
                       <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", justifyContent:"flex-end", flexShrink:0 }}>
                         {(() => {
@@ -4078,12 +4081,7 @@ function AuthorModal({ author, books, onClose, onEdit }) {
                             "DNF":      { bg:"rgba(160,50,50,0.55)",  color:"rgba(255,255,255,0.9)", border:"rgba(160,50,50,0.4)" },
                           };
                           const m = SM[shelf] || SM["Read"];
-                          return (
-                            <div style={{ display:"flex", gap:6, alignItems:"center" }}>
-                              <span style={{ background:GENRE_COLORS[book.genre]||"#94a3b8", color:"#fff", borderRadius:"20px", padding:"3px 8px", fontSize:8, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", lineHeight:1 }}>{book.genre}</span>
-                              <span style={{ background:m.bg, color:m.color, border:`1px solid ${m.border}`, borderRadius:"20px", padding:"3px 8px", fontSize:8, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", lineHeight:1 }}>{shelf}</span>
-                            </div>
-                          );
+                          return <span style={{ background:m.bg, color:m.color, border:`1px solid ${m.border}`, borderRadius:"20px", padding:"3px 8px", fontSize:8, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", lineHeight:1 }}>{shelf}</span>;
                         })()}
                       </div>
                     </div>
