@@ -4005,6 +4005,7 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd }) {
   const [biblioLoading, setBiblioLoading] = useState(false);
   const [biblioError, setBiblioError] = useState(null);
   const [unreadVisible, setUnreadVisible] = useState(10);
+  const [unreadCovers, setUnreadCovers] = useState({});
   const touchMoved = useRef(false);
 
   const CR = {
@@ -4032,6 +4033,30 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd }) {
       .catch(() => { setBiblioError("Failed to load bibliography."); setBiblio([]); })
       .finally(() => setBiblioLoading(false));
   }, [activeTab, author]);
+
+  // Fetch covers for newly visible unread books
+  useEffect(() => {
+    if (!biblio) return;
+    const stripSeries = t => (t || "").toLowerCase().replace(/\s*\(.*$/, "").split(/\s*[,:]\s*/)[0].trim().replace(/^(the|a|an) /, "");
+    const libraryTitles = new Set(books.filter(b => b.author?.toLowerCase() === author?.toLowerCase()).map(b => stripSeries(b.title)));
+    const unreadBooks = biblio.filter(b => !libraryTitles.has(stripSeries(b.title)));
+    const toFetch = unreadBooks.slice(0, unreadVisible).filter(b => !unreadCovers[b.title]);
+    if (!toFetch.length) return;
+    Promise.all(toFetch.map(b =>
+      fetch("/api/fetch-cover", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: b.title, author }),
+      })
+        .then(r => r.json())
+        .then(data => data.coverUrl ? [b.title, data.coverUrl] : null)
+        .catch(() => null)
+    )).then(results => {
+      const newCovers = {};
+      results.forEach(r => { if (r) newCovers[r[0]] = r[1]; });
+      if (Object.keys(newCovers).length) setUnreadCovers(prev => ({ ...prev, ...newCovers }));
+    });
+  }, [biblio, unreadVisible]);
 
   const tabs = [
     { key:"books",   label:"Books",   icon:<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 2h8a1 1 0 011 1v10a1 1 0 01-1 1H3a1 1 0 01-1-1V3a1 1 0 011-1z" stroke="currentColor" strokeWidth="1.4"/><path d="M5 6h6M5 9h4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg> },
@@ -4114,10 +4139,8 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd }) {
             const unreadSlice = unreadBooks.slice(0, unreadVisible);
 
             const unreadRows = unreadSlice.map((book, i) => (
-              <div key={`unread-${i}`} onTouchStart={()=>{ touchMoved.current=false; }} onTouchMove={()=>{ touchMoved.current=true; }} onTouchEnd={e=>{ if(!touchMoved.current){ e.stopPropagation(); e.preventDefault(); onAdd&&onAdd({ title:book.title, author, pages:book.pages||null }); } }} onClick={()=>onAdd&&onAdd({ title:book.title, author, pages:book.pages||null })} style={{ display:"flex", gap:12, padding:"12px 0", borderBottom:`1px solid ${CR.border}`, cursor:"pointer", opacity:0.75 }}>
-                <div style={{ width:42, height:62, borderRadius:3, background:CR.panel, border:`1px solid ${CR.border}`, flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center" }}>
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke={CR.textFaint} strokeWidth="1.8" strokeLinecap="round"/></svg>
-                </div>
+              <div key={`unread-${i}`} onTouchStart={()=>{ touchMoved.current=false; }} onTouchMove={()=>{ touchMoved.current=true; }} onTouchEnd={e=>{ if(!touchMoved.current){ e.stopPropagation(); e.preventDefault(); onAdd&&onAdd({ title:book.title, author, pages:book.pages||null, coverUrl:unreadCovers[book.title]||null }); } }} onClick={()=>onAdd&&onAdd({ title:book.title, author, pages:book.pages||null, coverUrl:unreadCovers[book.title]||null })} style={{ display:"flex", gap:12, padding:"12px 0", borderBottom:`1px solid ${CR.border}`, cursor:"pointer", opacity:0.75 }}>
+                <BookCover book={{ title:book.title, coverUrl:unreadCovers[book.title]||null }} width={42} height={62} radius={3} shadow="1px 1px 5px rgba(0,0,0,0.2)" />
                 <div style={{ flex:1, minWidth:0 }}>
                   <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:17, color:CR.text, lineHeight:1.2, marginBottom:4 }}>{book.title}</p>
                   {book.publishYear && <p style={{ fontSize:11, color:CR.textDim, fontFamily:"'DM Sans',sans-serif" }}>{book.publishYear}{book.pages ? ` · ${book.pages} pp` : ""}</p>}
@@ -4559,7 +4582,7 @@ export default function App() {
           {showAdd && <AddSheet onSave={addBook} onClose={()=>setShowAdd(false)} />}
           {addBookDraft && <EditSheet book={addBookDraft} onSave={updated=>{ addBook({...addBookDraft,...updated}); setAddBookDraft(null); }} onClose={()=>setAddBookDraft(null)} onSaveDescription={()=>{}} onSaveScores={()=>{}} onAuthor={setAuthorModal} />}
           {editBook && <EditSheet key={editBook.id} book={editBook} onSave={updated=>{ saveEdit(updated); setEditBook(null); }} onClose={()=>setEditBook(null)} onSaveDescription={saveDescription} onSaveScores={saveScores} onAuthor={setAuthorModal} />}
-          {authorModal && <AuthorModal author={authorModal} books={books} onClose={()=>setAuthorModal(null)} onEdit={book=>{ setAuthorModal(null); setEditBook(book); }} onAdd={draft=>{ setAuthorModal(null); setAddBookDraft({ id:Date.now(), title:draft.title, author:draft.author, genre:"Fiction", pages:draft.pages||0, rating:0, shelf:"Read", coverUrl:null, coverId:null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"" }); }} />}
+          {authorModal && <AuthorModal author={authorModal} books={books} onClose={()=>setAuthorModal(null)} onEdit={book=>{ setAuthorModal(null); setEditBook(book); }} onAdd={draft=>{ setAuthorModal(null); setAddBookDraft({ id:Date.now(), title:draft.title, author:draft.author, genre:"Fiction", pages:draft.pages||0, rating:0, shelf:"Read", coverUrl:draft.coverUrl||null, coverId:null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"" }); }} />}
           {showImport && <GoodreadsImportSheet onImport={importBooks} onClose={()=>setShowImport(false)} />}
           {toast && (
             <div style={{
