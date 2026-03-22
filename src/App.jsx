@@ -2725,7 +2725,7 @@ function StatsTab({ books }) {
     if (filterMonth !== null) readBooks = readBooks.filter(b => b.date?.slice(5,7) === filterMonth);
     if (ratingFilter !== null) readBooks = readBooks.filter(b => b.rating === ratingFilter);
     if (genreFilter !== null) readBooks = readBooks.filter(b => b.genre === genreFilter);
-    return readBooks;
+    return readBooks.sort((a, b) => (b.date || "").localeCompare(a.date || ""));
   }, [books, timeline, filterMonth, ratingFilter, genreFilter]);
 
   const stats = useMemo(() => {
