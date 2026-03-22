@@ -4062,12 +4062,12 @@ function AuthorModal({ author, books, onClose, onEdit }) {
               : authorBooks.map(book => (
                   <div key={book.id} onTouchStart={()=>{ touchMoved.current=false; }} onTouchMove={()=>{ touchMoved.current=true; }} onTouchEnd={e=>{ if(!touchMoved.current){ e.stopPropagation(); e.preventDefault(); onEdit&&onEdit(book); } }} onClick={()=>onEdit&&onEdit(book)} style={{ display:"flex", gap:12, padding:"12px 0", borderBottom:`1px solid ${CR.border}`, cursor:"pointer" }}>
                     <BookCover book={book} width={42} height={62} radius={3} shadow="1px 1px 5px rgba(0,0,0,0.2)" />
-                    <div style={{ flex:1, minWidth:0, display:"flex", flexDirection:"column", justifyContent:"space-between" }}>
-                      <div>
+                    <div style={{ flex:1, minWidth:0, display:"flex", alignItems:"stretch", gap:8 }}>
+                      <div style={{ flex:1, minWidth:0 }}>
                         <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:17, color:CR.text, lineHeight:1.2, marginBottom:4 }}>{book.title}</p>
                         {book.rating > 0 && <StarRating value={book.rating} readonly size={14} />}
                       </div>
-                      <div style={{ display:"flex", gap:6, alignItems:"center", marginTop:6, flexWrap:"wrap" }}>
+                      <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", justifyContent:"flex-end", gap:4, flexShrink:0 }}>
                         <span style={{ background:GENRE_COLORS[book.genre]||"#94a3b8", color:"#fff", borderRadius:"20px", padding:"3px 8px", fontSize:8, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", lineHeight:1 }}>{book.genre}</span>
                         {(() => {
                           const shelf = book.shelf || "Read";
@@ -4081,7 +4081,6 @@ function AuthorModal({ author, books, onClose, onEdit }) {
                           const m = SM[shelf] || SM["Read"];
                           return <span style={{ background:m.bg, color:m.color, border:`1px solid ${m.border}`, borderRadius:"20px", padding:"3px 8px", fontSize:8, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", lineHeight:1 }}>{shelf}</span>;
                         })()}
-                        {book.pages > 0 && <span style={{ fontSize:10, color:CR.textDim, fontFamily:"'DM Sans',sans-serif" }}>{book.pages.toLocaleString()}p</span>}
                       </div>
                     </div>
                   </div>
