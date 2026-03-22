@@ -3081,27 +3081,14 @@ function StatsTab({ books }) {
         {topGenres.length===0
           ? <p style={{ color:WOOD.textFaint, fontSize:13 }}>No data yet</p>
           : topGenres.map(([genre,count])=>{
-            const avgGenreRating = stats.genreRatingSum[genre] ? (stats.genreRatingSum[genre] / count).toFixed(2) : null;
+            const avgGenreRating = stats.genreRatingSum[genre] ? (stats.genreRatingSum[genre] / count).toFixed(1) : null;
             return (
-            <div key={genre} style={{ marginBottom:10, border:`1px solid ${GENRE_COLORS[genre]||"#94a3b8"}33`, borderRadius:8, padding:"10px 12px" }}>
-              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
+            <div key={genre} style={{ marginBottom:10, borderBottom:"1px solid rgba(100,60,20,0.12)", paddingBottom:10 }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:5 }}>
                 <span style={{ background:GENRE_COLORS[genre]||"#94a3b8", color:"#fff", borderRadius:20, padding:"3px 10px", fontSize:11, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em" }}>{genre}</span>
+                <span style={{ fontSize:11, color:WOOD.textDim, fontFamily:"'DM Sans',sans-serif" }}>{count} books · {(stats.genrePages[genre]||0).toLocaleString()} pages{avgGenreRating ? ` · ${avgGenreRating} ★` : ""}</span>
               </div>
-              <div style={{ display:"flex", gap:12, marginBottom:8 }}>
-                <div style={{ flex:1, textAlign:"center" }}>
-                  <div style={{ fontFamily:"'Crimson Pro',serif", fontSize:18, color:WOOD.text, lineHeight:1 }}>{count}</div>
-                  <div style={{ fontSize:9, color:WOOD.textFaint, textTransform:"uppercase", letterSpacing:"0.1em", marginTop:2 }}>Books</div>
-                </div>
-                <div style={{ flex:1, textAlign:"center" }}>
-                  <div style={{ fontFamily:"'Crimson Pro',serif", fontSize:18, color:WOOD.text, lineHeight:1 }}>{(stats.genrePages[genre]||0).toLocaleString()}</div>
-                  <div style={{ fontSize:9, color:WOOD.textFaint, textTransform:"uppercase", letterSpacing:"0.1em", marginTop:2 }}>Pages</div>
-                </div>
-                <div style={{ flex:1, textAlign:"center" }}>
-                  <div style={{ fontFamily:"'Crimson Pro',serif", fontSize:18, color:WOOD.text, lineHeight:1 }}>{avgGenreRating ? `${avgGenreRating} ★` : "—"}</div>
-                  <div style={{ fontSize:9, color:WOOD.textFaint, textTransform:"uppercase", letterSpacing:"0.1em", marginTop:2 }}>Avg Rating</div>
-                </div>
-              </div>
-              <div style={{ height:4, background:"rgba(100,60,20,0.2)", borderRadius:3, overflow:"hidden" }}>
+              <div style={{ height:4, background:"rgba(100,60,20,0.15)", borderRadius:3, overflow:"hidden" }}>
                 <div style={{ height:"100%", width:`${(count/filteredBooks.length)*100}%`, background:GENRE_COLORS[genre]||"#94a3b8", borderRadius:3, transition:"width 0.6s" }}/>
               </div>
             </div>
