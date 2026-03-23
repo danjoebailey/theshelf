@@ -406,12 +406,12 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
       cursor:"pointer",
       touchAction:"manipulation",
       position:"relative",
-      zIndex: (menuOpen || shelfDropOpen) ? 10 : 1,
+      zIndex: shelfDropOpen ? 10 : 1,
     }}
     onTouchStart={()=>{ touchMoved.current=false; }}
     onTouchMove={()=>{ touchMoved.current=true; }}
-    onTouchEnd={e=>{ if(!touchMoved.current){ e.preventDefault(); if(menuOpen) setMenuOpen(false); else if(shelfDropOpen) setShelfDropOpen(false); else setExpanded(x=>!x); } }}
-    onClick={()=>{ if(menuOpen) setMenuOpen(false); else if(shelfDropOpen) setShelfDropOpen(false); else setExpanded(e=>!e); }}>
+    onTouchEnd={e=>{ if(!touchMoved.current){ e.preventDefault(); if(shelfDropOpen) setShelfDropOpen(false); else setExpanded(x=>!x); } }}
+    onClick={()=>{ if(shelfDropOpen) setShelfDropOpen(false); else setExpanded(e=>!e); }}>
       <div style={{ display:"flex", gap:14, alignItems:"stretch" }}>
         <div style={{ alignSelf:"stretch", flexShrink:0, display:"flex", position:"relative" }}>
           <BookCover book={book} width={53} height={80} radius={4} shadow="2px 2px 8px rgba(0,0,0,0.35)" />
@@ -429,7 +429,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
                 <p style={{ fontSize:12, color:WOOD.textDim, fontStyle:"italic", marginBottom:2 }}>{book.author}</p>
               </div>
               <div style={{ display:"flex", alignItems:"center", gap:6, flexShrink:0 }}>
-                <button {...tc(()=>setMenuOpen(m=>!m), true)} style={{ background:"transparent", border:"none", cursor:"pointer", padding:"2px 4px 0", color:"rgba(120,70,20,0.6)", fontSize:16, lineHeight:1, letterSpacing:"-1px" }}>⋮</button>
+                <button {...tc(()=>{ onEdit ? onEdit(book) : onAdd && onAdd("Read"); }, true)} style={{ background:"transparent", border:"none", cursor:"pointer", padding:"2px 4px 0", color:"rgba(120,70,20,0.6)", fontSize:16, lineHeight:1 }}>↗</button>
               </div>
             </div>
             {!onAdd && (book.shelf || "Read") !== "The List" && (book.shelf || "Read") !== "Curious" && (book.shelf || "Read") !== "Reading" && <StarRating value={book.rating} readonly size={18} />}
@@ -488,32 +488,6 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
         </div>
       </div>
 
-      {/* settings menu */}
-      {menuOpen && (
-        <div onClick={e=>e.stopPropagation()} style={{
-          position:"absolute", top:8, right:8, zIndex:30,
-          background:"#f5e8d0", borderRadius:10, overflow:"hidden",
-          boxShadow:"0 4px 20px rgba(0,0,0,0.25)", border:"1px solid rgba(138,90,40,0.3)",
-          minWidth:120, animation:"fadeIn 0.12s ease",
-        }}>
-          {(onAdd
-            ? [{ label:"Details", action:()=>{ setMenuOpen(false); onAdd("Read"); } }]
-            : [{ label:"Edit", action:()=>{ setMenuOpen(false); onEdit(book); } }]
-          ).map(({ label, action }) => (
-            <button key={label} {...tc(action, true)} style={{
-              display:"flex", alignItems:"center", gap:8,
-              width:"100%", padding:"11px 14px",
-              background:"transparent", border:"none", cursor:"pointer",
-              color: label==="Remove" ? "#c0392b" : WOOD.text,
-              fontSize:14, fontFamily:"'DM Sans',sans-serif",
-              borderBottom: label==="Edit" ? "1px solid rgba(138,90,40,0.15)" : "none",
-              textAlign:"left",
-            }}>
-              <span style={{ fontSize:14 }}>{label}</span>
-            </button>
-          ))}
-        </div>
-      )}
 
 
       {expanded && (
