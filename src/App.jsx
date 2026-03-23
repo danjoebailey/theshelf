@@ -3996,7 +3996,7 @@ function parseGoodreadsCSV(text, shelfMap = DEFAULT_GR_SHELF_MAP) {
   }).filter(b => b.title);
 }
 
-function AuthorModal({ author, books, onClose, onEdit, onAdd }) {
+function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd }) {
   const [activeTab, setActiveTab] = useState("books");
   const [bio, setBio] = useState(null);
   const [bioLoading, setBioLoading] = useState(false);
@@ -4006,6 +4006,7 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd }) {
   const [biblioError, setBiblioError] = useState(null);
   const [unreadVisible, setUnreadVisible] = useState(10);
   const [unreadCovers, setUnreadCovers] = useState({});
+  const [openDropdown, setOpenDropdown] = useState(null);
   const touchMoved = useRef(false);
 
   const CR = {
@@ -4153,16 +4154,33 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd }) {
               .sort((a, b) => (a.tier ?? 2) - (b.tier ?? 2) || (a.publishYear ?? 9999) - (b.publishYear ?? 9999));
             const unreadSlice = unreadBooks.slice(0, unreadVisible);
 
-            const unreadRows = unreadSlice.map((book, i) => (
-              <div key={`unread-${i}`} onTouchStart={()=>{ touchMoved.current=false; }} onTouchMove={()=>{ touchMoved.current=true; }} onTouchEnd={e=>{ if(!touchMoved.current){ e.stopPropagation(); e.preventDefault(); onAdd&&onAdd({ title:book.title, author, pages:book.pages||null, coverUrl:unreadCovers[book.title]||null }); } }} onClick={()=>onAdd&&onAdd({ title:book.title, author, pages:book.pages||null, coverUrl:unreadCovers[book.title]||null })} style={{ display:"flex", gap:12, padding:"12px 0", borderBottom:`1px solid ${CR.border}`, cursor:"pointer", opacity:0.75 }}>
-                <BookCover book={{ title:book.title, coverUrl:unreadCovers[book.title]||null }} width={42} height={62} radius={3} shadow="1px 1px 5px rgba(0,0,0,0.2)" />
-                <div style={{ flex:1, minWidth:0 }}>
-                  <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:17, color:CR.text, lineHeight:1.2, marginBottom:4 }}>{book.title}{book.series ? ` (${book.series})` : ""}</p>
-                  {book.publishYear && <p style={{ fontSize:11, color:CR.textDim, fontFamily:"'DM Sans',sans-serif", marginBottom:6 }}>{book.publishYear}{book.pages ? ` · ${book.pages} pages` : ""}</p>}
-                  {book.genre && <span style={{ background:GENRE_COLORS[book.genre]||"#94a3b8", color:"#fff", borderRadius:"20px", padding:"3px 8px", fontSize:8, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", lineHeight:1 }}>{book.genre}</span>}
+            const unreadRows = unreadSlice.map((book, i) => {
+              const draft = { title:book.title, author, pages:book.pages||null, coverUrl:unreadCovers[book.title]||null, genre:book.genre||"Fiction" };
+              return (
+                <div key={`unread-${i}`} style={{ position:"relative", display:"flex", alignItems:"stretch", gap:12, padding:"12px 0", borderBottom:`1px solid ${CR.border}`, opacity:0.75 }}>
+                  {/* Tappable row area → EditSheet */}
+                  <div onTouchStart={()=>{ touchMoved.current=false; }} onTouchMove={()=>{ touchMoved.current=true; }} onTouchEnd={e=>{ if(!touchMoved.current){ e.stopPropagation(); e.preventDefault(); setOpenDropdown(null); onAdd&&onAdd(draft); } }} onClick={()=>{ setOpenDropdown(null); onAdd&&onAdd(draft); }} style={{ display:"flex", gap:12, flex:1, minWidth:0, cursor:"pointer" }}>
+                    <BookCover book={{ title:book.title, coverUrl:unreadCovers[book.title]||null }} width={42} height={62} radius={3} shadow="1px 1px 5px rgba(0,0,0,0.2)" />
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:17, color:CR.text, lineHeight:1.2, marginBottom:4 }}>{book.title}{book.series ? ` (${book.series})` : ""}</p>
+                      {book.publishYear && <p style={{ fontSize:11, color:CR.textDim, fontFamily:"'DM Sans',sans-serif", marginBottom:6 }}>{book.publishYear}{book.pages ? ` · ${book.pages} pages` : ""}</p>}
+                      {book.genre && <span style={{ background:GENRE_COLORS[book.genre]||"#94a3b8", color:"#fff", borderRadius:"20px", padding:"3px 8px", fontSize:8, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", lineHeight:1 }}>{book.genre}</span>}
+                    </div>
+                  </div>
+                  {/* + Add bubble */}
+                  <div style={{ flexShrink:0, display:"flex", alignItems:"flex-end", paddingBottom:2, position:"relative" }}>
+                    <span onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); setOpenDropdown(openDropdown===book.title ? null : book.title); }} onClick={e=>{ e.stopPropagation(); setOpenDropdown(openDropdown===book.title ? null : book.title); }} style={{ background:"rgba(138,90,40,0.18)", color:CR.textDim, border:"1px solid rgba(138,90,40,0.3)", borderRadius:"20px", padding:"3px 10px", fontSize:9, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", lineHeight:1, cursor:"pointer", whiteSpace:"nowrap" }}>+ Add</span>
+                    {openDropdown === book.title && (
+                      <div onClick={e=>e.stopPropagation()} onTouchEnd={e=>e.stopPropagation()} style={{ position:"absolute", bottom:"calc(100% + 4px)", right:0, zIndex:50, minWidth:120, background:"#f5e8d0", borderRadius:10, overflow:"hidden", boxShadow:"0 4px 20px rgba(0,0,0,0.25)", border:"1px solid rgba(138,90,40,0.3)" }}>
+                        {SHELVES.map(s => (
+                          <button key={s} onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); setOpenDropdown(null); onDirectAdd&&onDirectAdd({ ...draft, shelf:s }); }} onClick={e=>{ e.stopPropagation(); setOpenDropdown(null); onDirectAdd&&onDirectAdd({ ...draft, shelf:s }); }} style={{ display:"block", width:"100%", padding:"9px 14px", textAlign:"left", border:"none", background:"transparent", color:"#5a3820", fontSize:13, fontFamily:"'DM Sans',sans-serif", cursor:"pointer" }}>{s}</button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ));
+              );
+            });
 
             return (
               <div>
@@ -4598,7 +4616,7 @@ export default function App() {
           {showAdd && <AddSheet onSave={addBook} onClose={()=>setShowAdd(false)} />}
           {addBookDraft && <EditSheet book={addBookDraft} onSave={updated=>{ addBook({...addBookDraft,...updated}); setAddBookDraft(null); }} onClose={()=>setAddBookDraft(null)} onSaveDescription={()=>{}} onSaveScores={()=>{}} onAuthor={setAuthorModal} />}
           {editBook && <EditSheet key={editBook.id} book={editBook} onSave={updated=>{ saveEdit(updated); setEditBook(null); }} onClose={()=>setEditBook(null)} onSaveDescription={saveDescription} onSaveScores={saveScores} onAuthor={setAuthorModal} />}
-          {authorModal && <AuthorModal author={authorModal} books={books} onClose={()=>setAuthorModal(null)} onEdit={book=>{ setAuthorModal(null); setEditBook(book); }} onAdd={draft=>{ setAuthorModal(null); setEditBook(null); setAddBookDraft({ id:Date.now(), title:draft.title, author:draft.author, genre:"Fiction", pages:draft.pages||0, rating:0, shelf:"Read", coverUrl:draft.coverUrl||null, coverId:null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"" }); }} />}
+          {authorModal && <AuthorModal author={authorModal} books={books} onClose={()=>setAuthorModal(null)} onEdit={book=>{ setAuthorModal(null); setEditBook(book); }} onAdd={draft=>{ setAuthorModal(null); setEditBook(null); setAddBookDraft({ id:Date.now(), title:draft.title, author:draft.author, genre:draft.genre||"Fiction", pages:draft.pages||0, rating:0, shelf:"Read", coverUrl:draft.coverUrl||null, coverId:null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"" }); }} onDirectAdd={draft=>{ addBook({ title:draft.title, author:draft.author, genre:draft.genre||"Fiction", pages:draft.pages||0, rating:0, shelf:draft.shelf, coverUrl:draft.coverUrl||null, coverId:null, description:"", scores:null, notes:"" }); setAuthorModal(null); }} />}
           {showImport && <GoodreadsImportSheet onImport={importBooks} onClose={()=>setShowImport(false)} />}
           {toast && (
             <div style={{
