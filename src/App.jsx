@@ -498,7 +498,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
         }}>
           {(onAdd
             ? [{ label:"Details", action:()=>{ setMenuOpen(false); onAdd("Read"); } }]
-            : [{ label:"Edit", action:()=>{ setMenuOpen(false); onEdit(book); } }, { label:"Remove", action:()=>{ setMenuOpen(false); onRemove(book.id); } }]
+            : [{ label:"Edit", action:()=>{ setMenuOpen(false); onEdit(book); } }]
           ).map(({ label, action }) => (
             <button key={label} {...tc(action, true)} style={{
               display:"flex", alignItems:"center", gap:8,
@@ -3398,7 +3398,7 @@ function AddSheet({ onSave, onClose, initialBook = null }) {
   );
 }
 
-function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onAuthor }) {
+function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onAuthor, onRemove }) {
   const [rating, setRating] = useState(book.rating || 0);
   const [shelf, setShelf] = useState(book.shelf || "Read");
   const [genre, setGenre] = useState(book.genre || "Other");
@@ -3415,6 +3415,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
   const [proseLoading, setProseLoading] = useState(false);
   const [scores, setScores] = useState(book.scores || null);
   const [scoresLoading, setScoresLoading] = useState(false);
+  const [confirmRemove, setConfirmRemove] = useState(false);
 
   const CR = {
     bg: "#f5f0e8", panel: "#ece5d8", text: "#2a1e10",
@@ -3718,6 +3719,18 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
 
           {/* Save */}
           {activeTab === "edit" && <button onClick={() => onSave({ id:book.id, rating, shelf, genre, date, notes, coverUrl, coverId })} style={{ display:"block", width:"calc(100% - 44px)", margin:"20px 22px 0", padding:14, background:CR.text, border:"none", borderRadius:8, color:CR.bg, fontSize:14, fontFamily:"'DM Sans',sans-serif", fontWeight:500, letterSpacing:"0.05em", cursor:"pointer" }}>Save changes</button>}
+          {activeTab === "edit" && onRemove && !confirmRemove && (
+            <p onClick={()=>setConfirmRemove(true)} style={{ textAlign:"center", margin:"16px 0 8px", fontSize:13, color:"#a0524a", fontFamily:"'DM Sans',sans-serif", cursor:"pointer", textDecorationLine:"underline", textDecorationStyle:"dotted" }}>Remove from library</p>
+          )}
+          {activeTab === "edit" && onRemove && confirmRemove && (
+            <div style={{ margin:"16px 22px 8px", textAlign:"center" }}>
+              <p style={{ fontSize:13, color:CR.text, fontFamily:"'DM Sans',sans-serif", marginBottom:12 }}>Are you sure you want to remove this from your library?</p>
+              <div style={{ display:"flex", gap:10, justifyContent:"center" }}>
+                <button onClick={()=>setConfirmRemove(false)} style={{ padding:"7px 18px", background:"transparent", border:`1px solid ${CR.border}`, borderRadius:6, fontSize:13, fontFamily:"'DM Sans',sans-serif", cursor:"pointer", color:CR.textDim }}>Cancel</button>
+                <button onClick={()=>{ onRemove(book.id); onClose(); }} style={{ padding:"7px 18px", background:"rgba(160,82,74,0.1)", border:"1px solid rgba(160,82,74,0.3)", borderRadius:6, fontSize:13, fontFamily:"'DM Sans',sans-serif", cursor:"pointer", color:"#a0524a" }}>Remove</button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -4615,7 +4628,7 @@ export default function App() {
           }
           {showAdd && <AddSheet onSave={addBook} onClose={()=>setShowAdd(false)} />}
           {addBookDraft && <EditSheet book={addBookDraft} onSave={updated=>{ addBook({...addBookDraft,...updated}); setAddBookDraft(null); }} onClose={()=>setAddBookDraft(null)} onSaveDescription={()=>{}} onSaveScores={()=>{}} onAuthor={setAuthorModal} />}
-          {editBook && <EditSheet key={editBook.id} book={editBook} onSave={updated=>{ saveEdit(updated); setEditBook(null); }} onClose={()=>setEditBook(null)} onSaveDescription={saveDescription} onSaveScores={saveScores} onAuthor={setAuthorModal} />}
+          {editBook && <EditSheet key={editBook.id} book={editBook} onSave={updated=>{ saveEdit(updated); setEditBook(null); }} onClose={()=>setEditBook(null)} onSaveDescription={saveDescription} onSaveScores={saveScores} onAuthor={setAuthorModal} onRemove={id=>{ setBooks(prev=>prev.filter(b=>b.id!==id)); dbDeleteBook(id, userId); setEditBook(null); }} />}
           {authorModal && <AuthorModal author={authorModal} books={books} onClose={()=>setAuthorModal(null)} onEdit={book=>{ setAuthorModal(null); setEditBook(book); }} onAdd={draft=>{ setAuthorModal(null); setEditBook(null); setAddBookDraft({ id:Date.now(), title:draft.title, author:draft.author, genre:draft.genre||"Fiction", pages:draft.pages||0, rating:0, shelf:"Read", coverUrl:draft.coverUrl||null, coverId:null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"" }); }} onDirectAdd={draft=>{ addBook({ title:draft.title, author:draft.author, genre:draft.genre||"Fiction", pages:draft.pages||0, rating:0, shelf:draft.shelf, coverUrl:draft.coverUrl||null, coverId:null, description:"", scores:null, notes:"" }); }} />}
           {showImport && <GoodreadsImportSheet onImport={importBooks} onClose={()=>setShowImport(false)} />}
           {toast && (
