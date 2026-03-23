@@ -3516,8 +3516,8 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
 
         {/* Header */}
         <div style={{ padding:"20px 16px 0 22px", marginBottom:20, position:"relative", flexShrink:0 }}>
-          <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:22, fontWeight:400, color:CR.text, letterSpacing:"-0.01em", lineHeight:1.2 }}>{book.title}</p>
-          <p onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); onAuthor&&onAuthor(book.author); }} onClick={()=>onAuthor&&onAuthor(book.author)} style={{ fontFamily:"'Crimson Pro',serif", fontSize:13, fontStyle:"italic", color:CR.textDim, marginTop:2, cursor:onAuthor?"pointer":"default", textDecorationLine:onAuthor?"underline":"none", textDecorationStyle:"dotted" }}>{book.author}</p>
+          <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:24, fontWeight:400, color:CR.text, letterSpacing:"-0.01em", lineHeight:1.2 }}>{book.title}</p>
+          <p onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); onAuthor&&onAuthor(book.author); }} onClick={()=>onAuthor&&onAuthor(book.author)} style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, fontStyle:"italic", color:CR.textDim, marginTop:2, cursor:onAuthor?"pointer":"default", textDecorationLine:onAuthor?"underline":"none", textDecorationStyle:"dotted" }}>{book.author}</p>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:7, flexWrap:"wrap", gap:6 }}>
             <div style={{ display:"flex", alignItems:"center", gap:6, fontSize:11, color:CR.textFaint, flexWrap:"wrap" }}>
               <span style={{ background:GENRE_COLORS[book.genre]||"#94a3b8", color:"#fff", borderRadius:"20px", padding:"3px 10px", fontSize:9, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", lineHeight:1 }}>{book.genre}</span>
