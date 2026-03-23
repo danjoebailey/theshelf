@@ -3392,7 +3392,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
   const [confirmRemove, setConfirmRemove] = useState(false);
 
   const CR = {
-    bg: "#f5f0e8", panel: "#ece5d8", text: "#2a1e10",
+    bg: "#f5e8d0", panel: "#ece0c4", text: "#2a1e10",
     textDim: "#8a7060", textFaint: "#b8a888", border: "#d8ceba", amber: "#b86800",
   };
   const noRating = ["The List", "Curious", "Reading"];
