@@ -4143,7 +4143,9 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd }) {
             // Unread books from bibliography (not already in library by title)
             const stripSeries = t => (t || "").toLowerCase().replace(/\s*\(.*$/, "").split(/\s*[,:]\s*/)[0].trim().replace(/^(the|a|an) /, "");
             const libraryTitles = new Set(authorBooks.map(b => stripSeries(b.title)));
-            const unreadBooks = (biblio || []).filter(b => !libraryTitles.has(stripSeries(b.title)));
+            const unreadBooks = (biblio || [])
+              .filter(b => !libraryTitles.has(stripSeries(b.title)))
+              .sort((a, b) => (a.tier ?? 2) - (b.tier ?? 2) || (a.publishYear ?? 9999) - (b.publishYear ?? 9999));
             const unreadSlice = unreadBooks.slice(0, unreadVisible);
 
             const unreadRows = unreadSlice.map((book, i) => (
