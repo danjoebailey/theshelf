@@ -16,7 +16,7 @@ async function fetchCoverUrl(title, author) {
     if (item) {
       return item.volumeInfo.imageLinks.thumbnail
         .replace("http://", "https://")
-        .replace("zoom=1", "zoom=3");
+        .replace("&edge=curl", "");
     }
   } catch {}
   return null;
