@@ -3623,10 +3623,12 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
             )}
 
             {/* Notes */}
-            <div style={{ padding:"0 22px", marginBottom:20 }}>
-              <p style={lbl}>Notes</p>
-              <textarea rows={3} value={notes} onChange={e => setNotes(e.target.value)} placeholder="Your thoughts on the book…" style={{ width:"100%", padding:"10px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'Crimson Pro',serif", color:CR.text, resize:"none", outline:"none", lineHeight:1.6, boxSizing:"border-box" }} />
-            </div>
+            {(shelf === "Read" || shelf === "Reading") && (
+              <div style={{ padding:"0 22px", marginBottom:20 }}>
+                <p style={lbl}>Notes</p>
+                <textarea rows={3} value={notes} onChange={e => setNotes(e.target.value)} placeholder="Your thoughts on the book…" style={{ width:"100%", padding:"10px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'Crimson Pro',serif", color:CR.text, resize:"none", outline:"none", lineHeight:1.6, boxSizing:"border-box" }} />
+              </div>
+            )}
           </>}
 
           {/* DETAILS TAB */}
