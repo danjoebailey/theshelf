@@ -5,7 +5,8 @@ const supabase = createClient(
   process.env.VITE_SUPABASE_ANON_KEY
 );
 
-const RESULT_FORMAT = `Return ONLY a valid JSON array — no markdown, no explanation, no code blocks. Each object must have exactly these keys: "title" (string — just the book title, no series info), "series" (string or null — e.g. "Malazan Book of the Fallen, #3"), "publishYear" (number or null), "pages" (number — approximate page count, or null if unknown), "tier" (number — 1 for essential/landmark works, 2 for notable/recommended works, 3 for minor/obscure/completionist works). Example: [{"title":"Memories of Ice","series":"Malazan Book of the Fallen, #3","publishYear":2001,"pages":943,"tier":1}]`;
+const GENRES = ["Fiction","Non-Fiction","Fantasy","Sci-Fi","Mystery","Thriller","Horror","Romance","Biography","History","Historical Fiction","Young Adult","Self-Help","Graphic Novel","Other"];
+const RESULT_FORMAT = `Return ONLY a valid JSON array — no markdown, no explanation, no code blocks. Each object must have exactly these keys: "title" (string — just the book title, no series info), "series" (string or null — e.g. "Malazan Book of the Fallen, #3"), "publishYear" (number or null), "pages" (number — approximate page count, or null if unknown), "tier" (number — 1 for essential/landmark works, 2 for notable/recommended works, 3 for minor/obscure/completionist works), "genre" (string — must be exactly one of: ${GENRES.join(", ")}). Example: [{"title":"Memories of Ice","series":"Malazan Book of the Fallen, #3","publishYear":2001,"pages":943,"tier":1,"genre":"Fantasy"}]`;
 
 function titleMatches(returned, query) {
   const normalize = s => s.toLowerCase().replace(/[^a-z0-9,:\s]/g, "").replace(/\s+/g, " ").trim();

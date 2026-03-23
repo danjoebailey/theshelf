@@ -4158,7 +4158,8 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd }) {
                 <BookCover book={{ title:book.title, coverUrl:unreadCovers[book.title]||null }} width={42} height={62} radius={3} shadow="1px 1px 5px rgba(0,0,0,0.2)" />
                 <div style={{ flex:1, minWidth:0 }}>
                   <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:17, color:CR.text, lineHeight:1.2, marginBottom:4 }}>{book.title}{book.series ? ` (${book.series})` : ""}</p>
-                  {book.publishYear && <p style={{ fontSize:11, color:CR.textDim, fontFamily:"'DM Sans',sans-serif" }}>{book.publishYear}{book.pages ? ` · ${book.pages} pp` : ""}</p>}
+                  {book.publishYear && <p style={{ fontSize:11, color:CR.textDim, fontFamily:"'DM Sans',sans-serif", marginBottom:6 }}>{book.publishYear}{book.pages ? ` · ${book.pages} pp` : ""}</p>}
+                  {book.genre && <span style={{ background:GENRE_COLORS[book.genre]||"#94a3b8", color:"#fff", borderRadius:"20px", padding:"3px 8px", fontSize:8, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", lineHeight:1 }}>{book.genre}</span>}
                 </div>
               </div>
             ));
