@@ -4078,7 +4078,7 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd }) {
 
   return (
     <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.5)", zIndex:400, display:"flex", flexDirection:"column", justifyContent:"flex-end" }} onClick={onClose}>
-      <div onClick={e=>e.stopPropagation()} onTouchEnd={e=>e.stopPropagation()} style={{ background:CR.bg, borderRadius:0, height:"98%", display:"flex", flexDirection:"column", boxShadow:"0 -4px 40px rgba(0,0,0,0.18)", borderTop:"6px solid #8a5a28", borderLeft:"6px solid #8a5a28" }}>
+      <div onClick={e=>e.stopPropagation()} onTouchEnd={e=>e.stopPropagation()} style={{ background:CR.bg, borderRadius:0, height:"98%", display:"flex", flexDirection:"column", boxShadow:"0 -4px 40px rgba(0,0,0,0.18)", borderTop:"6px solid #8a5a28", borderRight:"6px solid #8a5a28" }}>
 
         {/* Header */}
         <div style={{ padding:"20px 16px 0 22px", marginBottom:20, position:"relative", flexShrink:0 }}>
