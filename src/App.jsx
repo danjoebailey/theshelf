@@ -4157,7 +4157,7 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd }) {
             const unreadRows = unreadSlice.map((book, i) => {
               const draft = { title:book.title, author, pages:book.pages||null, coverUrl:unreadCovers[book.title]||null, genre:book.genre||"Fiction" };
               return (
-                <div key={`unread-${i}`} style={{ position:"relative", display:"flex", alignItems:"stretch", gap:12, padding:"12px 0", borderBottom:`1px solid ${CR.border}`, opacity:0.75 }}>
+                <div key={`unread-${i}`} style={{ position:"relative", zIndex:openDropdown===book.title ? 10 : "auto", display:"flex", alignItems:"stretch", gap:12, padding:"12px 0", borderBottom:`1px solid ${CR.border}`, opacity:0.75 }}>
                   {/* Tappable row area → EditSheet */}
                   <div onTouchStart={()=>{ touchMoved.current=false; }} onTouchMove={()=>{ touchMoved.current=true; }} onTouchEnd={e=>{ if(!touchMoved.current){ e.stopPropagation(); e.preventDefault(); setOpenDropdown(null); onAdd&&onAdd(draft); } }} onClick={()=>{ setOpenDropdown(null); onAdd&&onAdd(draft); }} style={{ display:"flex", gap:12, flex:1, minWidth:0, cursor:"pointer" }}>
                     <BookCover book={{ title:book.title, coverUrl:unreadCovers[book.title]||null }} width={42} height={62} radius={3} shadow="1px 1px 5px rgba(0,0,0,0.2)" />
