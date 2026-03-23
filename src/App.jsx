@@ -4034,13 +4034,18 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd }) {
       .finally(() => setBiblioLoading(false));
   }, [activeTab, author]);
 
-  // Fetch covers for newly visible unread books
+  // Populate covers from cached bibliography, then fetch any missing for visible books
   useEffect(() => {
     if (!biblio) return;
+    // Pre-populate from coverUrl stored in bibliography items
+    const cached = {};
+    biblio.forEach(b => { if (b.coverUrl) cached[b.title] = b.coverUrl; });
+    if (Object.keys(cached).length) setUnreadCovers(prev => ({ ...cached, ...prev }));
+
     const stripSeries = t => (t || "").toLowerCase().replace(/\s*\(.*$/, "").split(/\s*[,:]\s*/)[0].trim().replace(/^(the|a|an) /, "");
     const libraryTitles = new Set(books.filter(b => b.author?.toLowerCase() === author?.toLowerCase()).map(b => stripSeries(b.title)));
     const unreadBooks = biblio.filter(b => !libraryTitles.has(stripSeries(b.title)));
-    const toFetch = unreadBooks.slice(0, unreadVisible).filter(b => !unreadCovers[b.title]);
+    const toFetch = unreadBooks.slice(0, unreadVisible).filter(b => !unreadCovers[b.title] && !cached[b.title]);
     if (!toFetch.length) return;
     Promise.all(toFetch.map(b =>
       fetch("/api/fetch-cover", {

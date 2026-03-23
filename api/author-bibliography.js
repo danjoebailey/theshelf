@@ -7,6 +7,21 @@ const supabase = createClient(
 
 const RESULT_FORMAT = `Return ONLY a valid JSON array — no markdown, no explanation, no code blocks. Each object must have exactly these keys: "title" (string — just the book title, no series info), "series" (string or null — e.g. "Malazan Book of the Fallen, #3"), "publishYear" (number or null), "pages" (number — approximate page count, or null if unknown), "tier" (number — 1 for essential/landmark works, 2 for notable/recommended works, 3 for minor/obscure/completionist works). Example: [{"title":"Memories of Ice","series":"Malazan Book of the Fallen, #3","publishYear":2001,"pages":943,"tier":1}]`;
 
+async function fetchCoverUrl(title, author) {
+  try {
+    const q = encodeURIComponent(`intitle:${title} inauthor:${author}`);
+    const r = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${q}&maxResults=3`);
+    const data = await r.json();
+    const item = (data.items || []).find(i => i.volumeInfo?.imageLinks?.thumbnail);
+    if (item) {
+      return item.volumeInfo.imageLinks.thumbnail
+        .replace("http://", "https://")
+        .replace("zoom=1", "zoom=3");
+    }
+  } catch {}
+  return null;
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
 
@@ -62,12 +77,16 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "Failed to parse AI response", raw: text });
   }
 
+  // Fetch covers for all items in parallel
+  const covers = await Promise.all(items.map(item => fetchCoverUrl(item.title, author)));
+  const itemsWithCovers = items.map((item, i) => ({ ...item, coverUrl: covers[i] || null }));
+
   // Cache in Supabase
   await supabase.from("author_bibliographies").upsert({
     author,
-    items,
+    items: itemsWithCovers,
     generated_at: new Date().toISOString(),
   });
 
-  res.json({ items, cached: false });
+  res.json({ items: itemsWithCovers, cached: false });
 }
