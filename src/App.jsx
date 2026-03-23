@@ -4113,8 +4113,16 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd }) {
               "DNF":      { bg:"rgba(160,50,50,0.55)",  color:"rgba(255,255,255,0.9)", border:"rgba(160,50,50,0.4)" },
             };
 
-            // Books already in library
-            const libraryRows = authorBooks.map(book => (
+            // Books already in library, sorted by shelf then date
+            const shelfOrder = { "Read":0, "Reading":1, "The List":2, "Curious":3, "DNF":4 };
+            const sortedAuthorBooks = [...authorBooks].sort((a, b) => {
+              const ao = shelfOrder[a.shelf] ?? 5, bo = shelfOrder[b.shelf] ?? 5;
+              if (ao !== bo) return ao - bo;
+              if ((a.shelf === "Read") && (b.shelf === "Read"))
+                return new Date(b.date || 0) - new Date(a.date || 0);
+              return 0;
+            });
+            const libraryRows = sortedAuthorBooks.map(book => (
               <div key={book.id} onTouchStart={()=>{ touchMoved.current=false; }} onTouchMove={()=>{ touchMoved.current=true; }} onTouchEnd={e=>{ if(!touchMoved.current){ e.stopPropagation(); e.preventDefault(); onEdit&&onEdit(book); } }} onClick={()=>onEdit&&onEdit(book)} style={{ display:"flex", gap:12, padding:"12px 0", borderBottom:`1px solid ${CR.border}`, cursor:"pointer" }}>
                 <BookCover book={book} width={42} height={62} radius={3} shadow="1px 1px 5px rgba(0,0,0,0.2)" />
                 <div style={{ flex:1, minWidth:0, display:"flex", alignItems:"stretch", gap:8 }}>
@@ -4142,7 +4150,7 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd }) {
               <div key={`unread-${i}`} onTouchStart={()=>{ touchMoved.current=false; }} onTouchMove={()=>{ touchMoved.current=true; }} onTouchEnd={e=>{ if(!touchMoved.current){ e.stopPropagation(); e.preventDefault(); onAdd&&onAdd({ title:book.title, author, pages:book.pages||null, coverUrl:unreadCovers[book.title]||null }); } }} onClick={()=>onAdd&&onAdd({ title:book.title, author, pages:book.pages||null, coverUrl:unreadCovers[book.title]||null })} style={{ display:"flex", gap:12, padding:"12px 0", borderBottom:`1px solid ${CR.border}`, cursor:"pointer", opacity:0.75 }}>
                 <BookCover book={{ title:book.title, coverUrl:unreadCovers[book.title]||null }} width={42} height={62} radius={3} shadow="1px 1px 5px rgba(0,0,0,0.2)" />
                 <div style={{ flex:1, minWidth:0 }}>
-                  <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:17, color:CR.text, lineHeight:1.2, marginBottom:4 }}>{book.title}</p>
+                  <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:17, color:CR.text, lineHeight:1.2, marginBottom:4 }}>{book.title}{book.series ? <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, color:CR.textFaint, fontStyle:"normal" }}> ({book.series})</span> : ""}</p>
                   {book.publishYear && <p style={{ fontSize:11, color:CR.textDim, fontFamily:"'DM Sans',sans-serif" }}>{book.publishYear}{book.pages ? ` · ${book.pages} pp` : ""}</p>}
                 </div>
               </div>
