@@ -1740,10 +1740,8 @@ function PaigeTab({ books, userId, onAddDirect }) {
   return (
     <div style={{ height:"100%", overflowY:"auto", overflowX:"hidden", padding:"0 0 100px" }}>
       {/* Header */}
-      <div style={{ padding:"20px 18px 14px", display:"flex", flexDirection:"column", alignItems:"center" }}>
-        <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:22, fontWeight:300, color:"#fff", marginBottom:8 }}>Paige Turner</p>
-        <img src="/page-turner.png" alt="" style={{ width:120, height:120, objectFit:"contain" }} />
-        <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:"rgba(255,255,255,0.6)", marginTop:12, textAlign:"center" }}>Recommendations built from your reading profile.</p>
+      <div style={{ padding:"16px 18px 8px" }}>
+        <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:"rgba(255,255,255,0.6)", textAlign:"center" }}>Recommendations built from your reading profile.</p>
       </div>
 
       {!hasBooks ? (
@@ -1829,15 +1827,18 @@ function RecommendPage({ books, userId, onAddDirect }) {
   return (
     <div style={{ height:"100%", display:"flex", flexDirection:"column", overflow:"hidden" }}>
       {/* Character selector */}
-      <div style={{ display:"flex", borderBottom:"1px solid rgba(138,90,40,0.2)", flexShrink:0 }}>
-        {[{ key:"paige", label:"Paige Turner" }, { key:"reiko", label:"Reiko Mend" }].map(c => (
+      <div style={{ display:"flex", justifyContent:"center", gap:32, padding:"18px 18px 0", borderBottom:"1px solid rgba(138,90,40,0.2)", flexShrink:0 }}>
+        {[{ key:"paige", label:"Paige Turner", img:"/page-turner.png" }, { key:"reiko", label:"Reiko Mend", img:"/reiko-mend.png" }].map(c => (
           <button key={c.key} onClick={() => setCharacter(c.key)} style={{
-            flex:1, padding:"14px 0", background:"transparent", border:"none",
+            display:"flex", flexDirection:"column", alignItems:"center", gap:6,
+            background:"transparent", border:"none", cursor:"pointer",
             borderBottom: character===c.key ? "2px solid #fff" : "2px solid transparent",
-            cursor:"pointer", fontFamily:"'Crimson Pro',serif", fontSize:16, fontWeight:400,
-            color: character===c.key ? "#fff" : "rgba(255,255,255,0.45)",
-            transition:"all 0.15s", marginBottom:-1,
-          }}>{c.label}</button>
+            paddingBottom:12, transition:"all 0.15s",
+            opacity: character===c.key ? 1 : 0.45,
+          }}>
+            <img src={c.img} alt={c.label} style={{ width:80, height:80, objectFit:"contain" }} />
+            <span style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, fontWeight:400, color:"#fff" }}>{c.label}</span>
+          </button>
         ))}
       </div>
       {/* Content */}
@@ -1960,18 +1961,8 @@ function ReikoTab({ books, userId, onAddDirect }) {
   return (
     <div style={{ height: "100%", overflowY: "auto", overflowX: "hidden", padding: "0 0 100px" }}>
       {/* Header */}
-      <div style={{ padding: "20px 18px 14px" }}>
-<div style={{ display:"flex", justifyContent:"center", gap:24, margin:"10px 0 14px" }}>
-          <div style={{ display:"flex", flexDirection:"column", alignItems:"center" }}>
-            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:22, fontWeight:300, color:"#fff", marginBottom:8 }}>Paige Turner</p>
-            <img src="/page-turner.png" alt="" style={{ width:120, height:120, objectFit:"contain" }} />
-          </div>
-          <div style={{ display:"flex", flexDirection:"column", alignItems:"center" }}>
-            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:22, fontWeight:300, color:"#fff", marginBottom:8 }}>Reiko Mend</p>
-            <img src="/reiko-mend.png" alt="" style={{ width:120, height:120, objectFit:"contain" }} />
-          </div>
-        </div>
-        <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: "rgba(255,255,255,0.6)" }}>Select up to 6 books you've loved — AI will find your next read.</p>
+      <div style={{ padding: "16px 18px 8px" }}>
+        <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: "rgba(255,255,255,0.6)", textAlign:"center" }}>Select up to 6 books you've loved — AI will find your next read.</p>
       </div>
 
       {!hasBooks ? (
