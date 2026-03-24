@@ -1,5 +1,5 @@
 const MODE_GENERATION = {
-  popular:      "Recommend books that are widely beloved and have strong mainstream appeal — bestsellers, highly rated on Goodreads, broadly discussed in reading culture. These should be books that are easy to recommend to anyone with this taste profile.",
+  popular:      "Recommend books that are widely recognised and broadly read — major bestsellers, award winners, cultural touchstones, or books that have been adapted for film or TV. Judge purely by notoriety and reach. Tone does not matter — a bleak or demanding book belongs here if it is genuinely well-known.",
   trending:     "Recommend books that are currently having a moment — recent releases (2021–2025) that are being actively discussed in book communities, on social media, in book clubs, and on podcasts. These should be books people are talking about right now, not just historically popular titles.",
   hidden_gems:  "Recommend books that deserve far more readers than they have — overlooked gems that punch well above their recognition. These could be out-of-print classics, debut novels that got lost, or international titles that never broke through in English-speaking markets.",
   comfort_read: "Recommend books optimised for pure reading pleasure — satisfying, warm, fast-paced, and emotionally rewarding. These are books you reach for when you want to feel good, not be challenged. Prioritise readability, pacing, and satisfying endings.",
@@ -8,7 +8,7 @@ const MODE_GENERATION = {
 };
 
 const MODE_VALIDATION = {
-  popular:      "Is this book widely beloved with strong mainstream appeal? Has it appeared on major bestseller lists, has very high Goodreads ratings, or is broadly discussed in reading culture? Would it be easy to recommend to most readers?",
+  popular:      "Is this book widely recognised and broadly read? Has it appeared on major bestseller lists, won major awards, been adapted for film or TV, or achieved genuine cultural notoriety? Notoriety and reach are what matter — not tone, accessibility, or whether the book is feel-good. A bleak or demanding book can still be popular.",
   trending:     "Is this book currently generating active buzz in reading communities? Was it published in 2021 or later, or is it an older book experiencing a notable resurgence right now? Is it being widely discussed on social media, in book clubs, or on book podcasts? Books that are historically popular but no longer generating active conversation do NOT qualify.",
   hidden_gems:  "Does this book deserve far more readers than it actually has? Is it meaningfully overlooked or underappreciated relative to its quality — not just modestly less famous, but genuinely under-recognised?",
   comfort_read: "Is this book easy, warm, fast-paced, and emotionally satisfying? Would a reader reach for it when they want to feel good rather than be challenged? Does it have accessible prose and a rewarding ending? Books that are dense, demanding, intellectually heavy, or emotionally gruelling do NOT qualify.",
