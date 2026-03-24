@@ -3,9 +3,13 @@ function cleanThumb(url) {
 }
 
 function titleMatches(returned, query) {
-  const normalize = s => s.toLowerCase().replace(/[^a-z0-9,:\s]/g, "").replace(/\s+/g, " ").trim();
-  const r = normalize(returned);
-  const q = normalize(query);
+  const normalize = s => s.toLowerCase()
+    .replace(/\[.*?\]/g, "")           // strip [50th Anniversary Edition] etc
+    .replace(/[^a-z0-9,:\s]/g, "")
+    .replace(/\s+/g, " ").trim();
+  const uninvert = s => s.replace(/^(\w[\w\s]*),\s*(the|a|an)\b/i, "$2 $1").trim();
+  const r = uninvert(normalize(returned));
+  const q = uninvert(normalize(query));
   if (r === q) return true;
   if (r.startsWith(q + ":") || r.startsWith(q + ", ") || r.startsWith(q + ",")) return true;
   const rPre = r.split(/\s*[,:]\s*/)[0].trim();
