@@ -9,7 +9,7 @@ const MODE_GENERATION = {
 
 const MODE_VALIDATION = {
   popular:      "Is this book widely recognised and broadly read? Has it appeared on major bestseller lists, won major awards, been adapted for film or TV, or achieved genuine cultural notoriety? Notoriety and reach are what matter — not tone, accessibility, or whether the book is feel-good. A bleak or demanding book can still be popular.",
-  trending:     "Is this book currently generating active buzz in reading communities? Was it published in 2021 or later, or is it an older book experiencing a notable resurgence right now? Is it being widely discussed on social media, in book clubs, or on book podcasts? Books that are historically popular but no longer generating active conversation do NOT qualify.",
+  trending:     "Is this book currently generating active buzz in reading communities? Is it being widely discussed on social media, in book clubs, or on book podcasts right now? Books that are historically popular but no longer generating active conversation do NOT qualify. An older book experiencing a genuine resurgence does qualify.",
   hidden_gems:  "Does this book deserve far more readers than it actually has? Is it meaningfully overlooked or underappreciated relative to its quality — not just modestly less famous, but genuinely under-recognised?",
   comfort_read: "Is this book easy, warm, fast-paced, and emotionally satisfying? Would a reader reach for it when they want to feel good rather than be challenged? Does it have accessible prose and a rewarding ending? Books that are dense, demanding, intellectually heavy, or emotionally gruelling do NOT qualify.",
   challenge_me: "Is this book genuinely demanding? Does it feature dense or complex prose, a non-linear or experimental structure, difficult philosophical or intellectual ideas, or does it require significant effort from the reader?",
@@ -92,8 +92,9 @@ export default async function handler(req, res) {
   const seen = new Set(exclude.map(t => t.toLowerCase()));
 
   try {
-    // Round 1: generate 15, validate all
-    const batch1 = await generate(apiKey, profileLines, mode, exclude, 15);
+    // Round 1: generate 20 for trending (stricter validation), 15 for all others
+    const initialCount = mode === "trending" ? 20 : 15;
+    const batch1 = await generate(apiKey, profileLines, mode, exclude, initialCount);
     const fresh1 = batch1.filter(b => !seen.has(b.title.toLowerCase()));
     fresh1.forEach(b => seen.add(b.title.toLowerCase()));
     let validated = await validate(apiKey, fresh1, mode, profileLines);
