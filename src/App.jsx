@@ -1776,20 +1776,20 @@ function PaigeTab({ books, userId, onAddDirect }) {
       ) : (
         <>
           {/* Mode pills */}
-          <div style={{ padding:"0 18px 16px" }}>
-            <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:10, fontWeight:700, color:"rgba(255,255,255,0.6)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>What kind of read?</p>
+          <div style={{ margin:"0 18px 16px", background:"rgba(255,235,195,0.72)", backdropFilter:"blur(6px)", borderRadius:14, border:"1px solid rgba(160,100,40,0.3)", boxShadow:"0 2px 8px rgba(0,0,0,0.12)", padding:14 }}>
+            <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:10, fontWeight:700, color:"rgba(90,56,32,0.7)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>What kind of read?</p>
             <div style={{ display:"flex", flexWrap:"wrap", gap:7 }}>
               {PAIGE_MODES.map(m => (
                 <button key={m.key} onClick={() => setMode(m.key)} style={{
                   padding:"7px 14px", borderRadius:20, fontSize:12, fontFamily:"'DM Sans',sans-serif", fontWeight:600,
                   cursor:"pointer", transition:"all 0.15s", border:"1px solid",
-                  background: mode===m.key ? WOOD.amber : "rgba(255,235,195,0.08)",
-                  color: mode===m.key ? "#1a0900" : "rgba(255,255,255,0.7)",
+                  background: mode===m.key ? WOOD.amber : "rgba(138,90,40,0.1)",
+                  color: mode===m.key ? "#1a0900" : "rgba(90,56,32,0.75)",
                   borderColor: mode===m.key ? WOOD.amber : "rgba(138,90,40,0.3)",
                 }}>{m.label}</button>
               ))}
             </div>
-            {modeInfo && <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, color:"rgba(255,255,255,0.4)", marginTop:8, fontStyle:"italic" }}>{modeInfo.desc}</p>}
+            {modeInfo && <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, color:"rgba(90,56,32,0.55)", marginTop:8, fontStyle:"italic" }}>{modeInfo.desc}</p>}
           </div>
 
           {/* Generate button */}
