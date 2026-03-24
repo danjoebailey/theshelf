@@ -1616,7 +1616,7 @@ function RecCard({ rec, coverUrl, ownedBook, onAddDirect, index }) {
 
 const PAIGE_MODES = [
   { key:"popular",      label:"Popular",      desc:"Widely loved, broadly acclaimed" },
-  { key:"obscure",      label:"Obscure",      desc:"Under the radar, cult favourites" },
+  { key:"trending",     label:"Trending",     desc:"What book communities are talking about now" },
   { key:"hidden_gems",  label:"Hidden Gems",  desc:"Overlooked, deserves more readers" },
   { key:"comfort_read", label:"Comfort Read", desc:"Easy, warm, satisfying" },
   { key:"challenge_me", label:"Challenge Me", desc:"Push beyond your usual range" },
