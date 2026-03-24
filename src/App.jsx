@@ -1627,6 +1627,7 @@ function PaigeTab({ books, userId, onAddDirect }) {
   const [mode, setMode] = useState("popular");
   const [loading, setLoading] = useState(false);
   const [recs, setRecs] = useState({});       // { [mode]: [...items] }
+  const [reserve, setReserve] = useState({}); // { [mode]: [...items] } cached extras
   const [covers, setCovers] = useState({});   // { [mode]: { [title]: url } }
   const [error, setError] = useState(null);
   const [nextLoading, setNextLoading] = useState(false);
@@ -1640,15 +1641,17 @@ function PaigeTab({ books, userId, onAddDirect }) {
   // Load saved recs from DB on mount
   useEffect(() => {
     if (!userId) return;
-    supabase.from("paige_recommendations").select("mode,items,covers").eq("user_id", userId)
+    supabase.from("paige_recommendations").select("mode,items,reserve,covers").eq("user_id", userId)
       .then(({ data }) => {
         if (!data?.length) return;
-        const recMap = {}, covMap = {};
+        const recMap = {}, resMap = {}, covMap = {};
         data.forEach(row => {
           if (row.items?.length) recMap[row.mode] = row.items;
+          if (row.reserve?.length) resMap[row.mode] = row.reserve;
           if (row.covers) covMap[row.mode] = row.covers;
         });
         if (Object.keys(recMap).length) setRecs(recMap);
+        if (Object.keys(resMap).length) setReserve(resMap);
         if (Object.keys(covMap).length) setCovers(covMap);
       });
   }, [userId]);
@@ -1679,10 +1682,10 @@ function PaigeTab({ books, userId, onAddDirect }) {
     return covMap;
   }
 
-  async function saveToDb(currentMode, items, covMap) {
+  async function saveToDb(currentMode, items, reserveItems, covMap) {
     if (!userId) return;
     supabase.from("paige_recommendations")
-      .upsert({ user_id: userId, mode: currentMode, items, covers: covMap, generated_at: new Date().toISOString() }, { onConflict: "user_id,mode" })
+      .upsert({ user_id: userId, mode: currentMode, items, reserve: reserveItems, covers: covMap, generated_at: new Date().toISOString() }, { onConflict: "user_id,mode" })
       .then(({ error }) => console.log("[paige save]", error || "ok"));
   }
 
@@ -1690,6 +1693,7 @@ function PaigeTab({ books, userId, onAddDirect }) {
     if (!profile.length) return;
     setLoading(true); setError(null);
     setRecs(prev => ({ ...prev, [mode]: null }));
+    setReserve(prev => ({ ...prev, [mode]: [] }));
     setCovers(prev => ({ ...prev, [mode]: {} }));
     try {
       const res = await fetch("/api/paige-recommendations", {
@@ -1701,9 +1705,11 @@ function PaigeTab({ books, userId, onAddDirect }) {
       if (data.error) throw new Error(data.error);
       const readKeys = new Set(readBooks.map(b => normBookKey(b.title)));
       const results = (data.recommendations || []).filter(r => !readKeys.has(normBookKey(r.title)));
+      const res2 = (data.reserve || []).filter(r => !readKeys.has(normBookKey(r.title)));
       setRecs(prev => ({ ...prev, [mode]: results }));
-      const covMap = await fetchCoversForRecs(results, mode);
-      await saveToDb(mode, results, { ...(covers[mode] || {}), ...covMap });
+      setReserve(prev => ({ ...prev, [mode]: res2 }));
+      const covMap = await fetchCoversForRecs([...results, ...res2], mode);
+      await saveToDb(mode, results, res2, { ...(covers[mode] || {}), ...covMap });
     } catch (e) {
       setError(e.message || "Something went wrong.");
     }
@@ -1712,8 +1718,24 @@ function PaigeTab({ books, userId, onAddDirect }) {
 
   async function generateNext() {
     const existing = recs[mode] || [];
-    const exclude = existing.map(r => r.title);
+    const currentReserve = reserve[mode] || [];
     setNextLoading(true); setError(null);
+
+    // Drain reserve first
+    if (currentReserve.length > 0) {
+      const nextBatch = currentReserve.slice(0, 10);
+      const remainingReserve = currentReserve.slice(10);
+      const combined = [...existing, ...nextBatch];
+      setRecs(prev => ({ ...prev, [mode]: combined }));
+      setReserve(prev => ({ ...prev, [mode]: remainingReserve }));
+      const covMap = await fetchCoversForRecs(nextBatch, mode);
+      await saveToDb(mode, combined, remainingReserve, { ...(covers[mode] || {}), ...covMap });
+      setNextLoading(false);
+      return;
+    }
+
+    // Reserve exhausted — generate fresh
+    const exclude = existing.map(r => r.title);
     try {
       const res = await fetch("/api/paige-recommendations", {
         method: "POST",
@@ -1723,11 +1745,14 @@ function PaigeTab({ books, userId, onAddDirect }) {
       const data = await res.json();
       if (data.error) throw new Error(data.error);
       const readKeys = new Set(readBooks.map(b => normBookKey(b.title)));
-      const newResults = (data.recommendations || []).filter(r => !readKeys.has(normBookKey(r.title)) && !exclude.map(normBookKey).includes(normBookKey(r.title)));
+      const seenKeys = new Set(exclude.map(normBookKey));
+      const newResults = (data.recommendations || []).filter(r => !readKeys.has(normBookKey(r.title)) && !seenKeys.has(normBookKey(r.title)));
+      const newReserve = (data.reserve || []).filter(r => !readKeys.has(normBookKey(r.title)) && !seenKeys.has(normBookKey(r.title)));
       const combined = [...existing, ...newResults];
       setRecs(prev => ({ ...prev, [mode]: combined }));
-      const covMap = await fetchCoversForRecs(newResults, mode);
-      await saveToDb(mode, combined, { ...(covers[mode] || {}), ...covMap });
+      setReserve(prev => ({ ...prev, [mode]: newReserve }));
+      const covMap = await fetchCoversForRecs([...newResults, ...newReserve], mode);
+      await saveToDb(mode, combined, newReserve, { ...(covers[mode] || {}), ...covMap });
     } catch (e) {
       setError(e.message || "Something went wrong.");
     }
