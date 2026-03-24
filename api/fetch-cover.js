@@ -13,20 +13,6 @@ function titleMatches(returned, query) {
   return rPre.length > 0 && rPre === qPre;
 }
 
-async function gbHiRes(thumbnail) {
-  try {
-    const params = new URLSearchParams((thumbnail || "").split("?")[1] || "");
-    const id = params.get("id");
-    if (!id) return cleanThumb(thumbnail);
-    const data = await fetch(`https://www.googleapis.com/books/v1/volumes/${id}`).then(r => r.json()).catch(() => null);
-    const links = data?.volumeInfo?.imageLinks;
-    const hiRes = links?.extraLarge || links?.large || links?.medium || links?.thumbnail;
-    return hiRes ? hiRes.replace("http://", "https://").replace("&edge=curl", "") : cleanThumb(thumbnail);
-  } catch {
-    return cleanThumb(thumbnail);
-  }
-}
-
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
 
@@ -77,22 +63,16 @@ export default async function handler(req, res) {
       d.cover_i
     ));
 
-  // 3. Google Books — resolve each to hi-res via volumes API
-  const gbItems = [];
-  if (gbIsbnData?.items?.[0]?.volumeInfo?.imageLinks?.thumbnail) {
-    gbItems.push({ item: gbIsbnData.items[0], label: "Google Books (ISBN)" });
-  }
+  // 3. Google Books — thumbnail as-is (last resort)
+  const gbIsbnThumb = gbIsbnData?.items?.[0]?.volumeInfo?.imageLinks?.thumbnail;
+  if (gbIsbnThumb) add("Google Books (ISBN)", gbIsbnThumb);
+
   (gbTitleData?.items || [])
     .filter(i => titleMatches(i.volumeInfo?.title || "", cleanTitle))
+    .map(i => i.volumeInfo?.imageLinks?.thumbnail)
+    .filter(Boolean)
     .slice(0, 3)
-    .forEach((item, i) => gbItems.push({ item, label: i === 0 ? "Google Books" : `Google Books (${i + 1})` }));
-
-  await Promise.all(gbItems.map(async ({ item, label }) => {
-    const thumb = item.volumeInfo?.imageLinks?.thumbnail;
-    if (!thumb) return;
-    const hiResUrl = await gbHiRes(thumb);
-    if (hiResUrl) add(label, hiResUrl);
-  }));
+    .forEach((url, i) => add(i === 0 ? "Google Books" : `Google Books (${i + 1})`, url));
 
   const best = options[0] || null;
   const coverUrl = best?.coverUrl || null;
