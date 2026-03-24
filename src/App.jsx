@@ -1995,10 +1995,10 @@ function ReikoTab({ books, userId, onAddDirect, onAuthor }) {
   async function getAuthorRecommendations() {
     setAuthorLoading(true); setAuthorRecs(null); setAuthorError(null);
     try {
-      const res = await fetch("/api/recommend-authors", {
+      const res = await fetch("/api/recommend-books", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ authors: selectedAuthors, readAuthors }),
+        body: JSON.stringify({ mode: "authors", authors: selectedAuthors, readAuthors }),
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
