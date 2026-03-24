@@ -116,6 +116,14 @@ export default async function handler(req, res) {
       validated = [...validated, ...validated3];
     }
 
+    // Fallback: if still <10 after all rounds, fill gap without validation
+    if (validated.length < 10) {
+      const needed = 10 - validated.length;
+      const fallback = await generate(apiKey, profileLines, mode, [...seen], needed);
+      const freshFallback = fallback.filter(b => !seen.has(b.title.toLowerCase()));
+      validated = [...validated, ...freshFallback].slice(0, 10);
+    }
+
     // Serve first 10, cache remainder as reserve
     const recommendations = validated.slice(0, 10);
     const reserve = validated.slice(10);
