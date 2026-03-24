@@ -4082,7 +4082,7 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd }) {
 
         {/* Header */}
         <div style={{ padding:"20px 16px 0 22px", marginBottom:20, position:"relative", flexShrink:0 }}>
-          <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:22, fontWeight:400, color:CR.text, letterSpacing:"-0.01em" }}>{author}</p>
+          <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:24, fontWeight:400, color:CR.text, letterSpacing:"-0.01em" }}>{author}</p>
           <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, color:CR.textDim, marginTop:3 }}>{authorBooks.length} book{authorBooks.length !== 1 ? "s" : ""} in your library</p>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"flex-end", marginTop:10 }}>
             <div style={{ display:"flex", gap:2, background:CR.panel, borderRadius:6, padding:2 }}>
