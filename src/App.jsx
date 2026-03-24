@@ -1847,7 +1847,7 @@ function PaigeTab({ books, userId, onAddDirect }) {
   );
 }
 
-function RecommendPage({ books, userId, onAddDirect }) {
+function RecommendPage({ books, userId, onAddDirect, onAuthor }) {
   const [character, setCharacter] = useState("paige");
   return (
     <div style={{ height:"100%", display:"flex", flexDirection:"column", overflow:"hidden" }}>
@@ -1870,14 +1870,15 @@ function RecommendPage({ books, userId, onAddDirect }) {
       <div style={{ flex:1, overflow:"hidden", position:"relative" }}>
         {character === "paige"
           ? <PaigeTab books={books} userId={userId} onAddDirect={onAddDirect} />
-          : <ReikoTab books={books} userId={userId} onAddDirect={onAddDirect} />
+          : <ReikoTab books={books} userId={userId} onAddDirect={onAddDirect} onAuthor={onAuthor} />
         }
       </div>
     </div>
   );
 }
 
-function ReikoTab({ books, userId, onAddDirect }) {
+function ReikoTab({ books, userId, onAddDirect, onAuthor }) {
+  const [reikoMode, setReikoMode] = useState("books");
   const [selected, setSelected] = useState([]);
   const [loading, setLoading] = useState(false);
   const [recs, setRecs] = useState(null);
@@ -1887,11 +1888,22 @@ function ReikoTab({ books, userId, onAddDirect }) {
   const [filterShelf, setFilterShelf] = useState("Read");
   const [filterGenres, setFilterGenres] = useState([]);
   const [filterRating, setFilterRating] = useState(5);
-
   const [filterYear, setFilterYear] = useState(null);
+  const [selectedAuthors, setSelectedAuthors] = useState([]);
+  const [authorRecs, setAuthorRecs] = useState(null);
+  const [authorLoading, setAuthorLoading] = useState(false);
+  const [authorError, setAuthorError] = useState(null);
 
   const availableYears = useMemo(() => [...new Set(books.map(b => b.date ? new Date(b.date).getFullYear() : null).filter(Boolean))].sort((a,b)=>b-a), [books]);
   const availableGenres = useMemo(() => [...new Set(books.map(b => b.genre).filter(Boolean))].sort(), [books]);
+  const readAuthors = useMemo(() => {
+    const seen = new Set();
+    return books
+      .filter(b => (b.shelf || "Read") === "Read" && b.author)
+      .map(b => b.author)
+      .filter(a => { if (seen.has(a)) return false; seen.add(a); return true; })
+      .sort();
+  }, [books]);
 
   // Load saved recommendations on mount
   useEffect(() => {
@@ -1980,14 +1992,50 @@ function ReikoTab({ books, userId, onAddDirect }) {
     setLoading(false);
   }
 
+  async function getAuthorRecommendations() {
+    setAuthorLoading(true); setAuthorRecs(null); setAuthorError(null);
+    try {
+      const res = await fetch("/api/recommend-authors", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ authors: selectedAuthors, readAuthors }),
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      const readSet = new Set(readAuthors.map(a => a.toLowerCase()));
+      const results = (data.recommendations || []).filter(r => !readSet.has(r.name.toLowerCase()));
+      setAuthorRecs(results);
+    } catch (e) {
+      setAuthorError(e.message || "Something went wrong.");
+    }
+    setAuthorLoading(false);
+  }
+
   const hasBooks = books.length > 0;
   const canSubmit = selected.length > 0 && !loading;
+  const canSubmitAuthors = selectedAuthors.length > 0 && !authorLoading;
 
   return (
     <div style={{ height: "100%", overflowY: "auto", overflowX: "hidden", padding: "0 0 100px" }}>
+      {/* Mode toggle */}
+      <div style={{ padding: "16px 18px 0", display: "flex", justifyContent: "center", gap: 6 }}>
+        {[["books", "Books"], ["authors", "Authors"]].map(([m, label]) => (
+          <button key={m} onClick={() => setReikoMode(m)} style={{
+            padding: "5px 14px", borderRadius: 20, border: "none", cursor: "pointer",
+            background: reikoMode===m ? WOOD.amber : "rgba(255,235,195,0.12)",
+            color: reikoMode===m ? "#1a0900" : "rgba(255,235,195,0.6)",
+            fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 600,
+            transition: "all 0.15s",
+          }}>{label}</button>
+        ))}
+      </div>
       {/* Header */}
-      <div style={{ padding: "16px 18px 8px" }}>
-        <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: "rgba(255,255,255,0.6)", textAlign:"center" }}>Select up to 6 books you've loved — AI will find your next read.</p>
+      <div style={{ padding: "10px 18px 8px" }}>
+        <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: "rgba(255,255,255,0.6)", textAlign:"center" }}>
+          {reikoMode === "books"
+            ? "Select up to 6 books you've loved — AI will find your next read."
+            : "Select authors you love — AI will find writers you haven't discovered yet."}
+        </p>
       </div>
 
       {!hasBooks ? (
@@ -1996,6 +2044,7 @@ function ReikoTab({ books, userId, onAddDirect }) {
         </div>
       ) : (
         <>
+          {reikoMode === "books" && <>
           {/* Book picker */}
           <div style={{ padding: "0 18px 16px" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
@@ -2145,6 +2194,84 @@ function ReikoTab({ books, userId, onAddDirect }) {
               </div>
             </div>
           )}
+          </>}
+
+          {reikoMode === "authors" && <>
+          {/* Author picker */}
+          <div style={{ padding: "0 18px 16px" }}>
+            <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 10 }}>
+              Choose authors {selectedAuthors.length > 0 && <span style={{ color: WOOD.amber }}>({selectedAuthors.length} selected)</span>}
+            </p>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
+              {readAuthors.map(author => {
+                const isOn = selectedAuthors.includes(author);
+                return (
+                  <button key={author} onClick={() => setSelectedAuthors(s => s.includes(author) ? s.filter(a => a !== author) : [...s, author])} style={{
+                    padding: "7px 14px", borderRadius: 20, fontSize: 13, fontFamily: "'Crimson Pro',serif",
+                    cursor: "pointer", transition: "all 0.15s", border: "1.5px solid",
+                    background: isOn ? WOOD.amber : WOOD.card,
+                    color: isOn ? "#1a0900" : WOOD.textDim,
+                    borderColor: isOn ? WOOD.amber : "rgba(138,90,40,0.18)",
+                  }}>{author}</button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Author submit */}
+          <div style={{ padding: "0 18px 22px" }}>
+            <button onClick={getAuthorRecommendations} disabled={!canSubmitAuthors} style={{
+              width: "100%", padding: "13px 0",
+              background: canSubmitAuthors ? `linear-gradient(135deg, ${WOOD.amber}, #c8883a)` : "rgba(138,90,40,0.15)",
+              border: "none", borderRadius: 12, cursor: canSubmitAuthors ? "pointer" : "default",
+              fontFamily: "'DM Sans',sans-serif", fontSize: 15, fontWeight: 700,
+              color: canSubmitAuthors ? "#1a0900" : WOOD.textFaint,
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 8, transition: "all 0.2s",
+            }}>
+              {authorLoading
+                ? <><span style={{ width: 16, height: 16, border: "2px solid rgba(26,9,0,0.3)", borderTopColor: "#1a0900", borderRadius: "50%", display: "inline-block", animation: "spin 0.7s linear infinite" }} />Finding authors…</>
+                : <><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.3L12 17 5.8 21.2l2.4-7.3L2 9.4h7.6z"/></svg>Find Authors</>
+              }
+            </button>
+            {selectedAuthors.length === 0 && <p style={{ textAlign: "center", fontSize: 11, color: "rgba(255,255,255,0.5)", fontFamily: "'DM Sans',sans-serif", marginTop: 8 }}>Select at least one author to continue</p>}
+          </div>
+
+          {/* Author error */}
+          {authorError && (
+            <div style={{ margin: "0 18px 18px", padding: "12px 14px", background: "rgba(192,57,43,0.08)", border: "1px solid rgba(192,57,43,0.2)", borderRadius: 10 }}>
+              <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: "#c0392b" }}>{authorError}</p>
+            </div>
+          )}
+
+          {/* Author results */}
+          {authorRecs && authorRecs.length > 0 && (
+            <div style={{ padding: "0 18px" }}>
+              <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 12 }}>Authors to discover</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {authorRecs.map((rec, i) => (
+                  <div key={i} style={{ background: WOOD.card, borderRadius: 12, padding: "14px", border: "1px solid rgba(138,90,40,0.18)", boxShadow: "0 1px 4px rgba(0,0,0,0.08)" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 18, color: WOOD.text, lineHeight: 1.2 }}>{rec.name}</p>
+                        <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, color: WOOD.textFaint, marginTop: 3 }}>
+                          {[rec.topGenre, rec.booksWritten ? `${rec.booksWritten} books` : null].filter(Boolean).join(" · ")}
+                        </p>
+                        <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: WOOD.textDim, marginTop: 8, lineHeight: 1.55 }}>{rec.reason}</p>
+                      </div>
+                      <button onClick={() => onAuthor && onAuthor(rec.name)} style={{
+                        flexShrink: 0, padding: "6px 12px", borderRadius: 20, fontSize: 11,
+                        fontFamily: "'DM Sans',sans-serif", fontWeight: 600, cursor: "pointer",
+                        background: "rgba(138,90,40,0.12)", color: WOOD.textDim,
+                        border: "1px solid rgba(138,90,40,0.25)", whiteSpace: "nowrap",
+                        transition: "all 0.15s",
+                      }}>View Profile</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          </>}
         </>
       )}
     </div>
@@ -4822,7 +4949,7 @@ export default function App() {
           {tab==="shelf"
             ? <ShelfTab books={books} onAdd={()=>setShowAdd(true)} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"" }); }} onRemove={id=>{ setBooks(prev => prev.filter(b=>b.id!==id)); dbDeleteBook(id, userId); }} onEdit={setEditBook} onScroll={setScrollY} onShelfChange={changeShelf} onImport={()=>setShowImport(true)} onSaveScores={saveScores} onSaveDescription={saveDescription} onSaveProgress={saveProgress} onSavePages={savePages} onSaveAspects={saveAspects} hideControls={!!editBook} />
             : tab==="reiko"
-            ? <RecommendPage books={books} userId={userId} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, rating:0, date:new Date().toISOString().slice(0,10) }; setBooks(prev => [...prev, b]); dbAddBook(b, userId); }} />
+            ? <RecommendPage books={books} userId={userId} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, rating:0, date:new Date().toISOString().slice(0,10) }; setBooks(prev => [...prev, b]); dbAddBook(b, userId); }} onAuthor={setAuthorModal} />
             : tab==="rankings"
             ? <RankingsTab books={books} onSaveScores={saveScores} userId={userId} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"" }); }} onShelfChange={changeShelf} onEdit={setEditBook} />
             : <StatsTab books={books} />
