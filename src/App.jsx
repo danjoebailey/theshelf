@@ -3657,37 +3657,6 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
   }
   const [modalCoverUrl, setModalCoverUrl] = useState(coverUrl);
 
-  // On open, fetch the highest-res version of the same cover from the same source
-  useEffect(() => {
-    async function fetchHiResCover() {
-      try {
-        // Google Books: extract volume ID and request large/extraLarge image link
-        if (coverUrl && (coverUrl.includes("books.google.com") || coverUrl.includes("books.googleusercontent.com"))) {
-          const id = new URLSearchParams(coverUrl.split("?")[1]).get("id");
-          if (id) {
-            const data = await fetch(`https://www.googleapis.com/books/v1/volumes/${id}`).then(r => r.json());
-            const links = data?.volumeInfo?.imageLinks;
-            const hiRes = links?.extraLarge || links?.large || links?.medium || links?.thumbnail;
-            if (hiRes) { setModalCoverUrl(hiRes.replace("http://", "https://").replace("&edge=curl", "")); return; }
-          }
-        }
-        // iTunes: bump to 600x600
-        if (coverUrl && (coverUrl.includes("mzstatic.com") || coverUrl.includes("itunes.apple.com"))) {
-          setModalCoverUrl(coverUrl.replace(/\/\d+x\d+bb\./, "/600x600bb.")); return;
-        }
-        // OpenLibrary: upgrade to -L.jpg
-        if (coverUrl && coverUrl.includes("covers.openlibrary.org")) {
-          setModalCoverUrl(coverUrl.replace(/-[SML]\.jpg$/, "-L.jpg")); return;
-        }
-        // Fallback: re-fetch cover for best available quality
-        const r = await fetch("/api/fetch-cover", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ title:book.title, author:book.author, isbn:book.isbn }) });
-        const d = await r.json();
-        if (d.coverUrl) setModalCoverUrl(d.coverUrl);
-      } catch { /* keep original */ }
-    }
-    fetchHiResCover();
-  }, []);
-
   const displayBook = { ...book, coverUrl: modalCoverUrl, coverId };
   const lbl = { fontSize:10, letterSpacing:"0.2em", textTransform:"uppercase", color:CR.textDim, marginBottom:8, fontWeight:500 };
 
@@ -4674,10 +4643,8 @@ export default function App() {
               dbUpdateBook(updated, userId);
             }
           }
-          // Silently fetch covers: missing ones always, + one-time re-fetch for all to upgrade to iTunes art
-          const needsUpgrade = !localStorage.getItem("coversV3");
-          const missing = loadedBooks.filter(b => !b.coverUrl || needsUpgrade);
-          if (needsUpgrade) localStorage.setItem("coversV3", "1");
+          // Silently fetch covers for books that don't have one
+          const missing = loadedBooks.filter(b => !b.coverUrl);
           for (let i = 0; i < missing.length; i += 4) {
             const batch = missing.slice(i, i + 4);
             await Promise.all(batch.map(async book => {

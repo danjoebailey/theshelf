@@ -13,6 +13,20 @@ function titleMatches(returned, query) {
   return rPre.length > 0 && rPre === qPre;
 }
 
+async function gbHiRes(thumbnail) {
+  try {
+    const params = new URLSearchParams((thumbnail || "").split("?")[1] || "");
+    const id = params.get("id");
+    if (!id) return cleanThumb(thumbnail);
+    const data = await fetch(`https://www.googleapis.com/books/v1/volumes/${id}`).then(r => r.json()).catch(() => null);
+    const links = data?.volumeInfo?.imageLinks;
+    const hiRes = links?.extraLarge || links?.large || links?.medium || links?.thumbnail;
+    return hiRes ? hiRes.replace("http://", "https://").replace("&edge=curl", "") : cleanThumb(thumbnail);
+  } catch {
+    return cleanThumb(thumbnail);
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
 
@@ -21,7 +35,6 @@ export default async function handler(req, res) {
 
   const cleanTitle = title.replace(/\s*\(.*$/, "").trim();
 
-  // Run all lookups in parallel
   const [gbIsbnData, gbTitleData, olData, itunesData] = await Promise.all([
     isbn
       ? fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&maxResults=1`)
@@ -29,13 +42,12 @@ export default async function handler(req, res) {
       : null,
     fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(`${cleanTitle} ${author || ""}`.trim())}&maxResults=5&printType=books`)
       .then(r => r.json()).catch(() => null),
-    fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(cleanTitle)}&author=${encodeURIComponent(author || "")}&limit=10&fields=cover_i`)
+    fetch(`https://openlibrary.org/search.json?title=${encodeURIComponent(cleanTitle)}&author=${encodeURIComponent(author || "")}&limit=10&fields=cover_i,title`)
       .then(r => r.json()).catch(() => null),
     fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(`${cleanTitle} ${author || ""}`.trim())}&entity=ebook&limit=5&media=ebook`)
       .then(r => r.json()).catch(() => null),
   ]);
 
-  // Collect all candidates
   const seen = new Set();
   const options = [];
 
@@ -46,19 +58,7 @@ export default async function handler(req, res) {
     options.push({ source, coverUrl: url, coverId });
   }
 
-  // Google Books by ISBN (most precise match)
-  const gbIsbnThumb = gbIsbnData?.items?.[0]?.volumeInfo?.imageLinks?.thumbnail;
-  if (gbIsbnThumb) add("Google Books (ISBN)", gbIsbnThumb);
-
-  // Google Books by title — up to 3 distinct results, filtered by title match
-  (gbTitleData?.items || [])
-    .filter(i => titleMatches(i.volumeInfo?.title || "", cleanTitle))
-    .map(i => i.volumeInfo?.imageLinks?.thumbnail)
-    .filter(Boolean)
-    .slice(0, 3)
-    .forEach((url, i) => add(i === 0 ? "Google Books" : `Google Books (${i + 1})`, url));
-
-  // iTunes — up to 3 distinct results, filtered by title match
+  // 1. iTunes first — best quality (600x600)
   (itunesData?.results || [])
     .filter(r => titleMatches(r.trackName || "", cleanTitle))
     .map(r => r.artworkUrl100?.replace("/100x100bb.", "/600x600bb."))
@@ -66,10 +66,8 @@ export default async function handler(req, res) {
     .slice(0, 3)
     .forEach((url, i) => add(i === 0 ? "iTunes" : `iTunes (${i + 1})`, url));
 
-  // Open Library by ISBN (direct, no search needed)
+  // 2. Open Library — reliable, always -L.jpg
   if (isbn) add("Open Library (ISBN)", `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg`);
-
-  // Open Library by cover_i from search — up to 3, filtered by title match
   (olData?.docs || [])
     .filter(d => d.cover_i && titleMatches(d.title || "", cleanTitle))
     .slice(0, 3)
@@ -79,10 +77,25 @@ export default async function handler(req, res) {
       d.cover_i
     ));
 
-  // Prefer iTunes image (600x600, high quality) but keep Google Books ISBN match for book identity
-  const itunesOption = options.find(o => o.source?.startsWith("iTunes"));
+  // 3. Google Books — resolve each to hi-res via volumes API
+  const gbItems = [];
+  if (gbIsbnData?.items?.[0]?.volumeInfo?.imageLinks?.thumbnail) {
+    gbItems.push({ item: gbIsbnData.items[0], label: "Google Books (ISBN)" });
+  }
+  (gbTitleData?.items || [])
+    .filter(i => titleMatches(i.volumeInfo?.title || "", cleanTitle))
+    .slice(0, 3)
+    .forEach((item, i) => gbItems.push({ item, label: i === 0 ? "Google Books" : `Google Books (${i + 1})` }));
+
+  await Promise.all(gbItems.map(async ({ item, label }) => {
+    const thumb = item.volumeInfo?.imageLinks?.thumbnail;
+    if (!thumb) return;
+    const hiResUrl = await gbHiRes(thumb);
+    if (hiResUrl) add(label, hiResUrl);
+  }));
+
   const best = options[0] || null;
-  const coverUrl = itunesOption?.coverUrl || best?.coverUrl || null;
+  const coverUrl = best?.coverUrl || null;
   const coverId = options.find(o => o.coverId)?.coverId || null;
 
   res.json({ coverUrl, coverId, options });
