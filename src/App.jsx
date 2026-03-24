@@ -1614,6 +1614,243 @@ function RecCard({ rec, coverUrl, ownedBook, onAddDirect, index }) {
   );
 }
 
+const PAIGE_MODES = [
+  { key:"popular",      label:"Popular",      desc:"Widely loved, broadly acclaimed" },
+  { key:"obscure",      label:"Obscure",      desc:"Under the radar, cult favourites" },
+  { key:"hidden_gems",  label:"Hidden Gems",  desc:"Overlooked, deserves more readers" },
+  { key:"comfort_read", label:"Comfort Read", desc:"Easy, warm, satisfying" },
+  { key:"challenge_me", label:"Challenge Me", desc:"Push beyond your usual range" },
+  { key:"new_to_me",    label:"New To Me",    desc:"Genres and styles you haven't tried" },
+];
+
+function PaigeTab({ books, userId, onAddDirect }) {
+  const [mode, setMode] = useState("popular");
+  const [loading, setLoading] = useState(false);
+  const [recs, setRecs] = useState({});       // { [mode]: [...items] }
+  const [covers, setCovers] = useState({});   // { [mode]: { [title]: url } }
+  const [error, setError] = useState(null);
+  const [nextLoading, setNextLoading] = useState(false);
+
+  const readBooks = books.filter(b => (b.shelf || "Read") === "Read");
+  const profile = readBooks.map(b => ({ title: b.title, author: b.author, genre: b.genre, rating: b.rating || 0 }));
+  const hasBooks = readBooks.length > 0;
+  const currentRecs = recs[mode] || null;
+  const currentCovers = covers[mode] || {};
+
+  // Load saved recs from DB on mount
+  useEffect(() => {
+    if (!userId) return;
+    supabase.from("paige_recommendations").select("mode,items,covers").eq("user_id", userId)
+      .then(({ data }) => {
+        if (!data?.length) return;
+        const recMap = {}, covMap = {};
+        data.forEach(row => {
+          if (row.items?.length) recMap[row.mode] = row.items;
+          if (row.covers) covMap[row.mode] = row.covers;
+        });
+        if (Object.keys(recMap).length) setRecs(recMap);
+        if (Object.keys(covMap).length) setCovers(covMap);
+      });
+  }, [userId]);
+
+  async function fetchCoversForRecs(results, currentMode) {
+    const covMap = {};
+    const needsFetch = [];
+    for (const rec of results) {
+      const owned = books.find(b => normBookKey(b.title) === normBookKey(rec.title));
+      if (owned?.coverUrl) covMap[rec.title] = owned.coverUrl;
+      else needsFetch.push(rec);
+    }
+    setCovers(prev => ({ ...prev, [currentMode]: { ...(prev[currentMode] || {}), ...covMap } }));
+    const BATCH = 5;
+    for (let b = 0; b < needsFetch.length; b += BATCH) {
+      await Promise.all(needsFetch.slice(b, b + BATCH).map(async rec => {
+        try {
+          const r = await fetch("/api/fetch-cover", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ title:rec.title, author:rec.author }) });
+          const d = await r.json();
+          if (d.coverUrl) {
+            covMap[rec.title] = d.coverUrl;
+            setCovers(prev => ({ ...prev, [currentMode]: { ...(prev[currentMode] || {}), [rec.title]: d.coverUrl } }));
+          }
+        } catch {}
+      }));
+      if (b + BATCH < needsFetch.length) await new Promise(r => setTimeout(r, 200));
+    }
+    return covMap;
+  }
+
+  async function saveToDb(currentMode, items, covMap) {
+    if (!userId) return;
+    supabase.from("paige_recommendations")
+      .upsert({ user_id: userId, mode: currentMode, items, covers: covMap, generated_at: new Date().toISOString() }, { onConflict: "user_id,mode" })
+      .then(({ error }) => console.log("[paige save]", error || "ok"));
+  }
+
+  async function generate() {
+    if (!profile.length) return;
+    setLoading(true); setError(null);
+    setRecs(prev => ({ ...prev, [mode]: null }));
+    setCovers(prev => ({ ...prev, [mode]: {} }));
+    try {
+      const res = await fetch("/api/paige-recommendations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ profile, mode, exclude: [] }),
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      const readKeys = new Set(readBooks.map(b => normBookKey(b.title)));
+      const results = (data.recommendations || []).filter(r => !readKeys.has(normBookKey(r.title)));
+      setRecs(prev => ({ ...prev, [mode]: results }));
+      const covMap = await fetchCoversForRecs(results, mode);
+      await saveToDb(mode, results, { ...(covers[mode] || {}), ...covMap });
+    } catch (e) {
+      setError(e.message || "Something went wrong.");
+    }
+    setLoading(false);
+  }
+
+  async function generateNext() {
+    const existing = recs[mode] || [];
+    const exclude = existing.map(r => r.title);
+    setNextLoading(true); setError(null);
+    try {
+      const res = await fetch("/api/paige-recommendations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ profile, mode, exclude }),
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      const readKeys = new Set(readBooks.map(b => normBookKey(b.title)));
+      const newResults = (data.recommendations || []).filter(r => !readKeys.has(normBookKey(r.title)) && !exclude.map(normBookKey).includes(normBookKey(r.title)));
+      const combined = [...existing, ...newResults];
+      setRecs(prev => ({ ...prev, [mode]: combined }));
+      const covMap = await fetchCoversForRecs(newResults, mode);
+      await saveToDb(mode, combined, { ...(covers[mode] || {}), ...covMap });
+    } catch (e) {
+      setError(e.message || "Something went wrong.");
+    }
+    setNextLoading(false);
+  }
+
+  const canGenerate = hasBooks && !loading;
+  const modeInfo = PAIGE_MODES.find(m => m.key === mode);
+
+  return (
+    <div style={{ height:"100%", overflowY:"auto", overflowX:"hidden", padding:"0 0 100px" }}>
+      {/* Header */}
+      <div style={{ padding:"20px 18px 14px", display:"flex", flexDirection:"column", alignItems:"center" }}>
+        <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:22, fontWeight:300, color:"#fff", marginBottom:8 }}>Paige Turner</p>
+        <img src="/page-turner.png" alt="" style={{ width:120, height:120, objectFit:"contain" }} />
+        <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:"rgba(255,255,255,0.6)", marginTop:12, textAlign:"center" }}>Recommendations built from your reading profile.</p>
+      </div>
+
+      {!hasBooks ? (
+        <div style={{ padding:"40px 20px", textAlign:"center" }}>
+          <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:17, color:"rgba(255,255,255,0.7)", fontStyle:"italic" }}>Add books to your Read shelf first, then come back.</p>
+        </div>
+      ) : (
+        <>
+          {/* Mode pills */}
+          <div style={{ padding:"0 18px 16px" }}>
+            <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:10, fontWeight:700, color:"rgba(255,255,255,0.6)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>What kind of read?</p>
+            <div style={{ display:"flex", flexWrap:"wrap", gap:7 }}>
+              {PAIGE_MODES.map(m => (
+                <button key={m.key} onClick={() => setMode(m.key)} style={{
+                  padding:"7px 14px", borderRadius:20, fontSize:12, fontFamily:"'DM Sans',sans-serif", fontWeight:600,
+                  cursor:"pointer", transition:"all 0.15s", border:"1px solid",
+                  background: mode===m.key ? WOOD.amber : "rgba(255,235,195,0.08)",
+                  color: mode===m.key ? "#1a0900" : "rgba(255,255,255,0.7)",
+                  borderColor: mode===m.key ? WOOD.amber : "rgba(138,90,40,0.3)",
+                }}>{m.label}</button>
+              ))}
+            </div>
+            {modeInfo && <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, color:"rgba(255,255,255,0.4)", marginTop:8, fontStyle:"italic" }}>{modeInfo.desc}</p>}
+          </div>
+
+          {/* Generate button */}
+          <div style={{ padding:"0 18px 22px" }}>
+            <button onClick={generate} disabled={!canGenerate} style={{
+              width:"100%", padding:"13px 0",
+              background: canGenerate ? `linear-gradient(135deg,${WOOD.amber},#c8883a)` : "rgba(138,90,40,0.15)",
+              border:"none", borderRadius:12, cursor: canGenerate ? "pointer" : "default",
+              fontFamily:"'DM Sans',sans-serif", fontSize:15, fontWeight:700,
+              color: canGenerate ? "#1a0900" : WOOD.textFaint,
+              display:"flex", alignItems:"center", justifyContent:"center", gap:8, transition:"all 0.2s",
+            }}>
+              {loading
+                ? <><span style={{ width:16, height:16, border:"2px solid rgba(26,9,0,0.3)", borderTopColor:"#1a0900", borderRadius:"50%", display:"inline-block", animation:"spin 0.7s linear infinite" }} />Finding books…</>
+                : <><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.3L12 17 5.8 21.2l2.4-7.3L2 9.4h7.6z"/></svg>Get Recommendations</>
+              }
+            </button>
+          </div>
+
+          {/* Error */}
+          {error && (
+            <div style={{ margin:"0 18px 18px", padding:"12px 14px", background:"rgba(192,57,43,0.08)", border:"1px solid rgba(192,57,43,0.2)", borderRadius:10 }}>
+              <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:13, color:"#c0392b" }}>{error}</p>
+            </div>
+          )}
+
+          {/* Results */}
+          {currentRecs && currentRecs.length > 0 && (
+            <div style={{ padding:"0 18px" }}>
+              <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:10, fontWeight:700, color:"rgba(255,255,255,0.6)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:12 }}>Recommended for you</p>
+              <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+                {[...new Map(currentRecs.map(r => [r.title.toLowerCase(), r])).values()].map((rec, i) => (
+                  <RecCard key={i} index={i} rec={rec} coverUrl={currentCovers[rec.title] || null} ownedBook={books.find(b => normBookKey(b.title) === normBookKey(rec.title))} onAddDirect={onAddDirect} />
+                ))}
+              </div>
+              {/* Next 10 */}
+              <button onClick={generateNext} disabled={nextLoading} style={{
+                width:"100%", marginTop:16, padding:"11px 0",
+                background:"rgba(255,235,195,0.08)", border:"1px solid rgba(138,90,40,0.3)",
+                borderRadius:12, cursor: nextLoading ? "default" : "pointer",
+                fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:600,
+                color:"rgba(255,255,255,0.6)",
+                display:"flex", alignItems:"center", justifyContent:"center", gap:8, transition:"all 0.2s",
+              }}>
+                {nextLoading
+                  ? <><span style={{ width:14, height:14, border:"2px solid rgba(255,255,255,0.2)", borderTopColor:"rgba(255,255,255,0.6)", borderRadius:"50%", display:"inline-block", animation:"spin 0.7s linear infinite" }} />Loading…</>
+                  : "Next 10 →"
+                }
+              </button>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+function RecommendPage({ books, userId, onAddDirect }) {
+  const [character, setCharacter] = useState("paige");
+  return (
+    <div style={{ height:"100%", display:"flex", flexDirection:"column", overflow:"hidden" }}>
+      {/* Character selector */}
+      <div style={{ display:"flex", borderBottom:"1px solid rgba(138,90,40,0.2)", flexShrink:0 }}>
+        {[{ key:"paige", label:"Paige Turner" }, { key:"reiko", label:"Reiko Mend" }].map(c => (
+          <button key={c.key} onClick={() => setCharacter(c.key)} style={{
+            flex:1, padding:"14px 0", background:"transparent", border:"none",
+            borderBottom: character===c.key ? "2px solid #fff" : "2px solid transparent",
+            cursor:"pointer", fontFamily:"'Crimson Pro',serif", fontSize:16, fontWeight:400,
+            color: character===c.key ? "#fff" : "rgba(255,255,255,0.45)",
+            transition:"all 0.15s", marginBottom:-1,
+          }}>{c.label}</button>
+        ))}
+      </div>
+      {/* Content */}
+      <div style={{ flex:1, overflow:"hidden", position:"relative" }}>
+        {character === "paige"
+          ? <PaigeTab books={books} userId={userId} onAddDirect={onAddDirect} />
+          : <ReikoTab books={books} userId={userId} onAddDirect={onAddDirect} />
+        }
+      </div>
+    </div>
+  );
+}
+
 function ReikoTab({ books, userId, onAddDirect }) {
   const [selected, setSelected] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -4597,7 +4834,7 @@ export default function App() {
           {tab==="shelf"
             ? <ShelfTab books={books} onAdd={()=>setShowAdd(true)} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"" }); }} onRemove={id=>{ setBooks(prev => prev.filter(b=>b.id!==id)); dbDeleteBook(id, userId); }} onEdit={setEditBook} onScroll={setScrollY} onShelfChange={changeShelf} onImport={()=>setShowImport(true)} onSaveScores={saveScores} onSaveDescription={saveDescription} onSaveProgress={saveProgress} onSavePages={savePages} onSaveAspects={saveAspects} hideControls={!!editBook} />
             : tab==="reiko"
-            ? <ReikoTab books={books} userId={userId} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, rating:0, date:new Date().toISOString().slice(0,10) }; setBooks(prev => [...prev, b]); dbAddBook(b, userId); }} />
+            ? <RecommendPage books={books} userId={userId} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, rating:0, date:new Date().toISOString().slice(0,10) }; setBooks(prev => [...prev, b]); dbAddBook(b, userId); }} />
             : tab==="rankings"
             ? <RankingsTab books={books} onSaveScores={saveScores} userId={userId} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"" }); }} onShelfChange={changeShelf} onEdit={setEditBook} />
             : <StatsTab books={books} />
