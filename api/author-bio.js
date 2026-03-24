@@ -35,7 +35,7 @@ export default async function handler(req, res) {
     body: JSON.stringify({
       model: "claude-sonnet-4-6",
       temperature: 0.6,
-      max_tokens: 400,
+      max_tokens: 700,
       system: "You are a literary critic and essayist. Write author profiles that are incisive, atmospheric, and treat the reader as a serious book lover. No filler phrases, no generic praise. Write in plain prose — no headers, no bullet points, no markdown.",
       messages: [{
         role: "user",
