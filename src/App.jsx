@@ -1989,6 +1989,8 @@ function ReikoTab({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook }) {
 
   const availableYears = useMemo(() => [...new Set(books.map(b => b.date ? new Date(b.date).getFullYear() : null).filter(Boolean))].sort((a,b)=>b-a), [books]);
   const availableGenres = useMemo(() => [...new Set(books.map(b => b.genre).filter(Boolean))].sort(), [books]);
+  const [authorSort, setAuthorSort] = useState("az");
+
   const readAuthors = useMemo(() => {
     const seen = new Set();
     return books
@@ -1997,6 +1999,13 @@ function ReikoTab({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook }) {
       .filter(a => { if (seen.has(a)) return false; seen.add(a); return true; })
       .sort();
   }, [books]);
+
+  const sortedAuthors = useMemo(() => {
+    if (authorSort === "az") return readAuthors;
+    const counts = {};
+    books.filter(b => (b.shelf || "Read") === "Read" && b.author).forEach(b => { counts[b.author] = (counts[b.author] || 0) + 1; });
+    return [...readAuthors].sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
+  }, [readAuthors, authorSort, books]);
 
   // Load saved recommendations on mount
   useEffect(() => {
@@ -2367,12 +2376,17 @@ function ReikoTab({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook }) {
               {selectedAuthors.length > 0 && (
                 <button onClick={() => setSelectedAuthors([])} style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.4)", padding: 0, textDecoration: "underline" }}>Clear</button>
               )}
+              <div style={{ display: "flex", gap: 4, marginLeft: "auto" }}>
+                {[["az", "A–Z"], ["count", "# Read"]].map(([val, label]) => (
+                  <button key={val} onClick={() => setAuthorSort(val)} style={{ padding: "2px 8px", borderRadius: 20, border: "none", cursor: "pointer", fontFamily: "'DM Sans',sans-serif", fontSize: 9, fontWeight: 600, background: authorSort === val ? WOOD.amber : "rgba(255,235,195,0.12)", color: authorSort === val ? "#1a0900" : "rgba(255,255,255,0.45)", transition: "all 0.15s" }}>{label}</button>
+                ))}
+              </div>
               {(authorRecs || authorLoading) && <button onClick={() => setAuthorPickerCollapsed(true)} style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.45)", padding: 2 }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
               </button>}
             </div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
-              {readAuthors.map(author => {
+              {sortedAuthors.map(author => {
                 const isOn = selectedAuthors.includes(author);
                 return (
                   <button key={author} onClick={() => setSelectedAuthors(s => s.includes(author) ? s.filter(a => a !== author) : [...s, author])} style={{
