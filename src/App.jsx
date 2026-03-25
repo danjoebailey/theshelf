@@ -2062,9 +2062,14 @@ function ReikoTab({ books, userId, onAddDirect, onAuthor }) {
             ) : (
             <div>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-              <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", letterSpacing: "0.1em" }}>
-                Choose seeds {selected.length > 0 && <span style={{ color: WOOD.amber, fontWeight: 700 }}>({selected.length} selected)</span>}
-              </p>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", letterSpacing: "0.1em" }}>
+                  Choose seeds {selected.length > 0 && <span style={{ color: WOOD.amber, fontWeight: 700 }}>({selected.length} selected)</span>}
+                </p>
+                {selected.length > 0 && (
+                  <button onClick={() => setSelected([])} style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.4)", padding: 0, textDecoration: "underline" }}>Clear</button>
+                )}
+              </div>
               <button onClick={() => setFilterOpen(o => !o)} style={{
                 display: "flex", alignItems: "center", justifyContent: "center", gap: 4,
                 background: activeFilterCount > 0 ? WOOD.amber : "rgba(15,8,2,0.55)",
@@ -2227,9 +2232,14 @@ function ReikoTab({ books, userId, onAddDirect, onAuthor }) {
               </div>
             ) : (
             <div>
-            <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 10 }}>
-              Choose authors {selectedAuthors.length > 0 && <span style={{ color: WOOD.amber }}>({selectedAuthors.length} selected)</span>}
-            </p>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+              <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", letterSpacing: "0.1em" }}>
+                Choose authors {selectedAuthors.length > 0 && <span style={{ color: WOOD.amber }}>({selectedAuthors.length} selected)</span>}
+              </p>
+              {selectedAuthors.length > 0 && (
+                <button onClick={() => setSelectedAuthors([])} style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.4)", padding: 0, textDecoration: "underline" }}>Clear</button>
+              )}
+            </div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
               {readAuthors.map(author => {
                 const isOn = selectedAuthors.includes(author);
