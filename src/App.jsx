@@ -2297,14 +2297,8 @@ function ReikoTab({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook }) {
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {authorRecs.map((rec, i) => (
                   <div key={i} style={{ background: WOOD.card, borderRadius: 12, padding: "14px", border: "1px solid rgba(138,90,40,0.18)", boxShadow: "0 1px 4px rgba(0,0,0,0.08)" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 18, color: WOOD.text, lineHeight: 1.2 }}>{rec.name}</p>
-                        <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, color: WOOD.textFaint, marginTop: 3 }}>
-                          {[rec.topGenre, rec.booksWritten ? `${rec.booksWritten} books` : null].filter(Boolean).join(" · ")}
-                        </p>
-                        <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: WOOD.textDim, marginTop: 8, lineHeight: 1.55 }}>{rec.reason}</p>
-                      </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, marginBottom: 3 }}>
+                      <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 18, color: WOOD.text, lineHeight: 1.2 }}>{rec.name}</p>
                       <button onClick={() => onAuthor && onAuthor(rec.name)} style={{
                         flexShrink: 0, padding: "6px 12px", borderRadius: 20, fontSize: 11,
                         fontFamily: "'DM Sans',sans-serif", fontWeight: 600, cursor: "pointer",
@@ -2313,6 +2307,10 @@ function ReikoTab({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook }) {
                         transition: "all 0.15s",
                       }}>View Profile</button>
                     </div>
+                    {(rec.topGenre || rec.booksWritten) && <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, color: WOOD.textFaint, marginBottom: 8 }}>
+                      {[rec.topGenre, rec.booksWritten ? `${rec.booksWritten} books` : null].filter(Boolean).join(" · ")}
+                    </p>}
+                    <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: WOOD.textDim, lineHeight: 1.55 }}>{rec.reason}</p>
                   </div>
                 ))}
               </div>
