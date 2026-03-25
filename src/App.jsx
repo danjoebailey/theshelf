@@ -1534,21 +1534,41 @@ function RecCard({ rec, coverUrl, ownedBook, onAddDirect, index }) {
         </div>
       </div>
 
-      {/* About / Prose / Scores */}
-      <div style={{ display:"flex", gap:6, marginTop:10 }} onClick={e=>e.stopPropagation()}>
-        <button {...tc(fetchDescription, true)} style={{ display:"flex", alignItems:"center", gap:5, background:showDescription?WOOD.amber:"rgba(138,90,40,0.12)", borderRadius:20, padding:"5px 12px", border:`1px solid ${showDescription?WOOD.amber:"rgba(138,90,40,0.25)"}`, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, color:showDescription?"#1a0900":WOOD.textDim }}>
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 6h16M4 12h16M4 18h12"/></svg>
-          About
-        </button>
-        <button {...tc(fetchProse, true)} style={{ display:"flex", alignItems:"center", gap:5, background:showProse?WOOD.amber:"rgba(138,90,40,0.12)", borderRadius:20, padding:"5px 12px", border:`1px solid ${showProse?WOOD.amber:"rgba(138,90,40,0.25)"}`, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, color:showProse?"#1a0900":WOOD.textDim }}>
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-          Prose
-        </button>
-        <button {...tc(fetchScores, true)} style={{ display:"flex", alignItems:"center", gap:5, background:showScores?WOOD.amber:"rgba(138,90,40,0.12)", borderRadius:20, padding:"5px 12px", border:`1px solid ${showScores?WOOD.amber:"rgba(138,90,40,0.25)"}`, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, color:showScores?"#1a0900":WOOD.textDim }}>
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
-          Scores
-        </button>
+      {/* Action row: About / Prose / Scores + shelf dropdown */}
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:10 }} onClick={e=>e.stopPropagation()}>
+        <div style={{ display:"flex", gap:6 }}>
+          <button {...tc(fetchDescription, true)} style={{ display:"flex", alignItems:"center", gap:5, background:showDescription?WOOD.amber:"rgba(138,90,40,0.12)", borderRadius:20, padding:"5px 12px", border:`1px solid ${showDescription?WOOD.amber:"rgba(138,90,40,0.25)"}`, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, color:showDescription?"#1a0900":WOOD.textDim }}>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 6h16M4 12h16M4 18h12"/></svg>
+            About
+          </button>
+          <button {...tc(fetchProse, true)} style={{ display:"flex", alignItems:"center", gap:5, background:showProse?WOOD.amber:"rgba(138,90,40,0.12)", borderRadius:20, padding:"5px 12px", border:`1px solid ${showProse?WOOD.amber:"rgba(138,90,40,0.25)"}`, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, color:showProse?"#1a0900":WOOD.textDim }}>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            Prose
+          </button>
+          <button {...tc(fetchScores, true)} style={{ display:"flex", alignItems:"center", gap:5, background:showScores?WOOD.amber:"rgba(138,90,40,0.12)", borderRadius:20, padding:"5px 12px", border:`1px solid ${showScores?WOOD.amber:"rgba(138,90,40,0.25)"}`, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, color:showScores?"#1a0900":WOOD.textDim }}>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+            Scores
+          </button>
+        </div>
+        <div style={{ position:"relative" }}>
+          <span {...tc(()=>setDropOpen(o=>!o))} style={{ background:dropMeta.bg, color:dropMeta.color, border:`1px solid ${dropMeta.border}`, borderRadius:20, padding:"3px 10px", fontSize:9, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", lineHeight:1, cursor:"pointer", display:"inline-block" }}>
+            {dropLabel}
+          </span>
+          {dropOpen && (
+            <div style={{ position:"absolute", bottom:"calc(100% + 4px)", right:0, zIndex:40, minWidth:120, background:"#f5e8d0", borderRadius:10, overflow:"hidden", boxShadow:"0 4px 20px rgba(0,0,0,0.25)", border:"1px solid rgba(138,90,40,0.3)", animation:"fadeIn 0.12s ease" }}>
+              {SHELVES.map((s, si) => (
+                <button key={s}
+                  {...tc(()=>{ setDropOpen(false); onAddDirect({ title:rec.title, author:rec.author, genre:rec.genre, coverUrl, pages:0 }, s); })}
+                  style={{ display:"block", width:"100%", padding:"9px 14px", textAlign:"left", background:ownedBook&&(ownedBook.shelf||"Read")===s?"rgba(138,90,40,0.1)":"transparent", border:"none", borderBottom:si<SHELVES.length-1?"1px solid rgba(138,90,40,0.1)":"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:13, color:ownedBook&&(ownedBook.shelf||"Read")===s?WOOD.amber:WOOD.text, fontWeight:ownedBook&&(ownedBook.shelf||"Read")===s?600:400 }}>
+                  {s}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Expanded panels */}
       {showDescription && (
         <div style={{ marginTop:10, animation:"fadeIn 0.18s ease" }} onClick={e=>e.stopPropagation()}>
           {descriptionLoading
@@ -1590,26 +1610,6 @@ function RecCard({ rec, coverUrl, ownedBook, onAddDirect, index }) {
             ) : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:13, color:WOOD.textFaint, fontStyle:"italic" }}>Unable to score.</p>}
         </div>
       )}
-
-      {/* shelf dropdown — bottom right */}
-      <div style={{ display:"flex", justifyContent:"flex-end", marginTop:10, position:"relative" }} onClick={e=>e.stopPropagation()}>
-        <div style={{ position:"relative" }}>
-          <span {...tc(()=>setDropOpen(o=>!o))} style={{ background:dropMeta.bg, color:dropMeta.color, border:`1px solid ${dropMeta.border}`, borderRadius:20, padding:"3px 10px", fontSize:9, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", lineHeight:1, cursor:"pointer", display:"inline-block" }}>
-            {dropLabel}
-          </span>
-          {dropOpen && (
-            <div style={{ position:"absolute", bottom:"calc(100% + 4px)", right:0, zIndex:40, minWidth:120, background:"#f5e8d0", borderRadius:10, overflow:"hidden", boxShadow:"0 4px 20px rgba(0,0,0,0.25)", border:"1px solid rgba(138,90,40,0.3)", animation:"fadeIn 0.12s ease" }}>
-              {SHELVES.map((s, si) => (
-                <button key={s}
-                  {...tc(()=>{ setDropOpen(false); onAddDirect({ title:rec.title, author:rec.author, genre:rec.genre, coverUrl, pages:0 }, s); })}
-                  style={{ display:"block", width:"100%", padding:"9px 14px", textAlign:"left", background:ownedBook&&(ownedBook.shelf||"Read")===s?"rgba(138,90,40,0.1)":"transparent", border:"none", borderBottom:si<SHELVES.length-1?"1px solid rgba(138,90,40,0.1)":"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:13, color:ownedBook&&(ownedBook.shelf||"Read")===s?WOOD.amber:WOOD.text, fontWeight:ownedBook&&(ownedBook.shelf||"Read")===s?600:400 }}>
-                  {s}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
     </div>
   );
 }
