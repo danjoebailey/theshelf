@@ -4538,7 +4538,7 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd }) {
       .finally(() => setBiblioLoading(false));
   }, [activeTab, author]);
 
-  // Sort/group bibliography and sequentially load covers, auto-expanding from 5 to 10
+  // Effect 1: sort/group bibliography and show first 5 immediately
   useEffect(() => {
     if (!biblio) return;
 
@@ -4548,7 +4548,6 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd }) {
     const libraryTitles = new Set(books.filter(b => b.author?.toLowerCase() === author?.toLowerCase()).map(b => stripSeries(b.title)));
     const unread = biblio.filter(b => !libraryTitles.has(stripSeries(b.title)));
 
-    // Group series, sort within groups, rank groups by best tier
     const seriesMap = {};
     const standalones = [];
     for (const book of unread) {
@@ -4565,28 +4564,29 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd }) {
 
     const cached = {};
     biblio.forEach(b => { if (b.coverUrl) cached[b.title] = b.coverUrl; });
-    setSortedUnread(sorted);
     setUnreadCovers(cached);
     setDisplayedCount(5);
+    setSortedUnread(sorted);
+  }, [biblio]);
 
+  // Effect 2: after sortedUnread is committed (first 5 rendered), load covers sequentially and expand to 10
+  useEffect(() => {
+    if (!sortedUnread?.length) return;
     let cancelled = false;
     (async () => {
-      for (let i = 0; i < Math.min(sorted.length, 10); i++) {
+      for (let i = 0; i < Math.min(sortedUnread.length, 10); i++) {
         if (cancelled) break;
-        const b = sorted[i];
-        if (!cached[b.title]) {
-          try {
-            const r = await fetch("/api/fetch-cover", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: b.title, author }) });
-            const d = await r.json();
-            if (d.coverUrl && !cancelled) setUnreadCovers(prev => ({ ...prev, [b.title]: d.coverUrl }));
-          } catch {}
-        }
-        if (i === 4 && !cancelled) { await new Promise(r => setTimeout(r, 50)); if (!cancelled) setDisplayedCount(10); }
+        const b = sortedUnread[i];
+        try {
+          const r = await fetch("/api/fetch-cover", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: b.title, author }) });
+          const d = await r.json();
+          if (d.coverUrl && !cancelled) setUnreadCovers(prev => ({ ...prev, [b.title]: d.coverUrl }));
+        } catch {}
+        if (i === 4 && !cancelled) setDisplayedCount(10);
       }
     })();
-
     return () => { cancelled = true; };
-  }, [biblio]);
+  }, [sortedUnread]);
 
   const tabs = [
     { key:"books",   label:"Books",   icon:<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 2h8a1 1 0 011 1v10a1 1 0 01-1 1H3a1 1 0 01-1-1V3a1 1 0 011-1z" stroke="currentColor" strokeWidth="1.4"/><path d="M5 6h6M5 9h4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg> },
