@@ -2070,6 +2070,9 @@ function ReikoTab({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook }) {
                 {selected.length > 0 && (
                   <button onClick={() => setSelected([])} style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.4)", padding: 0, textDecoration: "underline" }}>Clear</button>
                 )}
+                {(recs || loading) && <button onClick={() => setPickerCollapsed(true)} style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.45)", padding: 2 }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+                </button>}
               </div>
               <button onClick={() => setFilterOpen(o => !o)} style={{
                 display: "flex", alignItems: "center", justifyContent: "center", gap: 4,
@@ -2240,6 +2243,9 @@ function ReikoTab({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook }) {
               {selectedAuthors.length > 0 && (
                 <button onClick={() => setSelectedAuthors([])} style={{ background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.4)", padding: 0, textDecoration: "underline" }}>Clear</button>
               )}
+              {(authorRecs || authorLoading) && <button onClick={() => setAuthorPickerCollapsed(true)} style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.45)", padding: 2 }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+              </button>}
             </div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
               {readAuthors.map(author => {
