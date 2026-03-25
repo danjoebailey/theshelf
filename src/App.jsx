@@ -1917,6 +1917,10 @@ function ReikoTab({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook }) {
         if (data.covers) setRecCovers(data.covers);
         if (data.seeds?.length) setSelected(prev => prev.length ? prev : data.seeds.filter(id => books.some(b => b.id === id)));
       });
+    try {
+      const cached = localStorage.getItem(`author_recs_${userId}`);
+      if (cached) { const { items, seeds } = JSON.parse(cached); if (items?.length) { setAuthorRecs(items); if (seeds?.length) setSelectedAuthors(seeds); setAuthorPickerCollapsed(true); } }
+    } catch {}
   }, [userId]);
 
   const filteredPicker = useMemo(() => {
@@ -2007,6 +2011,7 @@ function ReikoTab({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook }) {
       const readSet = new Set(readAuthors.map(a => a.toLowerCase()));
       const results = (data.recommendations || []).filter(r => !readSet.has(r.name.toLowerCase()));
       setAuthorRecs(results);
+      try { localStorage.setItem(`author_recs_${userId}`, JSON.stringify({ items: results, seeds: selectedAuthors })); } catch {}
     } catch (e) {
       setAuthorError(e.message || "Something went wrong.");
     }
