@@ -19,7 +19,7 @@ export default async function handler(req, res) {
       max_tokens: 400,
       messages: [{
         role: "user",
-        content: `Write a short prose excerpt (2–3 paragraphs) in the unmistakable style of ${author}, capturing the voice, rhythm, and atmosphere of their book "${title}". Do not reference the book or its characters directly — just evoke the author's distinctive prose style. No introduction or explanation, just the excerpt itself.`,
+        content: `Write a short prose passage (2–3 paragraphs) in the unmistakable style of ${author}, capturing the voice, rhythm, and atmosphere of their book "${title}". Do not reference the book or its characters directly — just evoke the author's distinctive prose style. Return only the prose itself, no titles, headings, labels, introduction, or explanation. Do not use markdown.`,
       }],
     }),
   });
@@ -30,6 +30,7 @@ export default async function handler(req, res) {
   }
 
   const data = await response.json();
-  const text = data.content?.[0]?.text || "";
+  const raw = data.content?.[0]?.text || "";
+  const text = raw.replace(/^#+\s+[^\n]*\n+/gm, "").trim();
   res.json({ prose: text });
 }
