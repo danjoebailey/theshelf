@@ -1925,7 +1925,8 @@ function AuthorRecCard({ rec, books, onAuthor, onEdit, onAddBook }) {
             return (
               <div key={i} onClick={() => ownedBook && onEdit ? onEdit(ownedBook) : onAddBook && onAddBook({ title: b.title, author: b.author, genre: b.genre, coverUrl, pages: 0 })} style={{
                 display: "flex", alignItems: "center", gap: 10, padding: "8px 10px",
-                background: "rgba(138,90,40,0.06)", borderRadius: 8, border: "1px solid rgba(138,90,40,0.12)", cursor: "pointer",
+                background: "rgba(138,90,40,0.06)", borderRadius: 8, cursor: "pointer",
+                borderTop: "6px solid #8a5a28", borderLeft: "6px solid #8a5a28", borderBottom: "6px solid #8a5a28", borderRight: "none",
               }}>
                 <div style={{ width: 30, height: 44, borderRadius: 3, flexShrink: 0, background: color, position: "relative", boxShadow: "1px 1px 4px rgba(0,0,0,0.2)" }}>
                   {coverUrl && <img src={coverUrl} alt={b.title} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", borderRadius: 3 }} onError={e => { e.target.style.display = "none"; }} />}
