@@ -1446,7 +1446,7 @@ function BookCoverThumb({ book: b }) {
   );
 }
 
-function RecCard({ rec, coverUrl, ownedBook, onAddDirect, onEdit, index }) {
+function RecCard({ rec, coverUrl, ownedBook, onAddDirect, onEdit, onAddBook, index }) {
   const [dropOpen, setDropOpen] = useState(false);
   const [prose, setProse] = useState(null);
   const [proseLoading, setProseLoading] = useState(false);
@@ -1520,7 +1520,7 @@ function RecCard({ rec, coverUrl, ownedBook, onAddDirect, onEdit, index }) {
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", marginBottom:3 }}>
             <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 17, color: WOOD.text, lineHeight: 1.2, flex:1, paddingRight:6 }}>{rec.title}</p>
-            {ownedBook && onEdit && <button {...tc(()=>onEdit(ownedBook), true)} style={{ background:"transparent", border:"none", cursor:"pointer", padding:"2px 4px 0", color:"rgba(120,70,20,0.6)", fontSize:16, lineHeight:1, flexShrink:0 }}>↗</button>}
+            <button {...tc(()=>{ ownedBook && onEdit ? onEdit(ownedBook) : onAddBook && onAddBook({ title:rec.title, author:rec.author, genre:rec.genre, coverUrl, pages:rec.pages||0 }); }, true)} style={{ background:"transparent", border:"none", cursor:"pointer", padding:"2px 4px 0", color:"rgba(120,70,20,0.6)", fontSize:16, lineHeight:1, flexShrink:0 }}>↗</button>
           </div>
           <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: WOOD.textDim, fontStyle: "italic", marginBottom: 3 }}>{rec.author}</p>
           {rec.genre && <span style={{ background: GENRE_COLORS[rec.genre] || GENRE_COLORS["Other"], color: "#fff", borderRadius: 20, padding: "2px 8px", fontSize: 8, fontFamily: "'DM Sans',sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", display: "inline-block", marginBottom: 3 }}>{rec.genre}</span>}
@@ -1624,7 +1624,7 @@ const PAIGE_MODES = [
   { key:"new_to_me",    label:"New To Me",    desc:"Genres and styles you haven't tried" },
 ];
 
-function PaigeTab({ books, userId, onAddDirect, onEdit }) {
+function PaigeTab({ books, userId, onAddDirect, onEdit, onAddBook }) {
   const [mode, setMode] = useState("popular");
   const [loading, setLoading] = useState(false);
   const [recs, setRecs] = useState({});       // { [mode]: [...items] }
@@ -1823,7 +1823,7 @@ function PaigeTab({ books, userId, onAddDirect, onEdit }) {
               <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:10, fontWeight:700, color:"rgba(255,255,255,0.6)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:12 }}>Recommended for you</p>
               <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
                 {[...new Map(currentRecs.map(r => [r.title.toLowerCase(), r])).values()].map((rec, i) => (
-                  <RecCard key={i} index={i} rec={rec} coverUrl={currentCovers[rec.title] || null} ownedBook={books.find(b => normBookKey(b.title) === normBookKey(rec.title))} onAddDirect={onAddDirect} onEdit={onEdit} />
+                  <RecCard key={i} index={i} rec={rec} coverUrl={currentCovers[rec.title] || null} ownedBook={books.find(b => normBookKey(b.title) === normBookKey(rec.title))} onAddDirect={onAddDirect} onEdit={onEdit} onAddBook={onAddBook} />
                 ))}
               </div>
               {/* Next 10 */}
@@ -1848,7 +1848,7 @@ function PaigeTab({ books, userId, onAddDirect, onEdit }) {
   );
 }
 
-function RecommendPage({ books, userId, onAddDirect, onAuthor, onEdit }) {
+function RecommendPage({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook }) {
   const [character, setCharacter] = useState("paige");
   return (
     <div style={{ height:"100%", overflowY:"auto", overflowX:"hidden" }}>
@@ -1870,14 +1870,14 @@ function RecommendPage({ books, userId, onAddDirect, onAuthor, onEdit }) {
       </div>
       {/* Content */}
       {character === "paige"
-        ? <PaigeTab books={books} userId={userId} onAddDirect={onAddDirect} onEdit={onEdit} />
-        : <ReikoTab books={books} userId={userId} onAddDirect={onAddDirect} onAuthor={onAuthor} onEdit={onEdit} />
+        ? <PaigeTab books={books} userId={userId} onAddDirect={onAddDirect} onEdit={onEdit} onAddBook={onAddBook} />
+        : <ReikoTab books={books} userId={userId} onAddDirect={onAddDirect} onAuthor={onAuthor} onEdit={onEdit} onAddBook={onAddBook} />
       }
     </div>
   );
 }
 
-function ReikoTab({ books, userId, onAddDirect, onAuthor, onEdit }) {
+function ReikoTab({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook }) {
   const [reikoMode, setReikoMode] = useState("books");
   const [selected, setSelected] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -2210,7 +2210,7 @@ function ReikoTab({ books, userId, onAddDirect, onAuthor, onEdit }) {
               <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 12 }}>Recommended for you</p>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {[...new Map(recs.map(r => [r.title.toLowerCase(), r])).values()].map((rec, i) => (
-                  <RecCard key={i} index={i} rec={rec} coverUrl={recCovers[rec.title] || books.find(b => normBookKey(b.title) === normBookKey(rec.title))?.coverUrl || null} ownedBook={books.find(b => normBookKey(b.title) === normBookKey(rec.title))} onAddDirect={onAddDirect} onEdit={onEdit} />
+                  <RecCard key={i} index={i} rec={rec} coverUrl={recCovers[rec.title] || books.find(b => normBookKey(b.title) === normBookKey(rec.title))?.coverUrl || null} ownedBook={books.find(b => normBookKey(b.title) === normBookKey(rec.title))} onAddDirect={onAddDirect} onEdit={onEdit} onAddBook={onAddBook} />
                 ))}
               </div>
             </div>
@@ -4990,7 +4990,7 @@ export default function App() {
           {tab==="shelf"
             ? <ShelfTab books={books} onAdd={()=>setShowAdd(true)} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"" }); }} onRemove={id=>{ setBooks(prev => prev.filter(b=>b.id!==id)); dbDeleteBook(id, userId); }} onEdit={setEditBook} onScroll={setScrollY} onShelfChange={changeShelf} onImport={()=>setShowImport(true)} onSaveScores={saveScores} onSaveDescription={saveDescription} onSaveProgress={saveProgress} onSavePages={savePages} onSaveAspects={saveAspects} hideControls={!!editBook} />
             : tab==="reiko"
-            ? <RecommendPage books={books} userId={userId} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, rating:0, date:new Date().toISOString().slice(0,10) }; setBooks(prev => [...prev, b]); dbAddBook(b, userId); }} onAuthor={setAuthorModal} onEdit={setEditBook} />
+            ? <RecommendPage books={books} userId={userId} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, rating:0, date:new Date().toISOString().slice(0,10) }; setBooks(prev => [...prev, b]); dbAddBook(b, userId); }} onAuthor={setAuthorModal} onEdit={setEditBook} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"" }); }} />
             : tab==="rankings"
             ? <RankingsTab books={books} onSaveScores={saveScores} userId={userId} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"" }); }} onShelfChange={changeShelf} onEdit={setEditBook} />
             : <StatsTab books={books} />
