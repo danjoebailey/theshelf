@@ -1989,7 +1989,7 @@ function ReikoTab({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook }) {
 
   const availableYears = useMemo(() => [...new Set(books.map(b => b.date ? new Date(b.date).getFullYear() : null).filter(Boolean))].sort((a,b)=>b-a), [books]);
   const availableGenres = useMemo(() => [...new Set(books.map(b => b.genre).filter(Boolean))].sort(), [books]);
-  const [authorSort, setAuthorSort] = useState("az");
+  const [authorSort, setAuthorSort] = useState(() => { try { return localStorage.getItem("authorSort") || "az"; } catch { return "az"; } });
 
   const readAuthors = useMemo(() => {
     const seen = new Set();
@@ -2378,7 +2378,7 @@ function ReikoTab({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook }) {
               )}
               <div style={{ display: "flex", gap: 4, marginLeft: "auto" }}>
                 {[["az", "A–Z"], ["count", "# Read"]].map(([val, label]) => (
-                  <button key={val} onClick={() => setAuthorSort(val)} style={{ padding: "2px 8px", borderRadius: 20, border: "none", cursor: "pointer", fontFamily: "'DM Sans',sans-serif", fontSize: 9, fontWeight: 600, background: authorSort === val ? WOOD.amber : "rgba(255,235,195,0.12)", color: authorSort === val ? "#1a0900" : "rgba(255,255,255,0.45)", transition: "all 0.15s" }}>{label}</button>
+                  <button key={val} onClick={() => { setAuthorSort(val); try { localStorage.setItem("authorSort", val); } catch {} }} style={{ padding: "2px 8px", borderRadius: 20, border: "none", cursor: "pointer", fontFamily: "'DM Sans',sans-serif", fontSize: 9, fontWeight: 600, background: authorSort === val ? WOOD.amber : "rgba(255,235,195,0.12)", color: authorSort === val ? "#1a0900" : "rgba(255,255,255,0.45)", transition: "all 0.15s" }}>{label}</button>
                 ))}
               </div>
               {(authorRecs || authorLoading) && <button onClick={() => setAuthorPickerCollapsed(true)} style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.45)", padding: 2 }}>
