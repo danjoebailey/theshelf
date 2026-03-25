@@ -1763,7 +1763,7 @@ function PaigeTab({ books, userId, onAddDirect }) {
   const modeInfo = PAIGE_MODES.find(m => m.key === mode);
 
   return (
-    <div style={{ height:"100%", overflowY:"auto", overflowX:"hidden", padding:"0 0 100px" }}>
+    <div style={{ padding:"0 0 100px" }}>
       {/* Header */}
       <div style={{ padding:"16px 18px 8px" }}>
         <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:"rgba(255,255,255,0.6)", textAlign:"center" }}>Recommendations built from your reading profile.</p>
@@ -1850,9 +1850,9 @@ function PaigeTab({ books, userId, onAddDirect }) {
 function RecommendPage({ books, userId, onAddDirect, onAuthor }) {
   const [character, setCharacter] = useState("paige");
   return (
-    <div style={{ height:"100%", display:"flex", flexDirection:"column", overflow:"hidden" }}>
+    <div style={{ height:"100%", overflowY:"auto", overflowX:"hidden" }}>
       {/* Character selector */}
-      <div style={{ display:"flex", justifyContent:"center", gap:32, padding:"18px 18px 0", borderBottom:"1px solid rgba(138,90,40,0.2)", flexShrink:0 }}>
+      <div style={{ display:"flex", justifyContent:"center", gap:32, padding:"18px 18px 0", borderBottom:"1px solid rgba(138,90,40,0.2)" }}>
         {[{ key:"paige", label:"Paige Turner", img:"/page-turner.png" }, { key:"reiko", label:"Reiko Mend", img:"/reiko-mend.png" }].map(c => (
           <button key={c.key} onClick={() => setCharacter(c.key)} style={{
             display:"flex", flexDirection:"column", alignItems:"center", gap:6,
@@ -1867,12 +1867,10 @@ function RecommendPage({ books, userId, onAddDirect, onAuthor }) {
         ))}
       </div>
       {/* Content */}
-      <div style={{ flex:1, overflow:"hidden", position:"relative" }}>
-        {character === "paige"
-          ? <PaigeTab books={books} userId={userId} onAddDirect={onAddDirect} />
-          : <ReikoTab books={books} userId={userId} onAddDirect={onAddDirect} onAuthor={onAuthor} />
-        }
-      </div>
+      {character === "paige"
+        ? <PaigeTab books={books} userId={userId} onAddDirect={onAddDirect} />
+        : <ReikoTab books={books} userId={userId} onAddDirect={onAddDirect} onAuthor={onAuthor} />
+      }
     </div>
   );
 }
@@ -2016,7 +2014,7 @@ function ReikoTab({ books, userId, onAddDirect, onAuthor }) {
   const canSubmitAuthors = selectedAuthors.length > 0 && !authorLoading;
 
   return (
-    <div style={{ height: "100%", overflowY: "auto", overflowX: "hidden", padding: "0 0 100px" }}>
+    <div style={{ padding: "0 0 100px" }}>
       {/* Mode toggle */}
       <div style={{ padding: "16px 18px 0", display: "flex", justifyContent: "center", gap: 6 }}>
         {[["books", "Books"], ["authors", "Authors"]].map(([m, label]) => (
