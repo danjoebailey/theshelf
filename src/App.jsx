@@ -532,7 +532,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
             <div style={{ marginBottom: 4, animation:"fadeIn 0.18s ease" }}>
               {proseLoading
                 ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, color:WOOD.textFaint, fontStyle:"italic" }}>Generating…</p>
-                : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, color:WOOD.text, lineHeight:1.8, fontStyle:"italic" }}>{prose}</p>
+                : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, color:WOOD.text, lineHeight:1.8 }}>{prose}</p>
               }
             </div>
           )}
@@ -726,7 +726,7 @@ function BookRowExpanded({ book, onEdit, onRemove, onAdd, onSaveProgress, onSave
         <div style={{ marginBottom:4, animation:"fadeIn 0.18s ease" }}>
           {proseLoading
             ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.textFaint, fontStyle:"italic" }}>Generating…</p>
-            : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, lineHeight:1.8, fontStyle:"italic" }}>{prose}</p>
+            : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, lineHeight:1.8 }}>{prose}</p>
           }
         </div>
       )}
@@ -1585,7 +1585,7 @@ function RecCard({ rec, coverUrl, ownedBook, onAddDirect, onEdit, index }) {
           </div>
           {proseLoading
             ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.textFaint, fontStyle:"italic" }}>Generating…</p>
-            : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, lineHeight:1.8, fontStyle:"italic" }}>{prose}</p>}
+            : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, lineHeight:1.8 }}>{prose}</p>}
         </div>
       )}
       {showScores && (
@@ -4050,7 +4050,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
                 <div style={{ animation:"fadeIn 0.18s ease" }}>
                   {proseLoading
                     ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:CR.textFaint, fontStyle:"italic" }}>Generating…</p>
-                    : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:CR.text, lineHeight:1.8, fontStyle:"italic" }}>{prose}</p>}
+                    : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:CR.text, lineHeight:1.8 }}>{prose}</p>}
                 </div>
               )}
               {detailPanel === "scores" && (
