@@ -4581,7 +4581,7 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd }) {
             if (d.coverUrl && !cancelled) setUnreadCovers(prev => ({ ...prev, [b.title]: d.coverUrl }));
           } catch {}
         }
-        if (i === 4 && !cancelled) setDisplayedCount(10);
+        if (i === 4 && !cancelled) { await new Promise(r => setTimeout(r, 50)); if (!cancelled) setDisplayedCount(10); }
       }
     })();
 
