@@ -1882,19 +1882,29 @@ function RecommendPage({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook
   );
 }
 
-function AuthorRecCard({ rec, books, onAuthor, onEdit, onAddBook }) {
+const SHELF_BADGE = {
+  "Read":     { bg:"rgba(60,120,80,0.55)",  color:"rgba(255,255,255,0.9)", border:"rgba(60,120,80,0.4)"  },
+  "Reading":  { bg:"rgba(210,100,30,0.55)", color:"rgba(255,255,255,0.9)", border:"rgba(210,100,30,0.4)" },
+  "The List": { bg:"rgba(80,120,180,0.7)",  color:"rgba(255,255,255,0.9)", border:"rgba(80,120,180,0.5)" },
+  "Curious":  { bg:"rgba(180,155,80,0.7)",  color:"rgba(255,255,255,0.9)", border:"rgba(180,155,80,0.5)" },
+  "DNF":      { bg:"rgba(160,50,50,0.55)",  color:"rgba(255,255,255,0.9)", border:"rgba(160,50,50,0.4)" },
+};
+
+function AuthorRecCard({ rec, books, onAuthor, onEdit, onAddBook, onAddDirect }) {
   const [expanded, setExpanded] = useState(false);
   const [covers, setCovers] = useState({});
   const [coversLoading, setCoversLoading] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState(null);
 
   async function handleExpand() {
     const next = !expanded;
     setExpanded(next);
+    setOpenDropdown(null);
     if (next && rec.topBooks?.length && Object.keys(covers).length === 0) {
       setCoversLoading(true);
       await Promise.all(rec.topBooks.map(async b => {
         try {
-          const r = await fetch("/api/fetch-cover", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: b.title, author: b.author }) });
+          const r = await fetch("/api/fetch-cover", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: b.title, author: rec.name }) });
           const d = await r.json();
           if (d.coverUrl) setCovers(prev => ({ ...prev, [b.title]: d.coverUrl }));
         } catch {}
@@ -1921,26 +1931,41 @@ function AuthorRecCard({ rec, books, onAuthor, onEdit, onAddBook }) {
       </p>}
       <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: CR.textDim, lineHeight: 1.55 }}>{rec.reason}</p>
       {expanded && rec.topBooks?.length > 0 && (
-        <div style={{ marginTop: 12, borderTop: `1px solid ${CR.border}`, paddingTop: 12, display: "flex", flexDirection: "column", gap: 8 }} onClick={e => e.stopPropagation()}>
-          {coversLoading && <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, color: CR.textFaint, fontStyle: "italic" }}>Loading…</p>}
+        <div style={{ marginTop: 12, borderTop: `1px solid ${CR.border}`, paddingTop: 4, display: "flex", flexDirection: "column" }} onClick={e => e.stopPropagation()}>
+          {coversLoading && <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, color: CR.textFaint, fontStyle: "italic", padding: "8px 0" }}>Loading…</p>}
           {rec.topBooks.map((b, i) => {
             const ownedBook = books.find(lb => normBookKey(lb.title) === normBookKey(b.title));
             const coverUrl = covers[b.title] || ownedBook?.coverUrl || null;
-            const color = GENRE_COLORS[b.genre] || GENRE_COLORS["Other"];
+            const draft = { title: b.title, author: rec.name, genre: b.genre || "Fiction", coverUrl, pages: b.pages || 0 };
+            const badge = ownedBook ? (SHELF_BADGE[ownedBook.shelf] || SHELF_BADGE["Read"]) : null;
             return (
-              <div key={i} onClick={() => ownedBook && onEdit ? onEdit(ownedBook) : onAddBook && onAddBook({ title: b.title, author: b.author, genre: b.genre, coverUrl, pages: 0 })} style={{
-                display: "flex", alignItems: "center", gap: 10, padding: "8px 10px",
-                background: CR.panel, borderRadius: 8, cursor: "pointer",
-                borderTop: "6px solid #8a5a28", borderLeft: `1px solid ${CR.border}`, borderBottom: "6px solid #8a5a28", borderRight: "none",
-              }}>
-                <div style={{ width: 30, height: 44, borderRadius: 3, flexShrink: 0, background: color, position: "relative", boxShadow: "1px 1px 4px rgba(0,0,0,0.2)" }}>
-                  {coverUrl && <img src={coverUrl} alt={b.title} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", borderRadius: 3 }} onError={e => { e.target.style.display = "none"; }} />}
+              <div key={i} style={{ position: "relative", zIndex: openDropdown === b.title ? 10 : "auto", display: "flex", alignItems: "stretch", gap: 12, padding: "12px 0", borderBottom: i < rec.topBooks.length - 1 ? `1px solid ${CR.border}` : "none" }}>
+                {/* Tappable row → modal */}
+                <div onClick={() => ownedBook ? onEdit && onEdit(ownedBook) : onAddBook && onAddBook(draft)} style={{ display: "flex", gap: 12, flex: 1, minWidth: 0, cursor: "pointer", opacity: ownedBook ? 1 : 0.8 }}>
+                  <BookCover book={{ title: b.title, coverUrl }} width={42} height={62} radius={3} shadow="1px 1px 5px rgba(0,0,0,0.2)" />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 17, color: CR.text, lineHeight: 1.2, marginBottom: 4 }}>{b.title}</p>
+                    {b.publishYear && <p style={{ fontSize: 11, color: CR.textDim, fontFamily: "'DM Sans',sans-serif", marginBottom: 6 }}>{b.publishYear}{b.pages ? ` · ${b.pages} pages` : ""}</p>}
+                    {b.genre && <span style={{ background: GENRE_COLORS[b.genre] || "#94a3b8", color: "#fff", borderRadius: 20, padding: "3px 8px", fontSize: 8, fontFamily: "'DM Sans',sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", lineHeight: 1 }}>{b.genre}</span>}
+                  </div>
                 </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 14, color: CR.text, lineHeight: 1.2, marginBottom: 2 }}>{b.title}</p>
-                  <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, color: CR.textFaint, fontStyle: "italic" }}>{b.author}</p>
+                {/* Shelf badge or + Add dropdown */}
+                <div style={{ flexShrink: 0, display: "flex", alignItems: "flex-end", paddingBottom: 2, position: "relative" }}>
+                  {ownedBook ? (
+                    <span onClick={() => onEdit && onEdit(ownedBook)} style={{ background: badge.bg, color: badge.color, border: `1px solid ${badge.border}`, borderRadius: 20, padding: "3px 8px", fontSize: 9, fontFamily: "'DM Sans',sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", lineHeight: 1, cursor: "pointer", whiteSpace: "nowrap" }}>{ownedBook.shelf}</span>
+                  ) : (
+                    <>
+                      <span onClick={e => { e.stopPropagation(); setOpenDropdown(openDropdown === b.title ? null : b.title); }} style={{ background: "rgba(138,90,40,0.18)", color: CR.textDim, border: "1px solid rgba(138,90,40,0.3)", borderRadius: 20, padding: "3px 10px", fontSize: 9, fontFamily: "'DM Sans',sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", lineHeight: 1, cursor: "pointer", whiteSpace: "nowrap" }}>+ Add</span>
+                      {openDropdown === b.title && (
+                        <div onClick={e => e.stopPropagation()} style={{ position: "absolute", top: "calc(100% + 4px)", right: 0, zIndex: 50, minWidth: 120, background: "#f5e8d0", borderRadius: 10, overflow: "hidden", boxShadow: "0 4px 20px rgba(0,0,0,0.25)", border: "1px solid rgba(138,90,40,0.3)" }}>
+                          {SHELVES.map(s => (
+                            <button key={s} onClick={e => { e.stopPropagation(); setOpenDropdown(null); onAddDirect && onAddDirect(draft, s); }} style={{ display: "block", width: "100%", padding: "9px 14px", textAlign: "left", border: "none", background: "transparent", color: "#5a3820", fontSize: 13, fontFamily: "'DM Sans',sans-serif", cursor: "pointer" }}>{s}</button>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
-                <span style={{ background: color, color: "#fff", borderRadius: 20, padding: "2px 8px", fontSize: 8, fontFamily: "'DM Sans',sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", flexShrink: 0 }}>{b.genre}</span>
               </div>
             );
           })}
@@ -2374,7 +2399,7 @@ function ReikoTab({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook }) {
               <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 12 }}>Authors to discover</p>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {authorRecs.map((rec, i) => (
-                  <AuthorRecCard key={i} rec={rec} books={books} onAuthor={onAuthor} onEdit={onEdit} onAddBook={onAddBook} />
+                  <AuthorRecCard key={i} rec={rec} books={books} onAuthor={onAuthor} onEdit={onEdit} onAddBook={onAddBook} onAddDirect={onAddDirect} />
                 ))}
               </div>
             </div>
