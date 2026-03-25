@@ -1877,6 +1877,74 @@ function RecommendPage({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook
   );
 }
 
+function AuthorRecCard({ rec, books, onAuthor, onEdit, onAddBook }) {
+  const [expanded, setExpanded] = useState(false);
+  const [covers, setCovers] = useState({});
+  const [coversLoading, setCoversLoading] = useState(false);
+
+  async function handleExpand() {
+    const next = !expanded;
+    setExpanded(next);
+    if (next && rec.topBooks?.length && Object.keys(covers).length === 0) {
+      setCoversLoading(true);
+      await Promise.all(rec.topBooks.map(async b => {
+        try {
+          const r = await fetch("/api/fetch-cover", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: b.title, author: b.author }) });
+          const d = await r.json();
+          if (d.coverUrl) setCovers(prev => ({ ...prev, [b.title]: d.coverUrl }));
+        } catch {}
+      }));
+      setCoversLoading(false);
+    }
+  }
+
+  return (
+    <div onClick={handleExpand} style={{ background: WOOD.card, borderRadius: 12, padding: "14px", border: "1px solid rgba(138,90,40,0.18)", boxShadow: "0 1px 4px rgba(0,0,0,0.08)", cursor: "pointer" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, marginBottom: 3 }}>
+        <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 18, color: WOOD.text, lineHeight: 1.2 }}>{rec.name}</p>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+          <button onClick={e => { e.stopPropagation(); onAuthor && onAuthor(rec.name); }} style={{
+            padding: "6px 12px", borderRadius: 20, fontSize: 11,
+            fontFamily: "'DM Sans',sans-serif", fontWeight: 600, cursor: "pointer",
+            background: "rgba(138,90,40,0.12)", color: WOOD.textDim,
+            border: "1px solid rgba(138,90,40,0.25)", whiteSpace: "nowrap", transition: "all 0.15s",
+          }}>View Profile</button>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: "rgba(255,255,255,0.35)", transition: "transform 0.2s", transform: expanded ? "rotate(180deg)" : "rotate(0deg)" }}><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+      </div>
+      {(rec.topGenre || rec.booksWritten) && <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, color: WOOD.textFaint, marginBottom: 8 }}>
+        {[rec.topGenre, rec.booksWritten ? `${rec.booksWritten} books` : null].filter(Boolean).join(" · ")}
+      </p>}
+      <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: WOOD.textDim, lineHeight: 1.55 }}>{rec.reason}</p>
+      {expanded && rec.topBooks?.length > 0 && (
+        <div style={{ marginTop: 12, borderTop: "1px solid rgba(138,90,40,0.15)", paddingTop: 12, display: "flex", flexDirection: "column", gap: 8 }} onClick={e => e.stopPropagation()}>
+          {coversLoading && <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, color: WOOD.textFaint, fontStyle: "italic" }}>Loading…</p>}
+          {rec.topBooks.map((b, i) => {
+            const ownedBook = books.find(lb => normBookKey(lb.title) === normBookKey(b.title));
+            const coverUrl = covers[b.title] || ownedBook?.coverUrl || null;
+            const color = GENRE_COLORS[b.genre] || GENRE_COLORS["Other"];
+            return (
+              <div key={i} onClick={() => ownedBook && onEdit ? onEdit(ownedBook) : onAddBook && onAddBook({ title: b.title, author: b.author, genre: b.genre, coverUrl, pages: 0 })} style={{
+                display: "flex", alignItems: "center", gap: 10, padding: "8px 10px",
+                background: "rgba(138,90,40,0.06)", borderRadius: 8, border: "1px solid rgba(138,90,40,0.12)", cursor: "pointer",
+              }}>
+                <div style={{ width: 30, height: 44, borderRadius: 3, flexShrink: 0, background: color, position: "relative", boxShadow: "1px 1px 4px rgba(0,0,0,0.2)" }}>
+                  {coverUrl && <img src={coverUrl} alt={b.title} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", borderRadius: 3 }} onError={e => { e.target.style.display = "none"; }} />}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 14, color: WOOD.text, lineHeight: 1.2, marginBottom: 2 }}>{b.title}</p>
+                  <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, color: WOOD.textFaint, fontStyle: "italic" }}>{b.author}</p>
+                </div>
+                <span style={{ background: color, color: "#fff", borderRadius: 20, padding: "2px 8px", fontSize: 8, fontFamily: "'DM Sans',sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", flexShrink: 0 }}>{b.genre}</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ReikoTab({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook }) {
   const [reikoMode, setReikoMode] = useState("books");
   const [selected, setSelected] = useState([]);
@@ -2301,22 +2369,7 @@ function ReikoTab({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook }) {
               <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 12 }}>Authors to discover</p>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {authorRecs.map((rec, i) => (
-                  <div key={i} style={{ background: WOOD.card, borderRadius: 12, padding: "14px", border: "1px solid rgba(138,90,40,0.18)", boxShadow: "0 1px 4px rgba(0,0,0,0.08)" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, marginBottom: 3 }}>
-                      <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 18, color: WOOD.text, lineHeight: 1.2 }}>{rec.name}</p>
-                      <button onClick={() => onAuthor && onAuthor(rec.name)} style={{
-                        flexShrink: 0, padding: "6px 12px", borderRadius: 20, fontSize: 11,
-                        fontFamily: "'DM Sans',sans-serif", fontWeight: 600, cursor: "pointer",
-                        background: "rgba(138,90,40,0.12)", color: WOOD.textDim,
-                        border: "1px solid rgba(138,90,40,0.25)", whiteSpace: "nowrap",
-                        transition: "all 0.15s",
-                      }}>View Profile</button>
-                    </div>
-                    {(rec.topGenre || rec.booksWritten) && <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, color: WOOD.textFaint, marginBottom: 8 }}>
-                      {[rec.topGenre, rec.booksWritten ? `${rec.booksWritten} books` : null].filter(Boolean).join(" · ")}
-                    </p>}
-                    <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: WOOD.textDim, lineHeight: 1.55 }}>{rec.reason}</p>
-                  </div>
+                  <AuthorRecCard key={i} rec={rec} books={books} onAuthor={onAuthor} onEdit={onEdit} onAddBook={onAddBook} />
                 ))}
               </div>
             </div>
