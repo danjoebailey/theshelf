@@ -1890,27 +1890,19 @@ const SHELF_BADGE = {
   "DNF":      { bg:"rgba(160,50,50,0.55)",  color:"rgba(255,255,255,0.9)", border:"rgba(160,50,50,0.4)" },
 };
 
-function AuthorRecCard({ rec, books, onAuthor, onEdit, onAddBook, onAddDirect }) {
+function AuthorRecCard({ rec, books, onAuthor, onEdit, onAddBook, onAddDirect, preloadedCovers = {}, shouldAutoExpand = false }) {
   const [expanded, setExpanded] = useState(false);
-  const [covers, setCovers] = useState({});
-  const [coversLoading, setCoversLoading] = useState(false);
+  const [userTouched, setUserTouched] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null);
 
-  async function handleExpand() {
-    const next = !expanded;
-    setExpanded(next);
+  useEffect(() => {
+    if (shouldAutoExpand && !userTouched) setExpanded(true);
+  }, [shouldAutoExpand]);
+
+  function handleExpand() {
+    setUserTouched(true);
+    setExpanded(e => !e);
     setOpenDropdown(null);
-    if (next && rec.topBooks?.length && Object.keys(covers).length === 0) {
-      setCoversLoading(true);
-      await Promise.all(rec.topBooks.map(async b => {
-        try {
-          const r = await fetch("/api/fetch-cover", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: b.title, author: rec.name }) });
-          const d = await r.json();
-          if (d.coverUrl) setCovers(prev => ({ ...prev, [b.title]: d.coverUrl }));
-        } catch {}
-      }));
-      setCoversLoading(false);
-    }
   }
 
   return (
@@ -1932,10 +1924,9 @@ function AuthorRecCard({ rec, books, onAuthor, onEdit, onAddBook, onAddDirect })
       <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: CR.textDim, lineHeight: 1.55 }}>{rec.reason}</p>
       {expanded && rec.topBooks?.length > 0 && (
         <div style={{ marginTop: 12, borderTop: `1px solid ${CR.border}`, paddingTop: 4, display: "flex", flexDirection: "column" }} onClick={e => e.stopPropagation()}>
-          {coversLoading && <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, color: CR.textFaint, fontStyle: "italic", padding: "8px 0" }}>Loading…</p>}
           {rec.topBooks.map((b, i) => {
             const ownedBook = books.find(lb => normBookKey(lb.title) === normBookKey(b.title));
-            const coverUrl = covers[b.title] || ownedBook?.coverUrl || null;
+            const coverUrl = preloadedCovers[b.title] || ownedBook?.coverUrl || null;
             const draft = { title: b.title, author: rec.name, genre: b.genre || "Fiction", coverUrl, pages: b.pages || 0 };
             const badge = ownedBook ? (SHELF_BADGE[ownedBook.shelf] || SHELF_BADGE["Read"]) : null;
             return (
@@ -1993,6 +1984,8 @@ function ReikoTab({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook }) {
   const [authorError, setAuthorError] = useState(null);
   const [pickerCollapsed, setPickerCollapsed] = useState(false);
   const [authorPickerCollapsed, setAuthorPickerCollapsed] = useState(false);
+  const [allCovers, setAllCovers] = useState({});
+  const [autoExpanded, setAutoExpanded] = useState(new Set());
 
   const availableYears = useMemo(() => [...new Set(books.map(b => b.date ? new Date(b.date).getFullYear() : null).filter(Boolean))].sort((a,b)=>b-a), [books]);
   const availableGenres = useMemo(() => [...new Set(books.map(b => b.genre).filter(Boolean))].sort(), [books]);
@@ -2020,6 +2013,34 @@ function ReikoTab({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook }) {
       if (cached) { const { items, seeds } = JSON.parse(cached); if (items?.length) { setAuthorRecs(items); if (seeds?.length) setSelectedAuthors(seeds); setAuthorPickerCollapsed(true); } }
     } catch {}
   }, [userId]);
+
+  // Sequentially pre-load covers for author rec cards and auto-expand each when ready
+  useEffect(() => {
+    if (!authorRecs?.length) return;
+    setAllCovers({});
+    setAutoExpanded(new Set());
+    let cancelled = false;
+    (async () => {
+      for (let i = 0; i < authorRecs.length; i++) {
+        if (cancelled) break;
+        const rec = authorRecs[i];
+        if (!rec.topBooks?.length) { setAutoExpanded(prev => new Set([...prev, i])); continue; }
+        const coverResults = {};
+        await Promise.all(rec.topBooks.map(async b => {
+          try {
+            const r = await fetch("/api/fetch-cover", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: b.title, author: rec.name }) });
+            const d = await r.json();
+            if (d.coverUrl) coverResults[b.title] = d.coverUrl;
+          } catch {}
+        }));
+        if (!cancelled) {
+          setAllCovers(prev => ({ ...prev, [i]: coverResults }));
+          setAutoExpanded(prev => new Set([...prev, i]));
+        }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [authorRecs]);
 
   const filteredPicker = useMemo(() => {
     const filtered = books.filter(b => {
@@ -2399,7 +2420,7 @@ function ReikoTab({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook }) {
               <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 12 }}>Authors to discover</p>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {authorRecs.map((rec, i) => (
-                  <AuthorRecCard key={i} rec={rec} books={books} onAuthor={onAuthor} onEdit={onEdit} onAddBook={onAddBook} onAddDirect={onAddDirect} />
+                  <AuthorRecCard key={i} rec={rec} books={books} onAuthor={onAuthor} onEdit={onEdit} onAddBook={onAddBook} onAddDirect={onAddDirect} preloadedCovers={allCovers[i] || {}} shouldAutoExpand={autoExpanded.has(i)} />
                 ))}
               </div>
             </div>
