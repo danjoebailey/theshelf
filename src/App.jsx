@@ -4506,8 +4506,9 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd }) {
   const [biblio, setBiblio] = useState(null);
   const [biblioLoading, setBiblioLoading] = useState(false);
   const [biblioError, setBiblioError] = useState(null);
-  const [unreadVisible, setUnreadVisible] = useState(10);
+  const [displayedCount, setDisplayedCount] = useState(5);
   const [unreadCovers, setUnreadCovers] = useState({});
+  const [sortedUnread, setSortedUnread] = useState(null);
   const [openDropdown, setOpenDropdown] = useState(null);
   const touchMoved = useRef(false);
 
@@ -4537,34 +4538,55 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd }) {
       .finally(() => setBiblioLoading(false));
   }, [activeTab, author]);
 
-  // Populate covers from cached bibliography, then fetch any missing for visible books
+  // Sort/group bibliography and sequentially load covers, auto-expanding from 5 to 10
   useEffect(() => {
     if (!biblio) return;
-    // Pre-populate from coverUrl stored in bibliography items
-    const cached = {};
-    biblio.forEach(b => { if (b.coverUrl) cached[b.title] = b.coverUrl; });
-    if (Object.keys(cached).length) setUnreadCovers(prev => ({ ...cached, ...prev }));
 
+    const extractSeriesName = s => s ? s.replace(/,?\s*#\d+.*$/, "").trim() : null;
+    const extractSeriesNum = s => { const m = (s || "").match(/#(\d+)/); return m ? parseInt(m[1]) : 999; };
     const stripSeries = t => (t || "").toLowerCase().replace(/\s*\(.*$/, "").split(/\s*[,:]\s*/)[0].trim().replace(/^(the|a|an) /, "");
     const libraryTitles = new Set(books.filter(b => b.author?.toLowerCase() === author?.toLowerCase()).map(b => stripSeries(b.title)));
-    const unreadBooks = biblio.filter(b => !libraryTitles.has(stripSeries(b.title)));
-    const toFetch = unreadBooks.slice(0, unreadVisible).filter(b => !unreadCovers[b.title] && !cached[b.title]);
-    if (!toFetch.length) return;
-    Promise.all(toFetch.map(b =>
-      fetch("/api/fetch-cover", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: b.title, author }),
-      })
-        .then(r => r.json())
-        .then(data => data.coverUrl ? [b.title, data.coverUrl] : null)
-        .catch(() => null)
-    )).then(results => {
-      const newCovers = {};
-      results.forEach(r => { if (r) newCovers[r[0]] = r[1]; });
-      if (Object.keys(newCovers).length) setUnreadCovers(prev => ({ ...prev, ...newCovers }));
-    });
-  }, [biblio, unreadVisible]);
+    const unread = biblio.filter(b => !libraryTitles.has(stripSeries(b.title)));
+
+    // Group series, sort within groups, rank groups by best tier
+    const seriesMap = {};
+    const standalones = [];
+    for (const book of unread) {
+      const sn = extractSeriesName(book.series);
+      if (sn) { if (!seriesMap[sn]) seriesMap[sn] = []; seriesMap[sn].push(book); }
+      else standalones.push(book);
+    }
+    for (const sn in seriesMap) seriesMap[sn].sort((a, b) => extractSeriesNum(a.series) - extractSeriesNum(b.series));
+    const entries = [
+      ...Object.values(seriesMap).map(books => ({ books, tier: Math.min(...books.map(b => b.tier ?? 2)) })),
+      ...standalones.map(b => ({ books: [b], tier: b.tier ?? 2 })),
+    ].sort((a, b) => a.tier - b.tier);
+    const sorted = entries.flatMap(e => e.books);
+
+    const cached = {};
+    biblio.forEach(b => { if (b.coverUrl) cached[b.title] = b.coverUrl; });
+    setSortedUnread(sorted);
+    setUnreadCovers(cached);
+    setDisplayedCount(5);
+
+    let cancelled = false;
+    (async () => {
+      for (let i = 0; i < Math.min(sorted.length, 10); i++) {
+        if (cancelled) break;
+        const b = sorted[i];
+        if (!cached[b.title]) {
+          try {
+            const r = await fetch("/api/fetch-cover", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: b.title, author }) });
+            const d = await r.json();
+            if (d.coverUrl && !cancelled) setUnreadCovers(prev => ({ ...prev, [b.title]: d.coverUrl }));
+          } catch {}
+        }
+        if (i === 4 && !cancelled) setDisplayedCount(10);
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [biblio]);
 
   const tabs = [
     { key:"books",   label:"Books",   icon:<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 2h8a1 1 0 011 1v10a1 1 0 01-1 1H3a1 1 0 01-1-1V3a1 1 0 011-1z" stroke="currentColor" strokeWidth="1.4"/><path d="M5 6h6M5 9h4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg> },
@@ -4654,13 +4676,8 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd }) {
               </div>
             ));
 
-            // Unread books from bibliography (not already in library by title)
-            const stripSeries = t => (t || "").toLowerCase().replace(/\s*\(.*$/, "").split(/\s*[,:]\s*/)[0].trim().replace(/^(the|a|an) /, "");
-            const libraryTitles = new Set(authorBooks.map(b => stripSeries(b.title)));
-            const unreadBooks = (biblio || [])
-              .filter(b => !libraryTitles.has(stripSeries(b.title)))
-              .sort((a, b) => (a.tier ?? 2) - (b.tier ?? 2) || (a.publishYear ?? 9999) - (b.publishYear ?? 9999));
-            const unreadSlice = unreadBooks.slice(0, unreadVisible);
+            const unreadBooks = sortedUnread || [];
+            const unreadSlice = unreadBooks.slice(0, displayedCount);
 
             const unreadRows = unreadSlice.map((book, i) => {
               const draft = { title:book.title, author, pages:book.pages||null, coverUrl:unreadCovers[book.title]||null, genre:book.genre||"Fiction" };
@@ -4700,8 +4717,8 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd }) {
                   <p style={{ color:CR.textDim, fontSize:12, fontFamily:"'DM Sans',sans-serif", textAlign:"center", padding:"16px 0", fontStyle:"italic" }}>{biblioError}</p>
                 )}
                 {unreadRows}
-                {unreadBooks.length > unreadVisible && (
-                  <button onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); setUnreadVisible(v => v + 10); }} onClick={()=>setUnreadVisible(v => v + 10)} style={{ width:"100%", padding:"12px", marginTop:4, background:"transparent", border:`1px solid ${CR.border}`, borderRadius:8, color:CR.textDim, fontSize:13, fontFamily:"'DM Sans',sans-serif", cursor:"pointer" }}>
+                {unreadBooks.length > displayedCount && displayedCount >= 10 && (
+                  <button onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); setDisplayedCount(v => v + 10); }} onClick={()=>setDisplayedCount(v => v + 10)} style={{ width:"100%", padding:"12px", marginTop:4, background:"transparent", border:`1px solid ${CR.border}`, borderRadius:8, color:CR.textDim, fontSize:13, fontFamily:"'DM Sans',sans-serif", cursor:"pointer" }}>
                     Show next 10
                   </button>
                 )}
