@@ -38,6 +38,11 @@ const WOOD = {
   cardBorder: "rgba(160,100,40,0.3)",
 };
 
+const CR = {
+  bg: "#f5e8d0", panel: "#ece0c4", text: "#2a1e10",
+  textDim: "#8a7060", textFaint: "#b8a888", border: "#d8ceba", amber: "#b86800",
+};
+
 // Rustic hardcover color palettes
 const RUSTIC_COVERS = [
   { base:"#8b1a1a", mid:"#b02828", dark:"#5c1010", light:"#d44040", cloth:"#7a1818" },
@@ -1899,25 +1904,25 @@ function AuthorRecCard({ rec, books, onAuthor, onEdit, onAddBook }) {
   }
 
   return (
-    <div onClick={handleExpand} style={{ background: WOOD.card, borderRadius: 12, padding: "14px", border: "1px solid rgba(138,90,40,0.18)", boxShadow: "0 1px 4px rgba(0,0,0,0.08)", cursor: "pointer" }}>
+    <div onClick={handleExpand} style={{ background: CR.bg, borderRadius: 12, padding: "14px", borderTop: "6px solid #8a5a28", borderRight: "6px solid #8a5a28", borderBottom: "6px solid #8a5a28", borderLeft: `1px solid ${CR.border}`, boxShadow: "0 1px 4px rgba(0,0,0,0.08)", cursor: "pointer" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, marginBottom: 3 }}>
-        <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 18, color: WOOD.text, lineHeight: 1.2 }}>{rec.name}</p>
+        <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 18, color: CR.text, lineHeight: 1.2 }}>{rec.name}</p>
         <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
           <button onClick={e => { e.stopPropagation(); onAuthor && onAuthor(rec.name); }} style={{
             padding: "6px 12px", borderRadius: 20, fontSize: 11,
             fontFamily: "'DM Sans',sans-serif", fontWeight: 600, cursor: "pointer",
-            background: "rgba(138,90,40,0.12)", color: WOOD.textDim,
-            border: "1px solid rgba(138,90,40,0.25)", whiteSpace: "nowrap", transition: "all 0.15s",
+            background: CR.panel, color: CR.textDim,
+            border: `1px solid ${CR.border}`, whiteSpace: "nowrap", transition: "all 0.15s",
           }}>View Profile</button>
         </div>
       </div>
-      {(rec.topGenre || rec.booksWritten) && <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, color: WOOD.textFaint, marginBottom: 8 }}>
+      {(rec.topGenre || rec.booksWritten) && <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, color: CR.textFaint, marginBottom: 8 }}>
         {[rec.topGenre, rec.booksWritten ? `${rec.booksWritten} books` : null].filter(Boolean).join(" · ")}
       </p>}
-      <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: WOOD.textDim, lineHeight: 1.55 }}>{rec.reason}</p>
+      <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, color: CR.textDim, lineHeight: 1.55 }}>{rec.reason}</p>
       {expanded && rec.topBooks?.length > 0 && (
-        <div style={{ marginTop: 12, borderTop: "1px solid rgba(138,90,40,0.15)", paddingTop: 12, display: "flex", flexDirection: "column", gap: 8 }} onClick={e => e.stopPropagation()}>
-          {coversLoading && <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, color: WOOD.textFaint, fontStyle: "italic" }}>Loading…</p>}
+        <div style={{ marginTop: 12, borderTop: `1px solid ${CR.border}`, paddingTop: 12, display: "flex", flexDirection: "column", gap: 8 }} onClick={e => e.stopPropagation()}>
+          {coversLoading && <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, color: CR.textFaint, fontStyle: "italic" }}>Loading…</p>}
           {rec.topBooks.map((b, i) => {
             const ownedBook = books.find(lb => normBookKey(lb.title) === normBookKey(b.title));
             const coverUrl = covers[b.title] || ownedBook?.coverUrl || null;
@@ -1925,15 +1930,15 @@ function AuthorRecCard({ rec, books, onAuthor, onEdit, onAddBook }) {
             return (
               <div key={i} onClick={() => ownedBook && onEdit ? onEdit(ownedBook) : onAddBook && onAddBook({ title: b.title, author: b.author, genre: b.genre, coverUrl, pages: 0 })} style={{
                 display: "flex", alignItems: "center", gap: 10, padding: "8px 10px",
-                background: "rgba(138,90,40,0.06)", borderRadius: 8, cursor: "pointer",
-                borderTop: "6px solid #8a5a28", borderLeft: "6px solid #8a5a28", borderBottom: "6px solid #8a5a28", borderRight: "none",
+                background: CR.panel, borderRadius: 8, cursor: "pointer",
+                borderTop: "6px solid #8a5a28", borderLeft: `1px solid ${CR.border}`, borderBottom: "6px solid #8a5a28", borderRight: "none",
               }}>
                 <div style={{ width: 30, height: 44, borderRadius: 3, flexShrink: 0, background: color, position: "relative", boxShadow: "1px 1px 4px rgba(0,0,0,0.2)" }}>
                   {coverUrl && <img src={coverUrl} alt={b.title} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", borderRadius: 3 }} onError={e => { e.target.style.display = "none"; }} />}
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 14, color: WOOD.text, lineHeight: 1.2, marginBottom: 2 }}>{b.title}</p>
-                  <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, color: WOOD.textFaint, fontStyle: "italic" }}>{b.author}</p>
+                  <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 14, color: CR.text, lineHeight: 1.2, marginBottom: 2 }}>{b.title}</p>
+                  <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, color: CR.textFaint, fontStyle: "italic" }}>{b.author}</p>
                 </div>
                 <span style={{ background: color, color: "#fff", borderRadius: 20, padding: "2px 8px", fontSize: 8, fontFamily: "'DM Sans',sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", flexShrink: 0 }}>{b.genre}</span>
               </div>
@@ -3874,10 +3879,6 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
   const [scoresLoading, setScoresLoading] = useState(false);
   const [confirmRemove, setConfirmRemove] = useState(false);
 
-  const CR = {
-    bg: "#f5e8d0", panel: "#ece0c4", text: "#2a1e10",
-    textDim: "#8a7060", textFaint: "#b8a888", border: "#d8ceba", amber: "#b86800",
-  };
   const noRating = ["The List", "Curious", "Reading"];
   function hiResCoverUrl(url) {
     if (!url) return url;
