@@ -1904,7 +1904,7 @@ function AuthorRecCard({ rec, books, onAuthor, onEdit, onAddBook }) {
   }
 
   return (
-    <div onClick={handleExpand} style={{ background: CR.bg, borderRadius: 12, padding: "14px", borderTop: "6px solid #8a5a28", borderRight: "6px solid #8a5a28", borderBottom: "6px solid #8a5a28", borderLeft: `1px solid ${CR.border}`, boxShadow: "0 1px 4px rgba(0,0,0,0.08)", cursor: "pointer" }}>
+    <div onClick={handleExpand} style={{ background: CR.bg, borderRadius: "12px 0 0 12px", padding: "14px", borderTop: "6px solid #8a5a28", borderRight: "6px solid #8a5a28", borderBottom: "6px solid #8a5a28", borderLeft: `1px solid ${CR.border}`, boxShadow: "0 1px 4px rgba(0,0,0,0.08)", cursor: "pointer" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, marginBottom: 3 }}>
         <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 18, color: CR.text, lineHeight: 1.2 }}>{rec.name}</p>
         <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
