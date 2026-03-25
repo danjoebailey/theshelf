@@ -1530,9 +1530,9 @@ function RecCard({ rec, coverUrl, ownedBook, onAddDirect, index }) {
               {rec.pages > 0 ? `${rec.pages.toLocaleString()} pages` : ""}
             </p>
           )}
-          <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 14, color: WOOD.textDim, lineHeight: 1.6, fontStyle: "italic" }}>{rec.reason}</p>
         </div>
       </div>
+      {rec.reason && <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:WOOD.textDim, lineHeight:1.6, fontStyle:"italic", marginTop:8 }}>{rec.reason}</p>}
 
       {/* Action row: About / Prose / Scores + shelf dropdown */}
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:10 }} onClick={e=>e.stopPropagation()}>
