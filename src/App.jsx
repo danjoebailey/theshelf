@@ -1891,6 +1891,8 @@ function ReikoTab({ books, userId, onAddDirect, onAuthor }) {
   const [authorRecs, setAuthorRecs] = useState(null);
   const [authorLoading, setAuthorLoading] = useState(false);
   const [authorError, setAuthorError] = useState(null);
+  const [pickerCollapsed, setPickerCollapsed] = useState(false);
+  const [authorPickerCollapsed, setAuthorPickerCollapsed] = useState(false);
 
   const availableYears = useMemo(() => [...new Set(books.map(b => b.date ? new Date(b.date).getFullYear() : null).filter(Boolean))].sort((a,b)=>b-a), [books]);
   const availableGenres = useMemo(() => [...new Set(books.map(b => b.genre).filter(Boolean))].sort(), [books]);
@@ -1945,7 +1947,7 @@ function ReikoTab({ books, userId, onAddDirect, onAuthor }) {
 
   async function getRecommendations() {
     const seeds = books.filter(b => selected.includes(b.id));
-    setLoading(true); setRecs(null); setRecCovers({}); setError(null);
+    setLoading(true); setRecs(null); setRecCovers({}); setError(null); setPickerCollapsed(true);
     try {
       const res = await fetch("/api/recommend-books", {
         method: "POST",
@@ -1991,7 +1993,7 @@ function ReikoTab({ books, userId, onAddDirect, onAuthor }) {
   }
 
   async function getAuthorRecommendations() {
-    setAuthorLoading(true); setAuthorRecs(null); setAuthorError(null);
+    setAuthorLoading(true); setAuthorRecs(null); setAuthorError(null); setAuthorPickerCollapsed(true);
     try {
       const res = await fetch("/api/recommend-books", {
         method: "POST",
@@ -2018,7 +2020,7 @@ function ReikoTab({ books, userId, onAddDirect, onAuthor }) {
       {/* Mode toggle */}
       <div style={{ padding: "16px 18px 0", display: "flex", justifyContent: "center", gap: 6 }}>
         {[["books", "Books"], ["authors", "Authors"]].map(([m, label]) => (
-          <button key={m} onClick={() => setReikoMode(m)} style={{
+          <button key={m} onClick={() => { setReikoMode(m); setPickerCollapsed(false); setAuthorPickerCollapsed(false); }} style={{
             padding: "5px 14px", borderRadius: 20, border: "none", cursor: "pointer",
             background: reikoMode===m ? WOOD.amber : "rgba(255,235,195,0.12)",
             color: reikoMode===m ? "#1a0900" : "rgba(255,235,195,0.6)",
@@ -2045,6 +2047,19 @@ function ReikoTab({ books, userId, onAddDirect, onAuthor }) {
           {reikoMode === "books" && <>
           {/* Book picker */}
           <div style={{ padding: "0 18px 16px" }}>
+            {pickerCollapsed ? (
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                <div style={{ flex: 1, display: "flex", flexWrap: "wrap", gap: 5 }}>
+                  {books.filter(b => selected.includes(b.id)).map(b => (
+                    <span key={b.id} style={{ padding: "4px 10px", borderRadius: 20, background: WOOD.card, border: "1px solid rgba(138,90,40,0.25)", fontFamily: "'Crimson Pro',serif", fontSize: 13, color: WOOD.textDim, whiteSpace: "nowrap" }}>{b.title}</span>
+                  ))}
+                </div>
+                <button onClick={() => setPickerCollapsed(false)} style={{ flexShrink: 0, background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.45)", padding: 2, marginTop: 2 }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+              </div>
+            ) : (
+            <div>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
               <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", letterSpacing: "0.1em" }}>
                 Choose seeds {selected.length > 0 && <span style={{ color: WOOD.amber, fontWeight: 700 }}>({selected.length} selected)</span>}
@@ -2152,8 +2167,9 @@ function ReikoTab({ books, userId, onAddDirect, onAuthor }) {
                 );
               })}
             </div>
+            </div>
+            )}
           </div>
-
 
           {/* Submit */}
           <div style={{ padding: "0 18px 22px" }}>
@@ -2197,6 +2213,19 @@ function ReikoTab({ books, userId, onAddDirect, onAuthor }) {
           {reikoMode === "authors" && <>
           {/* Author picker */}
           <div style={{ padding: "0 18px 16px" }}>
+            {authorPickerCollapsed ? (
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                <div style={{ flex: 1, display: "flex", flexWrap: "wrap", gap: 5 }}>
+                  {selectedAuthors.map(author => (
+                    <span key={author} style={{ padding: "4px 10px", borderRadius: 20, background: WOOD.card, border: "1px solid rgba(138,90,40,0.25)", fontFamily: "'Crimson Pro',serif", fontSize: 13, color: WOOD.textDim, whiteSpace: "nowrap" }}>{author}</span>
+                  ))}
+                </div>
+                <button onClick={() => setAuthorPickerCollapsed(false)} style={{ flexShrink: 0, background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.45)", padding: 2, marginTop: 2 }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+              </div>
+            ) : (
+            <div>
             <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 10 }}>
               Choose authors {selectedAuthors.length > 0 && <span style={{ color: WOOD.amber }}>({selectedAuthors.length} selected)</span>}
             </p>
@@ -2214,6 +2243,8 @@ function ReikoTab({ books, userId, onAddDirect, onAuthor }) {
                 );
               })}
             </div>
+            </div>
+            )}
           </div>
 
           {/* Author submit */}
