@@ -310,7 +310,7 @@ const DESCRIPTIONS = {
 
 const ASPECTS = ["Prose", "Plot", "Characters", "Dialogue", "Pacing", "World-building", "Ending"];
 
-function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPicker, onSaveScores, onSaveDescription, onSaveProgress, onSavePages, onSaveAspects, onAdd, forceProse, onAuthor, libraryProfile = [] }) {
+function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPicker, onSaveScores, onSaveDescription, onSaveProgress, onSavePages, onSaveAspects, onAdd, forceProse, onAuthor, libraryProfile = [], userId }) {
   const [expanded, setExpanded] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [shelfDropOpen, setShelfDropOpen] = useState(false);
@@ -410,6 +410,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
         body: JSON.stringify({
           book: { title: book.title, author: book.author, genre: book.genre, description: fetchedDescription },
           profile: libraryProfile,
+          userId,
         }),
       });
       const data = await res.json();
@@ -965,7 +966,7 @@ function BookRowPages({ book, index, onEdit, onRemove, onShelfChange, maxPages, 
   );
 }
 
-function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelfChange, onImport, onSaveScores, onSaveDescription, onSaveProgress, onSavePages, onSaveAspects, hideControls=false, onAuthor }) {
+function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelfChange, onImport, onSaveScores, onSaveDescription, onSaveProgress, onSavePages, onSaveAspects, hideControls=false, onAuthor, userId }) {
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("date");
   const [sortAsc, setSortAsc] = useState(false);
@@ -1415,7 +1416,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
                 ? <BookRow book={book} index={i} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} />
                 : viewMode==="pages"
                 ? <BookRowPages book={book} index={i} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} maxPages={Math.max(...filtered.map(b=>b.pages||0))} onSaveProgress={onSaveProgress} onSavePages={onSavePages} />
-                : <BookCard book={book} index={i} onRemove={onRemove} onEdit={onEdit} onShelfChange={onShelfChange} onOpenShelfPicker={setShelfPickerBook} onSaveScores={onSaveScores} onSaveDescription={onSaveDescription} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} libraryProfile={books.filter(b => b.shelf === "Read" || b.shelf === "DNF")} />
+                : <BookCard book={book} index={i} onRemove={onRemove} onEdit={onEdit} onShelfChange={onShelfChange} onOpenShelfPicker={setShelfPickerBook} onSaveScores={onSaveScores} onSaveDescription={onSaveDescription} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} libraryProfile={books.filter(b => b.shelf === "Read" || b.shelf === "DNF")} userId={userId} />
               }
             </div>
           </div>
@@ -3246,7 +3247,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onAddDirect, onSh
             <div style={{ flex:1, minWidth:0 }}>
               {viewMode === "row"
                 ? <BookRow key={book.id} book={book} index={i} onEdit={onEdit} onRemove={null} onShelfChange={onShelfChange} />
-                : <BookCard key={book.id} book={book} index={i} onRemove={()=>{}} onEdit={onEdit} onShelfChange={()=>{}} onOpenShelfPicker={()=>{}} onSaveScores={onSaveScores} onSaveDescription={()=>{}} libraryProfile={books.filter(b => b.shelf === "Read" || b.shelf === "DNF")} />
+                : <BookCard key={book.id} book={book} index={i} onRemove={()=>{}} onEdit={onEdit} onShelfChange={()=>{}} onOpenShelfPicker={()=>{}} onSaveScores={onSaveScores} onSaveDescription={()=>{}} libraryProfile={books.filter(b => b.shelf === "Read" || b.shelf === "DNF")} userId={userId} />
               }
             </div>
           </div>
@@ -3284,6 +3285,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onAddDirect, onSh
                       forceProse
                       onAdd={matched ? undefined : (shelf) => onAddDirect({ title:item.title, author:item.author, genre: genreFilter !== "All" ? genreFilter : (item.genre || "Other"), pages:0, rating:0, coverUrl:item.coverUrl||null }, shelf)}
                       libraryProfile={books.filter(b => b.shelf === "Read" || b.shelf === "DNF")}
+                      userId={userId}
                     />
                 }
               </div>
@@ -3992,7 +3994,7 @@ function AddSheet({ onSave, onClose, initialBook = null }) {
   );
 }
 
-function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onAuthor, onRemove, libraryProfile = [] }) {
+function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onAuthor, onRemove, libraryProfile = [], userId }) {
   const [rating, setRating] = useState(book.rating || 0);
   const [shelf, setShelf] = useState(book.shelf || "Read");
   const [genre, setGenre] = useState(book.genre || "Other");
@@ -4103,6 +4105,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
         body: JSON.stringify({
           book: { title: book.title, author: book.author, genre: book.genre, description },
           profile: libraryProfile,
+          userId,
         }),
       });
       const data = await res.json();
@@ -4605,7 +4608,7 @@ function parseGoodreadsCSV(text, shelfMap = DEFAULT_GR_SHELF_MAP) {
   }).filter(b => b.title);
 }
 
-function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd }) {
+function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd, userId }) {
   const [activeTab, setActiveTab] = useState("books");
   const [bio, setBio] = useState(null);
   const [bioLoading, setBioLoading] = useState(false);
@@ -4633,7 +4636,7 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd }) {
       const res = await fetch("/api/ask-obi", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode: "recommend", author, bibliography, profile }),
+        body: JSON.stringify({ mode: "recommend", author, bibliography, profile, userId }),
       });
       const data = await res.json();
       setObiRec(data.verdict || "Unable to make a recommendation.");
@@ -5281,7 +5284,7 @@ export default function App() {
         {/* content */}
         <div style={{ flex:1, overflow:"hidden", position:"relative" }}>
           {tab==="shelf"
-            ? <ShelfTab books={books} onAdd={()=>setShowAdd(true)} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"" }); }} onRemove={id=>{ setBooks(prev => prev.filter(b=>b.id!==id)); dbDeleteBook(id, userId); }} onEdit={setEditBook} onScroll={setScrollY} onShelfChange={changeShelf} onImport={()=>setShowImport(true)} onSaveScores={saveScores} onSaveDescription={saveDescription} onSaveProgress={saveProgress} onSavePages={savePages} onSaveAspects={saveAspects} hideControls={!!editBook} onAuthor={setAuthorModal} />
+            ? <ShelfTab books={books} onAdd={()=>setShowAdd(true)} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"" }); }} onRemove={id=>{ setBooks(prev => prev.filter(b=>b.id!==id)); dbDeleteBook(id, userId); }} onEdit={setEditBook} onScroll={setScrollY} onShelfChange={changeShelf} onImport={()=>setShowImport(true)} onSaveScores={saveScores} onSaveDescription={saveDescription} onSaveProgress={saveProgress} onSavePages={savePages} onSaveAspects={saveAspects} hideControls={!!editBook} onAuthor={setAuthorModal} userId={userId} />
             : tab==="reiko"
             ? <RecommendPage books={books} userId={userId} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, rating:0, date:new Date().toISOString().slice(0,10) }; setBooks(prev => [...prev, b]); dbAddBook(b, userId); }} onAuthor={setAuthorModal} onEdit={setEditBook} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"" }); }} />
             : tab==="rankings"
@@ -5289,9 +5292,9 @@ export default function App() {
             : <StatsTab books={books} />
           }
           {showAdd && <AddSheet onSave={addBook} onClose={()=>setShowAdd(false)} />}
-          {addBookDraft && <EditSheet book={addBookDraft} onSave={updated=>{ addBook({...addBookDraft,...updated}); setAddBookDraft(null); }} onClose={()=>setAddBookDraft(null)} onSaveDescription={()=>{}} onSaveScores={()=>{}} onAuthor={setAuthorModal} libraryProfile={books.filter(b => b.shelf === "Read" || b.shelf === "DNF")} />}
-          {editBook && <EditSheet key={editBook.id} book={editBook} onSave={updated=>{ saveEdit(updated); setEditBook(null); }} onClose={()=>setEditBook(null)} onSaveDescription={saveDescription} onSaveScores={saveScores} onAuthor={setAuthorModal} onRemove={id=>{ setBooks(prev=>prev.filter(b=>b.id!==id)); dbDeleteBook(id, userId); setEditBook(null); }} libraryProfile={books.filter(b => b.shelf === "Read" || b.shelf === "DNF")} />}
-          {authorModal && <AuthorModal author={authorModal} books={books} onClose={()=>setAuthorModal(null)} onEdit={book=>{ setAuthorModal(null); setEditBook(book); }} onAdd={draft=>{ setAuthorModal(null); setEditBook(null); setAddBookDraft({ id:Date.now(), title:draft.title, author:draft.author, genre:draft.genre||"Fiction", pages:draft.pages||0, rating:0, shelf:"Read", coverUrl:draft.coverUrl||null, coverId:null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"" }); }} onDirectAdd={draft=>{ addBook({ title:draft.title, author:draft.author, genre:draft.genre||"Fiction", pages:draft.pages||0, rating:0, shelf:draft.shelf, coverUrl:draft.coverUrl||null, coverId:null, description:"", scores:null, notes:"" }); }} />}
+          {addBookDraft && <EditSheet book={addBookDraft} onSave={updated=>{ addBook({...addBookDraft,...updated}); setAddBookDraft(null); }} onClose={()=>setAddBookDraft(null)} onSaveDescription={()=>{}} onSaveScores={()=>{}} onAuthor={setAuthorModal} libraryProfile={books.filter(b => b.shelf === "Read" || b.shelf === "DNF")} userId={userId} />}
+          {editBook && <EditSheet key={editBook.id} book={editBook} onSave={updated=>{ saveEdit(updated); setEditBook(null); }} onClose={()=>setEditBook(null)} onSaveDescription={saveDescription} onSaveScores={saveScores} onAuthor={setAuthorModal} onRemove={id=>{ setBooks(prev=>prev.filter(b=>b.id!==id)); dbDeleteBook(id, userId); setEditBook(null); }} libraryProfile={books.filter(b => b.shelf === "Read" || b.shelf === "DNF")} userId={userId} />}
+          {authorModal && <AuthorModal author={authorModal} books={books} onClose={()=>setAuthorModal(null)} onEdit={book=>{ setAuthorModal(null); setEditBook(book); }} onAdd={draft=>{ setAuthorModal(null); setEditBook(null); setAddBookDraft({ id:Date.now(), title:draft.title, author:draft.author, genre:draft.genre||"Fiction", pages:draft.pages||0, rating:0, shelf:"Read", coverUrl:draft.coverUrl||null, coverId:null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"" }); }} onDirectAdd={draft=>{ addBook({ title:draft.title, author:draft.author, genre:draft.genre||"Fiction", pages:draft.pages||0, rating:0, shelf:draft.shelf, coverUrl:draft.coverUrl||null, coverId:null, description:"", scores:null, notes:"" }); }} userId={userId} />}
           {showImport && <GoodreadsImportSheet onImport={importBooks} onClose={()=>setShowImport(false)} />}
           {toast && (
             <div style={{

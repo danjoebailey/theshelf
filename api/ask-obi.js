@@ -1,3 +1,10 @@
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  process.env.VITE_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_KEY
+);
+
 async function callClaude(apiKey, prompt) {
   const response = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -24,18 +31,51 @@ function buildProfileLines(profile) {
     .join("\n");
 }
 
+function bookKey(title, author) {
+  const norm = s => (s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  return `verdict::${norm(title)}::${norm(author)}`;
+}
+
+function recommendKey(author) {
+  const norm = s => (s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  return `recommend::${norm(author)}`;
+}
+
+async function getCached(userId, key) {
+  if (!userId) return null;
+  const { data } = await supabase
+    .from("obi_verdicts")
+    .select("verdict")
+    .eq("user_id", userId)
+    .eq("book_key", key)
+    .single();
+  return data?.verdict || null;
+}
+
+async function saveCache(userId, key, verdict) {
+  if (!userId) return;
+  await supabase.from("obi_verdicts").upsert(
+    { user_id: userId, book_key: key, verdict },
+    { onConflict: "user_id,book_key" }
+  );
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return res.status(500).json({ error: "API key not configured" });
 
-  const { mode = "verdict" } = req.body;
+  const { mode = "verdict", userId } = req.body;
 
   // ── Recommend mode: which book by this author should I read? ──
   if (mode === "recommend") {
     const { author, bibliography, profile } = req.body;
     if (!author || !bibliography?.length) return res.status(400).json({ error: "Missing data" });
+
+    const key = recommendKey(author);
+    const cached = await getCached(userId, key);
+    if (cached) return res.json({ verdict: cached });
 
     const biblioLines = bibliography
       .map(b => `- "${b.title}"${b.publishYear ? ` (${b.publishYear})` : ""}${b.genre ? `, ${b.genre}` : ""}`)
@@ -61,6 +101,7 @@ Name one specific title and explain in 2–3 sentences why it's the best startin
 
     try {
       const verdict = await callClaude(apiKey, prompt);
+      await saveCache(userId, key, verdict);
       return res.json({ verdict });
     } catch (e) {
       return res.status(500).json({ error: e.message || "Something went wrong." });
@@ -75,6 +116,10 @@ Name one specific title and explain in 2–3 sentences why it's the best startin
     return res.json({ verdict: "Your shelves are still pretty bare — add some books you've loved (and a few you've abandoned) and I'll have a lot more to work with." });
   }
 
+  const key = bookKey(book.title, book.author);
+  const cached = await getCached(userId, key);
+  if (cached) return res.json({ verdict: cached });
+
   const prompt = `You are Obi, a sharp and candid literary companion. Based on this reader's library, give a short honest verdict on whether they would enjoy the book in question.
 
 Reader's library:
@@ -86,6 +131,7 @@ Write 2–3 sentences. Be direct and specific — reference what you actually kn
 
   try {
     const verdict = await callClaude(apiKey, prompt);
+    await saveCache(userId, key, verdict);
     res.json({ verdict });
   } catch (e) {
     res.status(500).json({ error: e.message || "Something went wrong." });
