@@ -4642,17 +4642,22 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd }) {
     const unread = biblio.filter(b => !libraryTitles.has(stripSeries(b.title)));
 
     const seriesMap = {};
+    const seriesFirstIndex = {};
     const standalones = [];
-    for (const book of unread) {
+    unread.forEach((book, idx) => {
       const sn = extractSeriesName(book.series);
-      if (sn) { if (!seriesMap[sn]) seriesMap[sn] = []; seriesMap[sn].push(book); }
-      else standalones.push(book);
-    }
+      if (sn) {
+        if (!seriesMap[sn]) { seriesMap[sn] = []; seriesFirstIndex[sn] = idx; }
+        seriesMap[sn].push(book);
+      } else {
+        standalones.push({ book, idx });
+      }
+    });
     for (const sn in seriesMap) seriesMap[sn].sort((a, b) => extractSeriesNum(a.series) - extractSeriesNum(b.series));
     const entries = [
-      ...Object.values(seriesMap).map(books => ({ books, tier: Math.min(...books.map(b => b.tier ?? 2)), importance: Math.max(...books.map(b => b.importance ?? 5)) })),
-      ...standalones.map(b => ({ books: [b], tier: b.tier ?? 2, importance: b.importance ?? 5 })),
-    ].sort((a, b) => a.tier - b.tier || b.importance - a.importance);
+      ...Object.values(seriesMap).map(books => ({ books, idx: seriesFirstIndex[extractSeriesName(books[0].series)] })),
+      ...standalones.map(({ book, idx }) => ({ books: [book], idx })),
+    ].sort((a, b) => a.idx - b.idx);
     const sorted = entries.flatMap(e => e.books);
 
     const cached = {};
