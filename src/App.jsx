@@ -4779,7 +4779,15 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd, userI
         <div style={{ padding:"20px 16px 0 22px", marginBottom:20, position:"relative", flexShrink:0 }}>
           <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:24, fontWeight:400, color:CR.text, letterSpacing:"-0.01em" }}>{author}</p>
           <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, color:CR.textDim, marginTop:3 }}>{authorBooks.length} book{authorBooks.length !== 1 ? "s" : ""} in your library</p>
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"flex-end", marginTop:10 }}>
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:10, gap:8 }}>
+            <button
+              onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); if(sortedUnread?.length) fetchObiRec(); }}
+              onClick={()=>{ if(sortedUnread?.length) fetchObiRec(); }}
+              disabled={!sortedUnread?.length}
+              style={{ display:"flex", alignItems:"center", gap:5, padding:"6px 12px", borderRadius:20, border:"none", cursor:sortedUnread?.length ? "pointer" : "not-allowed", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, transition:"all 0.15s", background:showObiRec ? CR.text : CR.panel, color:showObiRec ? CR.bg : CR.textDim, opacity:sortedUnread?.length ? 1 : 0.4, flexShrink:0 }}>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/></svg>
+              Ask Obi
+            </button>
             <div style={{ display:"flex", gap:2, background:CR.panel, borderRadius:6, padding:2 }}>
               {tabs.map(t => (
                 <button key={t.key} onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); setActiveTab(t.key); }} onClick={()=>setActiveTab(t.key)} title={t.label} style={{ display:"flex", alignItems:"center", gap:4, padding:"8px 10px", border:"none", borderRadius:4, background:activeTab===t.key ? CR.bg : "transparent", color:activeTab===t.key ? CR.text : CR.textDim, fontSize:11, fontFamily:"'DM Sans',sans-serif", cursor:"pointer", boxShadow:activeTab===t.key ? "0 1px 3px rgba(0,0,0,0.08)" : "none", transition:"all 0.12s", whiteSpace:"nowrap" }}>
@@ -4788,6 +4796,13 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd, userI
               ))}
             </div>
           </div>
+          {showObiRec && (
+            <div style={{ marginTop:10, animation:"fadeIn 0.18s ease" }}>
+              {obiRecLoading
+                ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:CR.textFaint, fontStyle:"italic" }}>Obi is thinking…</p>
+                : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:CR.text, lineHeight:1.7 }}>{obiRec}</p>}
+            </div>
+          )}
           <button onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); onClose(); }} onClick={onClose} style={{ position:"absolute", top:20, right:16, background:CR.panel, border:"none", borderRadius:"50%", width:30, height:30, cursor:"pointer", color:CR.textDim, fontSize:13, display:"flex", alignItems:"center", justifyContent:"center" }}>✕</button>
         </div>
 
@@ -4869,22 +4884,6 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd, userI
                 )}
                 {biblioError && (
                   <p style={{ color:CR.textDim, fontSize:12, fontFamily:"'DM Sans',sans-serif", textAlign:"center", padding:"16px 0", fontStyle:"italic" }}>{biblioError}</p>
-                )}
-                {unreadBooks.length > 0 && (
-                  <div style={{ marginBottom: 12 }}>
-                    <button onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); fetchObiRec(); }} onClick={fetchObiRec} style={{ display:"flex", alignItems:"center", gap:6, background:showObiRec ? CR.text : CR.panel, borderRadius:20, padding:"6px 14px", border:"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:500, color:showObiRec ? CR.bg : CR.textDim, transition:"all 0.15s" }}>
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/></svg>
-                      Ask Obi
-                    </button>
-                    {showObiRec && (
-                      <div style={{ marginTop:10, animation:"fadeIn 0.18s ease" }}>
-                        {obiRecLoading
-                          ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:CR.textFaint, fontStyle:"italic" }}>Obi is thinking…</p>
-                          : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:CR.text, lineHeight:1.75 }}>{obiRec}</p>
-                        }
-                      </div>
-                    )}
-                  </div>
                 )}
                 {unreadRows}
                 {unreadBooks.length > displayedCount && displayedCount >= 10 && (
