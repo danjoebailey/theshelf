@@ -4650,9 +4650,9 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd }) {
     }
     for (const sn in seriesMap) seriesMap[sn].sort((a, b) => extractSeriesNum(a.series) - extractSeriesNum(b.series));
     const entries = [
-      ...Object.values(seriesMap).map(books => ({ books, tier: Math.min(...books.map(b => b.tier ?? 2)) })),
-      ...standalones.map(b => ({ books: [b], tier: b.tier ?? 2 })),
-    ].sort((a, b) => a.tier - b.tier);
+      ...Object.values(seriesMap).map(books => ({ books, tier: Math.min(...books.map(b => b.tier ?? 2)), importance: Math.max(...books.map(b => b.importance ?? 5)) })),
+      ...standalones.map(b => ({ books: [b], tier: b.tier ?? 2, importance: b.importance ?? 5 })),
+    ].sort((a, b) => a.tier - b.tier || b.importance - a.importance);
     const sorted = entries.flatMap(e => e.books);
 
     const cached = {};
