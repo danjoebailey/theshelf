@@ -1139,7 +1139,12 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
                 return (
                   <div style={{ borderTop:"1px solid #e5e7eb", background:"#fafaf9" }}>
                     {authors.map((author, i) => (
-                      <button key={author} {...tc(() => { setSearch(""); setApiResults([]); setShowApiResults(true); onAuthor && onAuthor(author); }, true)} style={{
+                      <button key={author} {...tc(() => {
+                        const normA = s => (s||"").toLowerCase().replace(/[^a-z\s]/g,"").replace(/\s+/g," ").trim();
+                        const na = normA(author);
+                        const libMatch = books.find(b => normA(b.author) === na || normA(b.author).startsWith(na) || na.startsWith(normA(b.author)));
+                        setSearch(""); setApiResults([]); setShowApiResults(true); onAuthor && onAuthor(libMatch?.author || author);
+                      }, true)} style={{
                         display:"flex", alignItems:"center", gap:10, width:"100%",
                         padding:"9px 14px", background:"transparent", border:"none",
                         borderBottom: i < authors.length - 1 ? "1px solid #f3f4f6" : "none",
@@ -4649,7 +4654,12 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd, userI
     textDim: "#8a7060", textFaint: "#b8a888", border: "#d8ceba", amber: "#b86800",
   };
 
-  const authorBooks = books.filter(b => b.author?.toLowerCase() === author?.toLowerCase());
+  const normAuthorName = s => (s||"").toLowerCase().replace(/[^a-z\s]/g,"").replace(/\s+/g," ").trim();
+  const normAuthor = normAuthorName(author);
+  const authorBooks = books.filter(b => {
+    const nb = normAuthorName(b.author);
+    return nb === normAuthor || nb.startsWith(normAuthor) || normAuthor.startsWith(nb);
+  });
 
   // Fetch bibliography when books tab is active and we have no biblio yet
   useEffect(() => {
