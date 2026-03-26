@@ -4687,8 +4687,12 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd, userI
     const extractSeriesName = s => s ? s.replace(/,?\s*#\d+.*$/, "").trim() : null;
     const extractSeriesNum = s => { const m = (s || "").match(/#(\d+)/); return m ? parseInt(m[1]) : 999; };
     const stripSeries = t => (t || "").toLowerCase().replace(/\s*\(.*$/, "").split(/\s*[,:]\s*/)[0].trim().replace(/^(the|a|an) /, "");
-    const libraryTitles = new Set(books.filter(b => b.author?.toLowerCase() === author?.toLowerCase()).map(b => stripSeries(b.title)));
-    const unread = biblio.filter(b => !libraryTitles.has(stripSeries(b.title)));
+    const libraryTitles = new Set(
+      books
+        .filter(b => { const nb = normAuthorName(b.author); return nb === normAuthor || nb.startsWith(normAuthor) || normAuthor.startsWith(nb); })
+        .map(b => normBookKey(b.title))
+    );
+    const unread = biblio.filter(b => !libraryTitles.has(normBookKey(b.title)));
 
     const seriesMap = {};
     const seriesFirstIndex = {};
