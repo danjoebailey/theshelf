@@ -54,7 +54,7 @@ export default async function handler(req, res) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return res.status(500).json({ error: "API key not configured" });
 
-  const prompt = `List all notable books written by ${author} — every novel, story collection, or major non-fiction work they are known for. Include both acclaimed works and lesser-known titles. Do not include books they edited, translated, or contributed to as a co-author unless they are the primary author. ${RESULT_FORMAT}`;
+  const prompt = `List all notable books written by ${author} — every novel, story collection, or major non-fiction work they are known for. Include both acclaimed works and lesser-known titles. Do not include books they edited, translated, or contributed to as a co-author unless they are the primary author. Within each tier, order books by cultural significance and notoriety — the most widely read and recognised works first. ${RESULT_FORMAT}`;
 
   const response = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
