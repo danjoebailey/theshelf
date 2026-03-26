@@ -2761,7 +2761,7 @@ const SCORE_CATEGORIES = [
   { key:"ending",       label:"Ending" },
 ];
 
-function RankingsTab({ books, onSaveScores, userId, onAddBook, onShelfChange, onEdit }) {
+function RankingsTab({ books, onSaveScores, userId, onAddBook, onAddDirect, onShelfChange, onEdit }) {
   const [mode, setMode] = useState("user");
   const [genreFilter, setGenreFilter] = useState("All");
   const [topN, setTopN] = useState(10);
@@ -3274,7 +3274,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onShelfChange, on
               </div>
               <div style={{ flex:1, minWidth:0 }}>
                 {viewMode === "row"
-                  ? <BookRow key={bookObj.id} book={bookObj} index={i} onEdit={matched ? onEdit : null} onRemove={null} onShelfChange={matched ? onShelfChange : ()=>{}} onAdd={matched ? undefined : (s) => onAddBook({ title:item.title, author:item.author, genre:genreFilter !== "All" ? genreFilter : "Other", shelf:s, pages:0, rating:0, coverUrl:item.coverUrl||null })} />
+                  ? <BookRow key={bookObj.id} book={bookObj} index={i} onEdit={matched ? onEdit : null} onRemove={null} onShelfChange={matched ? onShelfChange : ()=>{}} onAdd={matched ? undefined : (s) => onAddDirect({ title:item.title, author:item.author, genre:genreFilter !== "All" ? genreFilter : "Other", pages:0, rating:0, coverUrl:item.coverUrl||null }, s)} />
                   : <BookCard
                       key={bookObj.id}
                       book={bookObj}
@@ -3282,7 +3282,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onShelfChange, on
                       onRemove={()=>{}} onEdit={matched ? onEdit : (b)=>onAddBook(b)} onShelfChange={()=>{}} onOpenShelfPicker={()=>{}}
                       onSaveScores={matched ? onSaveScores : ()=>{}} onSaveDescription={()=>{}}
                       forceProse
-                      onAdd={matched ? undefined : (shelf) => onAddBook({ title:item.title, author:item.author, genre: genreFilter !== "All" ? genreFilter : (item.genre || "Other"), shelf, pages:0, rating:0, coverUrl:item.coverUrl||null })}
+                      onAdd={matched ? undefined : (shelf) => onAddDirect({ title:item.title, author:item.author, genre: genreFilter !== "All" ? genreFilter : (item.genre || "Other"), pages:0, rating:0, coverUrl:item.coverUrl||null }, shelf)}
                       libraryProfile={books.filter(b => b.shelf === "Read" || b.shelf === "DNF")}
                     />
                 }
@@ -5285,7 +5285,7 @@ export default function App() {
             : tab==="reiko"
             ? <RecommendPage books={books} userId={userId} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, rating:0, date:new Date().toISOString().slice(0,10) }; setBooks(prev => [...prev, b]); dbAddBook(b, userId); }} onAuthor={setAuthorModal} onEdit={setEditBook} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"" }); }} />
             : tab==="rankings"
-            ? <RankingsTab books={books} onSaveScores={saveScores} userId={userId} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"" }); }} onShelfChange={changeShelf} onEdit={setEditBook} />
+            ? <RankingsTab books={books} onSaveScores={saveScores} userId={userId} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"" }); }} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, date:new Date().toISOString().slice(0,10) }; setBooks(prev => [...prev, b]); dbAddBook(b, userId); }} onShelfChange={changeShelf} onEdit={setEditBook} />
             : <StatsTab books={books} />
           }
           {showAdd && <AddSheet onSave={addBook} onClose={()=>setShowAdd(false)} />}
