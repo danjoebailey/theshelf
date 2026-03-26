@@ -134,15 +134,29 @@ function isRelevant(item, queryWords) {
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
 
-  const { query } = req.body;
+  const { query, mode = "All" } = req.body;
   if (!query?.trim()) return res.status(400).json({ error: "Missing query" });
 
   const queryWords = query.toLowerCase().split(/\s+/).filter(w => w.length > 2 && !STOP_WORDS.has(w));
 
+  const googleQuery = mode === "Books" || mode === "Series" ? `intitle:${query}`
+    : mode === "Authors" ? `inauthor:${query}`
+    : query;
+  const olQuery = mode === "Authors"
+    ? `https://openlibrary.org/search.json?author=${encodeURIComponent(query)}&limit=7&fields=title,author_name,number_of_pages_median,subject,cover_i,first_publish_year`
+    : null;
+
   // Run all three in parallel; Google Books primary, OL fills gaps, iTunes catches the rest
   const [googleItems, olItems, itunesItems] = await Promise.all([
-    googleBooksSearch(query),
-    olSearch(query),
+    googleBooksSearch(googleQuery),
+    olQuery ? fetch(olQuery).then(r => r.json()).then(data => (data.docs || []).map(doc => ({
+      title: toTitleCase(doc.title || "Unknown"),
+      author: (doc.author_name || [])[0] || "Unknown",
+      pages: doc.number_of_pages_median || 0,
+      genre: inferGenre(doc.subject || []),
+      coverUrl: doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg` : null,
+      publishYear: doc.first_publish_year || null,
+    }))).catch(() => []) : olSearch(query),
     itunesSearch(query),
   ]);
 

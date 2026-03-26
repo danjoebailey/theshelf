@@ -984,8 +984,17 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
   const [apiSearching, setApiSearching] = useState(false);
   const [showApiResults, setShowApiResults] = useState(true);
   const [viewMode, setViewMode] = useState("card");
+  const [searchMode, setSearchMode] = useState("All");
   const searchTimer = useRef(null);
   const searchAbort = useRef(null);
+
+  const SEARCH_MODES = ["All", "Books", "Authors", "Series"];
+  function cycleSearchMode() {
+    setSearchMode(m => {
+      const next = SEARCH_MODES[(SEARCH_MODES.indexOf(m) + 1) % SEARCH_MODES.length];
+      return next;
+    });
+  }
 
   const shelfBooks = useMemo(() => books.filter(b => (b.shelf || "Read") === activeShelf), [books, activeShelf]);
   const years   = useMemo(() => [...new Set(shelfBooks.map(b => b.date?.slice(0,4)).filter(Boolean))].sort((a,b)=>b-a), [shelfBooks]);
@@ -995,7 +1004,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
 
   const sortedBooks = useMemo(() => {
     let l = shelfBooks.slice();
-    if (search)      l = l.filter(b=>b.title.toLowerCase().includes(search.toLowerCase())||b.author.toLowerCase().includes(search.toLowerCase()));
+    if (search) { const q = search.toLowerCase(); l = l.filter(b => searchMode === "Authors" ? b.author.toLowerCase().includes(q) : searchMode === "Books" || searchMode === "Series" ? b.title.toLowerCase().includes(q) : b.title.toLowerCase().includes(q) || b.author.toLowerCase().includes(q)); }
     if (filterYear)  l = l.filter(b=>b.date?.startsWith(filterYear));
     if (filterGenre) l = l.filter(b=>b.genre===filterGenre);
     if (filterAuthor)l = l.filter(b=>b.author===filterAuthor);
@@ -1003,7 +1012,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
     if (sort==="rating") l.sort((a,b)=> sortAsc ? a.rating-b.rating              : b.rating-a.rating);
     if (sort==="title")  l.sort((a,b)=> sortAsc ? a.title.localeCompare(b.title) : b.title.localeCompare(a.title));
     return l;
-  }, [shelfBooks, search, sort, sortAsc, filterYear, filterGenre, filterAuthor]);
+  }, [shelfBooks, search, searchMode, sort, sortAsc, filterYear, filterGenre, filterAuthor]);
 
   const filtered = sort === "custom" ? customList : sortedBooks;
 
@@ -1023,7 +1032,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
           const res = await fetch("/api/search-books", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ query: q }),
+            body: JSON.stringify({ query: q, mode: searchMode }),
             signal: controller.signal,
           });
           const data = await res.json();
@@ -1084,12 +1093,15 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
       <div style={{ padding:"6px 16px 10px" }}>
 
         <div style={{ position:"relative" }}>
-          <div style={{ position:"relative" }}>
+          <div style={{ display:"flex", gap:6 }}>
+          <div style={{ position:"relative", flex:1 }}>
             <input type="text" value={search} onChange={handleSearchChange} placeholder="Search for a book to add…"
               onTouchEnd={e=>{ e.stopPropagation(); e.currentTarget.focus(); }}
               style={{ width:"100%", boxSizing:"border-box", padding:"10px 36px 10px 12px", border:"1px solid #d1d5db", borderRadius:8, fontSize:15, fontFamily:"'DM Sans',sans-serif", outline:"none", background:"#fff", color:"#111" }}/>
             {apiSearching && <span style={{ position:"absolute", right:10, top:"50%", transform:"translateY(-50%)", fontSize:12, color:"#999", fontFamily:"'DM Sans',sans-serif" }}>Searching…</span>}
             {search && !apiSearching && <button onClick={()=>{ setSearch(""); setApiResults([]); }} style={{ position:"absolute", right:8, top:"50%", transform:"translateY(-50%)", background:"transparent", color:"#999", fontSize:13, border:"none", cursor:"pointer" }}>✕</button>}
+          </div>
+          <button {...tc(cycleSearchMode, true)} style={{ flexShrink:0, height:42, padding:"0 12px", background: searchMode === "All" ? "rgba(15,8,2,0.55)" : WOOD.amber, border: searchMode === "All" ? "1px solid rgba(120,70,20,0.3)" : `1px solid ${WOOD.amber}`, borderRadius:8, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:600, color: searchMode === "All" ? "rgba(255,255,255,0.8)" : "#1a0900", backdropFilter:"blur(4px)", transition:"all 0.15s", whiteSpace:"nowrap" }}>{searchMode}</button>
           </div>
 
           {/* dropdown results */}
