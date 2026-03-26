@@ -1,6 +1,9 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { inject } from '@vercel/analytics'
 import App from './App.jsx'
+
+inject()
 
 // Warm up iOS Safari touch engine so first tap isn't absorbed
 document.addEventListener('touchstart', () => {}, { passive: true });

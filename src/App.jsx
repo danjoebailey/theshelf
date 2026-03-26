@@ -310,7 +310,7 @@ const DESCRIPTIONS = {
 
 const ASPECTS = ["Prose", "Plot", "Characters", "Dialogue", "Pacing", "World-building", "Ending"];
 
-function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPicker, onSaveScores, onSaveDescription, onSaveProgress, onSavePages, onSaveAspects, onAdd, forceProse, onAuthor }) {
+function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPicker, onSaveScores, onSaveDescription, onSaveProgress, onSavePages, onSaveAspects, onAdd, forceProse, onAuthor, libraryProfile = [] }) {
   const [expanded, setExpanded] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [shelfDropOpen, setShelfDropOpen] = useState(false);
@@ -327,6 +327,9 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
   const [descriptionLoading, setDescriptionLoading] = useState(false);
   const [pageInput, setPageInput] = useState(book.currentPage || 0);
   const [pagesLoading, setPagesLoading] = useState(false);
+  const [obiVerdict, setObiVerdict] = useState(null);
+  const [obiLoading, setObiLoading] = useState(false);
+  const [showObi, setShowObi] = useState(false);
   useEffect(() => { if (book.description && !fetchedDescription) setFetchedDescription(book.description); }, [book.description]);
   const touchMoved = useRef(false);
   const isRated = book.shelf === "Read" || book.shelf === "DNF";
@@ -393,6 +396,26 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
       if (desc && onSaveDescription) onSaveDescription(book.id, desc);
     } catch { setFetchedDescription(null); }
     setDescriptionLoading(false);
+  }
+
+  async function fetchObi() {
+    if (showObi) { setShowObi(false); return; }
+    setShowProse(false); setShowScores(false); setShowDescription(false); setShowObi(true);
+    if (obiVerdict) return;
+    setObiLoading(true);
+    try {
+      const res = await fetch("/api/ask-obi", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          book: { title: book.title, author: book.author, genre: book.genre, description: fetchedDescription },
+          profile: libraryProfile,
+        }),
+      });
+      const data = await res.json();
+      setObiVerdict(data.verdict || "Unable to get a read on this one.");
+    } catch { setObiVerdict("Unable to get a read on this one."); }
+    setObiLoading(false);
   }
 
   return (
@@ -511,7 +534,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
               </p>
             )}
           </div>
-          <div style={{ display:"flex", gap:6, marginBottom: (showDescription||showProse||showScores) ? 10 : 4 }}>
+          <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginBottom: (showDescription||showProse||showScores||showObi) ? 10 : 4 }}>
             <button {...tc(fetchDescription, true)} style={{ display:"flex", alignItems:"center", gap:6, background:showDescription?WOOD.amber:"rgba(138,90,40,0.12)", borderRadius:20, padding:"6px 14px", border:`1px solid ${showDescription?WOOD.amber:"rgba(138,90,40,0.25)"}`, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:500, color:showDescription?"#1a0900":WOOD.textDim, transition:"all 0.15s" }}>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 6h16M4 12h16M4 18h12"/></svg>
               About
@@ -524,6 +547,10 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
               Scores
             </button>
+            {!isRated && <button {...tc(fetchObi, true)} style={{ display:"flex", alignItems:"center", gap:6, background:showObi?WOOD.amber:"rgba(138,90,40,0.12)", borderRadius:20, padding:"6px 14px", border:`1px solid ${showObi?WOOD.amber:"rgba(138,90,40,0.25)"}`, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:500, color:showObi?"#1a0900":WOOD.textDim, transition:"all 0.15s" }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/></svg>
+              Ask Obi
+            </button>}
           </div>
           {showDescription && (
             <div style={{ marginBottom: 4, animation:"fadeIn 0.18s ease" }}>
@@ -558,6 +585,14 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
                     ))}
                   </div>
                 ) : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:WOOD.textFaint, fontStyle:"italic" }}>Unable to score.</p>
+              }
+            </div>
+          )}
+          {showObi && (
+            <div style={{ marginBottom: 4, animation:"fadeIn 0.18s ease" }}>
+              {obiLoading
+                ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.textFaint, fontStyle:"italic" }}>Obi is thinking…</p>
+                : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, lineHeight:1.72 }}>{obiVerdict}</p>
               }
             </div>
           )}
@@ -1344,7 +1379,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
                 ? <BookRow book={book} index={i} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} />
                 : viewMode==="pages"
                 ? <BookRowPages book={book} index={i} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} maxPages={Math.max(...filtered.map(b=>b.pages||0))} onSaveProgress={onSaveProgress} onSavePages={onSavePages} />
-                : <BookCard book={book} index={i} onRemove={onRemove} onEdit={onEdit} onShelfChange={onShelfChange} onOpenShelfPicker={setShelfPickerBook} onSaveScores={onSaveScores} onSaveDescription={onSaveDescription} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} />
+                : <BookCard book={book} index={i} onRemove={onRemove} onEdit={onEdit} onShelfChange={onShelfChange} onOpenShelfPicker={setShelfPickerBook} onSaveScores={onSaveScores} onSaveDescription={onSaveDescription} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} libraryProfile={books.filter(b => b.shelf === "Read" || b.shelf === "DNF")} />
               }
             </div>
           </div>
