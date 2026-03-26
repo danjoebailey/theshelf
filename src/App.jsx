@@ -4667,20 +4667,23 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd }) {
     setSortedUnread(sorted);
   }, [biblio]);
 
-  // Effect 2: after sortedUnread is committed (first 5 rendered), load covers sequentially and expand to 10
+  // Effect 2: fetch covers in batches of 5, expand display after each batch
   useEffect(() => {
     if (!sortedUnread?.length) return;
     let cancelled = false;
     (async () => {
-      for (let i = 0; i < Math.min(sortedUnread.length, 10); i++) {
+      const total = Math.min(sortedUnread.length, 10);
+      for (let i = 0; i < total; i += 5) {
         if (cancelled) break;
-        const b = sortedUnread[i];
-        try {
-          const r = await fetch("/api/fetch-cover", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: b.title, author }) });
-          const d = await r.json();
-          if (d.coverUrl && !cancelled) setUnreadCovers(prev => ({ ...prev, [b.title]: d.coverUrl }));
-        } catch {}
-        if (i === 4 && !cancelled) setDisplayedCount(10);
+        const batch = sortedUnread.slice(i, i + 5);
+        await Promise.all(batch.map(async b => {
+          try {
+            const r = await fetch("/api/fetch-cover", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: b.title, author }) });
+            const d = await r.json();
+            if (d.coverUrl && !cancelled) setUnreadCovers(prev => ({ ...prev, [b.title]: d.coverUrl }));
+          } catch {}
+        }));
+        if (!cancelled) setDisplayedCount(i + 10);
       }
     })();
     return () => { cancelled = true; };
