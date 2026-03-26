@@ -66,7 +66,7 @@ export default async function handler(req, res) {
     body: JSON.stringify({
       model: "claude-sonnet-4-6",
       temperature: 0.2,
-      max_tokens: 4000,
+      max_tokens: 8000,
       system: "You are a knowledgeable literary reference assistant. Provide accurate, comprehensive bibliographies for authors.",
       messages: [{ role: "user", content: prompt }],
     }),
@@ -88,11 +88,12 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "Failed to parse AI response", raw: text });
   }
 
-  // Fetch covers sequentially to avoid rate limiting
-  const itemsWithCovers = [];
-  for (const item of items) {
-    const coverUrl = await fetchCoverUrl(item.title, author);
-    itemsWithCovers.push({ ...item, coverUrl: coverUrl || null });
+  // Fetch covers in parallel batches of 5
+  const itemsWithCovers = [...items];
+  for (let i = 0; i < items.length; i += 5) {
+    const batch = items.slice(i, i + 5);
+    const covers = await Promise.all(batch.map(item => fetchCoverUrl(item.title, author)));
+    covers.forEach((coverUrl, j) => { itemsWithCovers[i + j] = { ...items[i + j], coverUrl: coverUrl || null }; });
   }
 
   // Cache in Supabase
