@@ -1133,6 +1133,30 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
                   <span style={{ background:GENRE_COLORS[book.genre]||GENRE_COLORS["Other"], color:"#fff", borderRadius:"20px", padding:"2px 8px", fontSize:9, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.06em", flexShrink:0 }}>{book.genre}</span>
                 </button>
               ))}
+              {(() => {
+                const authors = [...new Set(apiResults.map(b => b.author))];
+                return (
+                  <div style={{ borderTop:"1px solid #e5e7eb", background:"#fafaf9" }}>
+                    {authors.map((author, i) => (
+                      <button key={author} {...tc(() => { setSearch(""); setApiResults([]); setShowApiResults(true); onAuthor && onAuthor(author); }, true)} style={{
+                        display:"flex", alignItems:"center", gap:10, width:"100%",
+                        padding:"9px 14px", background:"transparent", border:"none",
+                        borderBottom: i < authors.length - 1 ? "1px solid #f3f4f6" : "none",
+                        cursor:"pointer", textAlign:"left",
+                      }}>
+                        <div style={{ width:28, height:28, borderRadius:"50%", flexShrink:0, background:"rgba(138,90,40,0.15)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:10, fontWeight:700, color:WOOD.textDim, fontFamily:"'DM Sans',sans-serif" }}>
+                          {author.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase()}
+                        </div>
+                        <div style={{ flex:1, minWidth:0 }}>
+                          <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:WOOD.text, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{author}</p>
+                          <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:10, color:WOOD.textFaint, marginTop:1 }}>View author page →</p>
+                        </div>
+                        <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:9, color:WOOD.amber, letterSpacing:"0.06em", textTransform:"uppercase", fontWeight:700, flexShrink:0 }}>Author</span>
+                      </button>
+                    ))}
+                  </div>
+                );
+              })()}
               <button onClick={()=>setShowApiResults(false)} style={{
                 display:"block", width:"100%", padding:"9px 14px", textAlign:"center",
                 background:"#f9fafb", border:"none", borderTop:"1px solid #e5e7eb",
