@@ -4581,7 +4581,29 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd }) {
   const [unreadCovers, setUnreadCovers] = useState({});
   const [sortedUnread, setSortedUnread] = useState(null);
   const [openDropdown, setOpenDropdown] = useState(null);
+  const [obiRec, setObiRec] = useState(null);
+  const [obiRecLoading, setObiRecLoading] = useState(false);
+  const [showObiRec, setShowObiRec] = useState(false);
   const touchMoved = useRef(false);
+
+  async function fetchObiRec() {
+    if (showObiRec) { setShowObiRec(false); return; }
+    setShowObiRec(true);
+    if (obiRec) return;
+    setObiRecLoading(true);
+    try {
+      const profile = books.filter(b => b.shelf === "Read" || b.shelf === "DNF");
+      const bibliography = (sortedUnread || []).slice(0, 20).map(b => ({ title: b.title, genre: b.genre, publishYear: b.publishYear }));
+      const res = await fetch("/api/ask-obi", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode: "recommend", author, bibliography, profile }),
+      });
+      const data = await res.json();
+      setObiRec(data.verdict || "Unable to make a recommendation.");
+    } catch { setObiRec("Unable to make a recommendation."); }
+    setObiRecLoading(false);
+  }
 
   const CR = {
     bg: "#f5e8d0", panel: "#ece5d8", text: "#2a1e10",
@@ -4786,6 +4808,22 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd }) {
                 )}
                 {biblioError && (
                   <p style={{ color:CR.textDim, fontSize:12, fontFamily:"'DM Sans',sans-serif", textAlign:"center", padding:"16px 0", fontStyle:"italic" }}>{biblioError}</p>
+                )}
+                {unreadBooks.length > 0 && (
+                  <div style={{ marginBottom: 12 }}>
+                    <button onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); fetchObiRec(); }} onClick={fetchObiRec} style={{ display:"flex", alignItems:"center", gap:6, background:showObiRec ? CR.text : CR.panel, borderRadius:20, padding:"6px 14px", border:"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:500, color:showObiRec ? CR.bg : CR.textDim, transition:"all 0.15s" }}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/></svg>
+                      Ask Obi
+                    </button>
+                    {showObiRec && (
+                      <div style={{ marginTop:10, animation:"fadeIn 0.18s ease" }}>
+                        {obiRecLoading
+                          ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:CR.textFaint, fontStyle:"italic" }}>Obi is thinking…</p>
+                          : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:CR.text, lineHeight:1.75 }}>{obiRec}</p>
+                        }
+                      </div>
+                    )}
+                  </div>
                 )}
                 {unreadRows}
                 {unreadBooks.length > displayedCount && displayedCount >= 10 && (
