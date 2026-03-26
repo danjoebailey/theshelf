@@ -1910,16 +1910,16 @@ function PaigeTab({ books, userId, onAddDirect, onEdit, onAddBook }) {
               </div>
               {/* Next 10 */}
               <button onClick={generateNext} disabled={nextLoading} style={{
-                width:"100%", marginTop:16, padding:"11px 0",
-                background:"rgba(255,235,195,0.08)", border:"1px solid rgba(138,90,40,0.3)",
-                borderRadius:12, cursor: nextLoading ? "default" : "pointer",
-                fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:600,
-                color:"rgba(255,255,255,0.6)",
+                width:"100%", marginTop:16, padding:"13px 0",
+                background: nextLoading ? "rgba(138,90,40,0.15)" : `linear-gradient(135deg,${WOOD.amber},#c8883a)`,
+                border:"none", borderRadius:12, cursor: nextLoading ? "default" : "pointer",
+                fontFamily:"'DM Sans',sans-serif", fontSize:15, fontWeight:700,
+                color: nextLoading ? WOOD.textFaint : "#1a0900",
                 display:"flex", alignItems:"center", justifyContent:"center", gap:8, transition:"all 0.2s",
               }}>
                 {nextLoading
-                  ? <><span style={{ width:14, height:14, border:"2px solid rgba(255,255,255,0.2)", borderTopColor:"rgba(255,255,255,0.6)", borderRadius:"50%", display:"inline-block", animation:"spin 0.7s linear infinite" }} />Loading…</>
-                  : "Next 10 →"
+                  ? <><span style={{ width:16, height:16, border:"2px solid rgba(26,9,0,0.3)", borderTopColor:"#1a0900", borderRadius:"50%", display:"inline-block", animation:"spin 0.7s linear infinite" }} />Loading…</>
+                  : <>Next 10 →</>
                 }
               </button>
             </div>
