@@ -4141,7 +4141,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
             </div>
             <div style={{ display:"flex", gap:2, background:CR.panel, borderRadius:6, padding:2, flexShrink:0 }}>
               {tabs.map(t => (
-                <button key={t.key} onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); setActiveTab(t.key); }} onClick={() => setActiveTab(t.key)} title={t.label} style={{ display:"flex", alignItems:"center", gap:4, padding:"8px 10px", border:"none", borderRadius:4, background:activeTab===t.key ? "rgba(15,8,2,0.55)" : "transparent", color:activeTab===t.key ? "rgba(255,255,255,0.9)" : CR.textDim, fontSize:11, fontFamily:"'DM Sans',sans-serif", cursor:"pointer", boxShadow:"none", transition:"all 0.12s", whiteSpace:"nowrap" }}>
+                <button key={t.key} onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); setActiveTab(t.key); }} onClick={() => setActiveTab(t.key)} title={t.label} style={{ display:"flex", alignItems:"center", gap:4, padding:"8px 10px", border:"none", borderRadius:4, background:activeTab===t.key ? WOOD.amber : "transparent", color:activeTab===t.key ? "#1a0900" : CR.textDim, fontSize:11, fontFamily:"'DM Sans',sans-serif", cursor:"pointer", boxShadow:"none", transition:"all 0.12s", whiteSpace:"nowrap" }}>
                   {t.icon}{activeTab===t.key && <span style={{ marginLeft:2 }}>{t.label}</span>}
                 </button>
               ))}
@@ -4790,7 +4790,7 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd, userI
             </button>
             <div style={{ display:"flex", gap:2, background:CR.panel, borderRadius:6, padding:2 }}>
               {tabs.map(t => (
-                <button key={t.key} onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); setActiveTab(t.key); }} onClick={()=>setActiveTab(t.key)} title={t.label} style={{ display:"flex", alignItems:"center", gap:4, padding:"8px 10px", border:"none", borderRadius:4, background:activeTab===t.key ? "rgba(15,8,2,0.55)" : "transparent", color:activeTab===t.key ? "rgba(255,255,255,0.9)" : CR.textDim, fontSize:11, fontFamily:"'DM Sans',sans-serif", cursor:"pointer", boxShadow:"none", transition:"all 0.12s", whiteSpace:"nowrap" }}>
+                <button key={t.key} onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); setActiveTab(t.key); }} onClick={()=>setActiveTab(t.key)} title={t.label} style={{ display:"flex", alignItems:"center", gap:4, padding:"8px 10px", border:"none", borderRadius:4, background:activeTab===t.key ? WOOD.amber : "transparent", color:activeTab===t.key ? "#1a0900" : CR.textDim, fontSize:11, fontFamily:"'DM Sans',sans-serif", cursor:"pointer", boxShadow:"none", transition:"all 0.12s", whiteSpace:"nowrap" }}>
                   {t.icon}{activeTab===t.key && <span style={{ marginLeft:2 }}>{t.label}</span>}
                 </button>
               ))}
