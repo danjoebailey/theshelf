@@ -1114,7 +1114,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
               border:"1px solid #e5e7eb",
               maxHeight:320, overflowY:"auto",
             }}>
-              {apiResults.map((book, i) => (
+              {searchMode !== "Authors" && apiResults.map((book, i) => (
                 <button key={i} onClick={() => { setSearch(""); setApiResults([]); setShowApiResults(true); onAddBook(book); }} style={{
                   background:"transparent",
                   border:"none", borderBottom: i < apiResults.length-1 ? "1px solid #f3f4f6" : "none",
