@@ -4718,7 +4718,7 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd, userI
     setUnreadCovers(cached);
     setDisplayedCount(5);
     setSortedUnread(sorted);
-  }, [biblio]);
+  }, [biblio, books]);
 
   // Effect 2: fetch covers in batches of 5, expand display after each batch
   useEffect(() => {
