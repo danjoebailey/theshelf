@@ -7,8 +7,7 @@ export default async function handler(req, res) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return res.status(500).json({ error: "API key not configured" });
 
-  const ratedBooks = (profile || []).filter(b => b.rating >= 1 || b.shelf === "DNF");
-  if (ratedBooks.length < 3) {
+  if ((profile || []).length < 3) {
     return res.json({ verdict: "Your shelves are still pretty bare — add some books you've loved (and a few you've abandoned) and I'll have a lot more to work with." });
   }
 
