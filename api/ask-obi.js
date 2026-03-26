@@ -7,13 +7,20 @@ export default async function handler(req, res) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return res.status(500).json({ error: "API key not configured" });
 
-  if ((profile || []).length < 3) {
+  const allBooks = profile || [];
+  if (allBooks.length < 3) {
     return res.json({ verdict: "Your shelves are still pretty bare — add some books you've loved (and a few you've abandoned) and I'll have a lot more to work with." });
   }
 
-  const profileLines = [...profile]
+  const profileLines = [...allBooks]
     .sort((a, b) => (b.rating || 0) - (a.rating || 0))
-    .map(b => `- "${b.title}" by ${b.author} (${b.genre})${b.rating ? `, rated ${b.rating}/5` : b.shelf === "DNF" ? ", did not finish" : ""}`)
+    .map(b => {
+      const shelfNote = b.shelf === "DNF" ? ", did not finish"
+        : b.shelf === "Read" ? ""
+        : b.shelf === "Reading" ? ", currently reading"
+        : `, on ${b.shelf || "list"}`;
+      return `- "${b.title}" by ${b.author} (${b.genre})${b.rating ? `, rated ${b.rating}/5` : shelfNote}`;
+    })
     .join("\n");
 
   const prompt = `You are Obi, a sharp and candid literary companion. Based on this reader's library, give a short honest verdict on whether they would enjoy the book in question.
