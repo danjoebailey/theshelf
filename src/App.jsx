@@ -3956,7 +3956,7 @@ function AddSheet({ onSave, onClose, initialBook = null }) {
   );
 }
 
-function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onAuthor, onRemove }) {
+function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onAuthor, onRemove, libraryProfile = [] }) {
   const [rating, setRating] = useState(book.rating || 0);
   const [shelf, setShelf] = useState(book.shelf || "Read");
   const [genre, setGenre] = useState(book.genre || "Other");
@@ -3974,6 +3974,8 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
   const [scores, setScores] = useState(book.scores || null);
   const [scoresLoading, setScoresLoading] = useState(false);
   const [confirmRemove, setConfirmRemove] = useState(false);
+  const [obiVerdict, setObiVerdict] = useState(null);
+  const [obiLoading, setObiLoading] = useState(false);
 
   const noRating = ["The List", "Curious", "Reading"];
   function hiResCoverUrl(url) {
@@ -4051,6 +4053,26 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
       if (fetched && onSaveScores) onSaveScores(book.id, fetched);
     } catch { setScores(null); }
     setScoresLoading(false);
+  }
+
+  async function fetchObi() {
+    if (detailPanel === "obi") { setDetailPanel(null); return; }
+    setDetailPanel("obi");
+    if (obiVerdict) return;
+    setObiLoading(true);
+    try {
+      const res = await fetch("/api/ask-obi", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          book: { title: book.title, author: book.author, genre: book.genre, description },
+          profile: libraryProfile,
+        }),
+      });
+      const data = await res.json();
+      setObiVerdict(data.verdict || "Unable to get a read on this one.");
+    } catch { setObiVerdict("Unable to get a read on this one."); }
+    setObiLoading(false);
   }
 
   const tabs = [
@@ -4194,6 +4216,12 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
                     {icon}{label}
                   </button>
                 ))}
+                {!["Read","DNF"].includes(shelf) && (
+                  <button onClick={fetchObi} style={{ display:"flex", alignItems:"center", gap:5, padding:"6px 12px", borderRadius:20, border:"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:500, transition:"all 0.15s", background:detailPanel==="obi" ? CR.text : CR.panel, color:detailPanel==="obi" ? CR.bg : CR.textDim }}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/></svg>
+                    Ask Obi
+                  </button>
+                )}
               </div>
               {/* Panel content */}
               {detailPanel === "about" && (
@@ -4229,6 +4257,13 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
                           ))}
                         </div>
                       : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:CR.textFaint, fontStyle:"italic" }}>Unable to score.</p>}
+                </div>
+              )}
+              {detailPanel === "obi" && (
+                <div style={{ animation:"fadeIn 0.18s ease" }}>
+                  {obiLoading
+                    ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:CR.textFaint, fontStyle:"italic" }}>Obi is thinking…</p>
+                    : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:CR.text, lineHeight:1.75 }}>{obiVerdict}</p>}
                 </div>
               )}
               {!detailPanel && <p style={{ fontSize:13, color:CR.textFaint, fontStyle:"italic" }}>Select a section above.</p>}
@@ -5172,8 +5207,8 @@ export default function App() {
             : <StatsTab books={books} />
           }
           {showAdd && <AddSheet onSave={addBook} onClose={()=>setShowAdd(false)} />}
-          {addBookDraft && <EditSheet book={addBookDraft} onSave={updated=>{ addBook({...addBookDraft,...updated}); setAddBookDraft(null); }} onClose={()=>setAddBookDraft(null)} onSaveDescription={()=>{}} onSaveScores={()=>{}} onAuthor={setAuthorModal} />}
-          {editBook && <EditSheet key={editBook.id} book={editBook} onSave={updated=>{ saveEdit(updated); setEditBook(null); }} onClose={()=>setEditBook(null)} onSaveDescription={saveDescription} onSaveScores={saveScores} onAuthor={setAuthorModal} onRemove={id=>{ setBooks(prev=>prev.filter(b=>b.id!==id)); dbDeleteBook(id, userId); setEditBook(null); }} />}
+          {addBookDraft && <EditSheet book={addBookDraft} onSave={updated=>{ addBook({...addBookDraft,...updated}); setAddBookDraft(null); }} onClose={()=>setAddBookDraft(null)} onSaveDescription={()=>{}} onSaveScores={()=>{}} onAuthor={setAuthorModal} libraryProfile={books.filter(b => b.shelf === "Read" || b.shelf === "DNF")} />}
+          {editBook && <EditSheet key={editBook.id} book={editBook} onSave={updated=>{ saveEdit(updated); setEditBook(null); }} onClose={()=>setEditBook(null)} onSaveDescription={saveDescription} onSaveScores={saveScores} onAuthor={setAuthorModal} onRemove={id=>{ setBooks(prev=>prev.filter(b=>b.id!==id)); dbDeleteBook(id, userId); setEditBook(null); }} libraryProfile={books.filter(b => b.shelf === "Read" || b.shelf === "DNF")} />}
           {authorModal && <AuthorModal author={authorModal} books={books} onClose={()=>setAuthorModal(null)} onEdit={book=>{ setAuthorModal(null); setEditBook(book); }} onAdd={draft=>{ setAuthorModal(null); setEditBook(null); setAddBookDraft({ id:Date.now(), title:draft.title, author:draft.author, genre:draft.genre||"Fiction", pages:draft.pages||0, rating:0, shelf:"Read", coverUrl:draft.coverUrl||null, coverId:null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"" }); }} onDirectAdd={draft=>{ addBook({ title:draft.title, author:draft.author, genre:draft.genre||"Fiction", pages:draft.pages||0, rating:0, shelf:draft.shelf, coverUrl:draft.coverUrl||null, coverId:null, description:"", scores:null, notes:"" }); }} />}
           {showImport && <GoodreadsImportSheet onImport={importBooks} onClose={()=>setShowImport(false)} />}
           {toast && (
