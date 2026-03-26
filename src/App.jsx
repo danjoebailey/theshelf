@@ -1379,7 +1379,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
                 ? <BookRow book={book} index={i} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} />
                 : viewMode==="pages"
                 ? <BookRowPages book={book} index={i} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} maxPages={Math.max(...filtered.map(b=>b.pages||0))} onSaveProgress={onSaveProgress} onSavePages={onSavePages} />
-                : <BookCard book={book} index={i} onRemove={onRemove} onEdit={onEdit} onShelfChange={onShelfChange} onOpenShelfPicker={setShelfPickerBook} onSaveScores={onSaveScores} onSaveDescription={onSaveDescription} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} libraryProfile={books} />
+                : <BookCard book={book} index={i} onRemove={onRemove} onEdit={onEdit} onShelfChange={onShelfChange} onOpenShelfPicker={setShelfPickerBook} onSaveScores={onSaveScores} onSaveDescription={onSaveDescription} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} libraryProfile={books.filter(b => b.shelf === "Read" || b.shelf === "DNF")} />
               }
             </div>
           </div>
@@ -3210,7 +3210,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onShelfChange, on
             <div style={{ flex:1, minWidth:0 }}>
               {viewMode === "row"
                 ? <BookRow key={book.id} book={book} index={i} onEdit={onEdit} onRemove={null} onShelfChange={onShelfChange} />
-                : <BookCard key={book.id} book={book} index={i} onRemove={()=>{}} onEdit={onEdit} onShelfChange={()=>{}} onOpenShelfPicker={()=>{}} onSaveScores={onSaveScores} onSaveDescription={()=>{}} />
+                : <BookCard key={book.id} book={book} index={i} onRemove={()=>{}} onEdit={onEdit} onShelfChange={()=>{}} onOpenShelfPicker={()=>{}} onSaveScores={onSaveScores} onSaveDescription={()=>{}} libraryProfile={books.filter(b => b.shelf === "Read" || b.shelf === "DNF")} />
               }
             </div>
           </div>
@@ -3247,6 +3247,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onShelfChange, on
                       onSaveScores={matched ? onSaveScores : ()=>{}} onSaveDescription={()=>{}}
                       forceProse
                       onAdd={matched ? undefined : (shelf) => onAddBook({ title:item.title, author:item.author, genre: genreFilter !== "All" ? genreFilter : (item.genre || "Other"), shelf, pages:0, rating:0, coverUrl:item.coverUrl||null })}
+                      libraryProfile={books.filter(b => b.shelf === "Read" || b.shelf === "DNF")}
                     />
                 }
               </div>
