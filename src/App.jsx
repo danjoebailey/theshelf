@@ -2870,8 +2870,19 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onAddDirect, onSh
       setAiItems(base);
       setGenerated(base.length > 0);
       fetchCannedList(genreFilter, rankingMode, scoreCategory, (items) => { setAiItems(items); setGenerated(true); }, sid);
+    } else if (rankingMode === "foryou" && userId && userId !== "guest") {
+      setGenerated(false);
+      setAiItems([]);
+      supabase.from("ai_rankings")
+        .select("items")
+        .eq("user_id", userId)
+        .eq("genre", `foryou:${genreFilter}`)
+        .eq("category", scoreCategory)
+        .single()
+        .then(({ data }) => {
+          if (data?.items?.length) { setAiItems(data.items); setGenerated(true); }
+        });
     } else {
-      // vacuum / foryou without canned list — require explicit generate
       setGenerated(false);
       setAiItems([]);
     }
@@ -3047,10 +3058,10 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onAddDirect, onSh
           if (b + BATCH < unmatched.length) await new Promise(r => setTimeout(r, 200));
         }
         if (fetchSession.current === sid) setAiItems([...itemsWithCovers]);
-        // Only cache alltime results to Supabase
-        if (rankingMode === "alltime" && userId && userId !== "guest") {
+        if (userId && userId !== "guest" && (rankingMode === "alltime" || rankingMode === "foryou")) {
+          const genreKey = rankingMode === "foryou" ? `foryou:${genreFilter}` : genreFilter;
           supabase.from("ai_rankings")
-            .upsert({ user_id: userId, genre: genreFilter, category: scoreCategory, items: itemsWithCovers, generated_at: new Date().toISOString() }, { onConflict: "user_id,genre,category" })
+            .upsert({ user_id: userId, genre: genreKey, category: scoreCategory, items: itemsWithCovers, generated_at: new Date().toISOString() }, { onConflict: "user_id,genre,category" })
             .then(({ error }) => console.log("[ai_rankings save]", error || "ok"));
         }
       }
