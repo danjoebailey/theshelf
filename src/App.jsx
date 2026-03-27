@@ -5475,7 +5475,7 @@ export default function App() {
                         {guestMode ? "Guest" : (session.user.user_metadata?.full_name || session.user.email)}
                       </p>
                       <p style={{ fontSize:11, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                        {guestMode ? "Books won't be saved" : session.user.email}
+                        {guestMode ? "Books are saved on this device only." : session.user.email}
                       </p>
                     </div>
                   </div>
