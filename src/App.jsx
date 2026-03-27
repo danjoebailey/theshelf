@@ -1874,7 +1874,7 @@ function PaigeTab({ books, userId, onAddDirect, onEdit, onAddBook }) {
           {/* Mode pills */}
           <div style={{ margin:"0 18px 16px", background:"rgba(255,235,195,0.72)", backdropFilter:"blur(6px)", borderRadius:14, border:"1px solid rgba(160,100,40,0.3)", boxShadow:"0 2px 8px rgba(0,0,0,0.12)", padding:14 }}>
             <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:10, fontWeight:700, color:"rgba(90,56,32,0.7)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10, textAlign:"center" }}>What kind of read?</p>
-            <div style={{ display:"flex", flexWrap:"wrap", gap:7 }}>
+            <div style={{ display:"flex", flexWrap:"wrap", gap:7, justifyContent:"center" }}>
               {PAIGE_MODES.map(m => (
                 <button key={m.key} onClick={() => setMode(m.key)} style={{
                   padding:"7px 14px", borderRadius:20, fontSize:12, fontFamily:"'DM Sans',sans-serif", fontWeight:600,
