@@ -5431,7 +5431,7 @@ export default function App() {
                 }
                 <span style={{
                   fontSize:10, fontWeight:600, letterSpacing:"0.02em",
-                  color: tab===id ? "#2a1608" : "#9a7040",
+                  color: tab===id ? "#ffffff" : "rgba(255,255,255,0.5)",
                   transition:"color 0.2s", whiteSpace:"nowrap",
                 }}>
                   {label}
@@ -5459,7 +5459,7 @@ export default function App() {
                 <img src="/reader_no_bg.png" alt="Account" style={{ height:34, width:"auto", display:"block", opacity: showProfileMenu ? 1 : 0.55, filter:"brightness(0) invert(1)", transition:"opacity 0.2s" }} />
                 <span style={{
                   fontSize:10, fontWeight:600, letterSpacing:"0.02em",
-                  color: showProfileMenu ? "#2a1608" : "#9a7040",
+                  color: showProfileMenu ? "#ffffff" : "rgba(255,255,255,0.5)",
                   transition:"color 0.2s", whiteSpace:"nowrap",
                 }}>
                   Account
