@@ -5409,16 +5409,17 @@ export default function App() {
               onTouchEnd={e=>{ e.preventDefault(); setTab(id); }}
               onClick={()=>setTab(id)} style={{
               flex:1, background:"transparent", border:"none", cursor:"pointer",
-              display:"flex", justifyContent:"center", alignItems:"center", padding:"6px 8px",
+              display:"flex", justifyContent:"center", alignItems:"stretch", padding:0,
+              fontFamily:"'DM Sans',sans-serif", WebkitTapHighlightColor:"transparent",
             }}>
-              <span style={{
-                width:64, height:44, borderRadius:20,
-                background: tab===id ? WOOD.amber : "rgba(0,0,0,0.18)",
-                color: tab===id ? "#1a0900" : WOOD.textFaint,
-                fontSize:13, fontFamily:"'DM Sans',sans-serif", fontWeight:600,
-                transition:"all 0.2s", letterSpacing:"0.02em",
-                display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden",
-                flexShrink:0,
+              <div style={{
+                width:"100%", display:"flex", flexDirection:"column",
+                alignItems:"center", justifyContent:"center", gap:2,
+                padding:"6px 2px 8px",
+                background: tab===id ? "rgba(184,104,0,0.22)" : "transparent",
+                borderTop: tab===id ? "3px solid #f5c050" : "3px solid transparent",
+                borderRadius:"0 0 10px 10px",
+                transition:"background 0.2s, border-color 0.2s",
               }}>
                 {id==="shelf"
                   ? <img src="/books_no_bg.png" alt="Shelf" style={{ width:72, height:50, objectFit:"contain", display:"block", opacity: tab===id ? 1 : 0.55, transition:"opacity 0.2s" }} />
@@ -5426,27 +5427,44 @@ export default function App() {
                   ? <img src="/three_books_breakdown.png" alt="Breakdown" style={{ width:44, height:32, objectFit:"contain", display:"block", opacity: tab===id ? 1 : 0.55, transition:"opacity 0.2s" }} />
                   : id==="reiko"
                   ? <img src="/recommend_book.png" alt="Reiko" style={{ width:44, height:32, objectFit:"contain", display:"block", opacity: tab===id ? 1 : 0.55, transition:"opacity 0.2s" }} />
-                  : id==="rankings"
-                  ? <img src="/all_3_books_no_bg.png" alt="Rankings" style={{ width:44, height:32, objectFit:"contain", display:"block", opacity: tab===id ? 1 : 0.55, transition:"opacity 0.2s" }} />
-                  : label}
-              </span>
+                  : <img src="/all_3_books_no_bg.png" alt="Rankings" style={{ width:44, height:32, objectFit:"contain", display:"block", opacity: tab===id ? 1 : 0.55, transition:"opacity 0.2s" }} />
+                }
+                <span style={{
+                  fontSize:10, fontWeight:600, letterSpacing:"0.02em",
+                  color: tab===id ? "#2a1608" : "#9a7040",
+                  transition:"color 0.2s", whiteSpace:"nowrap",
+                }}>
+                  {label}
+                </span>
+              </div>
             </button>
           ))}
           {/* profile menu button */}
           <div style={{ flex:1, position:"relative", display:"flex", justifyContent:"center" }}>
             <button onClick={()=>setShowProfileMenu(m=>!m)} style={{
               background:"transparent", border:"none", cursor:"pointer",
-              display:"flex", alignItems:"center", justifyContent:"center",
-              padding:"6px 12px",
+              display:"flex", alignItems:"stretch", justifyContent:"center",
+              padding:0, width:"100%", fontFamily:"'DM Sans',sans-serif",
+              WebkitTapHighlightColor:"transparent",
             }}>
-              <span style={{
-                padding:"0px 6px", borderRadius:20,
-                background: showProfileMenu ? WOOD.amber : "rgba(0,0,0,0.18)",
-                display:"flex", alignItems:"center", justifyContent:"center", overflow:"hidden",
-                transition:"background 0.2s",
+              <div style={{
+                width:"100%", display:"flex", flexDirection:"column",
+                alignItems:"center", justifyContent:"center", gap:2,
+                padding:"6px 2px 8px",
+                background: showProfileMenu ? "rgba(184,104,0,0.22)" : "transparent",
+                borderTop: showProfileMenu ? "3px solid #f5c050" : "3px solid transparent",
+                borderRadius:"0 0 10px 10px",
+                transition:"background 0.2s, border-color 0.2s",
               }}>
-                <img src="/reader_no_bg.png" alt="Account" style={{ height:50, width:"auto", display:"block", margin:"-8px -4px", opacity: showProfileMenu ? 1 : 0.55, filter:"brightness(0) invert(1)", transition:"opacity 0.2s" }} />
-              </span>
+                <img src="/reader_no_bg.png" alt="Account" style={{ height:34, width:"auto", display:"block", opacity: showProfileMenu ? 1 : 0.55, filter:"brightness(0) invert(1)", transition:"opacity 0.2s" }} />
+                <span style={{
+                  fontSize:10, fontWeight:600, letterSpacing:"0.02em",
+                  color: showProfileMenu ? "#2a1608" : "#9a7040",
+                  transition:"color 0.2s", whiteSpace:"nowrap",
+                }}>
+                  Account
+                </span>
+              </div>
             </button>
 
             {showProfileMenu && (
