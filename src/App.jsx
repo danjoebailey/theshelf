@@ -5129,7 +5129,12 @@ export default function App() {
   const [session, setSession] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [guestMode, setGuestMode] = useState(() => !!localStorage.getItem(GUEST_ACTIVE_KEY));
-  const [books, setBooks] = useState([]);
+  const [books, setBooks] = useState(() => {
+    if (localStorage.getItem(GUEST_ACTIVE_KEY)) {
+      try { return JSON.parse(localStorage.getItem(GUEST_BOOKS_KEY) || "[]"); } catch { return []; }
+    }
+    return [];
+  });
   const [tab, setTab] = useState("shelf");
   const [showAdd, setShowAdd] = useState(false);
   const [addBookDraft, setAddBookDraft] = useState(null);
@@ -5160,12 +5165,6 @@ export default function App() {
     if (!guestMode || session) return;
     guestSaveBooks(books);
   }, [books, guestMode, session]);
-
-  // Load guest books when entering guest mode
-  useEffect(() => {
-    if (!guestMode || session) return;
-    setBooks(guestLoadBooks());
-  }, [guestMode]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!session && !guestMode) { setBooks([]); loadedUserRef.current = null; return; }
