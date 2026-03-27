@@ -310,7 +310,7 @@ const DESCRIPTIONS = {
 
 const ASPECTS = ["Prose", "Plot", "Characters", "Dialogue", "Pacing", "World-building", "Ending"];
 
-function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPicker, onSaveScores, onSaveDescription, onSaveProgress, onSavePages, onSaveAspects, onAdd, forceProse, onAuthor, libraryProfile = [], userId }) {
+function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPicker, onSaveScores, onSaveDescription, onSaveProgress, onSavePages, onSaveAspects, onAdd, forceProse, onAuthor, libraryProfile = [], userId, guestMode = false }) {
   const [expanded, setExpanded] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [shelfDropOpen, setShelfDropOpen] = useState(false);
@@ -402,6 +402,14 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
     if (showObi) { setShowObi(false); return; }
     setShowProse(false); setShowScores(false); setShowDescription(false); setShowObi(true);
     if (obiVerdict) return;
+    if (guestMode) {
+      const count = parseInt(localStorage.getItem(GUEST_OBI_KEY) || "0");
+      if (count >= 3) {
+        setObiVerdict("Sign in to unlock unlimited Obi.");
+        return;
+      }
+      localStorage.setItem(GUEST_OBI_KEY, String(count + 1));
+    }
     setObiLoading(true);
     try {
       const res = await fetch("/api/ask-obi", {
@@ -966,7 +974,7 @@ function BookRowPages({ book, index, onEdit, onRemove, onShelfChange, maxPages, 
   );
 }
 
-function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelfChange, onImport, onSaveScores, onSaveDescription, onSaveProgress, onSavePages, onSaveAspects, hideControls=false, onAuthor, userId }) {
+function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelfChange, onImport, onSaveScores, onSaveDescription, onSaveProgress, onSavePages, onSaveAspects, hideControls=false, onAuthor, userId, guestMode = false }) {
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("date");
   const [sortAsc, setSortAsc] = useState(false);
@@ -1421,7 +1429,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
                 ? <BookRow book={book} index={i} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} />
                 : viewMode==="pages"
                 ? <BookRowPages book={book} index={i} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} maxPages={Math.max(...filtered.map(b=>b.pages||0))} onSaveProgress={onSaveProgress} onSavePages={onSavePages} />
-                : <BookCard book={book} index={i} onRemove={onRemove} onEdit={onEdit} onShelfChange={onShelfChange} onOpenShelfPicker={setShelfPickerBook} onSaveScores={onSaveScores} onSaveDescription={onSaveDescription} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} libraryProfile={books.filter(b => b.shelf === "Read" || b.shelf === "DNF")} userId={userId} />
+                : <BookCard book={book} index={i} onRemove={onRemove} onEdit={onEdit} onShelfChange={onShelfChange} onOpenShelfPicker={setShelfPickerBook} onSaveScores={onSaveScores} onSaveDescription={onSaveDescription} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} libraryProfile={books.filter(b => b.shelf === "Read" || b.shelf === "DNF")} userId={userId} guestMode={guestMode} />
               }
             </div>
           </div>
@@ -1766,7 +1774,7 @@ function PaigeTab({ books, userId, onAddDirect, onEdit, onAddBook }) {
   }
 
   async function saveToDb(currentMode, items, reserveItems, covMap) {
-    if (!userId) return;
+    if (!userId || userId === "guest") return;
     supabase.from("paige_recommendations")
       .upsert({ user_id: userId, mode: currentMode, items, reserve: reserveItems, covers: covMap, generated_at: new Date().toISOString() }, { onConflict: "user_id,mode" })
       .then(({ error }) => console.log("[paige save]", error || "ok"));
@@ -2192,7 +2200,7 @@ function ReikoTab({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook }) {
         if (b + BATCH < needsCover.length) await new Promise(r => setTimeout(r, 200));
       }
       setRecCovers(covers);
-      if (userId) {
+      if (userId && userId !== "guest") {
         supabase.from("reiko_recommendations")
           .upsert({ user_id: userId, items: results, seeds: selected, covers, generated_at: new Date().toISOString() }, { onConflict: "user_id" })
           .then(({ error }) => console.log("[reiko save]", error || "ok"));
@@ -2886,7 +2894,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onAddDirect, onSh
     const next = globalIds.slice();
     [next[posA], next[posB]] = [next[posB], next[posA]];
     setUserOrder(next);
-    supabase.from("user_rankings")
+    if (userId && userId !== "guest") supabase.from("user_rankings")
       .upsert({ user_id: userId, user_order: next }, { onConflict: "user_id" })
       .then(({ error }) => console.log("[rankings save]", error || "ok"));
   }
@@ -3034,7 +3042,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onAddDirect, onSh
         }
         if (fetchSession.current === sid) setAiItems([...itemsWithCovers]);
         // Only cache alltime results to Supabase
-        if (rankingMode === "alltime" && userId) {
+        if (rankingMode === "alltime" && userId && userId !== "guest") {
           supabase.from("ai_rankings")
             .upsert({ user_id: userId, genre: genreFilter, category: scoreCategory, items: itemsWithCovers, generated_at: new Date().toISOString() }, { onConflict: "user_id,genre,category" })
             .then(({ error }) => console.log("[ai_rankings save]", error || "ok"));
@@ -4453,6 +4461,12 @@ async function dbDeleteBook(bookId, userId) {
   if (error) console.error("dbDeleteBook:", error);
 }
 
+const GUEST_BOOKS_KEY = "guest_books";
+const GUEST_OBI_KEY = "guest_obi_count";
+function guestSaveBooks(books) { localStorage.setItem(GUEST_BOOKS_KEY, JSON.stringify(books)); }
+function guestLoadBooks() { try { return JSON.parse(localStorage.getItem(GUEST_BOOKS_KEY) || "[]"); } catch { return []; } }
+function guestClearAll() { localStorage.removeItem(GUEST_BOOKS_KEY); localStorage.removeItem(GUEST_OBI_KEY); }
+
 function mapSubjectsToGenre(subjects = []) {
   const joined = subjects.slice(0, 30).join(" ").toLowerCase();
   if (/science fiction|sci-fi|space opera|cyberpunk|dystopi|speculative fiction/.test(joined)) return "Sci-Fi";
@@ -5039,7 +5053,7 @@ function GoodreadsImportSheet({ onImport, onClose }) {
   );
 }
 
-function LoginScreen() {
+function LoginScreen({ onGuest }) {
   const [loading, setLoading] = useState(false);
   async function signIn() {
     setLoading(true);
@@ -5070,6 +5084,13 @@ function LoginScreen() {
           </svg>
           {loading ? "Signing in…" : "Sign in with Google"}
         </button>
+        <button onClick={onGuest} style={{
+          width:"100%", padding:"12px 24px", borderRadius:14, cursor:"pointer", marginTop:12,
+          background:"transparent", border:`1px solid rgba(184,104,0,0.35)`,
+          fontFamily:"'DM Sans',sans-serif", fontSize:14, fontWeight:500, color:WOOD.textDim,
+        }}>
+          Try it out
+        </button>
       </div>
     </div>
   );
@@ -5078,6 +5099,7 @@ function LoginScreen() {
 export default function App() {
   const [session, setSession] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [guestMode, setGuestMode] = useState(false);
   const [books, setBooks] = useState([]);
   const [tab, setTab] = useState("shelf");
   const [showAdd, setShowAdd] = useState(false);
@@ -5104,8 +5126,21 @@ export default function App() {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Sync books to localStorage in guest mode
   useEffect(() => {
-    if (!session) { setBooks([]); loadedUserRef.current = null; return; }
+    if (!guestMode || session) return;
+    guestSaveBooks(books);
+  }, [books, guestMode, session]);
+
+  // Load guest books when entering guest mode
+  useEffect(() => {
+    if (!guestMode || session) return;
+    setBooks(guestLoadBooks());
+  }, [guestMode]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!session && !guestMode) { setBooks([]); loadedUserRef.current = null; return; }
+    if (!session) return;
     const userId = session.user.id;
     // Prevent running twice for the same user (auth fires multiple events on load)
     if (loadedUserRef.current === userId) return;
@@ -5159,15 +5194,15 @@ export default function App() {
     </div>
   );
 
-  if (!session) return <LoginScreen />;
+  if (!session && !guestMode) return <LoginScreen onGuest={() => { guestClearAll(); setGuestMode(true); }} />;
 
-  const userId = session.user.id;
+  const userId = session?.user.id ?? "guest";
 
   function addBook(form) {
     if (books.some(b => normBookKey(b.title) === normBookKey(form.title) && (b.author||"").toLowerCase() === (form.author||"").toLowerCase())) return;
     const book = { id: Date.now(), ...form, genre: normalizeGenre(form.genre), pages: parseInt(form.pages)||0, date: new Date().toISOString().slice(0,10) };
     setBooks(prev => [...prev, book]);
-    dbAddBook(book, userId);
+    if (!guestMode) dbAddBook(book, userId);
     clearTimeout(toastTimer.current);
     setToast({ title: book.title, shelf: book.shelf || "Read" });
     toastTimer.current = setTimeout(() => setToast(null), 3000);
@@ -5176,43 +5211,43 @@ export default function App() {
   function saveScores(id, scores) {
     const next = books.map(b => b.id === id ? { ...b, scores } : b);
     setBooks(next);
-    dbUpdateBook(next.find(b => b.id === id), userId);
+    if (!guestMode) dbUpdateBook(next.find(b => b.id === id), userId);
   }
 
   function saveDescription(id, description) {
     const next = books.map(b => b.id === id ? { ...b, description } : b);
     setBooks(next);
-    dbUpdateBook(next.find(b => b.id === id), userId);
+    if (!guestMode) dbUpdateBook(next.find(b => b.id === id), userId);
   }
 
   function saveProgress(id, currentPage) {
     const next = books.map(b => b.id === id ? { ...b, currentPage } : b);
     setBooks(next);
-    dbUpdateBook(next.find(b => b.id === id), userId);
+    if (!guestMode) dbUpdateBook(next.find(b => b.id === id), userId);
   }
 
   function savePages(id, pages) {
     const next = books.map(b => b.id === id ? { ...b, pages } : b);
     setBooks(next);
-    dbUpdateBook(next.find(b => b.id === id), userId);
+    if (!guestMode) dbUpdateBook(next.find(b => b.id === id), userId);
   }
 
   function saveAspects(id, likedAspects, dislikedAspects) {
     const next = books.map(b => b.id === id ? { ...b, likedAspects, dislikedAspects } : b);
     setBooks(next);
-    dbUpdateBook(next.find(b => b.id === id), userId);
+    if (!guestMode) dbUpdateBook(next.find(b => b.id === id), userId);
   }
 
   function saveEdit(updated) {
     const next = books.map(b => b.id === updated.id ? { ...b, rating: updated.rating, shelf: updated.shelf, genre: updated.genre ?? b.genre, date: updated.date ?? b.date, notes: updated.notes ?? b.notes, coverUrl: updated.coverUrl ?? b.coverUrl, coverId: updated.coverId ?? b.coverId } : b);
     setBooks(next);
-    dbUpdateBook(next.find(b => b.id === updated.id), userId);
+    if (!guestMode) dbUpdateBook(next.find(b => b.id === updated.id), userId);
   }
 
   function changeShelf(id, shelf, rating) {
     const next = books.map(b => b.id === id ? { ...b, shelf, ...(rating != null ? { rating } : {}) } : b);
     setBooks(next);
-    dbUpdateBook(next.find(b => b.id === id), userId);
+    if (!guestMode) dbUpdateBook(next.find(b => b.id === id), userId);
   }
 
   async function fetchMissingCovers() {
@@ -5230,7 +5265,7 @@ export default function App() {
           if (coverUrl) found++;
           const updated = { ...book, coverUrl: coverUrl || book.coverUrl, coverId: book.coverId || coverId };
           setBooks(prev => prev.map(b => b.id === book.id ? updated : b));
-          dbUpdateBook(updated, userId);
+          if (!guestMode) dbUpdateBook(updated, userId);
         }
       }));
       setCoverFetchProgress({ done: Math.min(i + batchSize, missing.length), total: missing.length, found });
@@ -5244,6 +5279,7 @@ export default function App() {
     const newBooks = imported.filter(b => !existing.has(normBookKey(b.title))).map(b => ({ ...b, genre: normalizeGenre(b.genre) }));
     if (!newBooks.length) return;
     setBooks(prev => [...prev, ...newBooks]);
+    if (guestMode) return;
     const { error } = await supabase.from("books").insert(newBooks.map(b => bookToRow(b, userId)));
     if (error) alert("Import save failed: " + error.message);
   }
@@ -5298,16 +5334,16 @@ export default function App() {
         {/* content */}
         <div style={{ flex:1, overflow:"hidden", position:"relative" }}>
           {tab==="shelf"
-            ? <ShelfTab books={books} onAdd={()=>setShowAdd(true)} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"" }); }} onRemove={id=>{ setBooks(prev => prev.filter(b=>b.id!==id)); dbDeleteBook(id, userId); }} onEdit={setEditBook} onScroll={setScrollY} onShelfChange={changeShelf} onImport={()=>setShowImport(true)} onSaveScores={saveScores} onSaveDescription={saveDescription} onSaveProgress={saveProgress} onSavePages={savePages} onSaveAspects={saveAspects} hideControls={!!editBook} onAuthor={setAuthorModal} userId={userId} />
+            ? <ShelfTab books={books} onAdd={()=>setShowAdd(true)} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"" }); }} onRemove={id=>{ setBooks(prev => prev.filter(b=>b.id!==id)); if (!guestMode) dbDeleteBook(id, userId); }} onEdit={setEditBook} onScroll={setScrollY} onShelfChange={changeShelf} onImport={()=>setShowImport(true)} onSaveScores={saveScores} onSaveDescription={saveDescription} onSaveProgress={saveProgress} onSavePages={savePages} onSaveAspects={saveAspects} hideControls={!!editBook} onAuthor={setAuthorModal} userId={userId} guestMode={guestMode} />
             : tab==="reiko"
-            ? <RecommendPage books={books} userId={userId} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, rating:0, date:new Date().toISOString().slice(0,10) }; setBooks(prev => [...prev, b]); dbAddBook(b, userId); }} onAuthor={setAuthorModal} onEdit={setEditBook} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"" }); }} />
+            ? <RecommendPage books={books} userId={userId} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, rating:0, date:new Date().toISOString().slice(0,10) }; setBooks(prev => [...prev, b]); if (!guestMode) dbAddBook(b, userId); }} onAuthor={setAuthorModal} onEdit={setEditBook} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"" }); }} />
             : tab==="rankings"
-            ? <RankingsTab books={books} onSaveScores={saveScores} userId={userId} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"" }); }} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, date:new Date().toISOString().slice(0,10) }; setBooks(prev => [...prev, b]); dbAddBook(b, userId); }} onShelfChange={changeShelf} onEdit={setEditBook} />
+            ? <RankingsTab books={books} onSaveScores={saveScores} userId={userId} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"" }); }} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, date:new Date().toISOString().slice(0,10) }; setBooks(prev => [...prev, b]); if (!guestMode) dbAddBook(b, userId); }} onShelfChange={changeShelf} onEdit={setEditBook} />
             : <StatsTab books={books} />
           }
           {showAdd && <AddSheet onSave={addBook} onClose={()=>setShowAdd(false)} />}
           {addBookDraft && <EditSheet book={addBookDraft} onSave={updated=>{ addBook({...addBookDraft,...updated}); setAddBookDraft(null); }} onClose={()=>setAddBookDraft(null)} onSaveDescription={()=>{}} onSaveScores={()=>{}} onAuthor={setAuthorModal} libraryProfile={books.filter(b => b.shelf === "Read" || b.shelf === "DNF")} userId={userId} />}
-          {editBook && <EditSheet key={editBook.id} book={editBook} onSave={updated=>{ saveEdit(updated); setEditBook(null); }} onClose={()=>setEditBook(null)} onSaveDescription={saveDescription} onSaveScores={saveScores} onAuthor={setAuthorModal} onRemove={id=>{ setBooks(prev=>prev.filter(b=>b.id!==id)); dbDeleteBook(id, userId); setEditBook(null); }} libraryProfile={books.filter(b => b.shelf === "Read" || b.shelf === "DNF")} userId={userId} />}
+          {editBook && <EditSheet key={editBook.id} book={editBook} onSave={updated=>{ saveEdit(updated); setEditBook(null); }} onClose={()=>setEditBook(null)} onSaveDescription={saveDescription} onSaveScores={saveScores} onAuthor={setAuthorModal} onRemove={id=>{ setBooks(prev=>prev.filter(b=>b.id!==id)); if (!guestMode) dbDeleteBook(id, userId); setEditBook(null); }} libraryProfile={books.filter(b => b.shelf === "Read" || b.shelf === "DNF")} userId={userId} />}
           {authorModal && <AuthorModal author={authorModal} books={books} onClose={()=>setAuthorModal(null)} onEdit={book=>{ setAuthorModal(null); setEditBook(book); }} onAdd={draft=>{ setAuthorModal(null); setEditBook(null); setAddBookDraft({ id:Date.now(), title:draft.title, author:draft.author, genre:draft.genre||"Fiction", pages:draft.pages||0, rating:0, shelf:"Read", coverUrl:draft.coverUrl||null, coverId:null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"" }); }} onDirectAdd={draft=>{ addBook({ title:draft.title, author:draft.author, genre:draft.genre||"Fiction", pages:draft.pages||0, rating:0, shelf:draft.shelf, coverUrl:draft.coverUrl||null, coverId:null, description:"", scores:null, notes:"" }); }} userId={userId} />}
           {showImport && <GoodreadsImportSheet onImport={importBooks} onClose={()=>setShowImport(false)} />}
           {toast && (
@@ -5393,7 +5429,11 @@ export default function App() {
                 }}>
                   {/* user info */}
                   <div style={{ padding:"12px 16px 10px", borderBottom:"1px solid rgba(138,90,40,0.15)", display:"flex", alignItems:"center", gap:10 }}>
-                    {session.user.user_metadata?.avatar_url
+                    {guestMode
+                      ? <div style={{ width:32, height:32, borderRadius:"50%", background:"rgba(138,90,40,0.2)", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={WOOD.textDim} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                        </div>
+                      : session.user.user_metadata?.avatar_url
                       ? <img src={session.user.user_metadata.avatar_url} style={{ width:32, height:32, borderRadius:"50%", flexShrink:0 }} />
                       : <div style={{ width:32, height:32, borderRadius:"50%", background:WOOD.amber, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
                           <span style={{ fontSize:14, fontWeight:600, color:"#1a0900" }}>{(session.user.email||"?")[0].toUpperCase()}</span>
@@ -5401,14 +5441,14 @@ export default function App() {
                     }
                     <div style={{ minWidth:0 }}>
                       <p style={{ fontSize:13, fontWeight:600, color:WOOD.text, fontFamily:"'DM Sans',sans-serif", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                        {session.user.user_metadata?.full_name || session.user.email}
+                        {guestMode ? "Guest" : (session.user.user_metadata?.full_name || session.user.email)}
                       </p>
                       <p style={{ fontSize:11, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                        {session.user.email}
+                        {guestMode ? "Books won't be saved" : session.user.email}
                       </p>
                     </div>
                   </div>
-                  <button onClick={()=>{ setShowProfileMenu(false); setShowImport(true); }} style={{
+                  {!guestMode && <button onClick={()=>{ setShowProfileMenu(false); setShowImport(true); }} style={{
                     display:"flex", alignItems:"center", gap:10,
                     width:"100%", padding:"12px 16px", textAlign:"left",
                     background:"transparent", border:"none", cursor:"pointer",
@@ -5418,8 +5458,8 @@ export default function App() {
                       <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
                     </svg>
                     Import from Goodreads
-                  </button>
-                  <button onClick={fetchMissingCovers} disabled={!!coverFetchProgress} style={{
+                  </button>}
+                  {!guestMode && <button onClick={fetchMissingCovers} disabled={!!coverFetchProgress} style={{
                     display:"flex", alignItems:"center", gap:10,
                     width:"100%", padding:"12px 16px", textAlign:"left",
                     background:"transparent", border:"none", borderTop:"1px solid rgba(138,90,40,0.15)", cursor: coverFetchProgress ? "default" : "pointer",
@@ -5430,18 +5470,31 @@ export default function App() {
                       <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
                     </svg>
                     Fetch missing covers
-                  </button>
-                  <button onClick={()=>{ setShowProfileMenu(false); supabase.auth.signOut(); }} style={{
-                    display:"flex", alignItems:"center", gap:10,
-                    width:"100%", padding:"12px 16px", textAlign:"left",
-                    background:"transparent", border:"none", borderTop:"1px solid rgba(138,90,40,0.15)", cursor:"pointer",
-                    fontFamily:"'DM Sans',sans-serif", fontSize:14, color:"#c0392b", fontWeight:400,
-                  }}>
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#c0392b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
-                    </svg>
-                    Sign out
-                  </button>
+                  </button>}
+                  {guestMode
+                    ? <button onClick={async ()=>{ setShowProfileMenu(false); guestClearAll(); setGuestMode(false); await supabase.auth.signInWithOAuth({ provider:"google", options:{ redirectTo: window.location.origin } }); }} style={{
+                        display:"flex", alignItems:"center", gap:10,
+                        width:"100%", padding:"12px 16px", textAlign:"left",
+                        background:"transparent", border:"none", borderTop:"1px solid rgba(138,90,40,0.15)", cursor:"pointer",
+                        fontFamily:"'DM Sans',sans-serif", fontSize:14, color:WOOD.amber, fontWeight:500,
+                      }}>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={WOOD.amber} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/>
+                        </svg>
+                        Sign in to save your books
+                      </button>
+                    : <button onClick={()=>{ setShowProfileMenu(false); supabase.auth.signOut(); }} style={{
+                        display:"flex", alignItems:"center", gap:10,
+                        width:"100%", padding:"12px 16px", textAlign:"left",
+                        background:"transparent", border:"none", borderTop:"1px solid rgba(138,90,40,0.15)", cursor:"pointer",
+                        fontFamily:"'DM Sans',sans-serif", fontSize:14, color:"#c0392b", fontWeight:400,
+                      }}>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#c0392b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+                        </svg>
+                        Sign out
+                      </button>
+                  }
                 </div>
               </>
             )}
