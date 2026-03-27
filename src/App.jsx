@@ -4492,9 +4492,10 @@ async function dbDeleteBook(bookId, userId) {
 
 const GUEST_BOOKS_KEY = "guest_books";
 const GUEST_OBI_KEY = "guest_obi_count";
+const GUEST_ACTIVE_KEY = "guest_active";
 function guestSaveBooks(books) { localStorage.setItem(GUEST_BOOKS_KEY, JSON.stringify(books)); }
 function guestLoadBooks() { try { return JSON.parse(localStorage.getItem(GUEST_BOOKS_KEY) || "[]"); } catch { return []; } }
-function guestClearAll() { localStorage.removeItem(GUEST_BOOKS_KEY); localStorage.removeItem(GUEST_OBI_KEY); }
+function guestClearAll() { localStorage.removeItem(GUEST_BOOKS_KEY); localStorage.removeItem(GUEST_OBI_KEY); localStorage.removeItem(GUEST_ACTIVE_KEY); }
 
 function mapSubjectsToGenre(subjects = []) {
   const joined = subjects.slice(0, 30).join(" ").toLowerCase();
@@ -5127,7 +5128,7 @@ function LoginScreen({ onGuest }) {
 export default function App() {
   const [session, setSession] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
-  const [guestMode, setGuestMode] = useState(false);
+  const [guestMode, setGuestMode] = useState(() => !!localStorage.getItem(GUEST_ACTIVE_KEY));
   const [books, setBooks] = useState([]);
   const [tab, setTab] = useState("shelf");
   const [showAdd, setShowAdd] = useState(false);
@@ -5222,7 +5223,7 @@ export default function App() {
     </div>
   );
 
-  if (!session && !guestMode) return <LoginScreen onGuest={() => { guestClearAll(); setGuestMode(true); track("guest_started"); }} />;
+  if (!session && !guestMode) return <LoginScreen onGuest={() => { localStorage.setItem(GUEST_ACTIVE_KEY, "1"); setGuestMode(true); track("guest_started"); }} />;
 
   const userId = session?.user.id ?? "guest";
 
