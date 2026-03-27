@@ -3063,15 +3063,23 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onAddDirect, onSh
   const displayList = mode === "user" ? userRankedBooks : aiDisplayItems;
 
   // Library cross-reference for AI mode
+  function normForMatch(title) {
+    return (title || "")
+      .replace(/\s*\([^)]*\)/g, "")        // strip (series info, #1)
+      .replace(/^(the|a|an)\s+/i, "")      // strip leading articles
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "")
+      .trim();
+  }
+
   const libTitleMap = useMemo(() => {
     const m = new Map();
-    for (const b of books) m.set((b.title || "").toLowerCase().replace(/[^a-z0-9]/g, ""), b);
+    for (const b of books) m.set(normForMatch(b.title), b);
     return m;
   }, [books]);
 
   function findInLibrary(title) {
-    const key = (title || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-    return libTitleMap.get(key) || null;
+    return libTitleMap.get(normForMatch(title)) || null;
   }
 
   const rankBadgeStyle = (i) => ({
