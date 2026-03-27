@@ -1885,7 +1885,7 @@ function PaigeTab({ books, userId, onAddDirect, onEdit, onAddBook }) {
                 }}>{m.label}</button>
               ))}
             </div>
-            {modeInfo && <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, color:"rgba(90,56,32,0.55)", marginTop:8, fontStyle:"italic", textAlign:"center" }}>{modeInfo.desc}</p>}
+            {modeInfo && <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:"rgba(90,56,32,0.55)", marginTop:8, fontStyle:"italic", textAlign:"center" }}>{modeInfo.desc}</p>}
           </div>
 
           {/* Generate button */}
