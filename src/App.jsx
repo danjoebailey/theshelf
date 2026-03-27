@@ -1862,7 +1862,7 @@ function PaigeTab({ books, userId, onAddDirect, onEdit, onAddBook }) {
     <div style={{ padding:"0 0 100px" }}>
       {/* Header */}
       <div style={{ padding:"16px 18px 8px" }}>
-        <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:"rgba(255,255,255,0.6)", textAlign:"center" }}>Recommendations built from your reading profile.</p>
+        <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:14, color:"rgba(255,255,255,0.6)", textAlign:"center" }}>Recommendations built from your reading profile.</p>
       </div>
 
       {!hasBooks ? (
