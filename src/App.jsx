@@ -5089,7 +5089,7 @@ function LoginScreen({ onGuest }) {
           background:"#ffffff", border:"none",
           fontFamily:"'DM Sans',sans-serif", fontSize:14, fontWeight:500, color:"#1a0900",
         }}>
-          Try it out
+          Continue as Guest
         </button>
       </div>
     </div>
