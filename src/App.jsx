@@ -5068,7 +5068,7 @@ function LoginScreen({ onGuest }) {
       <div style={{ position:"relative", zIndex:1, display:"flex", flexDirection:"column", alignItems:"center", padding:"0 32px", maxWidth:340, width:"100%" }}>
         <img src="/book-shelf.png" alt="The Shelf" style={{ height:90, width:"auto", marginBottom:8 }} />
         <img src="/shelf-logo.png" alt="The Shelf" style={{ height:200, width:"auto", marginBottom:6 }} />
-        <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:14, color:WOOD.textFaint, marginBottom:40, textAlign:"center" }}>Personal Book Tracker</p>
+        <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:20, color:WOOD.textFaint, marginBottom:40, textAlign:"center" }}>Personal Book Tracker</p>
         <button onClick={signIn} disabled={loading} style={{
           width:"100%", padding:"14px 24px", borderRadius:14, cursor: loading ? "default" : "pointer",
           background:`linear-gradient(135deg,${WOOD.amber},#f97316)`,
