@@ -5052,7 +5052,7 @@ function LoginScreen() {
     <div style={{ width:"100%", height:"100dvh", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", position:"relative", overflow:"hidden", background:"#3a2010" }}>
       <WoodBg />
       <div style={{ position:"relative", zIndex:1, display:"flex", flexDirection:"column", alignItems:"center", padding:"0 32px", maxWidth:340, width:"100%" }}>
-        <img src="/books_no_bg.png" alt="The Shelf" style={{ height:90, width:"auto", marginBottom:8 }} />
+        <img src="/book-shelf.png" alt="The Shelf" style={{ height:90, width:"auto", marginBottom:8 }} />
         <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:36, fontWeight:300, color:WOOD.text, marginBottom:6, letterSpacing:"-0.01em" }}>The Shelf</p>
         <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:14, color:WOOD.textFaint, marginBottom:40, textAlign:"center" }}>Your personal reading life</p>
         <button onClick={signIn} disabled={loading} style={{
