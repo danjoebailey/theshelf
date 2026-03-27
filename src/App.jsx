@@ -2259,8 +2259,8 @@ function ReikoTab({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook }) {
       <div style={{ padding: "10px 18px 8px" }}>
         <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 14, color: "rgba(255,255,255,0.6)", textAlign:"center" }}>
           {reikoMode === "books"
-            ? "Select up to 6 books you've loved — AI will find your next read."
-            : "Select authors you love — AI will find writers you haven't discovered yet."}
+            ? "Select up to 6 books you've loved — Reiko will find your next read."
+            : "Select authors you love — Reiko will find writers you haven't discovered yet."}
         </p>
       </div>
 
