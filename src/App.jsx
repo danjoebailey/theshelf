@@ -5456,7 +5456,7 @@ export default function App() {
                 borderRadius:"0 0 10px 10px",
                 transition:"background 0.2s, border-color 0.2s",
               }}>
-                <img src="/reader_no_bg.png" alt="Account" style={{ height:34, width:"auto", display:"block", opacity: showProfileMenu ? 1 : 0.55, filter:"brightness(0) invert(1)", transition:"opacity 0.2s" }} />
+                <img src="/prof_pic.png" alt="Account" style={{ height:34, width:34, objectFit:"cover", display:"block", borderRadius:"50%", opacity: showProfileMenu ? 1 : 0.7, transition:"opacity 0.2s" }} />
                 <span style={{
                   fontSize:10, fontWeight:600, letterSpacing:"0.02em",
                   color: showProfileMenu ? "#ffffff" : "rgba(255,255,255,0.5)",
