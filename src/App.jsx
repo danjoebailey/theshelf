@@ -4023,7 +4023,8 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
   const [coverUrl, setCoverUrl] = useState(book.coverUrl || null);
   const [coverId, setCoverId] = useState(book.coverId || null);
   const [coverFetch, setCoverFetch] = useState(null);
-  const [activeTab, setActiveTab] = useState("edit");
+  const defaultTab = (book.shelf === "Curious" || !book.shelf) ? "details" : "edit";
+  const [activeTab, setActiveTab] = useState(defaultTab);
   const [detailPanel, setDetailPanel] = useState(null); // "about" | "prose" | "scores"
   const [description, setDescription] = useState(book.description || null);
   const [descLoading, setDescLoading] = useState(false);
