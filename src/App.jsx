@@ -5086,8 +5086,8 @@ function LoginScreen({ onGuest }) {
         </button>
         <button onClick={onGuest} style={{
           width:"100%", padding:"12px 24px", borderRadius:14, cursor:"pointer", marginTop:12,
-          background:"transparent", border:`1px solid rgba(184,104,0,0.35)`,
-          fontFamily:"'DM Sans',sans-serif", fontSize:14, fontWeight:500, color:WOOD.textDim,
+          background:"#ffffff", border:"none",
+          fontFamily:"'DM Sans',sans-serif", fontSize:14, fontWeight:500, color:"#1a0900",
         }}>
           Try it out
         </button>
