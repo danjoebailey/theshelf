@@ -12,7 +12,7 @@ function buildLibraryContext(library, category) {
 
 const RESULT_FORMAT = `Return ONLY a valid JSON array — no markdown, no explanation, no code blocks. Each object must have exactly these keys: "rank" (number), "title" (string), "author" (string), "publishYear" (number), "pages" (number — approximate page count of most common edition), "reason" (string — one concise sentence on what makes it exceptional for this list). Example: [{"rank":1,"title":"Blood Meridian","author":"Cormac McCarthy","publishYear":1985,"pages":337,"reason":"Relentlessly violent prose poetry that transcends the Western genre into something mythic."}]`;
 
-async function callClaude(apiKey, messages, maxTokens = 6000) {
+async function callClaude(apiKey, messages, maxTokens = 6000, temperature = 0.3) {
   const response = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -22,7 +22,7 @@ async function callClaude(apiKey, messages, maxTokens = 6000) {
     },
     body: JSON.stringify({
       model: "claude-sonnet-4-6",
-      temperature: 0.3,
+      temperature,
       max_tokens: maxTokens,
       system: "You are a deeply well-read literary critic and lifelong reader across all genres. You have strong, considered opinions and rank books the way a knowledgeable friend would — honestly, based on actual quality, not popularity or cultural default.",
       messages,
@@ -103,7 +103,7 @@ export default async function handler(req, res) {
         },
       ];
 
-      let revisedText = await callClaude(apiKey, critiqueMessages, 7000);
+      let revisedText = await callClaude(apiKey, critiqueMessages, 7000, 0);
       revisedText = revisedText.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "").trim();
 
       try {

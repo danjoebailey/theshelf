@@ -3023,6 +3023,8 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onAddDirect, onSh
       return;
     }
     setGenerating(true);
+    setAiItems([]);
+    setGenerated(false);
     try {
       const library = rankingMode === "foryou"
         ? books.filter(b => b.rating > 0).map(b => ({ title: b.title, author: b.author, genre: b.genre, rating: b.rating, likedAspects: b.likedAspects || [], dislikedAspects: b.dislikedAspects || [] }))
