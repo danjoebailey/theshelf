@@ -58,7 +58,22 @@ function dedup(items) {
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
-  }).map((item, i) => ({ ...item, rank: i + 1 }));
+  });
+}
+
+// Reorder to prevent consecutive same-author entries.
+// Pulls the next non-same-author book forward; only allows consecutive
+// if no other option exists (e.g. author dominates the entire list).
+function interleave(items) {
+  const result = [];
+  const remaining = [...items];
+  while (remaining.length) {
+    const lastAuthor = result.length ? result[result.length - 1].author.toLowerCase() : null;
+    const nextIdx = remaining.findIndex(b => b.author.toLowerCase() !== lastAuthor);
+    const pick = nextIdx === -1 ? 0 : nextIdx;
+    result.push(remaining.splice(pick, 1)[0]);
+  }
+  return result.map((item, i) => ({ ...item, rank: i + 1 }));
 }
 
 export default async function handler(req, res) {
@@ -149,7 +164,7 @@ Make the necessary replacements and reorder if needed. Return the final revised 
       }
     }
 
-    res.json({ items: dedup(items) });
+    res.json({ items: interleave(dedup(items)) });
   } catch (e) {
     return res.status(500).json({ error: e.message });
   }
