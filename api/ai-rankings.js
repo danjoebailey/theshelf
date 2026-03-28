@@ -1,13 +1,31 @@
-function buildLibraryContext(library, category) {
+function buildLibraryContext(library, genre) {
   const rated = (library || []).filter(b => b.rating > 0).sort((a, b) => b.rating - a.rating);
   if (!rated.length) return "No reading history provided.";
-  const lines = rated.slice(0, 40).map(b => {
+
+  // All rated books, full library — no cap
+  const lines = rated.map(b => {
     let line = `- "${b.title}" by ${b.author} (${b.genre || "Fiction"}, rated ${b.rating}/5)`;
     if (b.likedAspects?.length) line += `; liked: ${b.likedAspects.join(", ")}`;
     if (b.dislikedAspects?.length) line += `; disliked: ${b.dislikedAspects.join(", ")}`;
     return line;
   });
-  return `My reading history:\n${lines.join("\n")}`;
+
+  // Separate signal commentary for genre-specific searches
+  const genreBooks = genre && genre !== "All"
+    ? rated.filter(b => b.genre === genre)
+    : [];
+  const genreNote = genreBooks.length > 0
+    ? `\n\nOf these, the reader has read ${genreBooks.length} ${genre} book(s). Their ${genre} ratings specifically: ${genreBooks.map(b => `"${b.title}" (${b.rating}/5)`).join(", ")}. Weight these heavily when inferring taste within this genre.`
+    : "";
+
+  return `Reader's full library (sorted by rating, highest first):\n${lines.join("\n")}${genreNote}`;
+}
+
+function buildReadTitles(library) {
+  return (library || [])
+    .filter(b => b.title)
+    .map(b => `"${b.title}" by ${b.author}`)
+    .join(", ");
 }
 
 const RESULT_FORMAT = `Return ONLY a valid JSON array — no markdown, no explanation, no code blocks. Each object must have exactly these keys: "rank" (number), "title" (string), "author" (string), "publishYear" (number), "pages" (number — approximate page count of most common edition), "reason" (string — one concise sentence on what makes it exceptional for this list). Example: [{"rank":1,"title":"Blood Meridian","author":"Cormac McCarthy","publishYear":1985,"pages":337,"reason":"Relentlessly violent prose poetry that transcends the Western genre into something mythic."}]`;
@@ -66,8 +84,28 @@ export default async function handler(req, res) {
     prompt = `Give me your top 50${genreStr} novels ranked purely on contemporary literary craft${categoryStr} Judge each book solely on the quality of the work itself by modern critical standards — completely ignore historical significance, cultural importance, influence, or when it was written. A 19th-century novel that reads awkwardly today should rank below a contemporary novel with superior craft, even if the older work is more historically important. A book that was groundbreaking for its era but whose techniques have since been surpassed should rank lower than a book that executes those techniques better. The only question is: how good is this book, right now, judged as a piece of writing? For each rank, ask: what is the single best book for this slot on pure craft? Multiple books from the same author are welcome if each genuinely deserves its slot; do not list them consecutively. Each book must appear exactly once. ${RESULT_FORMAT}`;
 
   } else if (rankingMode === "foryou") {
-    const libraryContext = buildLibraryContext(library, category);
-    prompt = `Based on my reading history below, give me a personalized top 50${genreStr} books${categoryStr} — ordered by how much you think I would genuinely enjoy and appreciate them, given my demonstrated taste.\n\n${libraryContext}\n\nInfer my preferences from my ratings, liked/disliked aspects, and genre patterns. Recommend books that align with what I've responded to most strongly. Exclude books I've already read if you can identify them. Do not just recommend the most famous books — recommend what you think I specifically would love. Each book must appear exactly once. ${RESULT_FORMAT}`;
+    const libraryContext = buildLibraryContext(library, genre);
+    const readTitles = buildReadTitles(library);
+
+    prompt = `You are building a personalised ranking for a specific reader. Your job is two steps:
+
+STEP 1 — Build a reading profile.
+Analyse the reader's full library below. Pay close attention to:
+- Which books they rated 4–5 stars and what those books have in common (themes, prose style, pacing, structure, tone, subgenre)
+- Which books they rated 1–3 stars and what those books have in common — these signal what this reader does NOT respond to
+- Any liked/disliked aspects they have noted
+${genre !== "All" ? `- This is a ${genre} search, so their ${genre} ratings carry the most weight — treat these as the strongest signal` : ""}
+
+STEP 2 — Generate the ranking.
+Based on that profile, produce a ranked list of the top 50${genreStr} books${categoryStr} that this reader has NOT yet read, ordered by how highly you believe they would personally rank each book if they had read it.
+
+This is not a list of famous books in the genre. This is a list calibrated entirely to this reader's demonstrated taste. A book belongs on this list only if it genuinely matches what this reader has shown they love. A book that contradicts their taste profile should not appear regardless of how acclaimed it is.
+
+Do not include any book the reader has already read. Books already read: ${readTitles || "none listed"}.
+
+${libraryContext}
+
+Each book must appear exactly once. ${RESULT_FORMAT}`;
 
   } else {
     // alltime
@@ -93,13 +131,21 @@ export default async function handler(req, res) {
 
     // Self-critique pass for foryou only
     if (rankingMode === "foryou") {
-      const libraryContext = buildLibraryContext(library, category);
+      const libraryContext = buildLibraryContext(library, genre);
       const critiqueMessages = [
         { role: "user", content: prompt },
         { role: "assistant", content: text },
         {
           role: "user",
-          content: `Now critique this list against my reading profile. Ask yourself: are these genuinely the 50 books this specific reader would love most, or did you default to well-known titles that don't reflect their actual taste?\n\n${libraryContext}\n\nIdentify any books that don't fit the reader's demonstrated preferences and replace them with better matches. Reorder if needed. Then return the final revised list. ${RESULT_FORMAT}`,
+          content: `Now rigorously critique this list against the reader's profile.
+
+Ask yourself two questions:
+1. SHOULDN'T BE HERE — Are any books on this list a poor match for this reader? Check each entry against their low-rated books and disliked aspects. A book that resembles something they rated 3 stars or below, or shares qualities they explicitly disliked, should be replaced.
+2. SHOULD BE HERE — Are there books missing that would be a stronger match for this reader than some of the current entries? Think about what their highest-rated books have in common and whether the list fully capitalises on those signals.
+
+${libraryContext}
+
+Make the necessary replacements and reorder if needed. Return the final revised list. ${RESULT_FORMAT}`,
         },
       ];
 
