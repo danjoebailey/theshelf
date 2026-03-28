@@ -3331,12 +3331,14 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onAddDirect, onSh
         {displayList.length === 0 && (
           <div style={{ textAlign:"center", padding:"48px 24px" }}>
             {generating ? (
-              <video
-                src="/obi animation.mp4"
-                autoPlay loop muted playsInline
-                style={{ width:220, maxWidth:"80%", borderRadius:12, display:"block", margin:"0 auto" }}
-              />
-              <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, fontStyle:"italic", color:"rgba(255,235,195,0.5)", marginTop:14 }}>Obi is working his magic…</p>
+              <>
+                <video
+                  src="/obi animation.mp4"
+                  autoPlay loop muted playsInline
+                  style={{ width:220, maxWidth:"80%", borderRadius:12, display:"block", margin:"0 auto" }}
+                />
+                <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, fontStyle:"italic", color:"rgba(255,235,195,0.5)", marginTop:14 }}>Obi is working his magic…</p>
+              </>
             ) : (
               <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, fontStyle:"italic", color:"rgba(255,235,195,0.35)" }}>
                 {mode === "ai"
