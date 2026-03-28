@@ -164,7 +164,16 @@ Make the necessary replacements and reorder if needed. Return the final revised 
       }
     }
 
-    res.json({ items: interleave(dedup(items)) });
+    let finalItems = dedup(items);
+    if (rankingMode === "foryou") {
+      const authorCount = {};
+      finalItems = finalItems.filter(item => {
+        const key = item.author.toLowerCase();
+        authorCount[key] = (authorCount[key] || 0) + 1;
+        return authorCount[key] <= 3;
+      });
+    }
+    res.json({ items: interleave(finalItems) });
   } catch (e) {
     return res.status(500).json({ error: e.message });
   }
