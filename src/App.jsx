@@ -2009,6 +2009,15 @@ function ReedTab({ books, userId, onEdit, onShelfChange, onSaveScores, onAuthor 
         </p>
       )}
 
+      {/* Reed's intro note */}
+      {shelfBooks.length > 0 && (
+        <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, fontStyle:"italic", color:"rgba(255,235,195,0.55)", textAlign:"center", margin:"4px 0" }}>
+          {mode === "list"
+            ? "Your List is long and your time is precious. Leave it to me — I'll tell you exactly what to pick up next."
+            : "Sitting on the fence? I respect it. But I've made my decision. Here's what you're picking up next."}
+        </p>
+      )}
+
       {/* Generate / Refresh button */}
       {shelfBooks.length > 0 && (
         <div style={{ display:"flex", justifyContent:"center" }}>
