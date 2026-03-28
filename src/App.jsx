@@ -2830,6 +2830,53 @@ function EntityDropdown({ value, onChange }) {
   );
 }
 
+function PillDropdown({ value, onChange, options }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    function handler(e) { if (ref.current && !ref.current.contains(e.target)) setOpen(false); }
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+  const label = options.find(o => (o.value ?? o) === value)?.label ?? value;
+  return (
+    <div ref={ref} style={{ position:"relative", display:"inline-flex" }}>
+      <button onClick={() => setOpen(o => !o)} style={{
+        display:"flex", alignItems:"center", gap:4, padding:"3px 10px",
+        borderRadius:20, border:"1px solid rgba(255,235,195,0.22)",
+        background:"rgba(255,235,195,0.08)", color:"rgba(255,235,195,0.75)",
+        fontFamily:"'DM Sans',sans-serif", fontSize:11, cursor:"pointer",
+      }}>
+        {label}
+        <svg width="7" height="4" viewBox="0 0 7 4" style={{ opacity:0.45, transition:"transform 0.15s", transform: open ? "rotate(180deg)" : "rotate(0deg)" }}>
+          <path d="M0 0l3.5 4 3.5-4z" fill="currentColor"/>
+        </svg>
+      </button>
+      {open && (
+        <div style={{
+          position:"absolute", top:"calc(100% + 4px)", left:0, zIndex:100,
+          background:"#3a2010", border:"1px solid rgba(200,144,90,0.25)", borderRadius:10,
+          overflow:"hidden", minWidth:"100%",
+        }}>
+          {options.map(o => {
+            const val = o.value ?? o;
+            const lbl = o.label ?? o;
+            return (
+              <div key={val} onClick={() => { onChange(val); setOpen(false); }} style={{
+                padding:"6px 14px", textAlign:"left",
+                fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600,
+                color: val === value ? WOOD.amber : "rgba(255,235,195,0.7)",
+                background: val === value ? "rgba(184,104,0,0.15)" : "transparent",
+                cursor:"pointer", whiteSpace:"nowrap",
+              }}>{lbl}</div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function RankingsTab({ books, onSaveScores, userId, onAddBook, onAddDirect, onShelfChange, onEdit }) {
   const [mode, setMode] = useState("user");
   const [genreFilter, setGenreFilter] = useState("All");
@@ -3216,20 +3263,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onAddDirect, onSh
 
           {/* Row 2: genre left | Top N center | spacer right */}
           <div style={{ display:"grid", gridTemplateColumns:"auto 1fr auto", alignItems:"center", gap:4 }}>
-            <div style={{ position:"relative", display:"flex", alignItems:"center" }}>
-              <select value={genreFilter} onChange={e => { setGenreFilter(e.target.value); setGenerated(false); }} style={{
-                padding:"3px 20px 3px 9px", borderRadius:20,
-                border:"1px solid rgba(255,235,195,0.22)",
-                background:"rgba(255,235,195,0.08)", color:"rgba(255,235,195,0.75)",
-                fontFamily:"'DM Sans',sans-serif", fontSize:11, cursor:"pointer",
-                appearance:"none", WebkitAppearance:"none",
-              }}>
-                {availableGenres.map(g => <option key={g} value={g} style={{ background:"#5a3820" }}>{g}</option>)}
-              </select>
-              <svg style={{ position:"absolute", right:6, pointerEvents:"none" }} width="7" height="4" viewBox="0 0 7 4">
-                <path d="M0 0l3.5 4 3.5-4z" fill="rgba(255,235,195,0.45)"/>
-              </svg>
-            </div>
+            <PillDropdown value={genreFilter} onChange={v => { setGenreFilter(v); setGenerated(false); }} options={availableGenres.map(g => ({ value:g, label:g }))} />
             <div style={{ display:"flex", gap:4, justifyContent:"center" }}>
               {[10, 20, "all"].map(n => (
                 <button key={n} {...tc(() => { setTopN(n); setGenerated(false); })} style={{
