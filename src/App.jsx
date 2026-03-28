@@ -2840,15 +2840,15 @@ function PillDropdown({ value, onChange, options, maxLabelWidth }) {
   }, []);
   const label = options.find(o => (o.value ?? o) === value)?.label ?? value;
   return (
-    <div ref={ref} style={{ position:"relative", display:"inline-flex", minWidth:0 }}>
+    <div ref={ref} style={{ position:"relative", display:"block", minWidth:0, maxWidth:"100%" }}>
       <button onClick={() => setOpen(o => !o)} style={{
         display:"flex", alignItems:"center", gap:4, padding:"3px 10px",
         borderRadius:20, border:"1px solid rgba(255,235,195,0.22)",
         background:"rgba(255,235,195,0.08)", color:"rgba(255,235,195,0.75)",
         fontFamily:"'DM Sans',sans-serif", fontSize:11, cursor:"pointer",
-        minWidth:0, maxWidth: maxLabelWidth ? maxLabelWidth + 28 : undefined,
+        minWidth:0, maxWidth:"100%",
       }}>
-        <span style={{ overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", maxWidth: maxLabelWidth ?? "none" }}>{label}</span>
+        <span style={{ overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{label}</span>
         <svg width="7" height="4" viewBox="0 0 7 4" style={{ flexShrink:0, opacity:0.45, transition:"transform 0.15s", transform: open ? "rotate(180deg)" : "rotate(0deg)" }}>
           <path d="M0 0l3.5 4 3.5-4z" fill="currentColor"/>
         </svg>
