@@ -5505,7 +5505,7 @@ export default function App() {
           flexShrink:0,
           position:"relative", zIndex:10,
         }}>
-          {[{ id:"shelf", label:"Shelf" },{ id:"stats", label:"Breakdown" },{ id:"reiko", label:"Reiko" },{ id:"rankings", label:"Rankings" }].map(({ id,label })=>(
+          {[{ id:"shelf", label:"Shelf" },{ id:"stats", label:"Breakdown" },{ id:"reiko", label:"Recommend" },{ id:"rankings", label:"Rankings" }].map(({ id,label })=>(
             <button key={id}
               onTouchEnd={e=>{ e.preventDefault(); setTab(id); }}
               onClick={()=>setTab(id)} style={{
