@@ -102,11 +102,21 @@ export default async function handler(req, res) {
     const libraryContext = buildLibraryContext(library, genre);
     const readTitles = buildReadTitles(library);
 
-    prompt = `Using the reader's library below, infer their taste profile — what they love (4–5 star patterns) and what they don't respond to (1–3 star patterns, disliked aspects) — then produce a ranked list of the top 50${genreStr} books${categoryStr} that this reader has NOT yet read, ordered by how highly you believe they would personally rank each book if they had read it.${genre !== "All" ? ` This is a ${genre} search — the reader's ${genre} ratings are the strongest signal.` : ""}
+    prompt = `You are building a personalised ranked list for a specific reader. Here is how to do it:
 
-This list must be calibrated entirely to this reader's demonstrated taste, not to general acclaim. A book belongs only if it genuinely matches what this reader has shown they love. A book that contradicts their taste profile should not appear regardless of how celebrated it is.
+FIRST — study the reader's library carefully. Identify:
+- The specific subgenres, themes, tones, and styles that appear in their 4–5 star books (e.g. grimdark, progression fantasy, political intrigue, found family, slow-burn character work, hard magic systems, morally complex protagonists — be specific)
+- What their 1–3 star books and disliked aspects tell you about what this reader does NOT respond to
+${genre !== "All" ? `- This is a ${genre} search. Their ${genre} ratings are the primary signal — weight them above everything else.` : ""}
 
-Do not include any book the reader has already read. Books already read: ${readTitles || "none listed"}.
+THEN — produce a ranked list of 50${genreStr} books${categoryStr} this reader has NOT yet read, ordered by how highly you believe they would personally rank each book if they had read it.
+
+CRITICAL RULES:
+- This list must reflect the reader's specific subgenre and style preferences, not general critical consensus
+- Do NOT default to the standard "best of genre" canonical picks (Tolkien, Jordan, GRRM, Sanderson, etc.) unless the reader's actual taste profile genuinely demands them — if their ratings don't strongly support a canonical pick, leave it out
+- The value of this list is in the specific, tailored discoveries — books like mid-tier gems, acclaimed-but-not-mainstream works, and series that match their exact taste pattern. These are books the reader would not easily find on a generic top-50 list
+- A lesser-known book that perfectly matches the reader's demonstrated taste belongs higher than a famous book that only loosely fits
+- Do not include any book the reader has already read. Books already read: ${readTitles || "none listed"}
 
 ${libraryContext}
 
@@ -144,13 +154,14 @@ Each book must appear exactly once. ${RESULT_FORMAT}`;
           role: "user",
           content: `Now rigorously critique this list against the reader's profile.
 
-Ask yourself two questions:
-1. SHOULDN'T BE HERE — Are any books on this list a poor match for this reader? Check each entry against their low-rated books and disliked aspects. A book that resembles something they rated 3 stars or below, or shares qualities they explicitly disliked, should be replaced.
-2. SHOULD BE HERE — Are there books missing that would be a stronger match for this reader than some of the current entries? Think about what their highest-rated books have in common and whether the list fully capitalises on those signals.
+Ask yourself three questions:
+1. SHOULDN'T BE HERE — Are any books on this list a poor fit for this reader? Check each entry against their low-rated books and disliked aspects. A book that resembles something they rated 3 stars or below, or shares qualities they explicitly disliked, should be cut.
+2. TOO OBVIOUS — Are any entries just canonical "best of genre" picks that don't specifically reflect this reader's taste? Famous books that appear on every generic top-50 list should only stay if the reader's ratings strongly support them. Replace lazy canonical picks with specific, well-matched alternatives — including mid-tier, less-celebrated, or niche works that fit the reader's actual subgenre and style preferences.
+3. MISSING — Are there books not on this list that would be a stronger match than some current entries? Look for specific subgenre fits, series that align with what the reader has loved, and less obvious picks that match their taste pattern precisely.
 
 ${libraryContext}
 
-Make the necessary replacements and reorder if needed. Return the final revised list. ${RESULT_FORMAT}`,
+Make the necessary replacements and reorder. Return the final revised list. ${RESULT_FORMAT}`,
         },
       ];
 
