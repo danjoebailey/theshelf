@@ -3289,7 +3289,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onAddDirect, onSh
                 <PillDropdown value={scoreCategory} onChange={v => { setScoreCategory(v); setGenerated(false); }} options={SCORE_CATEGORIES.map(({ key, label }) => ({ value:key, label }))} maxLabelWidth={80} />
               </div>
               <div style={{ display:"flex", gap:4, justifyContent:"center" }}>
-                {[["alltime","All Time"],["vacuum","Vacuum"],["foryou","For You"]].map(([m, label]) => (
+                {[["alltime","All Time"],["vacuum","Vacuum"]].map(([m, label]) => (
                   <button key={m} {...tc(() => { setRankingMode(m); setGenerated(false); setAiItems([]); })} style={{
                     padding:"3px 10px", borderRadius:20,
                     border:`1px solid ${rankingMode===m ? WOOD.amber : "rgba(255,235,195,0.18)"}`,
