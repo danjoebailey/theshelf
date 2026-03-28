@@ -2786,6 +2786,50 @@ const SCORE_CATEGORIES = [
   { key:"ending",       label:"Ending" },
 ];
 
+function EntityDropdown({ value, onChange }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    function handler(e) { if (ref.current && !ref.current.contains(e.target)) setOpen(false); }
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+  const options = [{ value:"books", label:"Books" }, { value:"authors", label:"Authors" }, { value:"series", label:"Series" }];
+  const label = options.find(o => o.value === value)?.label ?? value;
+  return (
+    <div ref={ref} style={{ position:"relative", display:"inline-flex" }}>
+      <button onClick={() => setOpen(o => !o)} style={{
+        display:"flex", alignItems:"center", gap:4, padding:"3px 10px",
+        borderRadius:20, border:`1px solid ${WOOD.amber}`,
+        background:WOOD.amber, color:"#1a0900",
+        fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:600, cursor:"pointer",
+      }}>
+        {label}
+        <svg width="7" height="4" viewBox="0 0 7 4" style={{ opacity:0.6, transition:"transform 0.15s", transform: open ? "rotate(180deg)" : "rotate(0deg)" }}>
+          <path d="M0 0l3.5 4 3.5-4z" fill="currentColor"/>
+        </svg>
+      </button>
+      {open && (
+        <div style={{
+          position:"absolute", top:"calc(100% + 4px)", left:0, zIndex:100,
+          background:"#3a2010", border:"1px solid rgba(200,144,90,0.25)", borderRadius:10,
+          overflow:"hidden", minWidth:"100%",
+        }}>
+          {options.map(o => (
+            <div key={o.value} onClick={() => { onChange(o.value); setOpen(false); }} style={{
+              padding:"6px 14px", textAlign:"left",
+              fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:600,
+              color: o.value === value ? WOOD.amber : "rgba(255,235,195,0.7)",
+              background: o.value === value ? "rgba(184,104,0,0.15)" : "transparent",
+              cursor:"pointer", whiteSpace:"nowrap",
+            }}>{o.label}</div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function RankingsTab({ books, onSaveScores, userId, onAddBook, onAddDirect, onShelfChange, onEdit }) {
   const [mode, setMode] = useState("user");
   const [genreFilter, setGenreFilter] = useState("All");
@@ -2799,6 +2843,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onAddDirect, onSh
   const [controlsOpen, setControlsOpen] = useState(true);
   const [aiItems, setAiItems] = useState([]);
   const [rankingMode, setRankingMode] = useState("alltime");
+  const [entityType, setEntityType] = useState("books");
   const fetchSession = useRef(0);
 
   const readBooks = useMemo(() =>
@@ -3120,132 +3165,138 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onAddDirect, onSh
   return (
     <div style={{ display:"flex", flexDirection:"column", height:"100%", overflow:"hidden", position:"relative" }}>
       {/* Controls header */}
-      <div style={{ padding:"12px 16px 10px", flexShrink:0, background:"rgba(50,28,12,0.7)", borderBottom:"1px solid rgba(200,144,90,0.15)" }}>
-        {/* Mode toggle + view toggle */}
-        <div style={{ display:"flex", gap:6, marginBottom: controlsOpen ? 10 : 0, alignItems:"center" }}>
+      <div style={{ padding:"8px 12px 7px", flexShrink:0, background:"rgba(50,28,12,0.7)", borderBottom:"1px solid rgba(200,144,90,0.12)" }}>
+
+        {/* Row 1: entity left | mode center | icons right */}
+        <div style={{ display:"grid", gridTemplateColumns:"1fr auto 1fr", alignItems:"center", marginBottom: controlsOpen ? 6 : 0 }}>
+          <div><EntityDropdown value={entityType} onChange={setEntityType} /></div>
           {controlsOpen
-            ? [["user","Your Ranking"],["ai","AI Ranking"]].map(([m, label]) => (
-                <button key={m} {...tc(() => { setMode(m); if (m === "ai") { setGenerated(false); setGenreFilter("Fiction"); setTopN("all"); } else { setGenreFilter("All"); } })} style={{
-                  padding:"5px 14px", borderRadius:20, border:"none", cursor:"pointer",
-                  background: mode===m ? WOOD.amber : "rgba(255,235,195,0.12)",
-                  color: mode===m ? "#1a0900" : "rgba(255,235,195,0.6)",
-                  fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:600,
-                  transition:"all 0.15s",
-                }}>{label}</button>
-              ))
-            : <span style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:"rgba(255,235,195,0.75)", fontStyle:"italic" }}>
+            ? <div style={{ display:"flex", gap:4 }}>
+                {[["user","Your Ranking"],["ai","AI Ranking"]].map(([m, label]) => (
+                  <button key={m} {...tc(() => { setMode(m); if (m === "ai") { setGenerated(false); setGenreFilter("Fiction"); setTopN("all"); } else { setGenreFilter("All"); } })} style={{
+                    padding:"3px 11px", borderRadius:20, border:"none", cursor:"pointer",
+                    background: mode===m ? WOOD.amber : "rgba(255,235,195,0.12)",
+                    color: mode===m ? "#1a0900" : "rgba(255,235,195,0.6)",
+                    fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:600,
+                    transition:"all 0.15s",
+                  }}>{label}</button>
+                ))}
+              </div>
+            : <span style={{ fontFamily:"'Crimson Pro',serif", fontSize:13, color:"rgba(255,235,195,0.75)", fontStyle:"italic", textAlign:"center" }}>
                 {`${mode === "user" ? "Your" : "AI"} Top ${topN === "all" ? 50 : topN}${genreFilter !== "All" ? ` ${genreFilter}` : ""} Books${mode === "ai" && scoreCategory !== "all" ? ` · ${SCORE_CATEGORIES.find(c => c.key === scoreCategory)?.label || scoreCategory}` : ""}`}
               </span>
           }
-          <div style={{ display:"flex", gap:6, marginLeft:"auto" }}>
+          <div style={{ display:"flex", gap:4, justifyContent:"flex-end" }}>
             <button {...tc(()=>setViewMode(v=>v==="card"?"row":"card"), true)} style={{
               display:"flex", alignItems:"center", justifyContent:"center",
-              background:"rgba(15,8,2,0.55)", borderRadius:20, padding:"5px 10px",
+              background:"rgba(15,8,2,0.55)", borderRadius:20, padding:"4px 8px",
               border:"1px solid rgba(120,70,20,0.3)", backdropFilter:"blur(4px)",
-              cursor:"pointer", color:"#fff",
+              cursor:"pointer", color:"rgba(255,235,195,0.65)",
             }}>
               {viewMode==="card"
-                ? <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor"><rect x="0" y="0" width="13" height="3" rx="1.5"/><rect x="0" y="5" width="13" height="3" rx="1.5"/><rect x="0" y="10" width="13" height="3" rx="1.5"/></svg>
-                : <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor"><rect x="0" y="0" width="6" height="6" rx="1"/><rect x="7" y="0" width="6" height="6" rx="1"/><rect x="0" y="7" width="6" height="6" rx="1"/><rect x="7" y="7" width="6" height="6" rx="1"/></svg>
+                ? <svg width="11" height="11" viewBox="0 0 13 13" fill="currentColor"><rect x="0" y="0" width="13" height="3" rx="1.5"/><rect x="0" y="5" width="13" height="3" rx="1.5"/><rect x="0" y="10" width="13" height="3" rx="1.5"/></svg>
+                : <svg width="11" height="11" viewBox="0 0 13 13" fill="currentColor"><rect x="0" y="0" width="6" height="6" rx="1"/><rect x="7" y="0" width="6" height="6" rx="1"/><rect x="0" y="7" width="6" height="6" rx="1"/><rect x="7" y="7" width="6" height="6" rx="1"/></svg>
               }
             </button>
             <button {...tc(()=>setControlsOpen(o=>!o), true)} style={{
               display:"flex", alignItems:"center", justifyContent:"center",
-              background:"rgba(15,8,2,0.55)", borderRadius:20, padding:"5px 10px",
+              background:"rgba(15,8,2,0.55)", borderRadius:20, padding:"4px 8px",
               border:"1px solid rgba(120,70,20,0.3)", backdropFilter:"blur(4px)",
-              cursor:"pointer", color:"#fff",
+              cursor:"pointer", color:"rgba(255,235,195,0.65)",
             }}>
-              <svg width="11" height="7" viewBox="0 0 11 7" fill="currentColor" style={{ transition:"transform 0.2s", transform: controlsOpen ? "rotate(0deg)" : "rotate(180deg)" }}>
-                <path d="M1 6l4.5-5L10 6" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
+              <svg width="10" height="6" viewBox="0 0 11 7" fill="none" style={{ transition:"transform 0.2s", transform: controlsOpen ? "rotate(0deg)" : "rotate(180deg)" }}>
+                <path d="M1 6l4.5-5L10 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
               </svg>
             </button>
           </div>
         </div>
 
         {/* Collapsible filters */}
-        {controlsOpen && <div>
+        {controlsOpen && <div style={{ display:"flex", flexDirection:"column", gap:5 }}>
 
-        {/* Filters row */}
-        <div style={{ display:"flex", gap:6, flexWrap:"wrap", alignItems:"center", marginBottom: mode==="ai" ? 8 : 0 }}>
-          {/* Top N */}
-          {[10, 20, "all"].map(n => (
-            <button key={n} {...tc(() => { setTopN(n); setGenerated(false); })} style={{
-              padding:"3px 10px", borderRadius:20,
-              border:`1px solid ${topN===n ? WOOD.amber : "rgba(255,235,195,0.22)"}`,
-              background: topN===n ? WOOD.amber : "transparent",
-              color: topN===n ? "#1a0900" : "rgba(255,235,195,0.6)",
-              fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:600, cursor:"pointer",
-              transition:"all 0.15s",
-            }}>{n === "all" ? "All" : `Top ${n}`}</button>
-          ))}
-          <span style={{ color:"rgba(255,235,195,0.25)", fontSize:14 }}>|</span>
-          {/* Genre */}
-          <div style={{ position:"relative", display:"flex", alignItems:"center" }}>
-            <select value={genreFilter} onChange={e => { setGenreFilter(e.target.value); setGenerated(false); }} style={{
-              padding:"3px 22px 3px 9px", borderRadius:20,
-              border:"1px solid rgba(255,235,195,0.22)",
-              background:"rgba(255,235,195,0.08)", color:"rgba(255,235,195,0.75)",
-              fontFamily:"'DM Sans',sans-serif", fontSize:12, cursor:"pointer",
-              appearance:"none", WebkitAppearance:"none",
-            }}>
-              {availableGenres.map(g => <option key={g} value={g} style={{ background:"#5a3820" }}>{g}</option>)}
-            </select>
-            <svg style={{ position:"absolute", right:7, pointerEvents:"none" }} width="8" height="5" viewBox="0 0 8 5">
-              <path d="M0 0l4 5 4-5z" fill="rgba(255,235,195,0.5)"/>
-            </svg>
-          </div>
-        </div>
-
-        {/* AI: ranking mode + category */}
-        {mode === "ai" && (
-          <div style={{ display:"flex", gap:4, alignItems:"center", flexWrap:"wrap", marginBottom:8, paddingTop:8, borderTop:"1px solid rgba(200,144,90,0.15)" }}>
-            {[["alltime","All Time"],["vacuum","Vacuum"],["foryou","For You"]].map(([m, label]) => (
-              <button key={m} {...tc(() => { setRankingMode(m); setGenerated(false); setAiItems([]); })} style={{
-                padding:"3px 10px", borderRadius:20,
-                border:`1px solid ${rankingMode===m ? WOOD.amber : "rgba(255,235,195,0.18)"}`,
-                background: rankingMode===m ? WOOD.amber : "transparent",
-                color: rankingMode===m ? "#1a0900" : "rgba(255,235,195,0.5)",
-                fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600, cursor:"pointer",
-                transition:"all 0.15s",
-              }}>{label}</button>
-            ))}
-            <span style={{ color:"rgba(255,235,195,0.25)", fontSize:14 }}>|</span>
+          {/* Row 2: genre left | Top N center | spacer right */}
+          <div style={{ display:"grid", gridTemplateColumns:"auto 1fr auto", alignItems:"center", gap:4 }}>
             <div style={{ position:"relative", display:"flex", alignItems:"center" }}>
-              <select value={scoreCategory} onChange={e => { setScoreCategory(e.target.value); setGenerated(false); }} style={{
-                padding:"3px 22px 3px 9px", borderRadius:20,
+              <select value={genreFilter} onChange={e => { setGenreFilter(e.target.value); setGenerated(false); }} style={{
+                padding:"3px 20px 3px 9px", borderRadius:20,
                 border:"1px solid rgba(255,235,195,0.22)",
                 background:"rgba(255,235,195,0.08)", color:"rgba(255,235,195,0.75)",
                 fontFamily:"'DM Sans',sans-serif", fontSize:11, cursor:"pointer",
                 appearance:"none", WebkitAppearance:"none",
               }}>
-                {SCORE_CATEGORIES.map(({ key, label }) => <option key={key} value={key} style={{ background:"#5a3820" }}>{label}</option>)}
+                {availableGenres.map(g => <option key={g} value={g} style={{ background:"#5a3820" }}>{g}</option>)}
               </select>
-              <svg style={{ position:"absolute", right:7, pointerEvents:"none" }} width="8" height="5" viewBox="0 0 8 5">
-                <path d="M0 0l4 5 4-5z" fill="rgba(255,235,195,0.5)"/>
+              <svg style={{ position:"absolute", right:6, pointerEvents:"none" }} width="7" height="4" viewBox="0 0 7 4">
+                <path d="M0 0l3.5 4 3.5-4z" fill="rgba(255,235,195,0.45)"/>
               </svg>
             </div>
+            <div style={{ display:"flex", gap:4, justifyContent:"center" }}>
+              {[10, 20, "all"].map(n => (
+                <button key={n} {...tc(() => { setTopN(n); setGenerated(false); })} style={{
+                  padding:"3px 10px", borderRadius:20,
+                  border:`1px solid ${topN===n ? WOOD.amber : "rgba(255,235,195,0.22)"}`,
+                  background: topN===n ? WOOD.amber : "transparent",
+                  color: topN===n ? "#1a0900" : "rgba(255,235,195,0.6)",
+                  fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600, cursor:"pointer",
+                  transition:"all 0.15s",
+                }}>{n === "all" ? "All" : `Top ${n}`}</button>
+              ))}
+            </div>
+            <div />
           </div>
-        )}
 
-        {/* AI: generate button */}
-        {mode === "ai" && (
-          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-            <button {...tc(generating ? ()=>{} : generateAIRankings)} style={{
-              padding:"7px 18px", borderRadius:20,
-              background: generating ? "rgba(184,104,0,0.45)" : WOOD.amber,
-              color: "#1a0900", border:"none", cursor: generating ? "default" : "pointer",
-              fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:600,
-              opacity: generating ? 0.7 : 1, transition:"all 0.15s",
-            }}>
-              {generating ? "Generating…" : generated ? "Regenerate" : "Generate Rankings"}
-            </button>
-            {generated && !generating && (
-              <span style={{ fontSize:12, color:"rgba(255,235,195,0.45)", fontFamily:"'DM Sans',sans-serif" }}>
-                {aiDisplayItems.length} of {aiItems.length}
-              </span>
-            )}
-          </div>
-        )}
+          {/* Row 3 (AI only): score left | ranking mode center | spacer right */}
+          {mode === "ai" && (
+            <div style={{ display:"grid", gridTemplateColumns:"auto 1fr auto", alignItems:"center", gap:4, paddingTop:5, borderTop:"1px solid rgba(200,144,90,0.12)" }}>
+              <div style={{ position:"relative", display:"flex", alignItems:"center" }}>
+                <select value={scoreCategory} onChange={e => { setScoreCategory(e.target.value); setGenerated(false); }} style={{
+                  padding:"3px 20px 3px 9px", borderRadius:20,
+                  border:"1px solid rgba(255,235,195,0.22)",
+                  background:"rgba(255,235,195,0.08)", color:"rgba(255,235,195,0.75)",
+                  fontFamily:"'DM Sans',sans-serif", fontSize:11, cursor:"pointer",
+                  appearance:"none", WebkitAppearance:"none",
+                }}>
+                  {SCORE_CATEGORIES.map(({ key, label }) => <option key={key} value={key} style={{ background:"#5a3820" }}>{label}</option>)}
+                </select>
+                <svg style={{ position:"absolute", right:6, pointerEvents:"none" }} width="7" height="4" viewBox="0 0 7 4">
+                  <path d="M0 0l3.5 4 3.5-4z" fill="rgba(255,235,195,0.45)"/>
+                </svg>
+              </div>
+              <div style={{ display:"flex", gap:4, justifyContent:"center" }}>
+                {[["alltime","All Time"],["vacuum","Vacuum"],["foryou","For You"]].map(([m, label]) => (
+                  <button key={m} {...tc(() => { setRankingMode(m); setGenerated(false); setAiItems([]); })} style={{
+                    padding:"3px 10px", borderRadius:20,
+                    border:`1px solid ${rankingMode===m ? WOOD.amber : "rgba(255,235,195,0.18)"}`,
+                    background: rankingMode===m ? WOOD.amber : "transparent",
+                    color: rankingMode===m ? "#1a0900" : "rgba(255,235,195,0.5)",
+                    fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600, cursor:"pointer",
+                    transition:"all 0.15s",
+                  }}>{label}</button>
+                ))}
+              </div>
+              <div />
+            </div>
+          )}
+
+          {/* Row 4 (AI only): generate button centered */}
+          {mode === "ai" && (
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}>
+              <button {...tc(generating ? ()=>{} : generateAIRankings)} style={{
+                padding:"5px 16px", borderRadius:20,
+                background: generating ? "rgba(184,104,0,0.45)" : WOOD.amber,
+                color: "#1a0900", border:"none", cursor: generating ? "default" : "pointer",
+                fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:700,
+                opacity: generating ? 0.7 : 1, transition:"all 0.15s",
+              }}>
+                {generating ? "Generating…" : generated ? "Regenerate" : "Generate Rankings"}
+              </button>
+              {generated && !generating && (
+                <span style={{ fontSize:11, color:"rgba(255,235,195,0.45)", fontFamily:"'DM Sans',sans-serif" }}>
+                  {aiDisplayItems.length} of {aiItems.length}
+                </span>
+              )}
+            </div>
+          )}
         </div>}
       </div>
 
