@@ -3331,11 +3331,22 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onAddDirect, onSh
         {displayList.length === 0 && (
           <div style={{ textAlign:"center", padding:"48px 24px" }}>
             {generating ? (
-              <video
-                src="/obi animation.mp4"
-                autoPlay loop muted playsInline
-                style={{ width:220, maxWidth:"80%", borderRadius:12, display:"block", margin:"0 auto" }}
-              />
+              <div style={{
+                display:"inline-block",
+                background:WOOD.card,
+                borderRadius:12,
+                borderTop:`6px solid #8a5a28`,
+                borderLeft:`6px solid #8a5a28`,
+                borderBottom:`6px solid #8a5a28`,
+                borderRight:"none",
+                overflow:"hidden",
+              }}>
+                <video
+                  src="/obi animation.mp4"
+                  autoPlay loop muted playsInline
+                  style={{ width:220, maxWidth:"80%", display:"block" }}
+                />
+              </div>
             ) : (
               <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, fontStyle:"italic", color:"rgba(255,235,195,0.35)" }}>
                 {mode === "ai"
