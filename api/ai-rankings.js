@@ -87,19 +87,9 @@ export default async function handler(req, res) {
     const libraryContext = buildLibraryContext(library, genre);
     const readTitles = buildReadTitles(library);
 
-    prompt = `You are building a personalised ranking for a specific reader. Your job is two steps:
+    prompt = `Using the reader's library below, infer their taste profile — what they love (4–5 star patterns) and what they don't respond to (1–3 star patterns, disliked aspects) — then produce a ranked list of the top 50${genreStr} books${categoryStr} that this reader has NOT yet read, ordered by how highly you believe they would personally rank each book if they had read it.${genre !== "All" ? ` This is a ${genre} search — the reader's ${genre} ratings are the strongest signal.` : ""}
 
-STEP 1 — Build a reading profile.
-Analyse the reader's full library below. Pay close attention to:
-- Which books they rated 4–5 stars and what those books have in common (themes, prose style, pacing, structure, tone, subgenre)
-- Which books they rated 1–3 stars and what those books have in common — these signal what this reader does NOT respond to
-- Any liked/disliked aspects they have noted
-${genre !== "All" ? `- This is a ${genre} search, so their ${genre} ratings carry the most weight — treat these as the strongest signal` : ""}
-
-STEP 2 — Generate the ranking.
-Based on that profile, produce a ranked list of the top 50${genreStr} books${categoryStr} that this reader has NOT yet read, ordered by how highly you believe they would personally rank each book if they had read it.
-
-This is not a list of famous books in the genre. This is a list calibrated entirely to this reader's demonstrated taste. A book belongs on this list only if it genuinely matches what this reader has shown they love. A book that contradicts their taste profile should not appear regardless of how acclaimed it is.
+This list must be calibrated entirely to this reader's demonstrated taste, not to general acclaim. A book belongs only if it genuinely matches what this reader has shown they love. A book that contradicts their taste profile should not appear regardless of how celebrated it is.
 
 Do not include any book the reader has already read. Books already read: ${readTitles || "none listed"}.
 
