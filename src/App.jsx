@@ -5160,6 +5160,14 @@ export default function App() {
     return () => subscription.unsubscribe();
   }, []);
 
+  // If a real session arrives while guestMode is stuck on (stale localStorage), clear it
+  useEffect(() => {
+    if (session && guestMode) {
+      guestClearAll();
+      setGuestMode(false);
+    }
+  }, [session]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Sync books to localStorage in guest mode
   useEffect(() => {
     if (!guestMode || session) return;
