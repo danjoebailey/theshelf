@@ -2830,7 +2830,7 @@ function EntityDropdown({ value, onChange }) {
   );
 }
 
-function PillDropdown({ value, onChange, options }) {
+function PillDropdown({ value, onChange, options, maxLabelWidth }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   useEffect(() => {
@@ -2840,15 +2840,16 @@ function PillDropdown({ value, onChange, options }) {
   }, []);
   const label = options.find(o => (o.value ?? o) === value)?.label ?? value;
   return (
-    <div ref={ref} style={{ position:"relative", display:"inline-flex" }}>
+    <div ref={ref} style={{ position:"relative", display:"inline-flex", minWidth:0 }}>
       <button onClick={() => setOpen(o => !o)} style={{
         display:"flex", alignItems:"center", gap:4, padding:"3px 10px",
         borderRadius:20, border:"1px solid rgba(255,235,195,0.22)",
         background:"rgba(255,235,195,0.08)", color:"rgba(255,235,195,0.75)",
         fontFamily:"'DM Sans',sans-serif", fontSize:11, cursor:"pointer",
+        minWidth:0, maxWidth: maxLabelWidth ? maxLabelWidth + 28 : undefined,
       }}>
-        {label}
-        <svg width="7" height="4" viewBox="0 0 7 4" style={{ opacity:0.45, transition:"transform 0.15s", transform: open ? "rotate(180deg)" : "rotate(0deg)" }}>
+        <span style={{ overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", maxWidth: maxLabelWidth ?? "none" }}>{label}</span>
+        <svg width="7" height="4" viewBox="0 0 7 4" style={{ flexShrink:0, opacity:0.45, transition:"transform 0.15s", transform: open ? "rotate(180deg)" : "rotate(0deg)" }}>
           <path d="M0 0l3.5 4 3.5-4z" fill="currentColor"/>
         </svg>
       </button>
@@ -3262,8 +3263,10 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onAddDirect, onSh
         {controlsOpen && <div style={{ display:"flex", flexDirection:"column", gap:5 }}>
 
           {/* Row 2: genre left | Top N center | spacer right */}
-          <div style={{ display:"grid", gridTemplateColumns:"auto 1fr auto", alignItems:"center", gap:4 }}>
-            <PillDropdown value={genreFilter} onChange={v => { setGenreFilter(v); setGenerated(false); }} options={availableGenres.map(g => ({ value:g, label:g }))} />
+          <div style={{ display:"grid", gridTemplateColumns:"1fr auto 1fr", alignItems:"center", gap:4 }}>
+            <div style={{ minWidth:0 }}>
+              <PillDropdown value={genreFilter} onChange={v => { setGenreFilter(v); setGenerated(false); }} options={availableGenres.map(g => ({ value:g, label:g }))} maxLabelWidth={90} />
+            </div>
             <div style={{ display:"flex", gap:4, justifyContent:"center" }}>
               {[10, 20, "all"].map(n => (
                 <button key={n} {...tc(() => { setTopN(n); setGenerated(false); })} style={{
