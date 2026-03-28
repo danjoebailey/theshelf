@@ -3336,6 +3336,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onAddDirect, onSh
                 autoPlay loop muted playsInline
                 style={{ width:220, maxWidth:"80%", borderRadius:12, display:"block", margin:"0 auto" }}
               />
+              <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, fontStyle:"italic", color:"rgba(255,235,195,0.5)", marginTop:14 }}>Obi is working his magic…</p>
             ) : (
               <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, fontStyle:"italic", color:"rgba(255,235,195,0.35)" }}>
                 {mode === "ai"
