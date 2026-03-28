@@ -28,18 +28,6 @@ function buildReadTitles(library) {
     .join(", ");
 }
 
-function buildDominantAuthors(library) {
-  const counts = {};
-  (library || []).forEach(b => {
-    if (!b.author) return;
-    const key = b.author.toLowerCase();
-    counts[key] = (counts[key] || 0) + 1;
-  });
-  return Object.entries(counts)
-    .filter(([, n]) => n >= 2)
-    .map(([author]) => author)
-    .sort();
-}
 
 const RESULT_FORMAT = `Return ONLY a valid JSON array — no markdown, no explanation, no code blocks. Each object must have exactly these keys: "rank" (number), "title" (string), "author" (string), "publishYear" (number), "pages" (number — approximate page count of most common edition), "reason" (string — one concise sentence on what makes it exceptional for this list). Example: [{"rank":1,"title":"Blood Meridian","author":"Cormac McCarthy","publishYear":1985,"pages":337,"reason":"Relentlessly violent prose poetry that transcends the Western genre into something mythic."}]`;
 
@@ -114,24 +102,12 @@ export default async function handler(req, res) {
   } else if (rankingMode === "foryou") {
     const libraryContext = buildLibraryContext(library, genre);
     const readTitles = buildReadTitles(library);
-    const dominantAuthors = buildDominantAuthors(library);
-    const dominantNote = dominantAuthors.length
-      ? `The reader has already read multiple books by: ${dominantAuthors.join(", ")}. Do NOT recommend more books by these authors — the reader's relationship with them is already established. Instead, use their taste in these authors to find OTHER authors and series that deliver the same qualities.`
-      : "";
 
-    prompt = `You are building a personalised ranked list for a specific reader. Here is how to do it:
+    prompt = `You are Obi, a sharp and well-read literary companion. Based on this reader's library, give them a ranked list of 50${genreStr} books${categoryStr} they have NOT yet read, ordered by how much you think they would personally love each one.
 
-FIRST — study the reader's library carefully. Identify the specific subgenres, themes, tones, and styles that appear in their 4–5 star books (e.g. grimdark, progression fantasy, political intrigue, found family, hard magic systems, morally complex protagonists — be specific). Also note what their 1–3 star books reveal about what this reader does NOT respond to.${genre !== "All" ? ` This is a ${genre} search — their ${genre} ratings are the primary signal.` : ""}
+Study their ratings carefully — high ratings tell you what they respond to, low ratings tell you what to avoid. Recommend books that match their demonstrated taste, including authors and series they may not have discovered yet. Do not pad the list with obvious canonical picks just because they are famous — every entry should feel like it was chosen specifically for this reader.
 
-THEN — produce a ranked list of 50${genreStr} books${categoryStr} this reader has NOT yet read, ordered by how highly you believe they would personally rank each book if they had read it.
-
-CRITICAL RULES:
-- ${dominantNote}
-- This list must reflect the reader's specific subgenre and style preferences, not general critical acclaim
-- Do NOT default to the standard "best of genre" canonical picks unless they are by authors NOT already in the reader's library AND genuinely match the taste profile
-- The value of this list is in discovery — mid-tier gems, acclaimed-but-not-mainstream works, and series that precisely match the reader's taste pattern. These are books the reader would not find on a generic top-50 list
-- A lesser-known book that perfectly matches the reader's demonstrated taste belongs higher than a famous book that only loosely fits
-- Do not include any book the reader has already read. Books already read: ${readTitles || "none listed"}
+Do not include any book the reader has already read. Books already read: ${readTitles || "none listed"}.
 
 ${libraryContext}
 
@@ -157,37 +133,6 @@ Each book must appear exactly once. ${RESULT_FORMAT}`;
       items = JSON.parse(text);
     } catch {
       return res.status(500).json({ error: "Failed to parse AI response", raw: text });
-    }
-
-    // Self-critique pass for foryou only
-    if (rankingMode === "foryou") {
-      const libraryContext = buildLibraryContext(library, genre);
-      const critiqueMessages = [
-        { role: "user", content: prompt },
-        { role: "assistant", content: text },
-        {
-          role: "user",
-          content: `Now rigorously critique this list.
-
-1. WRONG FIT — Cut any book that resembles something the reader rated 3 stars or below, or shares qualities they explicitly disliked.
-2. SAME AUTHORS — Cut any book by an author the reader has already read extensively (${dominantAuthors.length ? dominantAuthors.join(", ") : "see library"}). Replace with books by different authors who deliver the same qualities.
-3. TOO OBVIOUS — Replace any generic canonical picks with specific discoveries: mid-tier, less-celebrated, or niche works that precisely match the reader's demonstrated subgenre and style preferences. The reader can find the obvious picks anywhere — this list should surface what they'd never find on their own.
-4. MISSING — Are there books not on this list that would be a stronger match than current entries? Look for series and authors that align exactly with the reader's taste pattern.
-
-${libraryContext}
-
-Make the replacements and reorder. Return the final revised list. ${RESULT_FORMAT}`,
-        },
-      ];
-
-      let revisedText = await callClaude(apiKey, critiqueMessages, 7000, 0);
-      revisedText = revisedText.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "").trim();
-
-      try {
-        items = JSON.parse(revisedText);
-      } catch {
-        // If critique pass fails to parse, fall back to original
-      }
     }
 
     let finalItems = dedup(items);
