@@ -3284,20 +3284,9 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onAddDirect, onSh
 
           {/* Row 3 (AI only): score left | ranking mode center | spacer right */}
           {mode === "ai" && (
-            <div style={{ display:"grid", gridTemplateColumns:"auto 1fr auto", alignItems:"center", gap:4, paddingTop:5, borderTop:"1px solid rgba(200,144,90,0.12)" }}>
-              <div style={{ position:"relative", display:"flex", alignItems:"center" }}>
-                <select value={scoreCategory} onChange={e => { setScoreCategory(e.target.value); setGenerated(false); }} style={{
-                  padding:"3px 20px 3px 9px", borderRadius:20,
-                  border:"1px solid rgba(255,235,195,0.22)",
-                  background:"rgba(255,235,195,0.08)", color:"rgba(255,235,195,0.75)",
-                  fontFamily:"'DM Sans',sans-serif", fontSize:11, cursor:"pointer",
-                  appearance:"none", WebkitAppearance:"none",
-                }}>
-                  {SCORE_CATEGORIES.map(({ key, label }) => <option key={key} value={key} style={{ background:"#5a3820" }}>{label}</option>)}
-                </select>
-                <svg style={{ position:"absolute", right:6, pointerEvents:"none" }} width="7" height="4" viewBox="0 0 7 4">
-                  <path d="M0 0l3.5 4 3.5-4z" fill="rgba(255,235,195,0.45)"/>
-                </svg>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr auto 1fr", alignItems:"center", gap:4, paddingTop:5, borderTop:"1px solid rgba(200,144,90,0.12)" }}>
+              <div style={{ minWidth:0 }}>
+                <PillDropdown value={scoreCategory} onChange={v => { setScoreCategory(v); setGenerated(false); }} options={SCORE_CATEGORIES.map(({ key, label }) => ({ value:key, label }))} maxLabelWidth={80} />
               </div>
               <div style={{ display:"flex", gap:4, justifyContent:"center" }}>
                 {[["alltime","All Time"],["vacuum","Vacuum"],["foryou","For You"]].map(([m, label]) => (
