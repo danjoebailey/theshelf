@@ -1948,7 +1948,100 @@ function PaigeTab({ books, userId, onAddDirect, onEdit, onAddBook }) {
   );
 }
 
-function RecommendPage({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook }) {
+function ReedTab({ books, userId, onEdit, onShelfChange, onSaveScores, onAuthor }) {
+  const [mode, setMode] = useState("list");
+  const [picks, setPicks] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const shelfName = mode === "list" ? "The List" : "Curious";
+  const shelfBooks = books.filter(b => b.shelf === shelfName);
+  const library = books.filter(b => b.rating > 0).map(b => ({ title:b.title, author:b.author, genre:b.genre, rating:b.rating }));
+
+  // Match pick titles back to actual book objects
+  const pickedBooks = picks
+    ? picks.map(p => shelfBooks.find(b => b.title.toLowerCase() === p.title.toLowerCase() && b.author.toLowerCase() === p.author.toLowerCase())).filter(Boolean)
+    : null;
+
+  useEffect(() => {
+    setPicks(null);
+    if (!userId || userId === "guest") return;
+    supabase.from("obi_verdicts").select("verdict").eq("user_id", userId).eq("book_key", `reed:${mode}`).single()
+      .then(({ data }) => {
+        try { if (data?.verdict) setPicks(JSON.parse(data.verdict)); } catch {}
+      });
+  }, [mode, userId]);
+
+  async function generate(refresh = false) {
+    if (!shelfBooks.length) return;
+    setLoading(true);
+    try {
+      const res = await fetch("/api/ask-reed", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode, shelfBooks: shelfBooks.map(b => ({ title:b.title, author:b.author, genre:b.genre })), library, userId, refresh }),
+      });
+      const data = await res.json();
+      if (data.picks) setPicks(data.picks);
+    } catch {}
+    setLoading(false);
+  }
+
+  return (
+    <div style={{ padding:"14px 16px", display:"flex", flexDirection:"column", gap:12 }}>
+      {/* Toggle */}
+      <div style={{ display:"flex", gap:8, justifyContent:"center" }}>
+        {[["list","The List"],["curious","Curious"]].map(([key, label]) => (
+          <button key={key} {...tc(() => setMode(key))} style={{
+            padding:"5px 18px", borderRadius:20, border:`1px solid ${mode===key ? WOOD.amber : "rgba(255,235,195,0.22)"}`,
+            background: mode===key ? WOOD.amber : "transparent",
+            color: mode===key ? "#1a0900" : "rgba(255,235,195,0.6)",
+            fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:600, cursor:"pointer", transition:"all 0.15s",
+          }}>{label}</button>
+        ))}
+      </div>
+
+      {/* Empty shelf */}
+      {shelfBooks.length === 0 && (
+        <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, fontStyle:"italic", color:"rgba(255,235,195,0.4)", textAlign:"center", padding:"32px 0" }}>
+          {mode === "list"
+            ? "Your List is empty — add some books you plan to read and I'll tell you where to start."
+            : "Nothing in Curious yet — add books you're on the fence about and I'll help you decide."}
+        </p>
+      )}
+
+      {/* Generate / Refresh button */}
+      {shelfBooks.length > 0 && (
+        <div style={{ display:"flex", justifyContent:"center" }}>
+          <button {...tc(() => generate(!!picks))} style={{
+            padding:"5px 18px", borderRadius:20, background: loading ? "rgba(184,104,0,0.45)" : WOOD.amber,
+            color:"#1a0900", border:"none", cursor: loading ? "default" : "pointer",
+            fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:700, opacity: loading ? 0.7 : 1, transition:"all 0.15s",
+          }}>
+            {loading ? "Thinking…" : picks ? "Refresh" : "Ask Reed"}
+          </button>
+        </div>
+      )}
+
+      {/* Picks */}
+      {pickedBooks && pickedBooks.map((book, i) => (
+        <div key={`${book.id}_${i}`} style={{ display:"flex", alignItems:"stretch", gap:0 }}>
+          <BookCard
+            book={book} index={i}
+            onRemove={() => {}} onEdit={onEdit}
+            onShelfChange={onShelfChange} onOpenShelfPicker={() => {}}
+            onSaveScores={onSaveScores} onSaveDescription={() => {}}
+            onSaveProgress={() => {}} onSavePages={() => {}} onSaveAspects={() => {}}
+            onAuthor={onAuthor}
+            libraryProfile={books.filter(b => b.shelf === "Read" || b.shelf === "DNF")}
+            userId={userId}
+          />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function RecommendPage({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook, onShelfChange, onSaveScores }) {
   const [character, setCharacter] = useState("paige");
   return (
     <div style={{ height:"100%", overflowY:"auto", overflowX:"hidden" }}>
@@ -1973,9 +2066,7 @@ function RecommendPage({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook
         ? <PaigeTab books={books} userId={userId} onAddDirect={onAddDirect} onEdit={onEdit} onAddBook={onAddBook} />
         : character === "reiko"
         ? <ReikoTab books={books} userId={userId} onAddDirect={onAddDirect} onAuthor={onAuthor} onEdit={onEdit} onAddBook={onAddBook} />
-        : <div style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center" }}>
-            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, fontStyle:"italic", color:"rgba(255,235,195,0.35)" }}>Coming soon</p>
-          </div>
+        : <ReedTab books={books} userId={userId} onEdit={onEdit} onShelfChange={onShelfChange} onSaveScores={onSaveScores} onAuthor={onAuthor} />
       }
     </div>
   );
@@ -5472,7 +5563,7 @@ export default function App() {
           {tab==="shelf"
             ? <ShelfTab books={books} onAdd={()=>setShowAdd(true)} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"" }); }} onRemove={id=>{ setBooks(prev => prev.filter(b=>b.id!==id)); track("book_removed"); if (!guestMode) dbDeleteBook(id, userId); }} onEdit={setEditBook} onScroll={setScrollY} onShelfChange={changeShelf} onImport={()=>setShowImport(true)} onSaveScores={saveScores} onSaveDescription={saveDescription} onSaveProgress={saveProgress} onSavePages={savePages} onSaveAspects={saveAspects} hideControls={!!editBook} onAuthor={setAuthorModal} userId={userId} guestMode={guestMode} />
             : tab==="reiko"
-            ? <RecommendPage books={books} userId={userId} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, rating:0, date:new Date().toISOString().slice(0,10) }; setBooks(prev => [...prev, b]); if (!guestMode) dbAddBook(b, userId); }} onAuthor={setAuthorModal} onEdit={setEditBook} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"", _fromRecs:true }); }} />
+            ? <RecommendPage books={books} userId={userId} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, rating:0, date:new Date().toISOString().slice(0,10) }; setBooks(prev => [...prev, b]); if (!guestMode) dbAddBook(b, userId); }} onAuthor={setAuthorModal} onEdit={setEditBook} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"", _fromRecs:true }); }} onShelfChange={changeShelf} onSaveScores={saveScores} />
             : tab==="rankings"
             ? <RankingsTab books={books} onSaveScores={saveScores} userId={userId} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"", _fromRecs:true }); }} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, date:new Date().toISOString().slice(0,10) }; setBooks(prev => [...prev, b]); if (!guestMode) dbAddBook(b, userId); }} onShelfChange={changeShelf} onEdit={setEditBook} />
             : <StatsTab books={books} />
