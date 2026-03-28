@@ -3335,10 +3335,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onAddDirect, onSh
                 display:"inline-block",
                 background:WOOD.card,
                 borderRadius:12,
-                borderTop:`6px solid #8a5a28`,
-                borderLeft:`6px solid #8a5a28`,
-                borderBottom:`6px solid #8a5a28`,
-                borderRight:"none",
+                border:`6px solid #8a5a28`,
                 overflow:"hidden",
               }}>
                 <video
