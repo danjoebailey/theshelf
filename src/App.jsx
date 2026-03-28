@@ -1954,7 +1954,7 @@ function RecommendPage({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook
     <div style={{ height:"100%", overflowY:"auto", overflowX:"hidden" }}>
       {/* Character selector */}
       <div style={{ display:"flex", justifyContent:"center", gap:32, padding:"8px 18px 0", borderBottom:"1px solid rgba(138,90,40,0.2)" }}>
-        {[{ key:"paige", label:"Paige Turner", img:"/page-turner.png" }, { key:"reiko", label:"Reiko Mend", img:"/reiko-mend.png" }].map(c => (
+        {[{ key:"paige", label:"Paige Turner", img:"/page-turner.png" }, { key:"reiko", label:"Reiko Mend", img:"/reiko-mend.png" }, { key:"reed", label:"Reed Morely", img:"/reed-morely.png" }].map(c => (
           <button key={c.key} {...tc(() => setCharacter(c.key))} style={{
             display:"flex", flexDirection:"column", alignItems:"center", gap:4,
             background:"transparent", border:"none", cursor:"pointer",
@@ -1971,7 +1971,11 @@ function RecommendPage({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook
       {/* Content */}
       {character === "paige"
         ? <PaigeTab books={books} userId={userId} onAddDirect={onAddDirect} onEdit={onEdit} onAddBook={onAddBook} />
-        : <ReikoTab books={books} userId={userId} onAddDirect={onAddDirect} onAuthor={onAuthor} onEdit={onEdit} onAddBook={onAddBook} />
+        : character === "reiko"
+        ? <ReikoTab books={books} userId={userId} onAddDirect={onAddDirect} onAuthor={onAuthor} onEdit={onEdit} onAddBook={onAddBook} />
+        : <div style={{ flex:1, display:"flex", alignItems:"center", justifyContent:"center" }}>
+            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, fontStyle:"italic", color:"rgba(255,235,195,0.35)" }}>Coming soon</p>
+          </div>
       }
     </div>
   );
