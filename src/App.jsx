@@ -3220,7 +3220,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onAddDirect, onSh
           <div><EntityDropdown value={entityType} onChange={setEntityType} /></div>
           {controlsOpen
             ? <div style={{ display:"flex", gap:4 }}>
-                {[["user","Your Ranking"],["ai","AI Ranking"]].map(([m, label]) => (
+                {[["user","Your Ranking"],["ai","Obi Ranking"]].map(([m, label]) => (
                   <button key={m} {...tc(() => { setMode(m); if (m === "ai") { setGenerated(false); setGenreFilter("Fiction"); setTopN("all"); } else { setGenreFilter("All"); } })} style={{
                     padding:"3px 11px", borderRadius:20, border:"none", cursor:"pointer",
                     background: mode===m ? WOOD.amber : "rgba(255,235,195,0.12)",
