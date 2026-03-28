@@ -3330,11 +3330,19 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onAddDirect, onSh
       <div style={{ flex:1, overflowY:"auto", padding:"4px 0 20px" }}>
         {displayList.length === 0 && (
           <div style={{ textAlign:"center", padding:"48px 24px" }}>
-            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, fontStyle:"italic", color:"rgba(255,235,195,0.35)" }}>
-              {mode === "ai"
-                ? "Select options and hit Generate Rankings"
-                : readBooks.length === 0 ? "No read books yet" : "No books match this filter"}
-            </p>
+            {generating ? (
+              <video
+                src="/obi animation.mp4"
+                autoPlay loop muted playsInline
+                style={{ width:220, maxWidth:"80%", borderRadius:12, display:"block", margin:"0 auto" }}
+              />
+            ) : (
+              <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, fontStyle:"italic", color:"rgba(255,235,195,0.35)" }}>
+                {mode === "ai"
+                  ? "Select options and hit Generate Rankings"
+                  : readBooks.length === 0 ? "No read books yet" : "No books match this filter"}
+              </p>
+            )}
           </div>
         )}
 
