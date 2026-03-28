@@ -1404,7 +1404,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
           </div>
         )}
         {filtered.map((book,i)=>(
-          <div key={book.id} style={{ display:"flex", alignItems:"stretch", gap:0 }}>
+          <div key={`${book.id}_${i}`} style={{ display:"flex", alignItems:"stretch", gap:0 }}>
             {sort==="custom" && (
               <div style={{
                 display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
@@ -4454,7 +4454,7 @@ function bookToRow(book, userId) {
 
 function rowToBook(row) {
   return {
-    id: row.book_id,
+    id: row.book_id || `fallback_${Math.random().toString(36).slice(2)}`,
     title: row.title,
     author: row.author,
     genre: row.genre,
