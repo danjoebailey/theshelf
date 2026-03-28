@@ -2025,6 +2025,7 @@ function ReedTab({ books, userId, onEdit, onShelfChange, onSaveScores, onAuthor 
       {/* Picks */}
       {pickedBooks && pickedBooks.map((book, i) => (
         <div key={`${book.id}_${i}`} style={{ display:"flex", alignItems:"stretch", gap:0 }}>
+          <div style={{ flex:1, minWidth:0 }}>
           <BookCard
             book={book} index={i}
             onRemove={() => {}} onEdit={onEdit}
@@ -2035,6 +2036,7 @@ function ReedTab({ books, userId, onEdit, onShelfChange, onSaveScores, onAuthor 
             libraryProfile={books.filter(b => b.shelf === "Read" || b.shelf === "DNF")}
             userId={userId}
           />
+          </div>
         </div>
       ))}
     </div>
