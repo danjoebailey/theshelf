@@ -1028,7 +1028,12 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
     return l;
   }, [shelfBooks, search, searchMode, sort, sortAsc, filterYear, filterGenre, filterAuthor]);
 
-  const filtered = sort === "custom" ? customList : sortedBooks;
+  const filtered = useMemo(() => {
+    if (sort !== "custom") return sortedBooks;
+    const inShelf = new Set(shelfBooks.map(b => b.id));
+    const latest = new Map(shelfBooks.map(b => [b.id, b]));
+    return customList.filter(b => inShelf.has(b.id)).map(b => latest.get(b.id) || b);
+  }, [sort, sortedBooks, customList, shelfBooks]);
 
   function handleSearchChange(e) {
     const q = e.target.value;
