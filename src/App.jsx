@@ -979,7 +979,7 @@ function BookRowPages({ book, index, onEdit, onRemove, onShelfChange, maxPages, 
   );
 }
 
-function SeriesView({ shelfBooks, seriesViewStyle, setSeriesViewStyle, detectingSeriesLoading, setDetectingSeriesLoading, onBatchDetectSeries, onEdit, onRemove, onShelfChange, onSaveProgress, onSavePages, onSaveAspects, onAuthor }) {
+function SeriesView({ shelfBooks, seriesViewStyle, setSeriesViewStyle, detectingSeriesLoading, setDetectingSeriesLoading, onBatchDetectSeries, onEdit, onRemove, onShelfChange, onSaveProgress, onSavePages, onSaveAspects, onAuthor, seriesTiers = {}, onSetSeriesTier }) {
   const seriesBooks = shelfBooks.filter(b => b.series);
   const grouped = {};
   seriesBooks.forEach(b => {
@@ -1039,17 +1039,17 @@ function SeriesView({ shelfBooks, seriesViewStyle, setSeriesViewStyle, detecting
         </div>
       ) : seriesViewStyle === "list"
         ? seriesEntries.map(([name, { books: sb, seriesTotal }]) => (
-            <SeriesCard key={name} seriesName={name} books={sb} seriesTotal={seriesTotal} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} />
+            <SeriesCard key={name} seriesName={name} books={sb} seriesTotal={seriesTotal} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} tier={seriesTiers[name] || null} onSetTier={t => onSetSeriesTier && onSetSeriesTier(name, t)} />
           ))
         : seriesEntries.map(([name, { books: sb, seriesTotal }]) => (
-            <SeriesShelfRow key={name} name={name} books={sb} seriesTotal={seriesTotal} onEdit={onEdit} />
+            <SeriesShelfRow key={name} name={name} books={sb} seriesTotal={seriesTotal} onEdit={onEdit} tier={seriesTiers[name] || null} onSetTier={t => onSetSeriesTier && onSetSeriesTier(name, t)} />
           ))
       }
     </>
   );
 }
 
-function SeriesShelfRow({ name, books, seriesTotal, onEdit }) {
+function SeriesShelfRow({ name, books, seriesTotal, onEdit, tier, onSetTier }) {
   const readCount = books.filter(b => b.rating > 0).length;
   const pct = seriesTotal ? Math.round((readCount / seriesTotal) * 100) : null;
   const countStr = seriesTotal ? (readCount + " / " + seriesTotal) : (readCount + " book" + (readCount !== 1 ? "s" : ""));
@@ -1077,12 +1077,15 @@ function SeriesShelfRow({ name, books, seriesTotal, onEdit }) {
             return <span style={{ display:"inline-block", marginTop:5, background:bg, color:"#fff", borderRadius:20, padding:"2px 8px", fontSize:9, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em" }}>{topGenre}</span>;
           })()}
         </div>
-        <span style={{
-          fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600,
-          background:"rgba(138,90,40,0.18)", color:"#8a5a28",
-          border:"1px solid rgba(138,90,40,0.3)", borderRadius:20,
-          padding:"3px 9px", flexShrink:0,
-        }}>{countStr}</span>
+        <div style={{ display:"flex", alignItems:"center", gap:6, flexShrink:0 }}>
+          <span style={{
+            fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600,
+            background:"rgba(138,90,40,0.18)", color:"#8a5a28",
+            border:"1px solid rgba(138,90,40,0.3)", borderRadius:20,
+            padding:"3px 9px",
+          }}>{countStr}</span>
+          <TierBadge tier={tier} onSetTier={onSetTier} />
+        </div>
       </div>
       <div style={{ display:"flex", gap:6, overflowX:"auto", paddingBottom:4, scrollbarWidth:"none", marginLeft:-2 }}>
         {sorted.map(b => {
@@ -1114,7 +1117,47 @@ function SeriesShelfRow({ name, books, seriesTotal, onEdit }) {
   );
 }
 
-function SeriesCard({ seriesName, books, seriesTotal, onEdit, onRemove, onShelfChange, onSaveProgress, onSavePages, onSaveAspects, onAuthor }) {
+const TIER_COLORS = { S:"#c0392b", A:"#c8860a", B:"#2e7d32", C:"#1565c0" };
+const TIER_ORDER = ["S","A","B","C"];
+
+function TierBadge({ tier, onSetTier }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{ position:"relative" }}>
+      <button onClick={e => { e.stopPropagation(); setOpen(o => !o); }} style={{
+        fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:700,
+        background: tier ? TIER_COLORS[tier] : "rgba(138,90,40,0.12)",
+        color: tier ? "#fff" : "rgba(138,90,40,0.5)",
+        border: tier ? "none" : "1px dashed rgba(138,90,40,0.3)",
+        borderRadius:6, width:26, height:26, cursor:"pointer",
+        display:"flex", alignItems:"center", justifyContent:"center",
+      }}>{tier || "·"}</button>
+      {open && (
+        <div onClick={e => e.stopPropagation()} style={{
+          position:"absolute", top:"calc(100% + 4px)", right:0, zIndex:50,
+          background:"#f5e8d0", borderRadius:10, overflow:"hidden",
+          boxShadow:"0 4px 20px rgba(0,0,0,0.25)", border:"1px solid rgba(138,90,40,0.3)",
+          display:"flex", flexDirection:"column",
+        }}>
+          {TIER_ORDER.map(t => (
+            <button key={t} onClick={() => { onSetTier(tier === t ? null : t); setOpen(false); }} style={{
+              padding:"7px 18px", border:"none", background: tier === t ? "rgba(138,90,40,0.12)" : "transparent",
+              color: TIER_COLORS[t], fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:700,
+              cursor:"pointer", textAlign:"left",
+            }}>{t}</button>
+          ))}
+          {tier && <button onClick={() => { onSetTier(null); setOpen(false); }} style={{
+            padding:"7px 18px", border:"none", borderTop:"1px solid rgba(138,90,40,0.15)",
+            background:"transparent", color:"rgba(138,90,40,0.5)",
+            fontFamily:"'DM Sans',sans-serif", fontSize:11, cursor:"pointer", textAlign:"left",
+          }}>Clear</button>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SeriesCard({ seriesName, books, seriesTotal, onEdit, onRemove, onShelfChange, onSaveProgress, onSavePages, onSaveAspects, onAuthor, tier, onSetTier }) {
   const [expanded, setExpanded] = useState(false);
 
   const author = books[0]?.author || "";
@@ -1157,7 +1200,7 @@ function SeriesCard({ seriesName, books, seriesTotal, onEdit, onRemove, onShelfC
             return <span style={{ display:"inline-block", background:bg, color:"#fff", borderRadius:20, padding:"2px 8px", fontSize:9, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em" }}>{topGenre}</span>;
           })()}
         </div>
-        <div style={{ display:"flex", alignItems:"center", gap:10, flexShrink:0 }}>
+        <div style={{ display:"flex", alignItems:"center", gap:8, flexShrink:0 }}>
           {avgRating && (
             <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:WOOD.textDim }}>
               ★ {avgRating}
@@ -1169,6 +1212,7 @@ function SeriesCard({ seriesName, books, seriesTotal, onEdit, onRemove, onShelfC
             border:"1px solid rgba(138,90,40,0.3)", borderRadius:20,
             padding:"3px 9px",
           }}>{countStr}</span>
+          <TierBadge tier={tier} onSetTier={onSetTier} />
           <svg width="10" height="6" viewBox="0 0 10 6" fill="none" style={{ transition:"transform 0.2s", transform: expanded ? "rotate(180deg)" : "rotate(0deg)" }}>
             <path d="M1 1l4 4 4-4" stroke={WOOD.textFaint} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
@@ -1185,7 +1229,7 @@ function SeriesCard({ seriesName, books, seriesTotal, onEdit, onRemove, onShelfC
   );
 }
 
-function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelfChange, onImport, onSaveScores, onSaveDescription, onSaveProgress, onSavePages, onSaveAspects, hideControls=false, onAuthor, userId, guestMode = false, onBatchDetectSeries }) {
+function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelfChange, onImport, onSaveScores, onSaveDescription, onSaveProgress, onSavePages, onSaveAspects, hideControls=false, onAuthor, userId, guestMode = false, onBatchDetectSeries, seriesTiers = {}, onSetSeriesTier }) {
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("date");
   const [sortAsc, setSortAsc] = useState(false);
@@ -1614,7 +1658,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
           </div>
         )}
         {viewMode === "series"
-          ? <SeriesView shelfBooks={shelfBooks} seriesViewStyle={seriesViewStyle} setSeriesViewStyle={setSeriesViewStyle} detectingSeriesLoading={detectingSeriesLoading} setDetectingSeriesLoading={setDetectingSeriesLoading} onBatchDetectSeries={onBatchDetectSeries} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} />
+          ? <SeriesView shelfBooks={shelfBooks} seriesViewStyle={seriesViewStyle} setSeriesViewStyle={setSeriesViewStyle} detectingSeriesLoading={detectingSeriesLoading} setDetectingSeriesLoading={setDetectingSeriesLoading} onBatchDetectSeries={onBatchDetectSeries} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} seriesTiers={seriesTiers} onSetSeriesTier={onSetSeriesTier} />
           : filtered.map((book,i)=>(
           <div key={`${book.id}_${i}`} style={{ display:"flex", alignItems:"stretch", gap:0 }}>
             {sort==="custom" && (
@@ -5544,6 +5588,7 @@ export default function App() {
   const [session, setSession] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [guestMode, setGuestMode] = useState(() => !!localStorage.getItem(GUEST_ACTIVE_KEY));
+  const [seriesTiers, setSeriesTiers] = useState({});
   const [books, setBooks] = useState(() => {
     if (localStorage.getItem(GUEST_ACTIVE_KEY)) {
       try { return JSON.parse(localStorage.getItem(GUEST_BOOKS_KEY) || "[]"); } catch { return []; }
@@ -5596,6 +5641,14 @@ export default function App() {
     // Prevent running twice for the same user (auth fires multiple events on load)
     if (loadedUserRef.current === userId) return;
     loadedUserRef.current = userId;
+    supabase.from("series_tiers").select("series_name,tier").eq("user_id", userId)
+      .then(({ data }) => {
+        if (data) {
+          const map = {};
+          data.forEach(r => { map[r.series_name] = r.tier; });
+          setSeriesTiers(map);
+        }
+      });
     supabase.from("books").select("*").eq("user_id", userId).order("created_at", { ascending: true })
       .then(async ({ data }) => {
         if (data && data.length > 0) {
@@ -5837,7 +5890,7 @@ export default function App() {
         {/* content */}
         <div style={{ flex:1, overflow:"hidden", position:"relative" }}>
           {tab==="shelf"
-            ? <ShelfTab books={books} onAdd={()=>setShowAdd(true)} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"", _fromRecs:book._fromRecs||false }); }} onRemove={id=>{ setBooks(prev => prev.filter(b=>b.id!==id)); track("book_removed"); if (!guestMode) dbDeleteBook(id, userId); }} onEdit={setEditBook} onScroll={setScrollY} onShelfChange={changeShelf} onImport={()=>setShowImport(true)} onSaveScores={saveScores} onSaveDescription={saveDescription} onSaveProgress={saveProgress} onSavePages={savePages} onSaveAspects={saveAspects} hideControls={!!editBook} onAuthor={setAuthorModal} userId={userId} guestMode={guestMode} onBatchDetectSeries={batchDetectSeries} />
+            ? <ShelfTab books={books} onAdd={()=>setShowAdd(true)} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"", _fromRecs:book._fromRecs||false }); }} onRemove={id=>{ setBooks(prev => prev.filter(b=>b.id!==id)); track("book_removed"); if (!guestMode) dbDeleteBook(id, userId); }} onEdit={setEditBook} onScroll={setScrollY} onShelfChange={changeShelf} onImport={()=>setShowImport(true)} onSaveScores={saveScores} onSaveDescription={saveDescription} onSaveProgress={saveProgress} onSavePages={savePages} onSaveAspects={saveAspects} hideControls={!!editBook} onAuthor={setAuthorModal} userId={userId} guestMode={guestMode} onBatchDetectSeries={batchDetectSeries} seriesTiers={seriesTiers} onSetSeriesTier={async (seriesName, tier) => { const next = { ...seriesTiers }; if (tier) next[seriesName] = tier; else delete next[seriesName]; setSeriesTiers(next); if (!guestMode) { if (tier) await supabase.from("series_tiers").upsert({ user_id: userId, series_name: seriesName, tier }, { onConflict: "user_id,series_name" }); else await supabase.from("series_tiers").delete().eq("user_id", userId).eq("series_name", seriesName); } }} />
             : tab==="reiko"
             ? <RecommendPage books={books} userId={userId} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, rating:0, date:new Date().toISOString().slice(0,10) }; setBooks(prev => [...prev, b]); if (!guestMode) dbAddBook(b, userId); }} onAuthor={setAuthorModal} onEdit={setEditBook} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"", _fromRecs:true }); }} onShelfChange={changeShelf} onSaveScores={saveScores} />
             : tab==="rankings"
