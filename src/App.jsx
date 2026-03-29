@@ -1060,10 +1060,10 @@ function SeriesShelfRow({ name, books, seriesTotal, onEdit }) {
       border:`1px solid ${WOOD.cardBorder}`, borderLeft:"4px solid #8a5a28",
       padding:"14px 16px", boxShadow:"0 1px 4px rgba(0,0,0,0.08)",
     }}>
-      <div style={{ display:"flex", alignItems:"baseline", justifyContent:"space-between", marginBottom:10 }}>
+      <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", marginBottom:10 }}>
         <div>
-          <span style={{ fontFamily:"'Crimson Pro',serif", fontSize:18, color:WOOD.text, lineHeight:1.2 }}>{name}</span>
-          <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:WOOD.textFaint, marginLeft:8 }}>{sorted[0] && sorted[0].author}</span>
+          <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:18, color:WOOD.text, lineHeight:1.2 }}>{name}</p>
+          <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:WOOD.textFaint, marginTop:2 }}>{sorted[0] && sorted[0].author}</p>
         </div>
         <span style={{
           fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600,
