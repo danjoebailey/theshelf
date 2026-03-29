@@ -1064,13 +1064,25 @@ function SeriesShelfRow({ name, books, seriesTotal, onEdit }) {
         <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600, color:"rgba(200,160,100,0.75)", flexShrink:0 }}>{countStr}</span>
       </div>
       <div style={{ display:"flex", gap:6, overflowX:"auto", paddingBottom:8, scrollbarWidth:"none" }}>
-        {sorted.map(b => (
-          <div key={b.id} {...tc(() => onEdit && onEdit(b))} style={{ flexShrink:0, cursor:"pointer" }}>
-            <div style={{ filter: b.rating > 0 ? "none" : "grayscale(70%) brightness(0.75)", opacity: b.rating > 0 ? 1 : 0.7, transition:"filter 0.2s" }}>
-              <BookCoverThumb book={b} />
+        {sorted.map(b => {
+          let touchStartX = 0, touchStartY = 0;
+          return (
+            <div key={b.id}
+              onTouchStart={e => { touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; }}
+              onTouchEnd={e => {
+                const dx = Math.abs(e.changedTouches[0].clientX - touchStartX);
+                const dy = Math.abs(e.changedTouches[0].clientY - touchStartY);
+                if (dx < 8 && dy < 8) { e.preventDefault(); onEdit && onEdit(b); }
+              }}
+              onClick={() => onEdit && onEdit(b)}
+              style={{ flexShrink:0, cursor:"pointer" }}
+            >
+              <div style={{ filter: b.rating > 0 ? "none" : "grayscale(70%) brightness(0.75)", opacity: b.rating > 0 ? 1 : 0.7, transition:"filter 0.2s" }}>
+                <BookCoverThumb book={b} />
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
       {pct !== null && (
         <div style={{ background:"rgba(0,0,0,0.2)", borderRadius:20, height:4, overflow:"hidden", marginTop:2 }}>
