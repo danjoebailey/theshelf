@@ -1061,6 +1061,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
   const [apiSearching, setApiSearching] = useState(false);
   const [showApiResults, setShowApiResults] = useState(true);
   const [viewMode, setViewMode] = useState("card");
+  const [detectingSeriesLoading, setDetectingSeriesLoading] = useState(false);
   const [searchMode, setSearchMode] = useState("All");
   const searchTimer = useRef(null);
   const searchAbort = useRef(null);
@@ -1484,12 +1485,19 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
                   {seriesEntries.length} series · {seriesBooks.length} books
                 </p>
                 {onBatchDetectSeries && (
-                  <button {...tc(onBatchDetectSeries, true)} style={{
+                  <button {...tc(async () => {
+                    if (detectingSeriesLoading) return;
+                    setDetectingSeriesLoading(true);
+                    await onBatchDetectSeries();
+                    setDetectingSeriesLoading(false);
+                  }, true)} style={{
                     fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600,
-                    background:"rgba(138,90,40,0.18)", color:"rgba(200,160,100,0.85)",
+                    background: detectingSeriesLoading ? "rgba(138,90,40,0.35)" : "rgba(138,90,40,0.18)",
+                    color:"rgba(200,160,100,0.85)",
                     border:"1px solid rgba(138,90,40,0.3)", borderRadius:20,
-                    padding:"4px 10px", cursor:"pointer",
-                  }}>Detect All Series</button>
+                    padding:"4px 10px", cursor: detectingSeriesLoading ? "default" : "pointer",
+                    opacity: detectingSeriesLoading ? 0.7 : 1,
+                  }}>{detectingSeriesLoading ? "Detecting…" : "Detect All Series"}</button>
                 )}
               </div>
               {seriesEntries.length === 0 ? (
