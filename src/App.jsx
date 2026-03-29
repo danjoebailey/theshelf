@@ -979,6 +979,108 @@ function BookRowPages({ book, index, onEdit, onRemove, onShelfChange, maxPages, 
   );
 }
 
+function SeriesView({ shelfBooks, seriesViewStyle, setSeriesViewStyle, detectingSeriesLoading, setDetectingSeriesLoading, onBatchDetectSeries, onEdit, onRemove, onShelfChange, onSaveProgress, onSavePages, onSaveAspects, onAuthor }) {
+  const seriesBooks = shelfBooks.filter(b => b.series);
+  const grouped = {};
+  seriesBooks.forEach(b => {
+    if (!grouped[b.series]) grouped[b.series] = { books: [], seriesTotal: b.seriesTotal || null };
+    grouped[b.series].books.push(b);
+    if (b.seriesTotal && !grouped[b.series].seriesTotal) grouped[b.series].seriesTotal = b.seriesTotal;
+  });
+  const seriesEntries = Object.entries(grouped).sort((a, b) => a[0].localeCompare(b[0]));
+
+  return (
+    <>
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
+        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+          <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:"rgba(255,235,195,0.45)" }}>
+            {seriesEntries.length} series · {seriesBooks.length} books
+          </p>
+          <div style={{ display:"flex", background:"rgba(15,8,2,0.4)", borderRadius:20, padding:2, border:"1px solid rgba(120,70,20,0.3)" }}>
+            {[["list", <svg key="l" width="11" height="11" viewBox="0 0 11 11" fill="currentColor"><rect x="0" y="0" width="11" height="2.5" rx="1.25"/><rect x="0" y="4.25" width="11" height="2.5" rx="1.25"/><rect x="0" y="8.5" width="11" height="2.5" rx="1.25"/></svg>],
+              ["shelf", <svg key="s" width="11" height="11" viewBox="0 0 11 11" fill="currentColor"><rect x="0" y="0" width="5" height="9" rx="1"/><rect x="6" y="0" width="5" height="9" rx="1"/><rect x="0" y="10" width="11" height="1" rx="0.5"/></svg>]
+            ].map(([mode, icon]) => (
+              <button key={mode} {...tc(() => setSeriesViewStyle(mode), true)} style={{
+                display:"flex", alignItems:"center", justifyContent:"center",
+                width:26, height:22, borderRadius:16, border:"none", cursor:"pointer",
+                background: seriesViewStyle === mode ? "rgba(138,90,40,0.6)" : "transparent",
+                color: seriesViewStyle === mode ? "#fff" : "rgba(255,235,195,0.4)",
+                transition:"all 0.15s",
+              }}>{icon}</button>
+            ))}
+          </div>
+        </div>
+        {onBatchDetectSeries && (
+          <button {...tc(async () => {
+            if (detectingSeriesLoading) return;
+            setDetectingSeriesLoading(true);
+            await onBatchDetectSeries();
+            setDetectingSeriesLoading(false);
+          }, true)} style={{
+            fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600,
+            background: detectingSeriesLoading ? "rgba(138,90,40,0.35)" : "rgba(138,90,40,0.18)",
+            color:"rgba(200,160,100,0.85)",
+            border:"1px solid rgba(138,90,40,0.3)", borderRadius:20,
+            padding:"4px 10px", cursor: detectingSeriesLoading ? "default" : "pointer",
+            opacity: detectingSeriesLoading ? 0.7 : 1,
+          }}>{detectingSeriesLoading ? "Detecting…" : "Detect All Series"}</button>
+        )}
+      </div>
+      {seriesEntries.length === 0 ? (
+        <div style={{ textAlign:"center", marginTop:60 }}>
+          <div style={{ display:"inline-block", background:WOOD.card, border:`1px solid ${WOOD.cardBorder}`, borderRadius:16, padding:"18px 28px" }}>
+            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:18, fontStyle:"italic", color:WOOD.textFaint, marginBottom:8 }}>No series detected yet</p>
+            <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:13, color:WOOD.textFaint }}>Tap "Detect All Series" to auto-identify your series books.</p>
+          </div>
+        </div>
+      ) : seriesViewStyle === "list"
+        ? seriesEntries.map(([name, { books: sb, seriesTotal }]) => (
+            <SeriesCard key={name} seriesName={name} books={sb} seriesTotal={seriesTotal} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} />
+          ))
+        : seriesEntries.map(([name, { books: sb, seriesTotal }]) => (
+            <SeriesShelfRow key={name} name={name} books={sb} seriesTotal={seriesTotal} onEdit={onEdit} />
+          ))
+      }
+    </>
+  );
+}
+
+function SeriesShelfRow({ name, books, seriesTotal, onEdit }) {
+  const readCount = books.filter(b => b.rating > 0).length;
+  const pct = seriesTotal ? Math.round((readCount / seriesTotal) * 100) : null;
+  const countStr = seriesTotal ? (readCount + " / " + seriesTotal) : (readCount + " book" + (readCount !== 1 ? "s" : ""));
+  const sorted = [...books].sort((a, b) => {
+    const na = parseInt((a.title.match(/\d+/) || [])[0]) || 999;
+    const nb = parseInt((b.title.match(/\d+/) || [])[0]) || 999;
+    return na - nb;
+  });
+  return (
+    <div style={{ marginBottom:16 }}>
+      <div style={{ display:"flex", alignItems:"baseline", justifyContent:"space-between", marginBottom:6 }}>
+        <div>
+          <span style={{ fontFamily:"'Crimson Pro',serif", fontSize:17, color:"rgba(255,235,195,0.9)" }}>{name}</span>
+          <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, color:"rgba(255,235,195,0.4)", marginLeft:8 }}>{sorted[0] && sorted[0].author}</span>
+        </div>
+        <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600, color:"rgba(200,160,100,0.75)", flexShrink:0 }}>{countStr}</span>
+      </div>
+      <div style={{ display:"flex", gap:6, overflowX:"auto", paddingBottom:8, scrollbarWidth:"none" }}>
+        {sorted.map(b => (
+          <div key={b.id} {...tc(() => onEdit && onEdit(b))} style={{ flexShrink:0, cursor:"pointer" }}>
+            <div style={{ filter: b.rating > 0 ? "none" : "grayscale(70%) brightness(0.75)", opacity: b.rating > 0 ? 1 : 0.7, transition:"filter 0.2s" }}>
+              <BookCoverThumb book={b} />
+            </div>
+          </div>
+        ))}
+      </div>
+      {pct !== null && (
+        <div style={{ background:"rgba(0,0,0,0.2)", borderRadius:20, height:4, overflow:"hidden", marginTop:2 }}>
+          <div style={{ height:"100%", width:pct + "%", background:"linear-gradient(to right, #c8860a, #e8b040)", borderRadius:20 }} />
+        </div>
+      )}
+    </div>
+  );
+}
+
 function SeriesCard({ seriesName, books, seriesTotal, onEdit, onRemove, onShelfChange, onSaveProgress, onSavePages, onSaveAspects, onAuthor }) {
   const [expanded, setExpanded] = useState(false);
 
@@ -1061,6 +1163,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
   const [apiSearching, setApiSearching] = useState(false);
   const [showApiResults, setShowApiResults] = useState(true);
   const [viewMode, setViewMode] = useState("card");
+  const [seriesViewStyle, setSeriesViewStyle] = useState("list");
   const [detectingSeriesLoading, setDetectingSeriesLoading] = useState(false);
   const [searchMode, setSearchMode] = useState("All");
   const searchTimer = useRef(null);
@@ -1469,50 +1572,9 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
             </div>
           </div>
         )}
-        {viewMode === "series" ? (() => {
-          const seriesBooks = shelfBooks.filter(b => b.series);
-          const grouped = {};
-          seriesBooks.forEach(b => {
-            if (!grouped[b.series]) grouped[b.series] = { books: [], seriesTotal: b.seriesTotal || null };
-            grouped[b.series].books.push(b);
-            if (b.seriesTotal && !grouped[b.series].seriesTotal) grouped[b.series].seriesTotal = b.seriesTotal;
-          });
-          const seriesEntries = Object.entries(grouped).sort((a, b) => a[0].localeCompare(b[0]));
-          return (
-            <>
-              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
-                <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:"rgba(255,235,195,0.45)" }}>
-                  {seriesEntries.length} series · {seriesBooks.length} books
-                </p>
-                {onBatchDetectSeries && (
-                  <button {...tc(async () => {
-                    if (detectingSeriesLoading) return;
-                    setDetectingSeriesLoading(true);
-                    await onBatchDetectSeries();
-                    setDetectingSeriesLoading(false);
-                  }, true)} style={{
-                    fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600,
-                    background: detectingSeriesLoading ? "rgba(138,90,40,0.35)" : "rgba(138,90,40,0.18)",
-                    color:"rgba(200,160,100,0.85)",
-                    border:"1px solid rgba(138,90,40,0.3)", borderRadius:20,
-                    padding:"4px 10px", cursor: detectingSeriesLoading ? "default" : "pointer",
-                    opacity: detectingSeriesLoading ? 0.7 : 1,
-                  }}>{detectingSeriesLoading ? "Detecting…" : "Detect All Series"}</button>
-                )}
-              </div>
-              {seriesEntries.length === 0 ? (
-                <div style={{ textAlign:"center", marginTop:60 }}>
-                  <div style={{ display:"inline-block", background:WOOD.card, border:`1px solid ${WOOD.cardBorder}`, borderRadius:16, padding:"18px 28px" }}>
-                    <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:18, fontStyle:"italic", color:WOOD.textFaint, marginBottom:8 }}>No series detected yet</p>
-                    <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:13, color:WOOD.textFaint }}>Tap "Detect All Series" to auto-identify your series books.</p>
-                  </div>
-                </div>
-              ) : seriesEntries.map(([name, { books: sb, seriesTotal }]) => (
-                <SeriesCard key={name} seriesName={name} books={sb} seriesTotal={seriesTotal} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} />
-              ))}
-            </>
-          );
-        })() : filtered.map((book,i)=>(
+        {viewMode === "series"
+          ? <SeriesView shelfBooks={shelfBooks} seriesViewStyle={seriesViewStyle} setSeriesViewStyle={setSeriesViewStyle} detectingSeriesLoading={detectingSeriesLoading} setDetectingSeriesLoading={setDetectingSeriesLoading} onBatchDetectSeries={onBatchDetectSeries} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} />
+          : filtered.map((book,i)=>(
           <div key={`${book.id}_${i}`} style={{ display:"flex", alignItems:"stretch", gap:0 }}>
             {sort==="custom" && (
               <div style={{
