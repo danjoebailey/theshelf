@@ -1055,15 +1055,24 @@ function SeriesShelfRow({ name, books, seriesTotal, onEdit }) {
     return na - nb;
   });
   return (
-    <div style={{ marginBottom:16 }}>
-      <div style={{ display:"flex", alignItems:"baseline", justifyContent:"space-between", marginBottom:6 }}>
+    <div style={{
+      marginBottom:8, background:WOOD.card, borderRadius:12,
+      border:`1px solid ${WOOD.cardBorder}`, borderLeft:"4px solid #8a5a28",
+      padding:"14px 16px", boxShadow:"0 1px 4px rgba(0,0,0,0.08)",
+    }}>
+      <div style={{ display:"flex", alignItems:"baseline", justifyContent:"space-between", marginBottom:10 }}>
         <div>
-          <span style={{ fontFamily:"'Crimson Pro',serif", fontSize:17, color:"rgba(255,235,195,0.9)" }}>{name}</span>
-          <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, color:"rgba(255,235,195,0.4)", marginLeft:8 }}>{sorted[0] && sorted[0].author}</span>
+          <span style={{ fontFamily:"'Crimson Pro',serif", fontSize:18, color:WOOD.text, lineHeight:1.2 }}>{name}</span>
+          <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:WOOD.textFaint, marginLeft:8 }}>{sorted[0] && sorted[0].author}</span>
         </div>
-        <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600, color:"rgba(200,160,100,0.75)", flexShrink:0 }}>{countStr}</span>
+        <span style={{
+          fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600,
+          background:"rgba(138,90,40,0.18)", color:"#8a5a28",
+          border:"1px solid rgba(138,90,40,0.3)", borderRadius:20,
+          padding:"3px 9px", flexShrink:0,
+        }}>{countStr}</span>
       </div>
-      <div style={{ display:"flex", gap:6, overflowX:"auto", paddingBottom:8, scrollbarWidth:"none" }}>
+      <div style={{ display:"flex", gap:6, overflowX:"auto", paddingBottom:4, scrollbarWidth:"none", marginLeft:-2 }}>
         {sorted.map(b => {
           let touchStartX = 0, touchStartY = 0;
           return (
@@ -1085,7 +1094,7 @@ function SeriesShelfRow({ name, books, seriesTotal, onEdit }) {
         })}
       </div>
       {pct !== null && (
-        <div style={{ background:"rgba(0,0,0,0.2)", borderRadius:20, height:4, overflow:"hidden", marginTop:2 }}>
+        <div style={{ background:"rgba(138,90,40,0.15)", borderRadius:20, height:5, overflow:"hidden", marginTop:8 }}>
           <div style={{ height:"100%", width:pct + "%", background:"linear-gradient(to right, #c8860a, #e8b040)", borderRadius:20 }} />
         </div>
       )}
