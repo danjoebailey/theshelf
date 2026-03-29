@@ -4044,7 +4044,7 @@ function BookSearchModal({ book, onSave, onClose }) {
   );
 }
 
-function AddSheet({ onSave, onClose, initialBook = null, userId, libraryProfile = [] }) {
+function AddSheet({ onSave, onClose, initialBook = null }) {
   const [step, setStep] = useState(initialBook ? "confirm" : "search");
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
@@ -4053,26 +4053,6 @@ function AddSheet({ onSave, onClose, initialBook = null, userId, libraryProfile 
   const [rating, setRating] = useState(0);
   const [shelf, setShelf] = useState("Read");
   const searchTimer = useRef(null);
-  const [obiVerdict, setObiVerdict] = useState(null);
-  const [obiLoading, setObiLoading] = useState(false);
-  const [showObi, setShowObi] = useState(false);
-
-  async function fetchObi() {
-    if (showObi) { setShowObi(false); return; }
-    setShowObi(true);
-    if (obiVerdict) return;
-    setObiLoading(true);
-    try {
-      const res = await fetch("/api/ask-obi", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ book: { title: selected.title, author: selected.author, genre: selected.genre }, profile: libraryProfile, userId }),
-      });
-      const data = await res.json();
-      setObiVerdict(data.verdict || "Unable to get a read on this one.");
-    } catch { setObiVerdict("Unable to get a read on this one."); }
-    setObiLoading(false);
-  }
 
   const inputStyle = {
     display:"block", width:"100%",
@@ -4214,22 +4194,6 @@ function AddSheet({ onSave, onClose, initialBook = null, userId, libraryProfile 
 
           {selected.description && (
             <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, lineHeight:1.65, fontStyle:"italic", marginBottom:16 }}>{selected.description}</p>
-          )}
-
-          {libraryProfile.length >= 3 && (
-            <div style={{ marginBottom:16 }}>
-              <button {...tc(fetchObi, true)} style={{ display:"flex", alignItems:"center", gap:6, background:showObi?WOOD.amber:"rgba(138,90,40,0.12)", borderRadius:20, padding:"6px 14px", border:`1px solid ${showObi?WOOD.amber:"rgba(138,90,40,0.25)"}`, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:500, color:showObi?"#1a0900":WOOD.textDim, transition:"all 0.15s" }}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/></svg>
-                Ask Obi
-              </button>
-              {showObi && (
-                <div style={{ marginTop:10, animation:"fadeIn 0.18s ease" }}>
-                  {obiLoading
-                    ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.textDim, fontStyle:"italic" }}>Obi is thinking…</p>
-                    : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, lineHeight:1.75 }}>{obiVerdict}</p>}
-                </div>
-              )}
-            </div>
           )}
 
           <div style={{ marginBottom:16 }}>
@@ -4532,7 +4496,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
                     {icon}{label}
                   </button>
                 ))}
-                {!["Read","DNF"].includes(shelf) && (
+                {(!["Read","DNF"].includes(shelf) || book._fromRecs) && (
                   <button onClick={fetchObi} style={{ display:"flex", alignItems:"center", gap:5, padding:"6px 12px", borderRadius:20, border:"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:500, transition:"all 0.15s", background:detailPanel==="obi" ? CR.text : CR.panel, color:detailPanel==="obi" ? CR.bg : CR.textDim }}>
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/></svg>
                     Ask Obi
@@ -5615,7 +5579,7 @@ export default function App() {
             ? <RankingsTab books={books} onSaveScores={saveScores} userId={userId} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"", _fromRecs:true }); }} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, date:new Date().toISOString().slice(0,10) }; setBooks(prev => [...prev, b]); if (!guestMode) dbAddBook(b, userId); }} onShelfChange={changeShelf} onEdit={setEditBook} />
             : <StatsTab books={books} />
           }
-          {showAdd && <AddSheet onSave={addBook} onClose={()=>setShowAdd(false)} userId={userId} libraryProfile={books.filter(b => b.shelf === "Read" || b.shelf === "DNF")} />}
+          {showAdd && <AddSheet onSave={addBook} onClose={()=>setShowAdd(false)} />}
           {addBookDraft && <EditSheet book={addBookDraft} onSave={updated=>{ addBook({...addBookDraft,...updated}); setAddBookDraft(null); }} onClose={()=>setAddBookDraft(null)} onSaveDescription={()=>{}} onSaveScores={()=>{}} onAuthor={setAuthorModal} libraryProfile={books.filter(b => b.shelf === "Read" || b.shelf === "DNF")} userId={userId} initialTab={addBookDraft._fromRecs ? "details" : undefined} />}
           {editBook && <EditSheet key={editBook.id} book={editBook} onSave={updated=>{ saveEdit(updated); setEditBook(null); }} onClose={()=>setEditBook(null)} onSaveDescription={saveDescription} onSaveScores={saveScores} onAuthor={setAuthorModal} onRemove={id=>{ setBooks(prev=>prev.filter(b=>b.id!==id)); track("book_removed"); if (!guestMode) dbDeleteBook(id, userId); setEditBook(null); }} libraryProfile={books.filter(b => b.shelf === "Read" || b.shelf === "DNF")} userId={userId} />}
           {authorModal && <AuthorModal author={authorModal} books={books} onClose={()=>setAuthorModal(null)} onEdit={book=>{ setAuthorModal(null); setEditBook(book); }} onAdd={draft=>{ setAuthorModal(null); setEditBook(null); setAddBookDraft({ id:Date.now(), title:draft.title, author:draft.author, genre:draft.genre||"Fiction", pages:draft.pages||0, rating:0, shelf:"Read", coverUrl:draft.coverUrl||null, coverId:null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"" }); }} onDirectAdd={draft=>{ addBook({ title:draft.title, author:draft.author, genre:draft.genre||"Fiction", pages:draft.pages||0, rating:0, shelf:draft.shelf, coverUrl:draft.coverUrl||null, coverId:null, description:"", scores:null, notes:"" }); }} userId={userId} />}
