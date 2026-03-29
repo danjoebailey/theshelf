@@ -5568,8 +5568,33 @@ export default function App() {
 
   async function batchDetectSeries() {
     const targets = books.filter(b => !b.series && b.title && b.author);
-    for (const book of targets) {
-      await autoDetectSeries(book);
+    if (!targets.length) return;
+    const CHUNK = 80;
+    for (let i = 0; i < targets.length; i += CHUNK) {
+      const chunk = targets.slice(i, i + CHUNK);
+      try {
+        const res = await fetch("/api/detect-series", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ books: chunk.map(b => ({ title: b.title, author: b.author })) }),
+        });
+        if (!res.ok) continue;
+        const { results } = await res.json();
+        if (!Array.isArray(results)) continue;
+        const updates = [];
+        results.forEach((r, idx) => {
+          if (!r?.series) return;
+          const book = chunk[idx];
+          if (!book) return;
+          updates.push({ ...book, series: r.series, seriesTotal: r.seriesTotal || null });
+        });
+        if (!updates.length) continue;
+        setBooks(prev => prev.map(b => {
+          const u = updates.find(u => u.id === b.id);
+          return u ? { ...b, series: u.series, seriesTotal: u.seriesTotal } : b;
+        }));
+        updates.forEach(u => dbUpdateBook(u, userId));
+      } catch {}
     }
   }
 
