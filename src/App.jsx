@@ -1274,7 +1274,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
     if (filterYear)  l = l.filter(b=>b.date?.startsWith(filterYear));
     if (filterGenre) l = l.filter(b=>b.genre===filterGenre);
     if (filterAuthor)l = l.filter(b=>b.author===filterAuthor);
-    if (sort==="date")   l.sort((a,b)=> sortAsc ? a.date.localeCompare(b.date)   : b.date.localeCompare(a.date));
+    if (sort==="date")   l.sort((a,b)=> { const ad=a.date||""; const bd=b.date||""; return sortAsc ? ad.localeCompare(bd) : bd.localeCompare(ad); });
     if (sort==="rating") l.sort((a,b)=> sortAsc ? a.rating-b.rating              : b.rating-a.rating);
     if (sort==="title")  l.sort((a,b)=> sortAsc ? a.title.localeCompare(b.title) : b.title.localeCompare(a.title));
     return l;
