@@ -5577,7 +5577,7 @@ export default function App() {
   async function batchDetectSeries() {
     const targets = books.filter(b => !b.series && b.title && b.author);
     if (!targets.length) return;
-    const CHUNK = 80;
+    const CHUNK = 30;
     for (let i = 0; i < targets.length; i += CHUNK) {
       const chunk = targets.slice(i, i + CHUNK);
       try {
