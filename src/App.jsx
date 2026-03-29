@@ -979,7 +979,70 @@ function BookRowPages({ book, index, onEdit, onRemove, onShelfChange, maxPages, 
   );
 }
 
-function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelfChange, onImport, onSaveScores, onSaveDescription, onSaveProgress, onSavePages, onSaveAspects, hideControls=false, onAuthor, userId, guestMode = false }) {
+function SeriesCard({ seriesName, books, seriesTotal, onEdit, onRemove, onShelfChange, onSaveProgress, onSavePages, onSaveAspects, onAuthor }) {
+  const [expanded, setExpanded] = useState(false);
+
+  const author = books[0]?.author || "";
+  const readBooks = books.filter(b => b.rating > 0);
+  const avgRating = readBooks.length > 0
+    ? (readBooks.reduce((s, b) => s + b.rating, 0) / readBooks.length).toFixed(1)
+    : null;
+  const countStr = seriesTotal ? `${books.length}/${seriesTotal}` : `${books.length} book${books.length !== 1 ? "s" : ""}`;
+
+  const sorted = [...books].sort((a, b) => {
+    const numA = parseInt((a.title.match(/\d+/) || [])[0]) || 999;
+    const numB = parseInt((b.title.match(/\d+/) || [])[0]) || 999;
+    return numA - numB;
+  });
+
+  return (
+    <div style={{ marginBottom:8 }}>
+      <div onClick={() => setExpanded(e => !e)} style={{
+        background: WOOD.card, borderRadius:12, padding:"14px 16px",
+        border: `1px solid ${WOOD.cardBorder}`,
+        borderLeft: "4px solid #8a5a28",
+        boxShadow: "0 1px 4px rgba(0,0,0,0.08)", cursor:"pointer",
+        display:"flex", alignItems:"center", gap:12,
+      }}>
+        {/* spine accent */}
+        <div style={{ display:"flex", flexDirection:"column", gap:3, flexShrink:0 }}>
+          {[...Array(Math.min(books.length, 4))].map((_, i) => (
+            <div key={i} style={{ width:4, height:8, borderRadius:2, background:"#8a5a28", opacity:0.6 + i * 0.1 }} />
+          ))}
+        </div>
+        <div style={{ flex:1, minWidth:0 }}>
+          <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:18, color:WOOD.text, lineHeight:1.2, marginBottom:2 }}>{seriesName}</p>
+          <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:WOOD.textFaint }}>{author}</p>
+        </div>
+        <div style={{ display:"flex", alignItems:"center", gap:10, flexShrink:0 }}>
+          {avgRating && (
+            <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:WOOD.textDim }}>
+              ★ {avgRating}
+            </span>
+          )}
+          <span style={{
+            fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600,
+            background:"rgba(138,90,40,0.18)", color:"#8a5a28",
+            border:"1px solid rgba(138,90,40,0.3)", borderRadius:20,
+            padding:"3px 9px",
+          }}>{countStr}</span>
+          <svg width="10" height="6" viewBox="0 0 10 6" fill="none" style={{ transition:"transform 0.2s", transform: expanded ? "rotate(180deg)" : "rotate(0deg)" }}>
+            <path d="M1 1l4 4 4-4" stroke={WOOD.textFaint} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </div>
+      </div>
+      {expanded && (
+        <div style={{ marginTop:2, borderRadius:"0 0 12px 12px", overflow:"hidden", border:`1px solid ${WOOD.cardBorder}`, borderTop:"none" }}>
+          {sorted.map((book, i) => (
+            <BookRow key={book.id} book={book} index={i} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelfChange, onImport, onSaveScores, onSaveDescription, onSaveProgress, onSavePages, onSaveAspects, hideControls=false, onAuthor, userId, guestMode = false, onBatchDetectSeries }) {
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("date");
   const [sortAsc, setSortAsc] = useState(false);
@@ -1253,17 +1316,19 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
 
           <div style={{ display:"flex", gap:6, marginLeft:"auto", position:"relative" }}>
             {/* view mode toggle */}
-            <button {...tc(()=>setViewMode(v=>v==="card"?"row":v==="row"?"pages":"card"), true)} title={viewMode==="card"?"Row view":viewMode==="row"?"Pages view":"Card view"} style={{
+            <button {...tc(()=>setViewMode(v=>v==="card"?"row":v==="row"?"pages":v==="pages"?"series":"card"), true)} title={viewMode==="card"?"Row view":viewMode==="row"?"Pages view":viewMode==="pages"?"Series view":"Card view"} style={{
               display:"flex", alignItems:"center", justifyContent:"center",
-              background:"rgba(15,8,2,0.55)", borderRadius:20, padding:"5px 10px",
-              border:"1px solid rgba(120,70,20,0.3)", backdropFilter:"blur(4px)",
+              background: viewMode==="series" ? "rgba(138,90,40,0.45)" : "rgba(15,8,2,0.55)", borderRadius:20, padding:"5px 10px",
+              border: viewMode==="series" ? "1px solid rgba(200,144,90,0.5)" : "1px solid rgba(120,70,20,0.3)", backdropFilter:"blur(4px)",
               cursor:"pointer", color:"#fff",
             }}>
               {viewMode==="card"
                 ? <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor"><rect x="0" y="0" width="13" height="3" rx="1.5"/><rect x="0" y="5" width="13" height="3" rx="1.5"/><rect x="0" y="10" width="13" height="3" rx="1.5"/></svg>
                 : viewMode==="row"
                 ? <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor"><rect x="0" y="0" width="13" height="1.5" rx="0.75"/><rect x="0" y="3.5" width="13" height="3" rx="0.75"/><rect x="0" y="8.5" width="13" height="4.5" rx="0.75"/></svg>
-                : <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor"><rect x="0" y="0" width="6" height="6" rx="1"/><rect x="7" y="0" width="6" height="6" rx="1"/><rect x="0" y="7" width="6" height="6" rx="1"/><rect x="7" y="7" width="6" height="6" rx="1"/></svg>
+                : viewMode==="pages"
+                ? <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor"><rect x="0" y="0" width="6" height="6" rx="1"/><rect x="7" y="0" width="6" height="6" rx="1"/><rect x="0" y="7" width="6" height="6" rx="1"/><rect x="7" y="7" width="6" height="6" rx="1"/></svg>
+                : <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor"><rect x="1" y="0" width="2" height="13" rx="1"/><rect x="4.5" y="1" width="2" height="12" rx="1"/><rect x="8" y="2" width="2" height="11" rx="1"/><rect x="11.5" y="1" width="1.5" height="12" rx="0.75"/></svg>
               }
             </button>
 
@@ -1403,7 +1468,43 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
             </div>
           </div>
         )}
-        {filtered.map((book,i)=>(
+        {viewMode === "series" ? (() => {
+          const seriesBooks = shelfBooks.filter(b => b.series);
+          const grouped = {};
+          seriesBooks.forEach(b => {
+            if (!grouped[b.series]) grouped[b.series] = { books: [], seriesTotal: b.seriesTotal || null };
+            grouped[b.series].books.push(b);
+            if (b.seriesTotal && !grouped[b.series].seriesTotal) grouped[b.series].seriesTotal = b.seriesTotal;
+          });
+          const seriesEntries = Object.entries(grouped).sort((a, b) => a[0].localeCompare(b[0]));
+          return (
+            <>
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
+                <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:"rgba(255,235,195,0.45)" }}>
+                  {seriesEntries.length} series · {seriesBooks.length} books
+                </p>
+                {onBatchDetectSeries && (
+                  <button {...tc(onBatchDetectSeries, true)} style={{
+                    fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600,
+                    background:"rgba(138,90,40,0.18)", color:"rgba(200,160,100,0.85)",
+                    border:"1px solid rgba(138,90,40,0.3)", borderRadius:20,
+                    padding:"4px 10px", cursor:"pointer",
+                  }}>Detect All Series</button>
+                )}
+              </div>
+              {seriesEntries.length === 0 ? (
+                <div style={{ textAlign:"center", marginTop:60 }}>
+                  <div style={{ display:"inline-block", background:WOOD.card, border:`1px solid ${WOOD.cardBorder}`, borderRadius:16, padding:"18px 28px" }}>
+                    <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:18, fontStyle:"italic", color:WOOD.textFaint, marginBottom:8 }}>No series detected yet</p>
+                    <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:13, color:WOOD.textFaint }}>Tap "Detect All Series" to auto-identify your series books.</p>
+                  </div>
+                </div>
+              ) : seriesEntries.map(([name, { books: sb, seriesTotal }]) => (
+                <SeriesCard key={name} seriesName={name} books={sb} seriesTotal={seriesTotal} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} />
+              ))}
+            </>
+          );
+        })() : filtered.map((book,i)=>(
           <div key={`${book.id}_${i}`} style={{ display:"flex", alignItems:"stretch", gap:0 }}>
             {sort==="custom" && (
               <div style={{
@@ -4643,6 +4744,8 @@ function bookToRow(book, userId) {
     liked_aspects: book.likedAspects?.length ? book.likedAspects : null,
     disliked_aspects: book.dislikedAspects?.length ? book.dislikedAspects : null,
     notes: book.notes || null,
+    series: book.series || null,
+    series_total: book.seriesTotal || null,
   };
 }
 
@@ -4665,6 +4768,8 @@ function rowToBook(row) {
     likedAspects: row.liked_aspects || [],
     dislikedAspects: row.disliked_aspects || [],
     notes: row.notes || "",
+    series: row.series || null,
+    seriesTotal: row.series_total || null,
   };
 }
 
@@ -5442,6 +5547,30 @@ export default function App() {
     clearTimeout(toastTimer.current);
     setToast({ title: book.title, shelf: book.shelf || "Read" });
     toastTimer.current = setTimeout(() => setToast(null), 3000);
+    if (!guestMode && !book.series) autoDetectSeries(book);
+  }
+
+  async function autoDetectSeries(book) {
+    try {
+      const res = await fetch("/api/detect-series", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: book.title, author: book.author }),
+      });
+      if (!res.ok) return;
+      const { series, seriesTotal } = await res.json();
+      if (!series) return;
+      const updated = { ...book, series, seriesTotal };
+      setBooks(prev => prev.map(b => b.id === book.id ? { ...b, series, seriesTotal } : b));
+      dbUpdateBook(updated, userId);
+    } catch {}
+  }
+
+  async function batchDetectSeries() {
+    const targets = books.filter(b => !b.series && b.title && b.author);
+    for (const book of targets) {
+      await autoDetectSeries(book);
+    }
   }
 
   function saveScores(id, scores) {
@@ -5572,7 +5701,7 @@ export default function App() {
         {/* content */}
         <div style={{ flex:1, overflow:"hidden", position:"relative" }}>
           {tab==="shelf"
-            ? <ShelfTab books={books} onAdd={()=>setShowAdd(true)} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"", _fromRecs:book._fromRecs||false }); }} onRemove={id=>{ setBooks(prev => prev.filter(b=>b.id!==id)); track("book_removed"); if (!guestMode) dbDeleteBook(id, userId); }} onEdit={setEditBook} onScroll={setScrollY} onShelfChange={changeShelf} onImport={()=>setShowImport(true)} onSaveScores={saveScores} onSaveDescription={saveDescription} onSaveProgress={saveProgress} onSavePages={savePages} onSaveAspects={saveAspects} hideControls={!!editBook} onAuthor={setAuthorModal} userId={userId} guestMode={guestMode} />
+            ? <ShelfTab books={books} onAdd={()=>setShowAdd(true)} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"", _fromRecs:book._fromRecs||false }); }} onRemove={id=>{ setBooks(prev => prev.filter(b=>b.id!==id)); track("book_removed"); if (!guestMode) dbDeleteBook(id, userId); }} onEdit={setEditBook} onScroll={setScrollY} onShelfChange={changeShelf} onImport={()=>setShowImport(true)} onSaveScores={saveScores} onSaveDescription={saveDescription} onSaveProgress={saveProgress} onSavePages={savePages} onSaveAspects={saveAspects} hideControls={!!editBook} onAuthor={setAuthorModal} userId={userId} guestMode={guestMode} onBatchDetectSeries={batchDetectSeries} />
             : tab==="reiko"
             ? <RecommendPage books={books} userId={userId} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, rating:0, date:new Date().toISOString().slice(0,10) }; setBooks(prev => [...prev, b]); if (!guestMode) dbAddBook(b, userId); }} onAuthor={setAuthorModal} onEdit={setEditBook} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"", _fromRecs:true }); }} onShelfChange={changeShelf} onSaveScores={saveScores} />
             : tab==="rankings"
