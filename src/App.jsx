@@ -1068,6 +1068,14 @@ function SeriesShelfRow({ name, books, seriesTotal, onEdit }) {
         <div>
           <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:18, color:WOOD.text, lineHeight:1.2 }}>{name}</p>
           <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:WOOD.textFaint, marginTop:2 }}>{sorted[0] && sorted[0].author}</p>
+          {(() => {
+            const genreCount = {};
+            sorted.forEach(b => { if (b.genre) genreCount[b.genre] = (genreCount[b.genre] || 0) + 1; });
+            const topGenre = Object.entries(genreCount).sort((a, b) => b[1] - a[1])[0]?.[0];
+            if (!topGenre) return null;
+            const bg = GENRE_COLORS[topGenre] || "#94a3b8";
+            return <span style={{ display:"inline-block", marginTop:5, background:bg, color:"#fff", borderRadius:20, padding:"2px 8px", fontSize:9, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em" }}>{topGenre}</span>;
+          })()}
         </div>
         <span style={{
           fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600,
@@ -1139,7 +1147,15 @@ function SeriesCard({ seriesName, books, seriesTotal, onEdit, onRemove, onShelfC
         </div>
         <div style={{ flex:1, minWidth:0 }}>
           <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:18, color:WOOD.text, lineHeight:1.2, marginBottom:2 }}>{seriesName}</p>
-          <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:WOOD.textFaint }}>{author}</p>
+          <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:WOOD.textFaint, marginBottom:4 }}>{author}</p>
+          {(() => {
+            const genreCount = {};
+            books.forEach(b => { if (b.genre) genreCount[b.genre] = (genreCount[b.genre] || 0) + 1; });
+            const topGenre = Object.entries(genreCount).sort((a, b) => b[1] - a[1])[0]?.[0];
+            if (!topGenre) return null;
+            const bg = GENRE_COLORS[topGenre] || "#94a3b8";
+            return <span style={{ display:"inline-block", background:bg, color:"#fff", borderRadius:20, padding:"2px 8px", fontSize:9, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em" }}>{topGenre}</span>;
+          })()}
         </div>
         <div style={{ display:"flex", alignItems:"center", gap:10, flexShrink:0 }}>
           {avgRating && (
