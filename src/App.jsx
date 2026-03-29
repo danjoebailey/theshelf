@@ -987,7 +987,11 @@ function SeriesView({ shelfBooks, seriesViewStyle, setSeriesViewStyle, detecting
     grouped[b.series].books.push(b);
     if (b.seriesTotal && !grouped[b.series].seriesTotal) grouped[b.series].seriesTotal = b.seriesTotal;
   });
-  const seriesEntries = Object.entries(grouped).sort((a, b) => a[0].localeCompare(b[0]));
+  const seriesEntries = Object.entries(grouped).sort((a, b) => {
+    const aRead = a[1].books.filter(b => b.rating > 0).length;
+    const bRead = b[1].books.filter(b => b.rating > 0).length;
+    return bRead - aRead || a[0].localeCompare(b[0]);
+  });
 
   return (
     <>
