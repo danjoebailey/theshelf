@@ -5096,7 +5096,7 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd, userI
               return (
                 <div key={`unread-${i}`} style={{ position:"relative", zIndex:openDropdown===book.title ? 10 : "auto", display:"flex", alignItems:"stretch", gap:12, padding:"12px 0", borderBottom:`1px solid ${CR.border}` }}>
                   {/* Tappable row area → EditSheet */}
-                  <div onTouchStart={()=>{ touchMoved.current=false; }} onTouchMove={()=>{ touchMoved.current=true; }} onTouchEnd={e=>{ if(!touchMoved.current){ e.stopPropagation(); e.preventDefault(); setOpenDropdown(null); onAdd&&onAdd(draft); } }} onClick={e=>{ if(openDropdown) return; setOpenDropdown(null); onAdd&&onAdd(draft); }} style={{ display:"flex", gap:12, flex:1, minWidth:0, cursor:"pointer", opacity:0.75 }}>
+                  <div onTouchStart={()=>{ touchMoved.current=false; }} onTouchMove={()=>{ touchMoved.current=true; }} onTouchEnd={e=>{ if(!touchMoved.current){ e.stopPropagation(); e.preventDefault(); setOpenDropdown(null); onAdd&&onAdd(draft); } }} onClick={e=>{ if(openDropdown) return; setOpenDropdown(null); onAdd&&onAdd(draft); }} style={{ display:"flex", gap:12, flex:1, minWidth:0, cursor:"pointer" }}>
                     <BookCover book={{ title:book.title, coverUrl:unreadCovers[book.title]||null }} width={42} height={62} radius={3} shadow="1px 1px 5px rgba(0,0,0,0.2)" />
                     <div style={{ flex:1, minWidth:0 }}>
                       <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:17, color:CR.text, lineHeight:1.2, marginBottom:4 }}>{book.title}{book.series ? ` (${book.series})` : ""}</p>
