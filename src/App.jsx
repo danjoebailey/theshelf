@@ -1570,9 +1570,10 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
           )}
         </div>
 
-        {/* browse mode switcher */}
-        {!hideControls && (
-          <div style={{ position:"relative", marginTop:8, display:"inline-block" }}>
+        {!hideControls && browseMode === "books" && <div style={{ display:"flex", gap:6, marginTop:8, alignItems:"center" }}>
+
+          {/* browse mode dropdown */}
+          <div style={{ position:"relative" }}>
             <button {...tc(()=>{ setBrowseModeDropOpen(o=>!o); setShelfDropOpen(false); setFilterOpen(false); setSortDropOpen(false); setSeriesAuthorSortDropOpen(false); }, true)} style={{ display:"flex", alignItems:"center", gap:5, background:WOOD.amber, borderRadius:20, padding:"5px 12px", border:`1px solid ${WOOD.amber}`, backdropFilter:"blur(4px)", cursor:"pointer", color:"#1a0900", fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:600 }}>
               <span>{{ books:"Books", series:"Series", authors:"Authors" }[browseMode]}</span>
               <span style={{ fontSize:10, color:"rgba(26,9,0,0.6)", display:"inline-block", transition:"transform 0.2s", transform: browseModeDropOpen?"rotate(180deg)":"rotate(0deg)" }}>▾</span>
@@ -1585,9 +1586,6 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
               </div>
             )}
           </div>
-        )}
-
-        {!hideControls && browseMode === "books" && <div style={{ display:"flex", gap:6, marginTop:8, alignItems:"center" }}>
 
           {/* view mode toggle — card/row/pages only */}
           <button {...tc(()=>setViewMode(v=>v==="card"?"row":v==="row"?"pages":"card"), true)} title={viewMode==="card"?"Row view":viewMode==="row"?"Pages view":"Card view"} style={{ display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(15,8,2,0.55)", borderRadius:20, padding:"5px 10px", border:"1px solid rgba(120,70,20,0.3)", backdropFilter:"blur(4px)", cursor:"pointer", color:"#fff" }}>
@@ -1661,6 +1659,21 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
         {/* series/authors controls row */}
         {!hideControls && (browseMode === "series" || browseMode === "authors") && (
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:8 }}>
+            <div style={{ display:"flex", gap:6, alignItems:"center" }}>
+            {/* browse mode dropdown */}
+            <div style={{ position:"relative" }}>
+              <button {...tc(()=>{ setBrowseModeDropOpen(o=>!o); setSeriesAuthorSortDropOpen(false); }, true)} style={{ display:"flex", alignItems:"center", gap:5, background:WOOD.amber, borderRadius:20, padding:"5px 12px", border:`1px solid ${WOOD.amber}`, backdropFilter:"blur(4px)", cursor:"pointer", color:"#1a0900", fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:600 }}>
+                <span>{{ books:"Books", series:"Series", authors:"Authors" }[browseMode]}</span>
+                <span style={{ fontSize:10, color:"rgba(26,9,0,0.6)", display:"inline-block", transition:"transform 0.2s", transform: browseModeDropOpen?"rotate(180deg)":"rotate(0deg)" }}>▾</span>
+              </button>
+              {browseModeDropOpen && (
+                <div onClick={e=>e.stopPropagation()} style={{ position:"absolute", top:"calc(100% + 4px)", left:0, zIndex:30, minWidth:120, background:"#f5e8d0", borderRadius:10, overflow:"hidden", boxShadow:"0 4px 20px rgba(0,0,0,0.25)", border:"1px solid rgba(138,90,40,0.3)", animation:"fadeIn 0.12s ease" }}>
+                  {[["books","Books"],["series","Series"],["authors","Authors"]].map(([mode, label], i, arr) => (
+                    <button key={mode} {...tc(()=>{ setBrowseMode(mode); setBrowseModeDropOpen(false); }, true)} style={{ display:"block", width:"100%", padding:"10px 14px", textAlign:"left", background: browseMode===mode?"rgba(138,90,40,0.1)":"transparent", border:"none", borderBottom: i<arr.length-1?"1px solid rgba(138,90,40,0.1)":"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:13, color: browseMode===mode?WOOD.amber:WOOD.text, fontWeight: browseMode===mode?600:400 }}>{label}</button>
+                  ))}
+                </div>
+              )}
+            </div>
             {/* sort dropdown pill */}
             <div style={{ position:"relative" }}>
               {(() => {
@@ -1687,6 +1700,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
                   </>
                 );
               })()}
+            </div>
             </div>
             {/* list/shelf sub-toggle */}
             <div style={{ display:"flex", background:"rgba(15,8,2,0.4)", borderRadius:20, padding:2, border:"1px solid rgba(120,70,20,0.3)", flexShrink:0 }}>
