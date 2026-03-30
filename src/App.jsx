@@ -2406,18 +2406,18 @@ function RecommendPage({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook
   return (
     <div style={{ height:"100%", overflowY:"auto", overflowX:"hidden" }}>
       {/* Character selector */}
-      <div style={{ display:"flex", justifyContent:"center", gap:32, padding:"8px 18px 0", borderBottom:"1px solid rgba(138,90,40,0.2)" }}>
+      <div style={{ display:"flex", justifyContent:"center", gap:32, padding:"8px 18px 0", borderBottom:"1px solid rgba(138,90,40,0.2)", background:WOOD.card }}>
         {[{ key:"paige", label:"Paige Turner", img:"/page-turner.png" }, { key:"reiko", label:"Reiko Mend", img:"/reiko-mend.png" }, { key:"reed", label:"Reed Morely", img:"/reed-morely.png" }].map(c => (
           <button key={c.key} {...tc(() => setCharacter(c.key))} style={{
             display:"flex", flexDirection:"column", alignItems:"center", gap:4,
             background:"transparent", border:"none", cursor:"pointer",
-            borderBottom: character===c.key ? "2px solid #fff" : "2px solid transparent",
+            borderBottom: character===c.key ? `2px solid ${WOOD.amber}` : "2px solid transparent",
             paddingBottom:4, transition:"all 0.15s",
             opacity: character===c.key ? 1 : 0.45,
             touchAction:"manipulation",
           }}>
             <img src={c.img} alt={c.label} style={{ width:100, height:100, objectFit:"contain" }} />
-            <span style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, fontWeight:400, color:"#fff" }}>{c.label}</span>
+            <span style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, fontWeight:400, color:WOOD.text }}>{c.label}</span>
           </button>
         ))}
       </div>
