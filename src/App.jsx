@@ -979,7 +979,7 @@ function BookRowPages({ book, index, onEdit, onRemove, onShelfChange, maxPages, 
   );
 }
 
-function SeriesView({ shelfBooks, seriesViewStyle, setSeriesViewStyle, detectingSeriesLoading, setDetectingSeriesLoading, onBatchDetectSeries, onEdit, onRemove, onShelfChange, onSaveProgress, onSavePages, onSaveAspects, onAuthor, seriesTiers = {}, onSetSeriesTier }) {
+function SeriesView({ shelfBooks, seriesViewStyle, setSeriesViewStyle, detectingSeriesLoading, setDetectingSeriesLoading, onBatchDetectSeries, onEdit, onRemove, onShelfChange, onSaveProgress, onSavePages, onSaveAspects, onAuthor, seriesTiers = {}, onSetSeriesTier, seriesSort = "read" }) {
   const seriesBooks = shelfBooks.filter(b => b.series);
   const grouped = {};
   seriesBooks.forEach(b => {
@@ -988,32 +988,38 @@ function SeriesView({ shelfBooks, seriesViewStyle, setSeriesViewStyle, detecting
     if (b.seriesTotal && !grouped[b.series].seriesTotal) grouped[b.series].seriesTotal = b.seriesTotal;
   });
   const seriesEntries = Object.entries(grouped).sort((a, b) => {
-    const aRead = a[1].books.filter(b => b.rating > 0).length;
-    const bRead = b[1].books.filter(b => b.rating > 0).length;
-    return bRead - aRead || a[0].localeCompare(b[0]);
+    if (seriesSort === "read") {
+      const aRead = a[1].books.filter(x => x.rating > 0).length;
+      const bRead = b[1].books.filter(x => x.rating > 0).length;
+      return bRead - aRead || a[0].localeCompare(b[0]);
+    }
+    if (seriesSort === "rating") {
+      const aRat = a[1].books.reduce((s,x) => s + (x.rating||0), 0) / (a[1].books.filter(x=>x.rating>0).length||1);
+      const bRat = b[1].books.reduce((s,x) => s + (x.rating||0), 0) / (b[1].books.filter(x=>x.rating>0).length||1);
+      return bRat - aRat || a[0].localeCompare(b[0]);
+    }
+    if (seriesSort === "title") return a[0].localeCompare(b[0]);
+    if (seriesSort === "genre") {
+      const ag = a[1].books[0]?.genre || "";
+      const bg = b[1].books[0]?.genre || "";
+      return ag.localeCompare(bg) || a[0].localeCompare(b[0]);
+    }
+    if (seriesSort === "tier") {
+      const TIER_ORDER_LOCAL = ["S","A","B","C"];
+      const at = seriesTiers[a[0]]; const bt = seriesTiers[b[0]];
+      const ai = at ? TIER_ORDER_LOCAL.indexOf(at) : 99;
+      const bi = bt ? TIER_ORDER_LOCAL.indexOf(bt) : 99;
+      return ai - bi || a[0].localeCompare(b[0]);
+    }
+    return a[0].localeCompare(b[0]);
   });
 
   return (
     <>
       <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
-        <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-          <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:"rgba(255,235,195,0.45)" }}>
-            {seriesEntries.length} series · {seriesBooks.length} books
-          </p>
-          <div style={{ display:"flex", background:"rgba(15,8,2,0.4)", borderRadius:20, padding:2, border:"1px solid rgba(120,70,20,0.3)" }}>
-            {[["list", <svg key="l" width="11" height="11" viewBox="0 0 11 11" fill="currentColor"><rect x="0" y="0" width="11" height="2.5" rx="1.25"/><rect x="0" y="4.25" width="11" height="2.5" rx="1.25"/><rect x="0" y="8.5" width="11" height="2.5" rx="1.25"/></svg>],
-              ["shelf", <svg key="s" width="11" height="11" viewBox="0 0 11 11" fill="currentColor"><rect x="0" y="0" width="5" height="9" rx="1"/><rect x="6" y="0" width="5" height="9" rx="1"/><rect x="0" y="10" width="11" height="1" rx="0.5"/></svg>]
-            ].map(([mode, icon]) => (
-              <button key={mode} {...tc(() => setSeriesViewStyle(mode), true)} style={{
-                display:"flex", alignItems:"center", justifyContent:"center",
-                width:26, height:22, borderRadius:16, border:"none", cursor:"pointer",
-                background: seriesViewStyle === mode ? "rgba(138,90,40,0.6)" : "transparent",
-                color: seriesViewStyle === mode ? "#fff" : "rgba(255,235,195,0.4)",
-                transition:"all 0.15s",
-              }}>{icon}</button>
-            ))}
-          </div>
-        </div>
+        <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:"rgba(255,235,195,0.45)" }}>
+          {seriesEntries.length} series · {seriesBooks.length} books
+        </p>
         {onBatchDetectSeries && (
           <button {...tc(async () => {
             if (detectingSeriesLoading) return;
@@ -1229,7 +1235,120 @@ function SeriesCard({ seriesName, books, seriesTotal, onEdit, onRemove, onShelfC
   );
 }
 
-function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelfChange, onImport, onSaveScores, onSaveDescription, onSaveProgress, onSavePages, onSaveAspects, hideControls=false, onAuthor, userId, guestMode = false, onBatchDetectSeries, seriesTiers = {}, onSetSeriesTier }) {
+function AuthorShelfRow({ authorName, books, onEdit, tier, onSetTier }) {
+  const sorted = [...books].sort((a, b) => ((b.date||"").localeCompare(a.date||"")));
+  const readCount = books.filter(b => (b.shelf||"Read") === "Read" || b.shelf === "DNF").length;
+  const genreCount = {};
+  books.forEach(b => { if (b.genre) genreCount[b.genre] = (genreCount[b.genre]||0)+1; });
+  const topGenre = Object.entries(genreCount).sort((a,b)=>b[1]-a[1])[0]?.[0];
+  const countStr = books.length + " book" + (books.length !== 1 ? "s" : "");
+  return (
+    <div style={{ marginBottom:8, background:WOOD.card, borderRadius:12, border:`1px solid ${WOOD.cardBorder}`, borderLeft:"4px solid #8a5a28", padding:"14px 16px", boxShadow:"0 1px 4px rgba(0,0,0,0.08)" }}>
+      <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", marginBottom:10 }}>
+        <div>
+          <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:18, color:WOOD.text, lineHeight:1.2 }}>{authorName}</p>
+          <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:WOOD.textFaint, marginTop:2 }}>{readCount} read</p>
+          {topGenre && <span style={{ display:"inline-block", marginTop:5, background:GENRE_COLORS[topGenre]||"#94a3b8", color:"#fff", borderRadius:20, padding:"2px 8px", fontSize:9, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em" }}>{topGenre}</span>}
+        </div>
+        <div style={{ display:"flex", alignItems:"center", gap:6, flexShrink:0 }}>
+          <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600, background:"rgba(138,90,40,0.18)", color:"#8a5a28", border:"1px solid rgba(138,90,40,0.3)", borderRadius:20, padding:"3px 9px" }}>{countStr}</span>
+          <TierBadge tier={tier} onSetTier={onSetTier} />
+        </div>
+      </div>
+      <div style={{ display:"flex", gap:6, overflowX:"auto", paddingBottom:4, scrollbarWidth:"none", marginLeft:-2 }}>
+        {sorted.map(b => {
+          let touchStartX = 0, touchStartY = 0;
+          return (
+            <div key={b.id}
+              onTouchStart={e => { touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; }}
+              onTouchEnd={e => { const dx = Math.abs(e.changedTouches[0].clientX - touchStartX); const dy = Math.abs(e.changedTouches[0].clientY - touchStartY); if (dx < 8 && dy < 8) { e.preventDefault(); onEdit && onEdit(b); } }}
+              onClick={() => onEdit && onEdit(b)}
+              style={{ flexShrink:0, cursor:"pointer" }}
+            >
+              <BookCoverThumb book={b} />
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function AuthorCard({ authorName, books, onEdit, onRemove, onShelfChange, onSaveProgress, onSavePages, onSaveAspects, tier, onSetTier }) {
+  const [expanded, setExpanded] = useState(false);
+  const readBooks = books.filter(b => b.rating > 0);
+  const avgRating = readBooks.length > 0 ? (readBooks.reduce((s,b)=>s+b.rating,0)/readBooks.length).toFixed(1) : null;
+  const genreCount = {};
+  books.forEach(b => { if (b.genre) genreCount[b.genre] = (genreCount[b.genre]||0)+1; });
+  const topGenre = Object.entries(genreCount).sort((a,b)=>b[1]-a[1])[0]?.[0];
+  const initials = authorName.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
+  const sorted = [...books].sort((a,b)=>((b.date||"").localeCompare(a.date||"")));
+  return (
+    <div style={{ marginBottom:8 }}>
+      <div onClick={() => setExpanded(e => !e)} style={{ background:WOOD.card, borderRadius:12, padding:"14px 16px", border:`1px solid ${WOOD.cardBorder}`, borderLeft:"4px solid #8a5a28", boxShadow:"0 1px 4px rgba(0,0,0,0.08)", cursor:"pointer", display:"flex", alignItems:"center", gap:12 }}>
+        <div style={{ width:38, height:38, borderRadius:"50%", flexShrink:0, background:"rgba(138,90,40,0.15)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, fontWeight:700, color:WOOD.textDim, fontFamily:"'DM Sans',sans-serif" }}>{initials}</div>
+        <div style={{ flex:1, minWidth:0 }}>
+          <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:18, color:WOOD.text, lineHeight:1.2, marginBottom:2 }}>{authorName}</p>
+          <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:WOOD.textFaint, marginBottom:4 }}>{books.length} book{books.length!==1?"s":""}</p>
+          {topGenre && <span style={{ display:"inline-block", background:GENRE_COLORS[topGenre]||"#94a3b8", color:"#fff", borderRadius:20, padding:"2px 8px", fontSize:9, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em" }}>{topGenre}</span>}
+        </div>
+        <div style={{ display:"flex", alignItems:"center", gap:8, flexShrink:0 }}>
+          {avgRating && <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:WOOD.textDim }}>★ {avgRating}</span>}
+          <TierBadge tier={tier} onSetTier={onSetTier} />
+          <svg width="10" height="6" viewBox="0 0 10 6" fill="none" style={{ transition:"transform 0.2s", transform: expanded?"rotate(180deg)":"rotate(0deg)" }}>
+            <path d="M1 1l4 4 4-4" stroke={WOOD.textFaint} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </div>
+      </div>
+      {expanded && (
+        <div style={{ marginTop:2, borderRadius:"0 0 12px 12px", overflow:"hidden", border:`1px solid ${WOOD.cardBorder}`, borderTop:"none" }}>
+          {sorted.map((book, i) => (
+            <BookRow key={book.id} book={book} index={i} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AuthorsView({ allBooks, authorSort, authorTiers, onSetAuthorTier, seriesViewStyle, setSeriesViewStyle, onEdit, onRemove, onShelfChange, onSaveProgress, onSavePages, onSaveAspects }) {
+  const grouped = {};
+  allBooks.forEach(b => {
+    if (!b.author) return;
+    if (!grouped[b.author]) grouped[b.author] = [];
+    grouped[b.author].push(b);
+  });
+  const entries = Object.entries(grouped).sort((a, b) => {
+    const tierVal = t => t ? (TIER_ORDER.indexOf(t) + 1) : 99;
+    if (authorSort === "read") { const ar = a[1].filter(b=>(b.shelf||"Read")==="Read"||b.shelf==="DNF").length; const br = b[1].filter(b=>(b.shelf||"Read")==="Read"||b.shelf==="DNF").length; return br - ar || a[0].localeCompare(b[0]); }
+    if (authorSort === "rating") { const avg = books => { const r = books.filter(b=>b.rating>0); return r.length ? r.reduce((s,b)=>s+b.rating,0)/r.length : 0; }; return avg(b[1]) - avg(a[1]) || a[0].localeCompare(b[0]); }
+    if (authorSort === "name") return a[0].localeCompare(b[0]);
+    if (authorSort === "genre") { const tg = books => { const gc={}; books.forEach(b=>{if(b.genre)gc[b.genre]=(gc[b.genre]||0)+1;}); return Object.entries(gc).sort((x,y)=>y[1]-x[1])[0]?.[0]||""; }; return tg(a[1]).localeCompare(tg(b[1])) || a[0].localeCompare(b[0]); }
+    if (authorSort === "tier") return tierVal(authorTiers[a[0]]) - tierVal(authorTiers[b[0]]) || a[0].localeCompare(b[0]);
+    return a[0].localeCompare(b[0]);
+  });
+  return (
+    <>
+      <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:"rgba(255,235,195,0.45)", marginBottom:10 }}>{entries.length} authors · {allBooks.length} books</p>
+      {entries.length === 0 ? (
+        <div style={{ textAlign:"center", marginTop:60 }}>
+          <div style={{ display:"inline-block", background:WOOD.card, border:`1px solid ${WOOD.cardBorder}`, borderRadius:16, padding:"18px 28px" }}>
+            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:18, fontStyle:"italic", color:WOOD.textFaint }}>No books in your library yet</p>
+          </div>
+        </div>
+      ) : seriesViewStyle === "list"
+        ? entries.map(([name, books]) => (
+            <AuthorCard key={name} authorName={name} books={books} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} tier={authorTiers[name]||null} onSetTier={t => onSetAuthorTier && onSetAuthorTier(name, t)} />
+          ))
+        : entries.map(([name, books]) => (
+            <AuthorShelfRow key={name} authorName={name} books={books} onEdit={onEdit} tier={authorTiers[name]||null} onSetTier={t => onSetAuthorTier && onSetAuthorTier(name, t)} />
+          ))
+      }
+    </>
+  );
+}
+
+function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelfChange, onImport, onSaveScores, onSaveDescription, onSaveProgress, onSavePages, onSaveAspects, hideControls=false, onAuthor, userId, guestMode = false, onBatchDetectSeries, seriesTiers = {}, onSetSeriesTier, authorTiers = {}, onSetAuthorTier }) {
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("date");
   const [sortAsc, setSortAsc] = useState(false);
@@ -1247,8 +1366,11 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
   const [apiResults, setApiResults] = useState([]);
   const [apiSearching, setApiSearching] = useState(false);
   const [showApiResults, setShowApiResults] = useState(true);
+  const [browseMode, setBrowseMode] = useState("books");
   const [viewMode, setViewMode] = useState("card");
   const [seriesViewStyle, setSeriesViewStyle] = useState("list");
+  const [seriesSort, setSeriesSort] = useState("read");
+  const [authorSort, setAuthorSort] = useState("read");
   const [detectingSeriesLoading, setDetectingSeriesLoading] = useState(false);
   const [searchMode, setSearchMode] = useState("All");
   const searchTimer = useRef(null);
@@ -1452,7 +1574,22 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
           )}
         </div>
 
-        {!hideControls && <div style={{ display:"flex", gap:6, marginTop:8, alignItems:"center" }}>
+        {/* browse mode switcher */}
+        {!hideControls && (
+          <div style={{ display:"flex", gap:5, marginTop:8 }}>
+            {[["books","Books"],["series","Series"],["authors","Authors"]].map(([mode, label]) => (
+              <button key={mode} {...tc(()=>{ setBrowseMode(mode); setShelfDropOpen(false); setFilterOpen(false); setSortDropOpen(false); }, true)} style={{
+                fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:600,
+                background: browseMode===mode ? WOOD.amber : "rgba(15,8,2,0.55)",
+                color: browseMode===mode ? "#1a0900" : "rgba(255,235,195,0.55)",
+                border: `1px solid ${browseMode===mode ? WOOD.amber : "rgba(120,70,20,0.3)"}`,
+                borderRadius:20, padding:"5px 14px", cursor:"pointer", backdropFilter:"blur(4px)",
+              }}>{label}</button>
+            ))}
+          </div>
+        )}
+
+        {!hideControls && browseMode === "books" && <div style={{ display:"flex", gap:6, marginTop:8, alignItems:"center" }}>
 
           {/* single sort pill + dropdown */}
           <div style={{ position:"relative" }}>
@@ -1462,41 +1599,16 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
               border:"1px solid rgba(120,70,20,0.3)", backdropFilter:"blur(4px)",
               cursor:"pointer", color:"#fff", fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:500,
             }}>
-              <span style={{ textTransform:"capitalize" }}>
-                {sort === "custom" ? "Custom" : sort}
-              </span>
-              {sort !== "custom" && (
-                <span style={{ fontSize:10, display:"inline-block", transform: sortAsc ? "rotate(180deg)" : "rotate(0deg)", transition:"transform 0.2s", color:"rgba(255,255,255,0.6)" }}>↓</span>
-              )}
+              <span style={{ textTransform:"capitalize" }}>{sort === "custom" ? "Custom" : sort}</span>
+              {sort !== "custom" && <span style={{ fontSize:10, display:"inline-block", transform: sortAsc?"rotate(180deg)":"rotate(0deg)", transition:"transform 0.2s", color:"rgba(255,255,255,0.6)" }}>↓</span>}
               <span style={{ fontSize:10, color:"rgba(255,255,255,0.4)", display:"inline-block", transition:"transform 0.2s", transform: sortDropOpen?"rotate(180deg)":"rotate(0deg)" }}>▾</span>
             </button>
-
             {sortDropOpen && (
-              <div onClick={e=>e.stopPropagation()} style={{
-                position:"absolute", top:"calc(100% + 4px)", left:0, zIndex:30, minWidth:140,
-                background:"#f5e8d0", borderRadius:10, overflow:"hidden",
-                boxShadow:"0 4px 20px rgba(0,0,0,0.25)", border:"1px solid rgba(138,90,40,0.3)",
-                animation:"fadeIn 0.12s ease",
-              }}>
-                {[
-                  { key:"date",   label:"Date" },
-                  { key:"rating", label:"Rating" },
-                  { key:"title",  label:"Title" },
-                  { key:"custom", label:"Custom" },
-                ].map(({ key, label }, i, arr) => (
-                  <button key={key} {...tc(()=>{ handleSortClick(key); setSortDropOpen(false); })} style={{
-                    display:"flex", alignItems:"center", justifyContent:"space-between",
-                    width:"100%", padding:"10px 14px", textAlign:"left",
-                    background: sort===key ? "rgba(138,90,40,0.1)" : "transparent",
-                    border:"none", borderBottom: i < arr.length-1 ? "1px solid rgba(138,90,40,0.1)" : "none",
-                    cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:13,
-                    color: sort===key ? WOOD.amber : WOOD.text, fontWeight: sort===key ? 600 : 400,
-                  }}>
+              <div onClick={e=>e.stopPropagation()} style={{ position:"absolute", top:"calc(100% + 4px)", left:0, zIndex:30, minWidth:140, background:"#f5e8d0", borderRadius:10, overflow:"hidden", boxShadow:"0 4px 20px rgba(0,0,0,0.25)", border:"1px solid rgba(138,90,40,0.3)", animation:"fadeIn 0.12s ease" }}>
+                {[{key:"date",label:"Date"},{key:"rating",label:"Rating"},{key:"title",label:"Title"},{key:"custom",label:"Custom"}].map(({ key, label }, i, arr) => (
+                  <button key={key} {...tc(()=>{ handleSortClick(key); setSortDropOpen(false); })} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", width:"100%", padding:"10px 14px", textAlign:"left", background: sort===key?"rgba(138,90,40,0.1)":"transparent", border:"none", borderBottom: i<arr.length-1?"1px solid rgba(138,90,40,0.1)":"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:13, color: sort===key?WOOD.amber:WOOD.text, fontWeight: sort===key?600:400 }}>
                     <span>{label}</span>
-                    {sort===key && key!=="custom" && (
-                      <span style={{ fontSize:12, display:"inline-block", transform: sortAsc?"rotate(180deg)":"rotate(0deg)", transition:"transform 0.2s" }}>↓</span>
-                    )}
-                    {sort===key && key==="custom" && null}
+                    {sort===key && key!=="custom" && <span style={{ fontSize:12, display:"inline-block", transform: sortAsc?"rotate(180deg)":"rotate(0deg)", transition:"transform 0.2s" }}>↓</span>}
                   </button>
                 ))}
               </div>
@@ -1504,133 +1616,80 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
           </div>
 
           <div style={{ display:"flex", gap:6, marginLeft:"auto", position:"relative" }}>
-            {/* view mode toggle */}
-            <button {...tc(()=>setViewMode(v=>v==="card"?"row":v==="row"?"pages":v==="pages"?"series":"card"), true)} title={viewMode==="card"?"Row view":viewMode==="row"?"Pages view":viewMode==="pages"?"Series view":"Card view"} style={{
-              display:"flex", alignItems:"center", justifyContent:"center",
-              background: viewMode==="series" ? "rgba(138,90,40,0.45)" : "rgba(15,8,2,0.55)", borderRadius:20, padding:"5px 10px",
-              border: viewMode==="series" ? "1px solid rgba(200,144,90,0.5)" : "1px solid rgba(120,70,20,0.3)", backdropFilter:"blur(4px)",
-              cursor:"pointer", color:"#fff",
-            }}>
+            {/* view mode toggle — card/row/pages only */}
+            <button {...tc(()=>setViewMode(v=>v==="card"?"row":v==="row"?"pages":"card"), true)} title={viewMode==="card"?"Row view":viewMode==="row"?"Pages view":"Card view"} style={{ display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(15,8,2,0.55)", borderRadius:20, padding:"5px 10px", border:"1px solid rgba(120,70,20,0.3)", backdropFilter:"blur(4px)", cursor:"pointer", color:"#fff" }}>
               {viewMode==="card"
                 ? <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor"><rect x="0" y="0" width="13" height="3" rx="1.5"/><rect x="0" y="5" width="13" height="3" rx="1.5"/><rect x="0" y="10" width="13" height="3" rx="1.5"/></svg>
                 : viewMode==="row"
                 ? <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor"><rect x="0" y="0" width="13" height="1.5" rx="0.75"/><rect x="0" y="3.5" width="13" height="3" rx="0.75"/><rect x="0" y="8.5" width="13" height="4.5" rx="0.75"/></svg>
-                : viewMode==="pages"
-                ? <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor"><rect x="0" y="0" width="6" height="6" rx="1"/><rect x="7" y="0" width="6" height="6" rx="1"/><rect x="0" y="7" width="6" height="6" rx="1"/><rect x="7" y="7" width="6" height="6" rx="1"/></svg>
-                : <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor"><rect x="1" y="0" width="2" height="13" rx="1"/><rect x="4.5" y="1" width="2" height="12" rx="1"/><rect x="8" y="2" width="2" height="11" rx="1"/><rect x="11.5" y="1" width="1.5" height="12" rx="0.75"/></svg>
+                : <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor"><rect x="0" y="0" width="6" height="6" rx="1"/><rect x="7" y="0" width="6" height="6" rx="1"/><rect x="0" y="7" width="6" height="6" rx="1"/><rect x="7" y="7" width="6" height="6" rx="1"/></svg>
               }
             </button>
-
             {/* filter icon button */}
-            <button {...tc(()=>{ setFilterOpen(o=>!o); setShelfDropOpen(false); }, true)} style={{
-              display:"flex", alignItems:"center", justifyContent:"center", gap:4,
-              background: hasFilters ? WOOD.amber : "rgba(15,8,2,0.55)",
-              borderRadius:20, padding:"5px 10px",
-              border:`1px solid ${hasFilters ? WOOD.amber : "rgba(120,70,20,0.3)"}`,
-              backdropFilter:"blur(4px)", cursor:"pointer",
-              color: hasFilters ? "#1a0900" : "#fff",
-            }}>
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
-                <path d="M1 2h10l-4 5v3l-2-1V7L1 2z"/>
-              </svg>
-              {hasFilters && (() => {
-                const active = [filterYear, filterGenre, filterAuthor && filterAuthor.split(" ").pop()].filter(Boolean);
-                return <span style={{ fontSize:11, fontFamily:"'DM Sans',sans-serif", fontWeight:600 }}>
-                  {active.slice(0,2).join(" · ")}{active.length > 2 ? ` +${active.length - 2}` : ""}
-                </span>;
-              })()}
+            <button {...tc(()=>{ setFilterOpen(o=>!o); setShelfDropOpen(false); }, true)} style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:4, background: hasFilters?WOOD.amber:"rgba(15,8,2,0.55)", borderRadius:20, padding:"5px 10px", border:`1px solid ${hasFilters?WOOD.amber:"rgba(120,70,20,0.3)"}`, backdropFilter:"blur(4px)", cursor:"pointer", color: hasFilters?"#1a0900":"#fff" }}>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><path d="M1 2h10l-4 5v3l-2-1V7L1 2z"/></svg>
+              {hasFilters && (() => { const active=[filterYear,filterGenre,filterAuthor&&filterAuthor.split(" ").pop()].filter(Boolean); return <span style={{ fontSize:11, fontFamily:"'DM Sans',sans-serif", fontWeight:600 }}>{active.slice(0,2).join(" · ")}{active.length>2?` +${active.length-2}`:""}</span>; })()}
             </button>
-
             {/* shelf dropdown */}
-            <button {...tc(()=>{ setShelfDropOpen(o=>!o); setFilterOpen(false); }, true)} style={{
-              display:"flex", alignItems:"center", gap:5,
-              background:"rgba(15,8,2,0.55)", borderRadius:20, padding:"5px 12px",
-              border:"1px solid rgba(120,70,20,0.3)", backdropFilter:"blur(4px)",
-              cursor:"pointer", color:"#fff", fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:500,
-            }}>
+            <button {...tc(()=>{ setShelfDropOpen(o=>!o); setFilterOpen(false); }, true)} style={{ display:"flex", alignItems:"center", gap:5, background:"rgba(15,8,2,0.55)", borderRadius:20, padding:"5px 12px", border:"1px solid rgba(120,70,20,0.3)", backdropFilter:"blur(4px)", cursor:"pointer", color:"#fff", fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:500 }}>
               <span>{activeShelf}</span>
               <span style={{ fontSize:10, color:"rgba(255,255,255,0.5)", display:"inline-block", transition:"transform 0.2s", transform: shelfDropOpen?"rotate(180deg)":"rotate(0deg)" }}>▾</span>
             </button>
-
             {/* shelf dropdown panel */}
             {shelfDropOpen && (
-              <div onClick={e=>e.stopPropagation()} style={{
-                position:"absolute", top:"calc(100% + 4px)", right:0, zIndex:30, minWidth:130,
-                background:"#f5e8d0", borderRadius:10, overflow:"hidden",
-                boxShadow:"0 4px 20px rgba(0,0,0,0.25)", border:"1px solid rgba(138,90,40,0.3)",
-                animation:"fadeIn 0.12s ease",
-              }}>
+              <div onClick={e=>e.stopPropagation()} style={{ position:"absolute", top:"calc(100% + 4px)", right:0, zIndex:30, minWidth:130, background:"#f5e8d0", borderRadius:10, overflow:"hidden", boxShadow:"0 4px 20px rgba(0,0,0,0.25)", border:"1px solid rgba(138,90,40,0.3)", animation:"fadeIn 0.12s ease" }}>
                 {SHELVES.map((s, i) => (
-                  <button key={s} {...tc(()=>{ setActiveShelf(s); setShelfDropOpen(false); if (sort === "custom") setSort("date"); })} style={{
-                    display:"block", width:"100%", padding:"10px 14px", textAlign:"left",
-                    background: s===activeShelf ? "rgba(138,90,40,0.12)" : "transparent",
-                    border:"none", borderBottom: i < SHELVES.length-1 ? "1px solid rgba(138,90,40,0.12)" : "none",
-                    cursor:"pointer", fontFamily:"'Crimson Pro',serif", fontSize:15,
-                    color: s===activeShelf ? WOOD.amber : WOOD.text, fontWeight: s===activeShelf ? 600 : 400,
-                  }}>
-                    {s}
-                    <span style={{ float:"right", fontSize:11, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif" }}>
-                      {books.filter(b=>(b.shelf||"Read")===s).length}
-                    </span>
+                  <button key={s} {...tc(()=>{ setActiveShelf(s); setShelfDropOpen(false); if(sort==="custom") setSort("date"); })} style={{ display:"block", width:"100%", padding:"10px 14px", textAlign:"left", background: s===activeShelf?"rgba(138,90,40,0.12)":"transparent", border:"none", borderBottom: i<SHELVES.length-1?"1px solid rgba(138,90,40,0.12)":"none", cursor:"pointer", fontFamily:"'Crimson Pro',serif", fontSize:15, color: s===activeShelf?WOOD.amber:WOOD.text, fontWeight: s===activeShelf?600:400 }}>
+                    {s}<span style={{ float:"right", fontSize:11, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif" }}>{books.filter(b=>(b.shelf||"Read")===s).length}</span>
                   </button>
                 ))}
               </div>
             )}
-
             {/* filter panel */}
             {filterOpen && (
-              <div onClick={e=>e.stopPropagation()} style={{
-                position:"absolute", top:"calc(100% + 4px)", right:0, zIndex:30, width:240,
-                background:"#f5e8d0", borderRadius:12, padding:"14px",
-                boxShadow:"0 4px 24px rgba(0,0,0,0.28)", border:"1px solid rgba(138,90,40,0.3)",
-                animation:"fadeIn 0.12s ease",
-                maxHeight:"60vh", overflowY:"auto", WebkitOverflowScrolling:"touch",
-              }}>
-                {/* header */}
+              <div onClick={e=>e.stopPropagation()} style={{ position:"absolute", top:"calc(100% + 4px)", right:0, zIndex:30, width:240, background:"#f5e8d0", borderRadius:12, padding:"14px", boxShadow:"0 4px 24px rgba(0,0,0,0.28)", border:"1px solid rgba(138,90,40,0.3)", animation:"fadeIn 0.12s ease", maxHeight:"60vh", overflowY:"auto", WebkitOverflowScrolling:"touch" }}>
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
                   <p style={{ fontSize:11, fontWeight:700, color:WOOD.textDim, textTransform:"uppercase", letterSpacing:"0.1em", fontFamily:"'DM Sans',sans-serif" }}>Filters</p>
                   {hasFilters && <button {...tc(()=>{ setFilterYear(null); setFilterGenre(null); setFilterAuthor(null); })} style={{ fontSize:11, color:WOOD.amber, background:"none", border:"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontWeight:600 }}>Clear all</button>}
                 </div>
-
-                {/* Year */}
-                {years.length > 0 && <div style={{ marginBottom:12 }}>
-                  <p style={{ fontSize:10, color:WOOD.textFaint, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6, fontFamily:"'DM Sans',sans-serif" }}>Year</p>
-                  <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
-                    {years.map(y => (
-                      <button key={y} {...tc(()=>setFilterYear(filterYear===y?null:y))} style={pillStyle(filterYear===y)}>{y}</button>
-                    ))}
-                  </div>
-                </div>}
-
-                {/* Genre */}
-                {genres.length > 0 && <div style={{ marginBottom:12 }}>
-                  <p style={{ fontSize:10, color:WOOD.textFaint, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6, fontFamily:"'DM Sans',sans-serif" }}>Genre</p>
-                  <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
-                    {genres.map(g => (
-                      <button key={g} {...tc(()=>setFilterGenre(filterGenre===g?null:g))} style={pillStyle(filterGenre===g)}>{g}</button>
-                    ))}
-                  </div>
-                </div>}
-
-                {/* Author */}
-                {authors.length > 0 && <div>
-                  <p style={{ fontSize:10, color:WOOD.textFaint, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6, fontFamily:"'DM Sans',sans-serif" }}>Author</p>
-                  <div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>
-                    {authors.map(a => (
-                      <button key={a} {...tc(()=>setFilterAuthor(filterAuthor===a?null:a))} style={pillStyle(filterAuthor===a)}>{a.split(" ").pop()}</button>
-                    ))}
-                  </div>
-                </div>}
+                {years.length>0 && <div style={{ marginBottom:12 }}><p style={{ fontSize:10, color:WOOD.textFaint, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6, fontFamily:"'DM Sans',sans-serif" }}>Year</p><div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>{years.map(y=><button key={y} {...tc(()=>setFilterYear(filterYear===y?null:y))} style={pillStyle(filterYear===y)}>{y}</button>)}</div></div>}
+                {genres.length>0 && <div style={{ marginBottom:12 }}><p style={{ fontSize:10, color:WOOD.textFaint, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6, fontFamily:"'DM Sans',sans-serif" }}>Genre</p><div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>{genres.map(g=><button key={g} {...tc(()=>setFilterGenre(filterGenre===g?null:g))} style={pillStyle(filterGenre===g)}>{g}</button>)}</div></div>}
+                {authors.length>0 && <div><p style={{ fontSize:10, color:WOOD.textFaint, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6, fontFamily:"'DM Sans',sans-serif" }}>Author</p><div style={{ display:"flex", gap:5, flexWrap:"wrap" }}>{authors.map(a=><button key={a} {...tc(()=>setFilterAuthor(filterAuthor===a?null:a))} style={pillStyle(filterAuthor===a)}>{a.split(" ").pop()}</button>)}</div></div>}
               </div>
             )}
           </div>
         </div>}
+
+        {/* series/authors controls row */}
+        {!hideControls && (browseMode === "series" || browseMode === "authors") && (
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:8 }}>
+            <div style={{ display:"flex", gap:4, flexWrap:"wrap" }}>
+              {(browseMode === "series"
+                ? [["read","Most Read"],["rating","Rating"],["title","Title"],["genre","Genre"],["tier","Tier"]]
+                : [["read","Most Read"],["rating","Rating"],["name","Name"],["genre","Genre"],["tier","Tier"]]
+              ).map(([key, label]) => {
+                const active = browseMode === "series" ? seriesSort === key : authorSort === key;
+                return (
+                  <button key={key} {...tc(()=>{ if(browseMode==="series") setSeriesSort(key); else setAuthorSort(key); }, true)} style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600, background: active?WOOD.amber:"rgba(15,8,2,0.55)", color: active?"#1a0900":"rgba(255,235,195,0.55)", border:`1px solid ${active?WOOD.amber:"rgba(120,70,20,0.3)"}`, borderRadius:20, padding:"4px 10px", cursor:"pointer", backdropFilter:"blur(4px)" }}>{label}</button>
+                );
+              })}
+            </div>
+            {/* list/shelf sub-toggle */}
+            <div style={{ display:"flex", background:"rgba(15,8,2,0.4)", borderRadius:20, padding:2, border:"1px solid rgba(120,70,20,0.3)", flexShrink:0 }}>
+              {[["list", <svg key="l" width="11" height="11" viewBox="0 0 11 11" fill="currentColor"><rect x="0" y="0" width="11" height="2.5" rx="1.25"/><rect x="0" y="4.25" width="11" height="2.5" rx="1.25"/><rect x="0" y="8.5" width="11" height="2.5" rx="1.25"/></svg>],
+                ["shelf", <svg key="s" width="11" height="11" viewBox="0 0 11 11" fill="currentColor"><rect x="0" y="0" width="5" height="9" rx="1"/><rect x="6" y="0" width="5" height="9" rx="1"/><rect x="0" y="10" width="11" height="1" rx="0.5"/></svg>]
+              ].map(([mode, icon]) => (
+                <button key={mode} {...tc(()=>setSeriesViewStyle(mode), true)} style={{ display:"flex", alignItems:"center", justifyContent:"center", width:26, height:22, borderRadius:16, border:"none", cursor:"pointer", background: seriesViewStyle===mode?"rgba(138,90,40,0.6)":"transparent", color: seriesViewStyle===mode?"#fff":"rgba(255,235,195,0.4)", transition:"all 0.15s" }}>{icon}</button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
       </div>
 
       {/* book list */}
       <div style={{ flex:1, overflowY:"auto", padding:"4px 16px 16px", position:"relative", zIndex:1, WebkitOverflowScrolling:"touch" }} onScroll={handleScroll}>
-        {filtered.length===0 && apiResults.length===0 && !apiSearching && (
+        {browseMode === "books" && filtered.length===0 && apiResults.length===0 && !apiSearching && (
           <div style={{ textAlign:"center", marginTop:60 }}>
             <div style={{
               display:"inline-block",
@@ -1657,8 +1716,10 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
             </div>
           </div>
         )}
-        {viewMode === "series"
-          ? <SeriesView shelfBooks={shelfBooks} seriesViewStyle={seriesViewStyle} setSeriesViewStyle={setSeriesViewStyle} detectingSeriesLoading={detectingSeriesLoading} setDetectingSeriesLoading={setDetectingSeriesLoading} onBatchDetectSeries={onBatchDetectSeries} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} seriesTiers={seriesTiers} onSetSeriesTier={onSetSeriesTier} />
+        {browseMode === "series"
+          ? <SeriesView shelfBooks={books} seriesViewStyle={seriesViewStyle} setSeriesViewStyle={setSeriesViewStyle} detectingSeriesLoading={detectingSeriesLoading} setDetectingSeriesLoading={setDetectingSeriesLoading} onBatchDetectSeries={onBatchDetectSeries} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} seriesTiers={seriesTiers} onSetSeriesTier={onSetSeriesTier} seriesSort={seriesSort} />
+          : browseMode === "authors"
+          ? <AuthorsView allBooks={books} authorSort={authorSort} authorTiers={authorTiers} onSetAuthorTier={onSetAuthorTier} seriesViewStyle={seriesViewStyle} setSeriesViewStyle={setSeriesViewStyle} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} />
           : filtered.map((book,i)=>(
           <div key={`${book.id}_${i}`} style={{ display:"flex", alignItems:"stretch", gap:0 }}>
             {sort==="custom" && (
@@ -5589,6 +5650,7 @@ export default function App() {
   const [authLoading, setAuthLoading] = useState(true);
   const [guestMode, setGuestMode] = useState(() => !!localStorage.getItem(GUEST_ACTIVE_KEY));
   const [seriesTiers, setSeriesTiers] = useState({});
+  const [authorTiers, setAuthorTiers] = useState({});
   const [books, setBooks] = useState(() => {
     if (localStorage.getItem(GUEST_ACTIVE_KEY)) {
       try { return JSON.parse(localStorage.getItem(GUEST_BOOKS_KEY) || "[]"); } catch { return []; }
@@ -5647,6 +5709,14 @@ export default function App() {
           const map = {};
           data.forEach(r => { map[r.series_name] = r.tier; });
           setSeriesTiers(map);
+        }
+      });
+    supabase.from("author_tiers").select("author_name,tier").eq("user_id", userId)
+      .then(({ data }) => {
+        if (data) {
+          const map = {};
+          data.forEach(r => { map[r.author_name] = r.tier; });
+          setAuthorTiers(map);
         }
       });
     supabase.from("books").select("*").eq("user_id", userId).order("created_at", { ascending: true })
@@ -5890,7 +5960,7 @@ export default function App() {
         {/* content */}
         <div style={{ flex:1, overflow:"hidden", position:"relative" }}>
           {tab==="shelf"
-            ? <ShelfTab books={books} onAdd={()=>setShowAdd(true)} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"", _fromRecs:book._fromRecs||false }); }} onRemove={id=>{ setBooks(prev => prev.filter(b=>b.id!==id)); track("book_removed"); if (!guestMode) dbDeleteBook(id, userId); }} onEdit={setEditBook} onScroll={setScrollY} onShelfChange={changeShelf} onImport={()=>setShowImport(true)} onSaveScores={saveScores} onSaveDescription={saveDescription} onSaveProgress={saveProgress} onSavePages={savePages} onSaveAspects={saveAspects} hideControls={!!editBook} onAuthor={setAuthorModal} userId={userId} guestMode={guestMode} onBatchDetectSeries={batchDetectSeries} seriesTiers={seriesTiers} onSetSeriesTier={async (seriesName, tier) => { const next = { ...seriesTiers }; if (tier) next[seriesName] = tier; else delete next[seriesName]; setSeriesTiers(next); if (!guestMode) { if (tier) await supabase.from("series_tiers").upsert({ user_id: userId, series_name: seriesName, tier }, { onConflict: "user_id,series_name" }); else await supabase.from("series_tiers").delete().eq("user_id", userId).eq("series_name", seriesName); } }} />
+            ? <ShelfTab books={books} onAdd={()=>setShowAdd(true)} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"", _fromRecs:book._fromRecs||false }); }} onRemove={id=>{ setBooks(prev => prev.filter(b=>b.id!==id)); track("book_removed"); if (!guestMode) dbDeleteBook(id, userId); }} onEdit={setEditBook} onScroll={setScrollY} onShelfChange={changeShelf} onImport={()=>setShowImport(true)} onSaveScores={saveScores} onSaveDescription={saveDescription} onSaveProgress={saveProgress} onSavePages={savePages} onSaveAspects={saveAspects} hideControls={!!editBook} onAuthor={setAuthorModal} userId={userId} guestMode={guestMode} onBatchDetectSeries={batchDetectSeries} seriesTiers={seriesTiers} onSetSeriesTier={async (seriesName, tier) => { const next = { ...seriesTiers }; if (tier) next[seriesName] = tier; else delete next[seriesName]; setSeriesTiers(next); if (!guestMode) { if (tier) await supabase.from("series_tiers").upsert({ user_id: userId, series_name: seriesName, tier }, { onConflict: "user_id,series_name" }); else await supabase.from("series_tiers").delete().eq("user_id", userId).eq("series_name", seriesName); } }} authorTiers={authorTiers} onSetAuthorTier={async (authorName, tier) => { const next = { ...authorTiers }; if (tier) next[authorName] = tier; else delete next[authorName]; setAuthorTiers(next); if (!guestMode) { if (tier) await supabase.from("author_tiers").upsert({ user_id: userId, author_name: authorName, tier }, { onConflict: "user_id,author_name" }); else await supabase.from("author_tiers").delete().eq("user_id", userId).eq("author_name", authorName); } }} />
             : tab==="reiko"
             ? <RecommendPage books={books} userId={userId} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, rating:0, date:new Date().toISOString().slice(0,10) }; setBooks(prev => [...prev, b]); if (!guestMode) dbAddBook(b, userId); }} onAuthor={setAuthorModal} onEdit={setEditBook} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"", _fromRecs:true }); }} onShelfChange={changeShelf} onSaveScores={saveScores} />
             : tab==="rankings"
