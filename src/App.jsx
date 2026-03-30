@@ -1589,40 +1589,40 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
 
         {!hideControls && browseMode === "books" && <div style={{ display:"flex", gap:6, marginTop:8, alignItems:"center" }}>
 
-          {/* single sort pill + dropdown */}
-          <div style={{ position:"relative" }}>
-            <button {...tc(()=>{ setSortDropOpen(o=>!o); setFilterOpen(false); setShelfDropOpen(false); }, true)} style={{
-              display:"flex", alignItems:"center", gap:5,
-              background:"rgba(15,8,2,0.55)", borderRadius:20, padding:"5px 14px",
-              border:"1px solid rgba(120,70,20,0.3)", backdropFilter:"blur(4px)",
-              cursor:"pointer", color:"#fff", fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:500,
-            }}>
-              <span style={{ textTransform:"capitalize" }}>{sort === "custom" ? "Custom" : sort}</span>
-              {sort !== "custom" && <span style={{ fontSize:10, display:"inline-block", transform: sortAsc?"rotate(180deg)":"rotate(0deg)", transition:"transform 0.2s", color:"rgba(255,255,255,0.6)" }}>↓</span>}
-              <span style={{ fontSize:10, color:"rgba(255,255,255,0.4)", display:"inline-block", transition:"transform 0.2s", transform: sortDropOpen?"rotate(180deg)":"rotate(0deg)" }}>▾</span>
-            </button>
-            {sortDropOpen && (
-              <div onClick={e=>e.stopPropagation()} style={{ position:"absolute", top:"calc(100% + 4px)", left:0, zIndex:30, minWidth:140, background:"#f5e8d0", borderRadius:10, overflow:"hidden", boxShadow:"0 4px 20px rgba(0,0,0,0.25)", border:"1px solid rgba(138,90,40,0.3)", animation:"fadeIn 0.12s ease" }}>
-                {[{key:"date",label:"Date"},{key:"rating",label:"Rating"},{key:"title",label:"Title"},{key:"custom",label:"Custom"}].map(({ key, label }, i, arr) => (
-                  <button key={key} {...tc(()=>{ handleSortClick(key); setSortDropOpen(false); })} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", width:"100%", padding:"10px 14px", textAlign:"left", background: sort===key?"rgba(138,90,40,0.1)":"transparent", border:"none", borderBottom: i<arr.length-1?"1px solid rgba(138,90,40,0.1)":"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:13, color: sort===key?WOOD.amber:WOOD.text, fontWeight: sort===key?600:400 }}>
-                    <span>{label}</span>
-                    {sort===key && key!=="custom" && <span style={{ fontSize:12, display:"inline-block", transform: sortAsc?"rotate(180deg)":"rotate(0deg)", transition:"transform 0.2s" }}>↓</span>}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          {/* view mode toggle — card/row/pages only */}
+          <button {...tc(()=>setViewMode(v=>v==="card"?"row":v==="row"?"pages":"card"), true)} title={viewMode==="card"?"Row view":viewMode==="row"?"Pages view":"Card view"} style={{ display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(15,8,2,0.55)", borderRadius:20, padding:"5px 10px", border:"1px solid rgba(120,70,20,0.3)", backdropFilter:"blur(4px)", cursor:"pointer", color:"#fff" }}>
+            {viewMode==="card"
+              ? <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor"><rect x="0" y="0" width="13" height="3" rx="1.5"/><rect x="0" y="5" width="13" height="3" rx="1.5"/><rect x="0" y="10" width="13" height="3" rx="1.5"/></svg>
+              : viewMode==="row"
+              ? <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor"><rect x="0" y="0" width="13" height="1.5" rx="0.75"/><rect x="0" y="3.5" width="13" height="3" rx="0.75"/><rect x="0" y="8.5" width="13" height="4.5" rx="0.75"/></svg>
+              : <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor"><rect x="0" y="0" width="6" height="6" rx="1"/><rect x="7" y="0" width="6" height="6" rx="1"/><rect x="0" y="7" width="6" height="6" rx="1"/><rect x="7" y="7" width="6" height="6" rx="1"/></svg>
+            }
+          </button>
 
           <div style={{ display:"flex", gap:6, marginLeft:"auto", position:"relative" }}>
-            {/* view mode toggle — card/row/pages only */}
-            <button {...tc(()=>setViewMode(v=>v==="card"?"row":v==="row"?"pages":"card"), true)} title={viewMode==="card"?"Row view":viewMode==="row"?"Pages view":"Card view"} style={{ display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(15,8,2,0.55)", borderRadius:20, padding:"5px 10px", border:"1px solid rgba(120,70,20,0.3)", backdropFilter:"blur(4px)", cursor:"pointer", color:"#fff" }}>
-              {viewMode==="card"
-                ? <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor"><rect x="0" y="0" width="13" height="3" rx="1.5"/><rect x="0" y="5" width="13" height="3" rx="1.5"/><rect x="0" y="10" width="13" height="3" rx="1.5"/></svg>
-                : viewMode==="row"
-                ? <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor"><rect x="0" y="0" width="13" height="1.5" rx="0.75"/><rect x="0" y="3.5" width="13" height="3" rx="0.75"/><rect x="0" y="8.5" width="13" height="4.5" rx="0.75"/></svg>
-                : <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor"><rect x="0" y="0" width="6" height="6" rx="1"/><rect x="7" y="0" width="6" height="6" rx="1"/><rect x="0" y="7" width="6" height="6" rx="1"/><rect x="7" y="7" width="6" height="6" rx="1"/></svg>
-              }
-            </button>
+            {/* single sort pill + dropdown */}
+            <div style={{ position:"relative" }}>
+              <button {...tc(()=>{ setSortDropOpen(o=>!o); setFilterOpen(false); setShelfDropOpen(false); }, true)} style={{
+                display:"flex", alignItems:"center", gap:5,
+                background:"rgba(15,8,2,0.55)", borderRadius:20, padding:"5px 14px",
+                border:"1px solid rgba(120,70,20,0.3)", backdropFilter:"blur(4px)",
+                cursor:"pointer", color:"#fff", fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:500,
+              }}>
+                <span style={{ textTransform:"capitalize" }}>{sort === "custom" ? "Custom" : sort}</span>
+                {sort !== "custom" && <span style={{ fontSize:10, display:"inline-block", transform: sortAsc?"rotate(180deg)":"rotate(0deg)", transition:"transform 0.2s", color:"rgba(255,255,255,0.6)" }}>↓</span>}
+                <span style={{ fontSize:10, color:"rgba(255,255,255,0.4)", display:"inline-block", transition:"transform 0.2s", transform: sortDropOpen?"rotate(180deg)":"rotate(0deg)" }}>▾</span>
+              </button>
+              {sortDropOpen && (
+                <div onClick={e=>e.stopPropagation()} style={{ position:"absolute", top:"calc(100% + 4px)", right:0, zIndex:30, minWidth:140, background:"#f5e8d0", borderRadius:10, overflow:"hidden", boxShadow:"0 4px 20px rgba(0,0,0,0.25)", border:"1px solid rgba(138,90,40,0.3)", animation:"fadeIn 0.12s ease" }}>
+                  {[{key:"date",label:"Date"},{key:"rating",label:"Rating"},{key:"title",label:"Title"},{key:"custom",label:"Custom"}].map(({ key, label }, i, arr) => (
+                    <button key={key} {...tc(()=>{ handleSortClick(key); setSortDropOpen(false); })} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", width:"100%", padding:"10px 14px", textAlign:"left", background: sort===key?"rgba(138,90,40,0.1)":"transparent", border:"none", borderBottom: i<arr.length-1?"1px solid rgba(138,90,40,0.1)":"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:13, color: sort===key?WOOD.amber:WOOD.text, fontWeight: sort===key?600:400 }}>
+                      <span>{label}</span>
+                      {sort===key && key!=="custom" && <span style={{ fontSize:12, display:"inline-block", transform: sortAsc?"rotate(180deg)":"rotate(0deg)", transition:"transform 0.2s" }}>↓</span>}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
             {/* filter icon button */}
             <button {...tc(()=>{ setFilterOpen(o=>!o); setShelfDropOpen(false); }, true)} style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:4, background: hasFilters?WOOD.amber:"rgba(15,8,2,0.55)", borderRadius:20, padding:"5px 10px", border:`1px solid ${hasFilters?WOOD.amber:"rgba(120,70,20,0.3)"}`, backdropFilter:"blur(4px)", cursor:"pointer", color: hasFilters?"#1a0900":"#fff" }}>
               <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><path d="M1 2h10l-4 5v3l-2-1V7L1 2z"/></svg>
