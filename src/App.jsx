@@ -1674,14 +1674,13 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
                 </div>
               )}
             </div>
-            {/* list/shelf sub-toggle */}
-            <div style={{ display:"flex", background:"rgba(15,8,2,0.4)", borderRadius:20, padding:2, border:"1px solid rgba(120,70,20,0.3)", flexShrink:0 }}>
-              {[["list", <svg key="l" width="11" height="11" viewBox="0 0 11 11" fill="currentColor"><rect x="0" y="0" width="11" height="2.5" rx="1.25"/><rect x="0" y="4.25" width="11" height="2.5" rx="1.25"/><rect x="0" y="8.5" width="11" height="2.5" rx="1.25"/></svg>],
-                ["shelf", <svg key="s" width="11" height="11" viewBox="0 0 11 11" fill="currentColor"><rect x="0" y="0" width="5" height="9" rx="1"/><rect x="6" y="0" width="5" height="9" rx="1"/><rect x="0" y="10" width="11" height="1" rx="0.5"/></svg>]
-              ].map(([mode, icon]) => (
-                <button key={mode} {...tc(()=>setSeriesViewStyle(mode), true)} style={{ display:"flex", alignItems:"center", justifyContent:"center", width:26, height:22, borderRadius:16, border:"none", cursor:"pointer", background: seriesViewStyle===mode?"rgba(138,90,40,0.6)":"transparent", color: seriesViewStyle===mode?"#fff":"rgba(255,235,195,0.4)", transition:"all 0.15s" }}>{icon}</button>
-              ))}
-            </div>
+            {/* list/shelf view toggle */}
+            <button {...tc(()=>setSeriesViewStyle(v=>v==="shelf"?"list":"shelf"), true)} title={seriesViewStyle==="shelf"?"List view":"Shelf view"} style={{ display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(15,8,2,0.55)", borderRadius:20, padding:"5px 10px", border:"1px solid rgba(120,70,20,0.3)", backdropFilter:"blur(4px)", cursor:"pointer", color:"#fff" }}>
+              {seriesViewStyle==="shelf"
+                ? <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor"><rect x="0" y="0" width="13" height="3" rx="1.5"/><rect x="0" y="5" width="13" height="3" rx="1.5"/><rect x="0" y="10" width="13" height="3" rx="1.5"/></svg>
+                : <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor"><rect x="0" y="0" width="6" height="11" rx="1"/><rect x="7" y="0" width="6" height="11" rx="1"/><rect x="0" y="12" width="13" height="1" rx="0.5"/></svg>
+              }
+            </button>
             </div>
             {/* sort dropdown pill */}
             <div style={{ position:"relative" }}>
