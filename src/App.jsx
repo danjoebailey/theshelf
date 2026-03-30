@@ -1674,6 +1674,15 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
                 </div>
               )}
             </div>
+            {/* list/shelf sub-toggle */}
+            <div style={{ display:"flex", background:"rgba(15,8,2,0.4)", borderRadius:20, padding:2, border:"1px solid rgba(120,70,20,0.3)", flexShrink:0 }}>
+              {[["list", <svg key="l" width="11" height="11" viewBox="0 0 11 11" fill="currentColor"><rect x="0" y="0" width="11" height="2.5" rx="1.25"/><rect x="0" y="4.25" width="11" height="2.5" rx="1.25"/><rect x="0" y="8.5" width="11" height="2.5" rx="1.25"/></svg>],
+                ["shelf", <svg key="s" width="11" height="11" viewBox="0 0 11 11" fill="currentColor"><rect x="0" y="0" width="5" height="9" rx="1"/><rect x="6" y="0" width="5" height="9" rx="1"/><rect x="0" y="10" width="11" height="1" rx="0.5"/></svg>]
+              ].map(([mode, icon]) => (
+                <button key={mode} {...tc(()=>setSeriesViewStyle(mode), true)} style={{ display:"flex", alignItems:"center", justifyContent:"center", width:26, height:22, borderRadius:16, border:"none", cursor:"pointer", background: seriesViewStyle===mode?"rgba(138,90,40,0.6)":"transparent", color: seriesViewStyle===mode?"#fff":"rgba(255,235,195,0.4)", transition:"all 0.15s" }}>{icon}</button>
+              ))}
+            </div>
+            </div>
             {/* sort dropdown pill */}
             <div style={{ position:"relative" }}>
               {(() => {
@@ -1689,7 +1698,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
                       <span style={{ fontSize:10, color:"rgba(255,255,255,0.5)", display:"inline-block", transition:"transform 0.2s", transform: seriesAuthorSortDropOpen?"rotate(180deg)":"rotate(0deg)" }}>▾</span>
                     </button>
                     {seriesAuthorSortDropOpen && (
-                      <div onClick={e=>e.stopPropagation()} style={{ position:"absolute", top:"calc(100% + 4px)", left:0, zIndex:30, minWidth:130, background:"#f5e8d0", borderRadius:10, overflow:"hidden", boxShadow:"0 4px 20px rgba(0,0,0,0.25)", border:"1px solid rgba(138,90,40,0.3)", animation:"fadeIn 0.12s ease" }}>
+                      <div onClick={e=>e.stopPropagation()} style={{ position:"absolute", top:"calc(100% + 4px)", right:0, zIndex:30, minWidth:130, background:"#f5e8d0", borderRadius:10, overflow:"hidden", boxShadow:"0 4px 20px rgba(0,0,0,0.25)", border:"1px solid rgba(138,90,40,0.3)", animation:"fadeIn 0.12s ease" }}>
                         {opts.map(([key, label], i, arr) => (
                           <button key={key} {...tc(()=>{ if(browseMode==="series") setSeriesSort(key); else setAuthorSort(key); setSeriesAuthorSortDropOpen(false); })} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", width:"100%", padding:"10px 14px", textAlign:"left", background: activeSort===key?"rgba(138,90,40,0.1)":"transparent", border:"none", borderBottom: i<arr.length-1?"1px solid rgba(138,90,40,0.1)":"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:13, color: activeSort===key?WOOD.amber:WOOD.text, fontWeight: activeSort===key?600:400 }}>
                             {label}
@@ -1700,15 +1709,6 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
                   </>
                 );
               })()}
-            </div>
-            </div>
-            {/* list/shelf sub-toggle */}
-            <div style={{ display:"flex", background:"rgba(15,8,2,0.4)", borderRadius:20, padding:2, border:"1px solid rgba(120,70,20,0.3)", flexShrink:0 }}>
-              {[["list", <svg key="l" width="11" height="11" viewBox="0 0 11 11" fill="currentColor"><rect x="0" y="0" width="11" height="2.5" rx="1.25"/><rect x="0" y="4.25" width="11" height="2.5" rx="1.25"/><rect x="0" y="8.5" width="11" height="2.5" rx="1.25"/></svg>],
-                ["shelf", <svg key="s" width="11" height="11" viewBox="0 0 11 11" fill="currentColor"><rect x="0" y="0" width="5" height="9" rx="1"/><rect x="6" y="0" width="5" height="9" rx="1"/><rect x="0" y="10" width="11" height="1" rx="0.5"/></svg>]
-              ].map(([mode, icon]) => (
-                <button key={mode} {...tc(()=>setSeriesViewStyle(mode), true)} style={{ display:"flex", alignItems:"center", justifyContent:"center", width:26, height:22, borderRadius:16, border:"none", cursor:"pointer", background: seriesViewStyle===mode?"rgba(138,90,40,0.6)":"transparent", color: seriesViewStyle===mode?"#fff":"rgba(255,235,195,0.4)", transition:"all 0.15s" }}>{icon}</button>
-              ))}
             </div>
           </div>
         )}
