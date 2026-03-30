@@ -1717,9 +1717,9 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
           </div>
         )}
         {browseMode === "series"
-          ? <SeriesView shelfBooks={books} seriesViewStyle={seriesViewStyle} setSeriesViewStyle={setSeriesViewStyle} detectingSeriesLoading={detectingSeriesLoading} setDetectingSeriesLoading={setDetectingSeriesLoading} onBatchDetectSeries={onBatchDetectSeries} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} seriesTiers={seriesTiers} onSetSeriesTier={onSetSeriesTier} seriesSort={seriesSort} />
+          ? <SeriesView shelfBooks={books.filter(b=>(b.shelf||"Read")==="Read")} seriesViewStyle={seriesViewStyle} setSeriesViewStyle={setSeriesViewStyle} detectingSeriesLoading={detectingSeriesLoading} setDetectingSeriesLoading={setDetectingSeriesLoading} onBatchDetectSeries={onBatchDetectSeries} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} seriesTiers={seriesTiers} onSetSeriesTier={onSetSeriesTier} seriesSort={seriesSort} />
           : browseMode === "authors"
-          ? <AuthorsView allBooks={books} authorSort={authorSort} authorTiers={authorTiers} onSetAuthorTier={onSetAuthorTier} seriesViewStyle={seriesViewStyle} setSeriesViewStyle={setSeriesViewStyle} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} />
+          ? <AuthorsView allBooks={books.filter(b=>(b.shelf||"Read")==="Read")} authorSort={authorSort} authorTiers={authorTiers} onSetAuthorTier={onSetAuthorTier} seriesViewStyle={seriesViewStyle} setSeriesViewStyle={setSeriesViewStyle} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} />
           : filtered.map((book,i)=>(
           <div key={`${book.id}_${i}`} style={{ display:"flex", alignItems:"stretch", gap:0 }}>
             {sort==="custom" && (
