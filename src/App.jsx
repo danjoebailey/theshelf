@@ -994,22 +994,17 @@ function SeriesView({ shelfBooks, seriesViewStyle, setSeriesViewStyle, detecting
       return bRead - aRead || a[0].localeCompare(b[0]);
     }
     if (seriesSort === "rating") {
-      const aRat = a[1].books.reduce((s,x) => s + (x.rating||0), 0) / (a[1].books.filter(x=>x.rating>0).length||1);
-      const bRat = b[1].books.reduce((s,x) => s + (x.rating||0), 0) / (b[1].books.filter(x=>x.rating>0).length||1);
-      return bRat - aRat || a[0].localeCompare(b[0]);
+      const TIER_ORDER_LOCAL = ["S","A","B","C"];
+      const at = seriesTiers[a[0]]; const bt = seriesTiers[b[0]];
+      const ai = at ? TIER_ORDER_LOCAL.indexOf(at) : 99;
+      const bi = bt ? TIER_ORDER_LOCAL.indexOf(bt) : 99;
+      return ai - bi || a[0].localeCompare(b[0]);
     }
     if (seriesSort === "title") return a[0].localeCompare(b[0]);
     if (seriesSort === "genre") {
       const ag = a[1].books[0]?.genre || "";
       const bg = b[1].books[0]?.genre || "";
       return ag.localeCompare(bg) || a[0].localeCompare(b[0]);
-    }
-    if (seriesSort === "tier") {
-      const TIER_ORDER_LOCAL = ["S","A","B","C"];
-      const at = seriesTiers[a[0]]; const bt = seriesTiers[b[0]];
-      const ai = at ? TIER_ORDER_LOCAL.indexOf(at) : 99;
-      const bi = bt ? TIER_ORDER_LOCAL.indexOf(bt) : 99;
-      return ai - bi || a[0].localeCompare(b[0]);
     }
     return a[0].localeCompare(b[0]);
   });
@@ -1321,10 +1316,9 @@ function AuthorsView({ allBooks, authorSort, authorTiers, onSetAuthorTier, serie
   const entries = Object.entries(grouped).sort((a, b) => {
     const tierVal = t => t ? (TIER_ORDER.indexOf(t) + 1) : 99;
     if (authorSort === "read") { const ar = a[1].filter(b=>(b.shelf||"Read")==="Read"||b.shelf==="DNF").length; const br = b[1].filter(b=>(b.shelf||"Read")==="Read"||b.shelf==="DNF").length; return br - ar || a[0].localeCompare(b[0]); }
-    if (authorSort === "rating") { const avg = books => { const r = books.filter(b=>b.rating>0); return r.length ? r.reduce((s,b)=>s+b.rating,0)/r.length : 0; }; return avg(b[1]) - avg(a[1]) || a[0].localeCompare(b[0]); }
+    if (authorSort === "rating") return tierVal(authorTiers[a[0]]) - tierVal(authorTiers[b[0]]) || a[0].localeCompare(b[0]);
     if (authorSort === "name") return a[0].localeCompare(b[0]);
     if (authorSort === "genre") { const tg = books => { const gc={}; books.forEach(b=>{if(b.genre)gc[b.genre]=(gc[b.genre]||0)+1;}); return Object.entries(gc).sort((x,y)=>y[1]-x[1])[0]?.[0]||""; }; return tg(a[1]).localeCompare(tg(b[1])) || a[0].localeCompare(b[0]); }
-    if (authorSort === "tier") return tierVal(authorTiers[a[0]]) - tierVal(authorTiers[b[0]]) || a[0].localeCompare(b[0]);
     return a[0].localeCompare(b[0]);
   });
   return (
@@ -1668,8 +1662,8 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
             <div style={{ position:"relative" }}>
               {(() => {
                 const opts = browseMode === "series"
-                  ? [["read","Most Read"],["rating","Rating"],["title","Title"],["genre","Genre"],["tier","Tier"]]
-                  : [["read","Most Read"],["rating","Rating"],["name","Name"],["genre","Genre"],["tier","Tier"]];
+                  ? [["read","Most Read"],["rating","Rating"],["title","Title"],["genre","Genre"]]
+                  : [["read","Most Read"],["rating","Rating"],["name","Name"],["genre","Genre"]];
                 const activeSort = browseMode === "series" ? seriesSort : authorSort;
                 const activeLabel = opts.find(([k])=>k===activeSort)?.[1] || "Sort";
                 return (
