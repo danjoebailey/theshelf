@@ -1365,6 +1365,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
   const [seriesViewStyle, setSeriesViewStyle] = useState("list");
   const [seriesSort, setSeriesSort] = useState("read");
   const [seriesAuthorSortDropOpen, setSeriesAuthorSortDropOpen] = useState(false);
+  const [browseModeDropOpen, setBrowseModeDropOpen] = useState(false);
   const [authorSort, setAuthorSort] = useState("read");
   const [detectingSeriesLoading, setDetectingSeriesLoading] = useState(false);
   const [searchMode, setSearchMode] = useState("All");
@@ -1571,16 +1572,18 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
 
         {/* browse mode switcher */}
         {!hideControls && (
-          <div style={{ display:"flex", gap:5, marginTop:8 }}>
-            {[["books","Books"],["series","Series"],["authors","Authors"]].map(([mode, label]) => (
-              <button key={mode} {...tc(()=>{ setBrowseMode(mode); setShelfDropOpen(false); setFilterOpen(false); setSortDropOpen(false); }, true)} style={{
-                fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:600,
-                background: browseMode===mode ? WOOD.amber : "rgba(15,8,2,0.55)",
-                color: browseMode===mode ? "#1a0900" : "rgba(255,235,195,0.55)",
-                border: `1px solid ${browseMode===mode ? WOOD.amber : "rgba(120,70,20,0.3)"}`,
-                borderRadius:20, padding:"5px 14px", cursor:"pointer", backdropFilter:"blur(4px)",
-              }}>{label}</button>
-            ))}
+          <div style={{ position:"relative", marginTop:8, display:"inline-block" }}>
+            <button {...tc(()=>{ setBrowseModeDropOpen(o=>!o); setShelfDropOpen(false); setFilterOpen(false); setSortDropOpen(false); setSeriesAuthorSortDropOpen(false); }, true)} style={{ display:"flex", alignItems:"center", gap:5, background:"rgba(15,8,2,0.55)", borderRadius:20, padding:"5px 12px", border:"1px solid rgba(120,70,20,0.3)", backdropFilter:"blur(4px)", cursor:"pointer", color:"#fff", fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:500 }}>
+              <span>{{ books:"Books", series:"Series", authors:"Authors" }[browseMode]}</span>
+              <span style={{ fontSize:10, color:"rgba(255,255,255,0.5)", display:"inline-block", transition:"transform 0.2s", transform: browseModeDropOpen?"rotate(180deg)":"rotate(0deg)" }}>▾</span>
+            </button>
+            {browseModeDropOpen && (
+              <div onClick={e=>e.stopPropagation()} style={{ position:"absolute", top:"calc(100% + 4px)", left:0, zIndex:30, minWidth:120, background:"#f5e8d0", borderRadius:10, overflow:"hidden", boxShadow:"0 4px 20px rgba(0,0,0,0.25)", border:"1px solid rgba(138,90,40,0.3)", animation:"fadeIn 0.12s ease" }}>
+                {[["books","Books"],["series","Series"],["authors","Authors"]].map(([mode, label], i, arr) => (
+                  <button key={mode} {...tc(()=>{ setBrowseMode(mode); setBrowseModeDropOpen(false); }, true)} style={{ display:"block", width:"100%", padding:"10px 14px", textAlign:"left", background: browseMode===mode?"rgba(138,90,40,0.1)":"transparent", border:"none", borderBottom: i<arr.length-1?"1px solid rgba(138,90,40,0.1)":"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:13, color: browseMode===mode?WOOD.amber:WOOD.text, fontWeight: browseMode===mode?600:400 }}>{label}</button>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
