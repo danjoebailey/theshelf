@@ -5833,7 +5833,7 @@ export default function App() {
   }
 
   async function batchDetectSeries() {
-    const targets = books.filter(b => !b.series && b.title && b.author);
+    const targets = books.filter(b => b.title && b.author && (!b.series || !b.seriesTotal));
     if (!targets.length) return;
     const CHUNK = 30;
     for (let i = 0; i < targets.length; i += CHUNK) {
