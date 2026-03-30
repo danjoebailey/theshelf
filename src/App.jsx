@@ -1362,7 +1362,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
   const [showApiResults, setShowApiResults] = useState(true);
   const [browseMode, setBrowseMode] = useState("books");
   const [viewMode, setViewMode] = useState("card");
-  const [seriesViewStyle, setSeriesViewStyle] = useState("list");
+  const [seriesViewStyle, setSeriesViewStyle] = useState("shelf");
   const [seriesSort, setSeriesSort] = useState("read");
   const [seriesAuthorSortDropOpen, setSeriesAuthorSortDropOpen] = useState(false);
   const [browseModeDropOpen, setBrowseModeDropOpen] = useState(false);
