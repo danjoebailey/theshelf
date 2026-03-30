@@ -1364,6 +1364,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
   const [viewMode, setViewMode] = useState("card");
   const [seriesViewStyle, setSeriesViewStyle] = useState("shelf");
   const [seriesSort, setSeriesSort] = useState("read");
+  const [seriesShowAll, setSeriesShowAll] = useState(false);
   const [seriesAuthorSortDropOpen, setSeriesAuthorSortDropOpen] = useState(false);
   const [browseModeDropOpen, setBrowseModeDropOpen] = useState(false);
   const [authorSort, setAuthorSort] = useState("read");
@@ -1676,11 +1677,15 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
             </div>
             {/* list/shelf view toggle */}
             <button {...tc(()=>setSeriesViewStyle(v=>v==="shelf"?"list":"shelf"), true)} title={seriesViewStyle==="shelf"?"List view":"Shelf view"} style={{ display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(15,8,2,0.55)", borderRadius:20, padding:"5px 10px", border:"1px solid rgba(120,70,20,0.3)", backdropFilter:"blur(4px)", cursor:"pointer", color:"#fff" }}>
+
               {seriesViewStyle==="shelf"
                 ? <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor"><rect x="0" y="0" width="13" height="3" rx="1.5"/><rect x="0" y="5" width="13" height="3" rx="1.5"/><rect x="0" y="10" width="13" height="3" rx="1.5"/></svg>
                 : <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor"><rect x="0" y="0" width="6" height="11" rx="1"/><rect x="7" y="0" width="6" height="11" rx="1"/><rect x="0" y="12" width="13" height="1" rx="0.5"/></svg>
               }
             </button>
+            {browseMode === "series" && (
+              <button {...tc(()=>setSeriesShowAll(v=>!v), true)} style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600, background: seriesShowAll?"rgba(138,90,40,0.35)":"rgba(15,8,2,0.55)", color: seriesShowAll?"rgba(255,215,140,0.95)":"rgba(255,235,195,0.45)", border:`1px solid ${seriesShowAll?"rgba(138,90,40,0.5)":"rgba(120,70,20,0.3)"}`, borderRadius:20, padding:"4px 10px", cursor:"pointer", backdropFilter:"blur(4px)" }}>All</button>
+            )}
             </div>
             {/* sort dropdown pill */}
             <div style={{ position:"relative" }}>
@@ -1744,7 +1749,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
           </div>
         )}
         {browseMode === "series"
-          ? <SeriesView shelfBooks={books.filter(b=>(b.shelf||"Read")==="Read")} seriesViewStyle={seriesViewStyle} setSeriesViewStyle={setSeriesViewStyle} detectingSeriesLoading={detectingSeriesLoading} setDetectingSeriesLoading={setDetectingSeriesLoading} onBatchDetectSeries={onBatchDetectSeries} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} seriesTiers={seriesTiers} onSetSeriesTier={onSetSeriesTier} seriesSort={seriesSort} />
+          ? <SeriesView shelfBooks={seriesShowAll ? books : books.filter(b=>(b.shelf||"Read")==="Read")} seriesViewStyle={seriesViewStyle} setSeriesViewStyle={setSeriesViewStyle} detectingSeriesLoading={detectingSeriesLoading} setDetectingSeriesLoading={setDetectingSeriesLoading} onBatchDetectSeries={onBatchDetectSeries} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} seriesTiers={seriesTiers} onSetSeriesTier={onSetSeriesTier} seriesSort={seriesSort} />
           : browseMode === "authors"
           ? <AuthorsView allBooks={books.filter(b=>(b.shelf||"Read")==="Read")} authorSort={authorSort} authorTiers={authorTiers} onSetAuthorTier={onSetAuthorTier} seriesViewStyle={seriesViewStyle} setSeriesViewStyle={setSeriesViewStyle} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} />
           : filtered.map((book,i)=>(
