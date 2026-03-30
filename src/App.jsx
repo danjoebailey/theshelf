@@ -1684,7 +1684,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
               }
             </button>
             {browseMode === "series" && (
-              <button {...tc(()=>setSeriesShowAll(v=>!v), true)} style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600, background: seriesShowAll?"rgba(138,90,40,0.35)":"rgba(15,8,2,0.55)", color: seriesShowAll?"rgba(255,215,140,0.95)":"rgba(255,235,195,0.45)", border:`1px solid ${seriesShowAll?"rgba(138,90,40,0.5)":"rgba(120,70,20,0.3)"}`, borderRadius:20, padding:"4px 10px", cursor:"pointer", backdropFilter:"blur(4px)" }}>All</button>
+              <button {...tc(()=>setSeriesShowAll(v=>!v), true)} style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600, background:"rgba(15,8,2,0.55)", color:"rgba(255,235,195,0.55)", border:"1px solid rgba(120,70,20,0.3)", borderRadius:20, padding:"4px 10px", cursor:"pointer", backdropFilter:"blur(4px)" }}>{seriesShowAll ? "All" : "Read"}</button>
             )}
             </div>
             {/* sort dropdown pill */}
