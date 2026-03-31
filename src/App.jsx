@@ -1569,6 +1569,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
           });
           const data = await res.json();
           setApiResults(Array.isArray(data) ? data : []);
+          track("search", { query: q, mode: searchMode, results: Array.isArray(data) ? data.length : 0 });
         } catch (err) {
           if (err.name !== "AbortError") setApiResults([]);
         }
