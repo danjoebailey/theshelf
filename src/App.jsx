@@ -1288,7 +1288,7 @@ async function fetchAuthorBiblio(authorName, { onProgress, forceRefresh = false 
   return enriched;
 }
 
-function AuthorShelfRow({ authorName, books, onEdit, onAuthor, tier, onSetTier }) {
+function AuthorShelfRow({ authorName, books, onEdit, onAddBook, tier, onSetTier }) {
   const [showUnread, setShowUnread] = useState(false);
   const [unreadBiblio, setUnreadBiblio] = useState(null); // null=not fetched, []=fetched
   const [unreadLoading, setUnreadLoading] = useState(false);
@@ -1347,7 +1347,7 @@ function AuthorShelfRow({ authorName, books, onEdit, onAuthor, tier, onSetTier }
           );
         })}
         {showUnread && unreadBiblio && unreadBiblio.map((item, i) => (
-          <div key={`unread-${i}`} {...tc(() => onAuthor && onAuthor(authorName), true)} style={{ flexShrink:0, filter:"grayscale(70%) brightness(0.75)", opacity:0.65, cursor:"pointer" }} title={item.title}>
+          <div key={`unread-${i}`} {...tc(() => onAddBook && onAddBook({ title: item.title, author: authorName, genre: item.genre, coverUrl: item.coverUrl, pages: 0 }), true)} style={{ flexShrink:0, filter:"grayscale(70%) brightness(0.75)", opacity:0.65, cursor:"pointer" }} title={item.title}>
             <BookCoverThumb book={{ title: item.title, coverUrl: item.coverUrl, genre: item.genre }} />
           </div>
         ))}
@@ -1438,7 +1438,7 @@ function AuthorCard({ authorName, books, onEdit, onRemove, onShelfChange, onSave
   );
 }
 
-function AuthorsView({ allBooks, authorSort, authorTiers, onSetAuthorTier, seriesViewStyle, setSeriesViewStyle, onEdit, onRemove, onShelfChange, onSaveProgress, onSavePages, onSaveAspects, onAuthor }) {
+function AuthorsView({ allBooks, authorSort, authorTiers, onSetAuthorTier, seriesViewStyle, setSeriesViewStyle, onEdit, onRemove, onShelfChange, onSaveProgress, onSavePages, onSaveAspects, onAuthor, onAddBook }) {
   const grouped = {};
   allBooks.forEach(b => {
     if (!b.author) return;
@@ -1467,7 +1467,7 @@ function AuthorsView({ allBooks, authorSort, authorTiers, onSetAuthorTier, serie
             <AuthorCard key={name} authorName={name} books={books} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} tier={authorTiers[name]||null} onSetTier={t => onSetAuthorTier && onSetAuthorTier(name, t)} />
           ))
         : entries.map(([name, books]) => (
-            <AuthorShelfRow key={name} authorName={name} books={books} onEdit={onEdit} onAuthor={onAuthor} tier={authorTiers[name]||null} onSetTier={t => onSetAuthorTier && onSetAuthorTier(name, t)} />
+            <AuthorShelfRow key={name} authorName={name} books={books} onEdit={onEdit} onAddBook={onAddBook} tier={authorTiers[name]||null} onSetTier={t => onSetAuthorTier && onSetAuthorTier(name, t)} />
           ))
       }
     </>
@@ -1883,7 +1883,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
         {browseMode === "series"
           ? <SeriesView shelfBooks={seriesShowAll ? books : books.filter(b=>(b.shelf||"Read")==="Read")} seriesViewStyle={seriesViewStyle} setSeriesViewStyle={setSeriesViewStyle} detectingSeriesLoading={detectingSeriesLoading} setDetectingSeriesLoading={setDetectingSeriesLoading} onBatchDetectSeries={onBatchDetectSeries} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} seriesTiers={seriesTiers} onSetSeriesTier={onSetSeriesTier} seriesSort={seriesSort} onSetSeriesTotal={onSetSeriesTotal} />
           : browseMode === "authors"
-          ? <AuthorsView allBooks={books.filter(b=>(b.shelf||"Read")==="Read")} authorSort={authorSort} authorTiers={authorTiers} onSetAuthorTier={onSetAuthorTier} seriesViewStyle={seriesViewStyle} setSeriesViewStyle={setSeriesViewStyle} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} />
+          ? <AuthorsView allBooks={books.filter(b=>(b.shelf||"Read")==="Read")} authorSort={authorSort} authorTiers={authorTiers} onSetAuthorTier={onSetAuthorTier} seriesViewStyle={seriesViewStyle} setSeriesViewStyle={setSeriesViewStyle} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} onAddBook={onAddBook} />
           : filtered.map((book,i)=>(
           <div key={`${book.id}_${i}`} style={{ display:"flex", alignItems:"stretch", gap:0 }}>
             {sort==="custom" && (
