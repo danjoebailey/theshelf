@@ -138,10 +138,11 @@ function toTitleCase(str) {
 
 const STOP_WORDS = new Set(["the","a","an","and","of","by","in","on","at","to","for","with","is","it","my","his","her","their","our"]);
 
-function isRelevant(item, queryWords) {
-  if (!queryWords.length) return true;
+function isRelevant(item, fullWords, prefixWord) {
   const haystack = `${item.title} ${item.author}`.toLowerCase();
-  return queryWords.every(w => haystack.includes(w));
+  if (!fullWords.every(w => haystack.includes(w))) return false;
+  if (prefixWord && !haystack.includes(prefixWord)) return false;
+  return true;
 }
 
 export default async function handler(req, res) {
@@ -150,7 +151,11 @@ export default async function handler(req, res) {
   const { query, mode = "All" } = req.body;
   if (!query?.trim()) return res.status(400).json({ error: "Missing query" });
 
-  const queryWords = query.toLowerCase().split(/\s+/).filter(w => w.length > 1 && !STOP_WORDS.has(w));
+  const allWords = query.toLowerCase().split(/\s+/).filter(w => w.length >= 1 && !STOP_WORDS.has(w));
+  const queryWords = allWords.filter(w => w.length > 1);
+  // Last word might be partially typed — use it as a prefix match
+  const lastRaw = query.toLowerCase().split(/\s+/).filter(Boolean).pop() || "";
+  const prefixWord = lastRaw.length >= 1 && lastRaw.length <= 2 && !STOP_WORDS.has(lastRaw) ? lastRaw : null;
 
   const googleQuery = mode === "Authors" ? `inauthor:${query}` : query;
   const olQuery = mode === "Authors"
@@ -170,7 +175,7 @@ export default async function handler(req, res) {
   for (const item of [...googleItems, ...olItems, ...itunesItems]) {
     if (results.length >= 7) break;
     const key = docKey(item.title, item.author);
-    if (!seen.has(key) && isRelevant(item, queryWords)) { seen.add(key); results.push(item); }
+    if (!seen.has(key) && isRelevant(item, queryWords, prefixWord)) { seen.add(key); results.push(item); }
   }
 
   res.json(results);
