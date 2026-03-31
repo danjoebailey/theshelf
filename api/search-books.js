@@ -159,10 +159,12 @@ export default async function handler(req, res) {
     ? `https://openlibrary.org/search.json?author=${encodeURIComponent(query)}&limit=7&fields=title,author_name,number_of_pages_median,subject,cover_i,first_publish_year`
     : null;
 
+  const withTimeout = (p, ms) => Promise.race([p, new Promise(r => setTimeout(() => r([]), ms))]);
+
   const [googleItems, olItems, itunesItems] = await Promise.all([
-    googleBooksSearch(googleQuery),
-    olSearch(olQuery || query),
-    itunesSearch(query),
+    withTimeout(googleBooksSearch(googleQuery), 4000),
+    withTimeout(olSearch(olQuery || query), 4000),
+    withTimeout(itunesSearch(query), 4000),
   ]);
 
   const seen = new Set();
