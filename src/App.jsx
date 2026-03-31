@@ -1322,14 +1322,16 @@ function AuthorShelfRow({ authorName, books, onEdit, onAddBook, tier, onSetTier 
         <div>
           <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:18, color:WOOD.text, lineHeight:1.2 }}>{authorName}</p>
           <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:WOOD.textFaint, marginTop:2 }}>{readCount} read</p>
-          {topGenre && <span style={{ display:"inline-block", marginTop:5, background:GENRE_COLORS[topGenre]||"#94a3b8", color:"#fff", borderRadius:20, padding:"2px 8px", fontSize:9, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em" }}>{topGenre}</span>}
+          <div style={{ display:"flex", alignItems:"center", gap:5, marginTop:5, flexWrap:"wrap" }}>
+            {topGenre && <span style={{ display:"inline-block", background:GENRE_COLORS[topGenre]||"#94a3b8", color:"#fff", borderRadius:20, padding:"2px 8px", fontSize:9, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em" }}>{topGenre}</span>}
+            <TierBadge tier={tier} onSetTier={onSetTier} />
+          </div>
         </div>
         <div style={{ display:"flex", alignItems:"center", gap:6, flexShrink:0 }}>
           <button {...tc(handleToggleUnread, true)} style={{ background:"transparent", border:"none", fontFamily:"'DM Sans',sans-serif", fontSize:10, color:showUnread ? WOOD.amber : WOOD.textFaint, cursor:"pointer", padding:"3px 6px", fontWeight: showUnread ? 700 : 400 }}>
             {unreadLoading ? "Loading…" : showUnread ? "Hide unread" : "Show unread"}
           </button>
           <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600, background:"rgba(138,90,40,0.18)", color:"#8a5a28", border:"1px solid rgba(138,90,40,0.3)", borderRadius:20, padding:"3px 9px" }}>{countStr}</span>
-          <TierBadge tier={tier} onSetTier={onSetTier} />
         </div>
       </div>
       <div style={{ display:"flex", gap:6, overflowX:"auto", paddingBottom:4, scrollbarWidth:"none", marginLeft:-2 }}>
