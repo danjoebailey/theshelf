@@ -1303,10 +1303,10 @@ function AuthorShelfRow({ authorName, books, onEdit, tier, onSetTier }) {
   async function fetchUnread() {
     if (unreadLoading) return;
     setUnreadLoading(true);
-    const ownedTitles = new Set(books.map(b => b.title.toLowerCase().trim()));
+    const ownedTitles = new Set(books.map(b => normBookKey(b.title)));
     try {
       await fetchAuthorBiblio(authorName, {
-        onProgress: items => setUnreadBiblio(items.filter(item => !ownedTitles.has(item.title.toLowerCase().trim()))),
+        onProgress: items => setUnreadBiblio(items.filter(item => !ownedTitles.has(normBookKey(item.title)))),
       });
     } catch {} finally { setUnreadLoading(false); }
   }
@@ -1374,11 +1374,11 @@ function AuthorCard({ authorName, books, onEdit, onRemove, onShelfChange, onSave
     if (!expanded || unreadBiblio !== null || unreadLoading) return;
     let cancelled = false;
     setUnreadLoading(true);
-    const ownedTitles = new Set(books.map(b => b.title.toLowerCase().trim()));
+    const ownedTitles = new Set(books.map(b => normBookKey(b.title)));
     (async () => {
       try {
         await fetchAuthorBiblio(authorName, {
-          onProgress: items => { if (!cancelled) setUnreadBiblio(items.filter(item => !ownedTitles.has(item.title.toLowerCase().trim()))); },
+          onProgress: items => { if (!cancelled) setUnreadBiblio(items.filter(item => !ownedTitles.has(normBookKey(item.title)))); },
         });
       } catch { if (!cancelled) setUnreadBiblio([]); }
       finally { if (!cancelled) setUnreadLoading(false); }
