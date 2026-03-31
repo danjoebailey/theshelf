@@ -1346,11 +1346,19 @@ function AuthorShelfRow({ authorName, books, onEdit, onAddBook, tier, onSetTier 
             </div>
           );
         })}
-        {showUnread && unreadBiblio && unreadBiblio.map((item, i) => (
-          <div key={`unread-${i}`} {...tc(() => onAddBook && onAddBook({ title: item.title, author: authorName, genre: item.genre, coverUrl: item.coverUrl, pages: 0, _fromRecs: true }), true)} style={{ flexShrink:0, filter:"grayscale(70%) brightness(0.75)", opacity:0.65, cursor:"pointer" }} title={item.title}>
+        {showUnread && unreadBiblio && unreadBiblio.map((item, i) => {
+          let tX = 0, tY = 0;
+          const draft = { title: item.title, author: authorName, genre: item.genre, coverUrl: item.coverUrl, pages: 0, _fromRecs: true };
+          return (
+          <div key={`unread-${i}`}
+            onTouchStart={e => { tX = e.touches[0].clientX; tY = e.touches[0].clientY; }}
+            onTouchEnd={e => { const dx = Math.abs(e.changedTouches[0].clientX - tX); const dy = Math.abs(e.changedTouches[0].clientY - tY); if (dx < 8 && dy < 8) { e.preventDefault(); e.stopPropagation(); onAddBook && onAddBook(draft); } }}
+            onClick={e => { e.stopPropagation(); onAddBook && onAddBook(draft); }}
+            style={{ flexShrink:0, filter:"grayscale(70%) brightness(0.75)", opacity:0.65, cursor:"pointer" }} title={item.title}>
             <BookCoverThumb book={{ title: item.title, coverUrl: item.coverUrl, genre: item.genre }} />
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
