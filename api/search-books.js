@@ -48,22 +48,32 @@ function docKey(title, author) {
   return `${(title || "").toLowerCase().replace(/[^\w]/g, "")}|${(author || "").toLowerCase().replace(/[^\w]/g, "")}`;
 }
 
+function mapGoogleItem(item) {
+  const info = item.volumeInfo || {};
+  const thumb = info.imageLinks?.thumbnail;
+  return {
+    title:       toTitleCase(info.title || "Unknown"),
+    author:      (info.authors || [])[0] || "Unknown",
+    pages:       info.pageCount || 0,
+    genre:       inferGenre(info.categories || []),
+    coverUrl:    thumb ? thumb.replace("http://", "https://").replace("&edge=curl", "") : null,
+    publishYear: info.publishedDate ? parseInt(info.publishedDate) : null,
+  };
+}
+
 async function googleBooksSearch(query) {
   try {
-    const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=7&printType=books`);
-    const data = await res.json();
-    return (data.items || []).map(item => {
-      const info = item.volumeInfo || {};
-      const thumb = info.imageLinks?.thumbnail;
-      return {
-        title:       toTitleCase(info.title || "Unknown"),
-        author:      (info.authors || [])[0] || "Unknown",
-        pages:       info.pageCount || 0,
-        genre:       inferGenre(info.categories || []),
-        coverUrl:    thumb ? thumb.replace("http://", "https://").replace("&edge=curl", "") : null,
-        publishYear: info.publishedDate ? parseInt(info.publishedDate) : null,
-      };
-    });
+    const [general, titled] = await Promise.all([
+      fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=15&printType=books`).then(r => r.json()).catch(() => null),
+      fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(`intitle:${query}`)}&maxResults=10&printType=books`).then(r => r.json()).catch(() => null),
+    ]);
+    const seen = new Set();
+    const results = [];
+    for (const item of [...(general?.items || []), ...(titled?.items || [])]) {
+      const key = docKey(item.volumeInfo?.title || "", (item.volumeInfo?.authors || [])[0] || "");
+      if (!seen.has(key)) { seen.add(key); results.push(mapGoogleItem(item)); }
+    }
+    return results;
   } catch {
     return [];
   }
