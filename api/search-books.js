@@ -158,11 +158,17 @@ export default async function handler(req, res) {
     ? `https://openlibrary.org/search.json?author=${encodeURIComponent(query)}&limit=7&fields=title,author_name,number_of_pages_median,subject,cover_i,first_publish_year`
     : null;
 
-  const [googleItems, olItems, itunesItems] = await Promise.all([
-    googleBooksSearch(googleQuery),
-    olSearch(olQuery || query),
-    itunesSearch(query),
-  ]);
+  let googleItems = [], olItems = [], itunesItems = [];
+  const errors = [];
+  try {
+    [googleItems, olItems, itunesItems] = await Promise.all([
+      googleBooksSearch(googleQuery).catch(e => { errors.push("google:" + e.message); return []; }),
+      olSearch(olQuery || query).catch(e => { errors.push("ol:" + e.message); return []; }),
+      itunesSearch(query).catch(e => { errors.push("itunes:" + e.message); return []; }),
+    ]);
+  } catch (e) {
+    errors.push("all:" + e.message);
+  }
 
   const seen = new Set();
   const results = [];
@@ -172,5 +178,8 @@ export default async function handler(req, res) {
     if (!seen.has(key) && isRelevant(item, queryWords)) { seen.add(key); results.push(item); }
   }
 
+  if (results.length === 0 && errors.length > 0) {
+    return res.json({ results: [], debug: errors });
+  }
   res.json(results);
 }
