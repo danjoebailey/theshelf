@@ -65,8 +65,8 @@ async function googleBooksSearch(query) {
   try {
     const k = process.env.GOOGLE_BOOKS_KEY ? `&key=${process.env.GOOGLE_BOOKS_KEY}` : "";
     const [general, titled] = await Promise.all([
-      fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=15&printType=books${k}`).then(r => r.json()).catch(() => null),
-      fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(`intitle:${query}`)}&maxResults=10&printType=books${k}`).then(r => r.json()).catch(() => null),
+      fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=15&printType=books&orderBy=relevance${k}`).then(r => r.json()).catch(() => null),
+      fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=10&printType=books&orderBy=newest${k}`).then(r => r.json()).catch(() => null),
     ]);
     const seen = new Set();
     const results = [];
