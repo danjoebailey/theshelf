@@ -82,7 +82,9 @@ async function googleBooksSearch(query) {
 async function olSearch(query) {
   try {
     const fields = "title,author_name,number_of_pages_median,subject,cover_i,first_publish_year";
-    const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=7&fields=${fields}`;
+    const url = query.startsWith("http")
+      ? query
+      : `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=7&fields=${fields}`;
     const res = await fetch(url);
     const data = await res.json();
     return (data.docs || []).map(doc => ({
@@ -156,14 +158,18 @@ export default async function handler(req, res) {
     ? `https://openlibrary.org/search.json?author=${encodeURIComponent(query)}&limit=7&fields=title,author_name,number_of_pages_median,subject,cover_i,first_publish_year`
     : null;
 
-  const googleItems = await googleBooksSearch(googleQuery);
+  const [googleItems, olItems, itunesItems] = await Promise.all([
+    googleBooksSearch(googleQuery),
+    olSearch(olQuery || query),
+    itunesSearch(query),
+  ]);
 
   const seen = new Set();
   const results = [];
-  for (const item of googleItems) {
+  for (const item of [...googleItems, ...olItems, ...itunesItems]) {
     if (results.length >= 7) break;
     const key = docKey(item.title, item.author);
-    if (!seen.has(key)) { seen.add(key); results.push(item); }
+    if (!seen.has(key) && isRelevant(item, queryWords)) { seen.add(key); results.push(item); }
   }
 
   res.json(results);
