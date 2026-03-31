@@ -1555,7 +1555,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
     clearTimeout(searchTimer.current);
     if (searchAbort.current) { searchAbort.current.abort(); searchAbort.current = null; }
     setApiResults([]);
-    if (q.trim().length >= 3) {
+    if (q.trim().length >= 2) {
       setApiSearching(true);
       searchTimer.current = setTimeout(async () => {
         const controller = new AbortController();
@@ -1573,7 +1573,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
           if (err.name !== "AbortError") setApiResults([]);
         }
         setApiSearching(false);
-      }, 600);
+      }, 250);
     } else {
       setApiSearching(false);
     }

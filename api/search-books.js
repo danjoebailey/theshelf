@@ -137,7 +137,7 @@ export default async function handler(req, res) {
   const { query, mode = "All" } = req.body;
   if (!query?.trim()) return res.status(400).json({ error: "Missing query" });
 
-  const queryWords = query.toLowerCase().split(/\s+/).filter(w => w.length > 2 && !STOP_WORDS.has(w));
+  const queryWords = query.toLowerCase().split(/\s+/).filter(w => w.length > 1 && !STOP_WORDS.has(w));
 
   const googleQuery = mode === "Books" || mode === "Series" ? `intitle:${query}`
     : mode === "Authors" ? `inauthor:${query}`
