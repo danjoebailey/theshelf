@@ -5568,6 +5568,7 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd, userI
   const [biblio, setBiblio] = useState(null);
   const [biblioLoading, setBiblioLoading] = useState(false);
   const [biblioError, setBiblioError] = useState(null);
+  const [biblioForceRefresh, setBiblioForceRefresh] = useState(false);
   const [displayedCount, setDisplayedCount] = useState(5);
   const [unreadCovers, setUnreadCovers] = useState({});
   const [sortedUnread, setSortedUnread] = useState(null);
@@ -5608,24 +5609,76 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd, userI
     return nb === normAuthor || nb.startsWith(normAuthor) || normAuthor.startsWith(nb);
   });
 
-  // Fetch bibliography when books tab is active and we have no biblio yet
+  // Fetch bibliography — check shared Supabase cache first
   useEffect(() => {
-    if (activeTab !== "books" || biblio !== null || biblioLoading) return;
+    if (activeTab !== "books" || (biblio !== null && !biblioForceRefresh) || biblioLoading) return;
+    let cancelled = false;
     setBiblioLoading(true);
     setBiblioError(null);
-    fetch("/api/author-bibliography", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ author }),
-    })
-      .then(r => r.json())
-      .then(data => {
-        if (data.error) { setBiblioError(data.error); setBiblio([]); }
-        else setBiblio(data.items || []);
-      })
-      .catch(() => { setBiblioError("Failed to load bibliography."); setBiblio([]); })
-      .finally(() => setBiblioLoading(false));
-  }, [activeTab, author]);
+
+    (async () => {
+      try {
+        // 1. Check cache (shared across all users, 365-day TTL) unless force refresh
+        if (!biblioForceRefresh) {
+          const { data: cached } = await supabase
+            .from("author_bibliographies")
+            .select("items, cached_at")
+            .eq("author_name", author)
+            .single();
+
+          if (cached?.items?.length) {
+            const age = (Date.now() - new Date(cached.cached_at).getTime()) / 86400000;
+            if (age < 365) {
+              if (!cancelled) { setBiblio(cached.items); setBiblioForceRefresh(false); }
+              return;
+            }
+          }
+        }
+        if (!cancelled) setBiblioForceRefresh(false);
+
+        // 2. Cache miss — fetch from API
+        const res = await fetch("/api/author-bibliography", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ author }),
+        });
+        const data = await res.json();
+        if (data.error) { if (!cancelled) { setBiblioError(data.error); setBiblio([]); } return; }
+        const items = data.items || [];
+        if (!cancelled) setBiblio(items);
+
+        // 3. Enrich covers in batches of 5 then save to cache
+        const enriched = items.map(b => ({ ...b }));
+        const BATCH = 5;
+        for (let i = 0; i < enriched.length; i += BATCH) {
+          if (cancelled) return;
+          await Promise.all(enriched.slice(i, i + BATCH).map(async b => {
+            if (b.coverUrl) return;
+            try {
+              const r = await fetch("/api/fetch-cover", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ title: b.title, author }) });
+              const d = await r.json();
+              if (d.coverUrl) b.coverUrl = d.coverUrl;
+            } catch {}
+          }));
+          if (!cancelled) setBiblio([...enriched]);
+        }
+
+        // 4. Save enriched result to shared cache
+        if (!cancelled) {
+          await supabase.from("author_bibliographies").upsert(
+            { author_name: author, items: enriched, cached_at: new Date().toISOString() },
+            { onConflict: "author_name" }
+          );
+        }
+      } catch {
+        if (!cancelled) { setBiblioError("Failed to load bibliography."); setBiblio([]); }
+      } finally {
+        if (!cancelled) setBiblioLoading(false);
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [activeTab, author, biblioForceRefresh]);
 
   // Effect 1: sort/group bibliography and show first 5 immediately
   useEffect(() => {
@@ -5836,6 +5889,11 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd, userI
                 {unreadBooks.length > displayedCount && displayedCount >= 10 && (
                   <button onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); setDisplayedCount(v => v + 10); }} onClick={()=>setDisplayedCount(v => v + 10)} style={{ width:"100%", padding:"12px", marginTop:4, background:"transparent", border:`1px solid ${CR.border}`, borderRadius:8, color:CR.textDim, fontSize:13, fontFamily:"'DM Sans',sans-serif", cursor:"pointer" }}>
                     Show next 10
+                  </button>
+                )}
+                {biblio && !biblioLoading && (
+                  <button onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); setBiblio(null); setSortedUnread(null); setUnreadCovers({}); setBiblioForceRefresh(true); }} onClick={()=>{ setBiblio(null); setSortedUnread(null); setUnreadCovers({}); setBiblioForceRefresh(true); }} style={{ width:"100%", padding:"10px", marginTop:8, background:"transparent", border:"none", color:CR.textDim, fontSize:11, fontFamily:"'DM Sans',sans-serif", cursor:"pointer", opacity:0.5 }}>
+                    Refresh bibliography
                   </button>
                 )}
               </div>
