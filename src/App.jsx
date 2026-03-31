@@ -3247,6 +3247,230 @@ let claudeProse100CoversCache = (() => {
   try { const s = localStorage.getItem(CLAUDEPROSE100_CACHE_KEY); return s ? JSON.parse(s) : null; } catch { return null; }
 })();
 
+// Hardcoded Obi author rankings by genre
+const CLAUDE_AUTHORS = {
+  "All": [
+    { name:"Ursula K. Le Guin", genre:"Sci-Fi" },
+    { name:"Cormac McCarthy", genre:"Fiction" },
+    { name:"Toni Morrison", genre:"Fiction" },
+    { name:"Gabriel García Márquez", genre:"Fiction" },
+    { name:"Philip K. Dick", genre:"Sci-Fi" },
+    { name:"Dostoevsky", genre:"Fiction" },
+    { name:"Haruki Murakami", genre:"Fiction" },
+    { name:"Vladimir Nabokov", genre:"Fiction" },
+    { name:"J.R.R. Tolkien", genre:"Fantasy" },
+    { name:"Frank Herbert", genre:"Sci-Fi" },
+    { name:"Leo Tolstoy", genre:"Fiction" },
+    { name:"Franz Kafka", genre:"Fiction" },
+    { name:"George Orwell", genre:"Fiction" },
+    { name:"William Faulkner", genre:"Fiction" },
+    { name:"Albert Camus", genre:"Fiction" },
+    { name:"Cormac McCarthy", genre:"Fiction" },
+    { name:"Brandon Sanderson", genre:"Fantasy" },
+    { name:"Donna Tartt", genre:"Fiction" },
+    { name:"Elena Ferrante", genre:"Fiction" },
+    { name:"Kazuo Ishiguro", genre:"Fiction" },
+  ],
+  "Fantasy": [
+    { name:"J.R.R. Tolkien", genre:"Fantasy" },
+    { name:"Brandon Sanderson", genre:"Fantasy" },
+    { name:"Ursula K. Le Guin", genre:"Fantasy" },
+    { name:"George R.R. Martin", genre:"Fantasy" },
+    { name:"Robin Hobb", genre:"Fantasy" },
+    { name:"Patrick Rothfuss", genre:"Fantasy" },
+    { name:"Terry Pratchett", genre:"Fantasy" },
+    { name:"Robert Jordan", genre:"Fantasy" },
+    { name:"Joe Abercrombie", genre:"Fantasy" },
+    { name:"N.K. Jemisin", genre:"Fantasy" },
+    { name:"Guy Gavriel Kay", genre:"Fantasy" },
+    { name:"Steven Erikson", genre:"Fantasy" },
+    { name:"Andrzej Sapkowski", genre:"Fantasy" },
+    { name:"Susanna Clarke", genre:"Fantasy" },
+    { name:"Neil Gaiman", genre:"Fantasy" },
+    { name:"C.S. Lewis", genre:"Fantasy" },
+    { name:"Michael Moorcock", genre:"Fantasy" },
+    { name:"Fritz Leiber", genre:"Fantasy" },
+    { name:"Gene Wolfe", genre:"Fantasy" },
+    { name:"Scott Lynch", genre:"Fantasy" },
+  ],
+  "Sci-Fi": [
+    { name:"Ursula K. Le Guin", genre:"Sci-Fi" },
+    { name:"Philip K. Dick", genre:"Sci-Fi" },
+    { name:"Frank Herbert", genre:"Sci-Fi" },
+    { name:"Isaac Asimov", genre:"Sci-Fi" },
+    { name:"Arthur C. Clarke", genre:"Sci-Fi" },
+    { name:"Kim Stanley Robinson", genre:"Sci-Fi" },
+    { name:"Ted Chiang", genre:"Sci-Fi" },
+    { name:"Octavia Butler", genre:"Sci-Fi" },
+    { name:"Dan Simmons", genre:"Sci-Fi" },
+    { name:"Gene Wolfe", genre:"Sci-Fi" },
+    { name:"Greg Egan", genre:"Sci-Fi" },
+    { name:"Stanisław Lem", genre:"Sci-Fi" },
+    { name:"Robert A. Heinlein", genre:"Sci-Fi" },
+    { name:"Ray Bradbury", genre:"Sci-Fi" },
+    { name:"William Gibson", genre:"Sci-Fi" },
+    { name:"Neal Stephenson", genre:"Sci-Fi" },
+    { name:"Alastair Reynolds", genre:"Sci-Fi" },
+    { name:"Peter Watts", genre:"Sci-Fi" },
+    { name:"Liu Cixin", genre:"Sci-Fi" },
+    { name:"Vernor Vinge", genre:"Sci-Fi" },
+  ],
+  "Fiction": [
+    { name:"Cormac McCarthy", genre:"Fiction" },
+    { name:"Toni Morrison", genre:"Fiction" },
+    { name:"Gabriel García Márquez", genre:"Fiction" },
+    { name:"Dostoevsky", genre:"Fiction" },
+    { name:"Haruki Murakami", genre:"Fiction" },
+    { name:"Vladimir Nabokov", genre:"Fiction" },
+    { name:"Leo Tolstoy", genre:"Fiction" },
+    { name:"Franz Kafka", genre:"Fiction" },
+    { name:"William Faulkner", genre:"Fiction" },
+    { name:"Albert Camus", genre:"Fiction" },
+    { name:"Donna Tartt", genre:"Fiction" },
+    { name:"Elena Ferrante", genre:"Fiction" },
+    { name:"Kazuo Ishiguro", genre:"Fiction" },
+    { name:"Don DeLillo", genre:"Fiction" },
+    { name:"Philip Roth", genre:"Fiction" },
+    { name:"Saul Bellow", genre:"Fiction" },
+    { name:"John Updike", genre:"Fiction" },
+    { name:"David Foster Wallace", genre:"Fiction" },
+    { name:"Thomas Pynchon", genre:"Fiction" },
+    { name:"Flannery O'Connor", genre:"Fiction" },
+  ],
+  "Mystery": [
+    { name:"Raymond Chandler", genre:"Mystery" },
+    { name:"Agatha Christie", genre:"Mystery" },
+    { name:"Dashiell Hammett", genre:"Mystery" },
+    { name:"Patricia Highsmith", genre:"Mystery" },
+    { name:"Ross Macdonald", genre:"Mystery" },
+    { name:"James Ellroy", genre:"Mystery" },
+    { name:"Donna Leon", genre:"Mystery" },
+    { name:"Michael Connelly", genre:"Mystery" },
+    { name:"Tana French", genre:"Mystery" },
+    { name:"Ruth Rendell", genre:"Mystery" },
+    { name:"John le Carré", genre:"Mystery" },
+    { name:"Elmore Leonard", genre:"Mystery" },
+    { name:"Walter Mosley", genre:"Mystery" },
+    { name:"Sue Grafton", genre:"Mystery" },
+    { name:"P.D. James", genre:"Mystery" },
+    { name:"Henning Mankell", genre:"Mystery" },
+    { name:"Jo Nesbø", genre:"Mystery" },
+    { name:"Stieg Larsson", genre:"Mystery" },
+    { name:"Dennis Lehane", genre:"Mystery" },
+    { name:"Georges Simenon", genre:"Mystery" },
+  ],
+  "Thriller": [
+    { name:"John le Carré", genre:"Thriller" },
+    { name:"Gillian Flynn", genre:"Thriller" },
+    { name:"Thomas Harris", genre:"Thriller" },
+    { name:"Lee Child", genre:"Thriller" },
+    { name:"Stieg Larsson", genre:"Thriller" },
+    { name:"Frederick Forsyth", genre:"Thriller" },
+    { name:"Robert Ludlum", genre:"Thriller" },
+    { name:"Don Winslow", genre:"Thriller" },
+    { name:"Daniel Silva", genre:"Thriller" },
+    { name:"David Baldacci", genre:"Thriller" },
+    { name:"Vince Flynn", genre:"Thriller" },
+    { name:"Brad Thor", genre:"Thriller" },
+    { name:"Harlan Coben", genre:"Thriller" },
+    { name:"Michael Connelly", genre:"Thriller" },
+    { name:"James Patterson", genre:"Thriller" },
+    { name:"Tom Clancy", genre:"Thriller" },
+    { name:"John Grisham", genre:"Thriller" },
+    { name:"Ken Follett", genre:"Thriller" },
+    { name:"Nelson DeMille", genre:"Thriller" },
+    { name:"Ian Fleming", genre:"Thriller" },
+  ],
+  "Horror": [
+    { name:"Stephen King", genre:"Horror" },
+    { name:"Shirley Jackson", genre:"Horror" },
+    { name:"H.P. Lovecraft", genre:"Horror" },
+    { name:"Peter Straub", genre:"Horror" },
+    { name:"Thomas Ligotti", genre:"Horror" },
+    { name:"Ramsey Campbell", genre:"Horror" },
+    { name:"Joe Hill", genre:"Horror" },
+    { name:"Paul Tremblay", genre:"Horror" },
+    { name:"Dan Simmons", genre:"Horror" },
+    { name:"Robert R. McCammon", genre:"Horror" },
+    { name:"Dean Koontz", genre:"Horror" },
+    { name:"Clive Barker", genre:"Horror" },
+    { name:"Richard Matheson", genre:"Horror" },
+    { name:"Anne Rice", genre:"Horror" },
+    { name:"Graham Masterton", genre:"Horror" },
+    { name:"Algernon Blackwood", genre:"Horror" },
+    { name:"Arthur Machen", genre:"Horror" },
+    { name:"M.R. James", genre:"Horror" },
+    { name:"Laird Barron", genre:"Horror" },
+    { name:"Josh Malerman", genre:"Horror" },
+  ],
+  "Historical Fiction": [
+    { name:"Hilary Mantel", genre:"Historical Fiction" },
+    { name:"Ken Follett", genre:"Historical Fiction" },
+    { name:"Bernard Cornwell", genre:"Historical Fiction" },
+    { name:"Patrick O'Brian", genre:"Historical Fiction" },
+    { name:"Sharon Kay Penman", genre:"Historical Fiction" },
+    { name:"Anthony Burgess", genre:"Historical Fiction" },
+    { name:"Umberto Eco", genre:"Historical Fiction" },
+    { name:"Edward Rutherfurd", genre:"Historical Fiction" },
+    { name:"Colm Tóibín", genre:"Historical Fiction" },
+    { name:"Sebastian Faulks", genre:"Historical Fiction" },
+    { name:"Philippa Gregory", genre:"Historical Fiction" },
+    { name:"Conn Iggulden", genre:"Historical Fiction" },
+    { name:"Kate Mosse", genre:"Historical Fiction" },
+    { name:"Diana Gabaldon", genre:"Historical Fiction" },
+    { name:"Maggie O'Farrell", genre:"Historical Fiction" },
+    { name:"Tracy Chevalier", genre:"Historical Fiction" },
+    { name:"Geraldine Brooks", genre:"Historical Fiction" },
+    { name:"Andrew Miller", genre:"Historical Fiction" },
+    { name:"Hilary Mantel", genre:"Historical Fiction" },
+    { name:"C.J. Sansom", genre:"Historical Fiction" },
+  ],
+  "Non-Fiction": [
+    { name:"Robert Caro", genre:"Non-Fiction" },
+    { name:"Erik Larson", genre:"Non-Fiction" },
+    { name:"Michael Lewis", genre:"Non-Fiction" },
+    { name:"Malcolm Gladwell", genre:"Non-Fiction" },
+    { name:"David McCullough", genre:"Non-Fiction" },
+    { name:"Yuval Noah Harari", genre:"Non-Fiction" },
+    { name:"Bill Bryson", genre:"Non-Fiction" },
+    { name:"Jon Krakauer", genre:"Non-Fiction" },
+    { name:"Sebastian Junger", genre:"Non-Fiction" },
+    { name:"Lawrence Wright", genre:"Non-Fiction" },
+    { name:"Walter Isaacson", genre:"Non-Fiction" },
+    { name:"David Grann", genre:"Non-Fiction" },
+    { name:"Mary Roach", genre:"Non-Fiction" },
+    { name:"Rebecca Skloot", genre:"Non-Fiction" },
+    { name:"Adrian Nicole LeBlanc", genre:"Non-Fiction" },
+    { name:"John McPhee", genre:"Non-Fiction" },
+    { name:"Annie Dillard", genre:"Non-Fiction" },
+    { name:"Joan Didion", genre:"Non-Fiction" },
+    { name:"George Plimpton", genre:"Non-Fiction" },
+    { name:"Tom Wolfe", genre:"Non-Fiction" },
+  ],
+  "Biography": [
+    { name:"Walter Isaacson", genre:"Biography" },
+    { name:"Robert Caro", genre:"Biography" },
+    { name:"David McCullough", genre:"Biography" },
+    { name:"Ron Chernow", genre:"Biography" },
+    { name:"Robert K. Massie", genre:"Biography" },
+    { name:"Andrew Roberts", genre:"Biography" },
+    { name:"Taylor Branch", genre:"Biography" },
+    { name:"Edmund Morris", genre:"Biography" },
+    { name:"Doris Kearns Goodwin", genre:"Biography" },
+    { name:"Mark Stevens", genre:"Biography" },
+    { name:"Steven Naifeh", genre:"Biography" },
+    { name:"Jean Edward Smith", genre:"Biography" },
+    { name:"A. Scott Berg", genre:"Biography" },
+    { name:"Stacy Schiff", genre:"Biography" },
+    { name:"David Remnick", genre:"Biography" },
+    { name:"Jonathan Cott", genre:"Biography" },
+    { name:"Richard Ellmann", genre:"Biography" },
+    { name:"Hermione Lee", genre:"Biography" },
+    { name:"Hilary Spurling", genre:"Biography" },
+    { name:"Michael Holroyd", genre:"Biography" },
+  ],
+};
+
 const SCORE_CATEGORIES = [
   { key:"all",          label:"All" },
   { key:"prose",        label:"Prose" },
@@ -3350,7 +3574,7 @@ function PillDropdown({ value, onChange, options, maxLabelWidth }) {
   );
 }
 
-function RankingsTab({ books, onSaveScores, userId, onAddBook, onAddDirect, onShelfChange, onEdit }) {
+function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, onAddBook, onAddDirect, onShelfChange, onEdit }) {
   const [mode, setMode] = useState("user");
   const [genreFilter, setGenreFilter] = useState("All");
   const [topN, setTopN] = useState(10);
@@ -3364,6 +3588,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onAddDirect, onSh
   const [aiItems, setAiItems] = useState([]);
   const [rankingMode, setRankingMode] = useState("alltime");
   const [entityType, setEntityType] = useState("books");
+  const [userAuthorOrder, setUserAuthorOrder] = useState(null);
   const fetchSession = useRef(0);
 
   const readBooks = useMemo(() =>
@@ -3377,6 +3602,66 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onAddDirect, onSh
   }, [readBooks]);
 
   const availableGenres = mode === "ai" ? ["All", ...GENRES.filter(g => g !== "Other")] : userGenres;
+
+  // Author groupings from read books
+  const authorGroups = useMemo(() => {
+    const grouped = {};
+    readBooks.forEach(b => {
+      if (!b.author) return;
+      if (!grouped[b.author]) grouped[b.author] = [];
+      grouped[b.author].push(b);
+    });
+    return Object.entries(grouped).map(([name, bks]) => {
+      const rated = bks.filter(b => b.rating > 0);
+      const avgRating = rated.length ? rated.reduce((s,b)=>s+b.rating,0)/rated.length : 0;
+      const gc = {}; bks.forEach(b => { if (b.genre) gc[b.genre]=(gc[b.genre]||0)+1; });
+      const topGenre = Object.entries(gc).sort((a,b)=>b[1]-a[1])[0]?.[0] || null;
+      return { name, books: bks, avgRating, topGenre };
+    });
+  }, [readBooks]);
+
+  const defaultAuthorOrder = useMemo(() => {
+    const TIER_IDX = { S:0, A:1, B:2, C:3 };
+    return [...authorGroups]
+      .sort((a, b) => {
+        const at = TIER_IDX[authorTiers[a.name]] ?? 99;
+        const bt = TIER_IDX[authorTiers[b.name]] ?? 99;
+        return at !== bt ? at - bt : b.avgRating - a.avgRating;
+      })
+      .map(a => a.name);
+  }, [authorGroups, authorTiers]);
+
+  const userRankedAuthors = useMemo(() => {
+    const order = userAuthorOrder || defaultAuthorOrder;
+    const nameMap = new Map(authorGroups.map(a => [a.name, a]));
+    const ordered = order.map(n => nameMap.get(n)).filter(Boolean);
+    const unranked = authorGroups.filter(a => !order.includes(a.name));
+    const all = [...ordered, ...unranked];
+    const filtered = genreFilter === "All" ? all : all.filter(a => a.topGenre === genreFilter);
+    const cap = topN === "all" ? filtered.length : Number(topN);
+    return filtered.slice(0, cap);
+  }, [userAuthorOrder, defaultAuthorOrder, authorGroups, genreFilter, topN]);
+
+  function moveAuthor(i, dir) {
+    const j = i + dir;
+    if (j < 0 || j >= userRankedAuthors.length) return;
+    const nameA = userRankedAuthors[i].name;
+    const nameB = userRankedAuthors[j].name;
+    const base = userAuthorOrder || defaultAuthorOrder;
+    const next = [...base];
+    const posA = next.indexOf(nameA);
+    const posB = next.indexOf(nameB);
+    if (posA === -1 || posB === -1) return;
+    [next[posA], next[posB]] = [next[posB], next[posA]];
+    setUserAuthorOrder(next);
+  }
+
+  // AI author list for current genre
+  const aiAuthorItems = useMemo(() => {
+    const list = CLAUDE_AUTHORS[genreFilter] || CLAUDE_AUTHORS["All"];
+    const cap = topN === "all" ? list.length : Number(topN);
+    return list.slice(0, cap);
+  }, [genreFilter, topN]);
 
   // Default global order: all read books sorted by rating desc
   const defaultAllOrderIds = useMemo(() =>
@@ -3755,7 +4040,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onAddDirect, onSh
           </div>
 
           {/* Row 3 (AI only): score left | ranking mode center | spacer right */}
-          {mode === "ai" && (
+          {mode === "ai" && entityType !== "authors" && (
             <div style={{ display:"grid", gridTemplateColumns:"1fr auto 1fr", alignItems:"center", gap:4, paddingTop:5, borderTop:"1px solid rgba(200,144,90,0.12)" }}>
               <div style={{ minWidth:0 }}>
                 <PillDropdown value={scoreCategory} onChange={v => { setScoreCategory(v); setGenerated(false); }} options={SCORE_CATEGORIES.map(({ key, label }) => ({ value:key, label }))} maxLabelWidth={80} />
@@ -3777,7 +4062,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onAddDirect, onSh
           )}
 
           {/* Row 4 (AI only): generate button centered */}
-          {mode === "ai" && (
+          {mode === "ai" && entityType !== "authors" && (
             <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}>
               <button {...tc(generating ? ()=>{} : generateAIRankings)} style={{
                 padding:"5px 16px", borderRadius:20,
@@ -3800,7 +4085,54 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onAddDirect, onSh
 
       {/* Book list */}
       <div style={{ flex:1, overflowY:"auto", padding:"4px 0 20px" }}>
-        {displayList.length === 0 && (
+        {entityType === "authors" && (mode === "user" ? userRankedAuthors : aiAuthorItems).length === 0 && (
+          <div style={{ textAlign:"center", padding:"48px 24px" }}>
+            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, fontStyle:"italic", color:"rgba(255,235,195,0.35)" }}>
+              {readBooks.length === 0 ? "No read books yet" : "No authors match this filter"}
+            </p>
+          </div>
+        )}
+        {entityType === "authors" && mode === "user" && userRankedAuthors.map((author, i) => (
+          <div key={author.name} style={{ display:"flex", alignItems:"stretch" }}>
+            <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", width:36, flexShrink:0, paddingBottom:10, gap:2 }}>
+              <button
+                onTouchEnd={e=>{ e.preventDefault(); e.stopPropagation(); if(i>0) moveAuthor(i,-1); }}
+                onClick={e=>{ e.stopPropagation(); if(i>0) moveAuthor(i,-1); }}
+                disabled={i===0} style={{ background:"none", border:"none", cursor:i===0?"default":"pointer", color:i===0?"rgba(255,255,255,0.12)":"rgba(255,255,255,0.45)", fontSize:14, lineHeight:1, padding:"10px 0", width:"100%" }}>▲</button>
+              <span style={rankBadgeStyle(i)}>{i+1}</span>
+              <button
+                onTouchEnd={e=>{ e.preventDefault(); e.stopPropagation(); if(i<userRankedAuthors.length-1) moveAuthor(i,1); }}
+                onClick={e=>{ e.stopPropagation(); if(i<userRankedAuthors.length-1) moveAuthor(i,1); }}
+                disabled={i===userRankedAuthors.length-1} style={{ background:"none", border:"none", cursor:i===userRankedAuthors.length-1?"default":"pointer", color:i===userRankedAuthors.length-1?"rgba(255,255,255,0.12)":"rgba(255,255,255,0.45)", fontSize:14, lineHeight:1, padding:"10px 0", width:"100%" }}>▼</button>
+            </div>
+            <div style={{ flex:1, minWidth:0 }}>
+              <AuthorShelfRow
+                authorName={author.name}
+                books={[...author.books].sort((a,b)=>(b.rating||0)-(a.rating||0))}
+                onEdit={onEdit}
+                tier={authorTiers[author.name]||null}
+                onSetTier={null}
+              />
+            </div>
+          </div>
+        ))}
+        {entityType === "authors" && mode === "ai" && aiAuthorItems.map((author, i) => (
+          <div key={author.name} style={{ display:"flex", alignItems:"stretch" }}>
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"center", width:36, flexShrink:0, paddingBottom:10 }}>
+              <span style={rankBadgeStyle(i)}>{i+1}</span>
+            </div>
+            <div style={{ flex:1, minWidth:0 }}>
+              <AuthorShelfRow
+                authorName={author.name}
+                books={[]}
+                onEdit={null}
+                tier={null}
+                onSetTier={null}
+              />
+            </div>
+          </div>
+        ))}
+        {entityType !== "authors" && displayList.length === 0 && (
           <div style={{ textAlign:"center", padding:"48px 24px" }}>
             {generating ? (
               <>
@@ -3813,7 +4145,9 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onAddDirect, onSh
               </>
             ) : (
               <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, fontStyle:"italic", color:"rgba(255,235,195,0.35)" }}>
-                {mode === "ai"
+                {entityType === "authors"
+                  ? readBooks.length === 0 ? "No read books yet" : "No authors match this filter"
+                  : mode === "ai"
                   ? "Select options and hit Generate Rankings"
                   : readBooks.length === 0 ? "No read books yet" : "No books match this filter"}
               </p>
@@ -3822,7 +4156,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onAddDirect, onSh
         )}
 
         {/* User ranking list */}
-        {mode === "user" && displayList.map((book, i) => (
+        {entityType !== "authors" && mode === "user" && displayList.map((book, i) => (
           <div key={i} style={{ display:"flex", alignItems:"stretch" }}>
             <div style={{
               display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
@@ -3860,7 +4194,7 @@ function RankingsTab({ books, onSaveScores, userId, onAddBook, onAddDirect, onSh
         ))}
 
         {/* AI ranking list */}
-        {mode === "ai" && generated && aiDisplayItems.map((item, i) => {
+        {entityType !== "authors" && mode === "ai" && generated && aiDisplayItems.map((item, i) => {
           const matched = findInLibrary(item.title);
           const bookObj = (matched && !matched.coverUrl && item.coverUrl) ? { ...matched, coverUrl: item.coverUrl } : matched || {
             id: `ai_${i}`,
@@ -6013,7 +6347,7 @@ export default function App() {
             : tab==="reiko"
             ? <RecommendPage books={books} userId={userId} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, rating:0, date:new Date().toISOString().slice(0,10) }; setBooks(prev => [...prev, b]); if (!guestMode) dbAddBook(b, userId); }} onAuthor={setAuthorModal} onEdit={setEditBook} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"", _fromRecs:true }); }} onShelfChange={changeShelf} onSaveScores={saveScores} />
             : tab==="rankings"
-            ? <RankingsTab books={books} onSaveScores={saveScores} userId={userId} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"", _fromRecs:true }); }} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, date:new Date().toISOString().slice(0,10) }; setBooks(prev => [...prev, b]); if (!guestMode) dbAddBook(b, userId); }} onShelfChange={changeShelf} onEdit={setEditBook} />
+            ? <RankingsTab books={books} onSaveScores={saveScores} userId={userId} authorTiers={authorTiers} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"", _fromRecs:true }); }} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, date:new Date().toISOString().slice(0,10) }; setBooks(prev => [...prev, b]); if (!guestMode) dbAddBook(b, userId); }} onShelfChange={changeShelf} onEdit={setEditBook} />
             : <StatsTab books={books} />
           }
           {showAdd && <AddSheet onSave={addBook} onClose={()=>setShowAdd(false)} />}
