@@ -1288,7 +1288,7 @@ async function fetchAuthorBiblio(authorName, { onProgress, forceRefresh = false 
   return enriched;
 }
 
-function AuthorShelfRow({ authorName, books, onEdit, onAddBook, tier, onSetTier }) {
+function AuthorShelfRow({ authorName, books, onEdit, onAddBook, onAuthor, tier, onSetTier }) {
   const [showUnread, setShowUnread] = useState(false);
   const [unreadBiblio, setUnreadBiblio] = useState(null); // null=not fetched, []=fetched
   const [unreadLoading, setUnreadLoading] = useState(false);
@@ -1332,6 +1332,7 @@ function AuthorShelfRow({ authorName, books, onEdit, onAddBook, tier, onSetTier 
             {unreadLoading ? "Loading…" : showUnread ? "Hide unread" : "Show unread"}
           </button>
           <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600, background:"rgba(138,90,40,0.18)", color:"#8a5a28", border:"1px solid rgba(138,90,40,0.3)", borderRadius:20, padding:"3px 9px" }}>{countStr}</span>
+          <button {...tc(() => onAuthor && onAuthor(authorName), true)} style={{ background:"transparent", border:"none", cursor:"pointer", padding:"2px 4px 0", color:"rgba(120,70,20,0.6)", fontSize:16, lineHeight:1 }}>↗</button>
         </div>
       </div>
       <div style={{ display:"flex", gap:6, overflowX:"auto", paddingBottom:4, scrollbarWidth:"none", marginLeft:-2 }}>
@@ -1477,7 +1478,7 @@ function AuthorsView({ allBooks, authorSort, authorTiers, onSetAuthorTier, serie
             <AuthorCard key={name} authorName={name} books={books} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} tier={authorTiers[name]||null} onSetTier={t => onSetAuthorTier && onSetAuthorTier(name, t)} />
           ))
         : entries.map(([name, books]) => (
-            <AuthorShelfRow key={name} authorName={name} books={books} onEdit={onEdit} onAddBook={onAddBook} tier={authorTiers[name]||null} onSetTier={t => onSetAuthorTier && onSetAuthorTier(name, t)} />
+            <AuthorShelfRow key={name} authorName={name} books={books} onEdit={onEdit} onAddBook={onAddBook} onAuthor={onAuthor} tier={authorTiers[name]||null} onSetTier={t => onSetAuthorTier && onSetAuthorTier(name, t)} />
           ))
       }
     </>
