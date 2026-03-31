@@ -1298,7 +1298,9 @@ function AuthorShelfRow({ authorName, books, onEdit, onAddBook, onAuthor, tier, 
   const genreCount = {};
   books.forEach(b => { if (b.genre) genreCount[b.genre] = (genreCount[b.genre]||0)+1; });
   const topGenre = Object.entries(genreCount).sort((a,b)=>b[1]-a[1])[0]?.[0];
-  const countStr = books.length + " book" + (books.length !== 1 ? "s" : "");
+  const countStr = showUnread && unreadBiblio?.length
+    ? `${books.length} + ${unreadBiblio.length}`
+    : books.length + " book" + (books.length !== 1 ? "s" : "");
 
   async function fetchUnread() {
     if (unreadLoading) return;
