@@ -162,7 +162,6 @@ export default async function handler(req, res) {
   const results = [];
   for (const item of googleItems) {
     if (results.length >= 7) break;
-    if (!isRelevant(item, queryWords)) continue;
     const key = docKey(item.title, item.author);
     if (!seen.has(key)) { seen.add(key); results.push(item); }
   }
