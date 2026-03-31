@@ -1327,9 +1327,14 @@ function AuthorShelfRow({ authorName, books, onEdit, onAddBook, onAuthor, tier, 
             <TierBadge tier={tier} onSetTier={onSetTier} />
           </div>
         </div>
-        <div style={{ display:"flex", alignItems:"center", gap:6, flexShrink:0 }}>
-          <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600, background:"rgba(138,90,40,0.18)", color:"#8a5a28", border:"1px solid rgba(138,90,40,0.3)", borderRadius:20, padding:"3px 9px" }}>{countStr}</span>
-          <button {...tc(() => onAuthor && onAuthor(authorName), true)} style={{ background:"transparent", border:"none", cursor:"pointer", padding:"2px 4px 0", color:"rgba(120,70,20,0.6)", fontSize:16, lineHeight:1 }}>↗</button>
+        <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", gap:6, flexShrink:0 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+            <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600, background:"rgba(138,90,40,0.18)", color:"#8a5a28", border:"1px solid rgba(138,90,40,0.3)", borderRadius:20, padding:"3px 9px" }}>{countStr}</span>
+            <button {...tc(() => onAuthor && onAuthor(authorName), true)} style={{ background:"transparent", border:"none", cursor:"pointer", padding:"2px 4px 0", color:"rgba(120,70,20,0.6)", fontSize:16, lineHeight:1 }}>↗</button>
+          </div>
+          <button {...tc(handleToggleUnread, true)} style={{ background:"transparent", border:"none", fontFamily:"'DM Sans',sans-serif", fontSize:10, color:showUnread ? WOOD.amber : WOOD.textFaint, cursor:"pointer", padding:0, fontWeight: showUnread ? 700 : 400 }}>
+            {unreadLoading ? "Loading…" : showUnread ? "Hide unread" : "Show unread"}
+          </button>
         </div>
       </div>
       <div style={{ display:"flex", gap:6, overflowX:"auto", paddingBottom:4, scrollbarWidth:"none", marginLeft:-2 }}>
@@ -1346,11 +1351,6 @@ function AuthorShelfRow({ authorName, books, onEdit, onAddBook, onAuthor, tier, 
             </div>
           );
         })}
-        <div {...tc(handleToggleUnread, true)} style={{ flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", height:90, width:54, borderRadius:5, background:"rgba(138,90,40,0.08)", border:"1px dashed rgba(138,90,40,0.25)", cursor:"pointer" }}>
-          <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:9, fontWeight:600, color: showUnread ? WOOD.amber : WOOD.textFaint, textAlign:"center", lineHeight:1.4, padding:"0 4px" }}>
-            {unreadLoading ? "…" : showUnread ? "Hide\nunread" : "Show\nunread"}
-          </p>
-        </div>
         {showUnread && unreadBiblio && unreadBiblio.map((item, i) => {
           let tX = 0, tY = 0;
           const draft = { title: item.title, author: authorName, genre: item.genre, coverUrl: item.coverUrl, pages: 0, _fromRecs: true };
