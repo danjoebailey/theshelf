@@ -1322,19 +1322,19 @@ function AuthorShelfRow({ authorName, books, onEdit, onAddBook, onAuthor, tier, 
         <div>
           <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:18, color:WOOD.text, lineHeight:1.2 }}>{authorName}</p>
           <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:WOOD.textFaint, marginTop:2 }}>{readCount} read</p>
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:5 }}>
-            <div style={{ display:"flex", alignItems:"center", gap:5 }}>
-              {topGenre && <span style={{ display:"inline-block", background:GENRE_COLORS[topGenre]||"#94a3b8", color:"#fff", borderRadius:20, padding:"2px 8px", fontSize:9, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em" }}>{topGenre}</span>}
-              <TierBadge tier={tier} onSetTier={onSetTier} />
-            </div>
-            <button {...tc(handleToggleUnread, true)} style={{ background:"transparent", border:"none", fontFamily:"'DM Sans',sans-serif", fontSize:10, color:showUnread ? WOOD.amber : WOOD.textFaint, cursor:"pointer", padding:0, fontWeight: showUnread ? 700 : 400 }}>
-              {unreadLoading ? "Loading…" : showUnread ? "Hide unread" : "Show unread"}
-            </button>
+          <div style={{ display:"flex", alignItems:"center", gap:5, marginTop:5 }}>
+            {topGenre && <span style={{ display:"inline-block", background:GENRE_COLORS[topGenre]||"#94a3b8", color:"#fff", borderRadius:20, padding:"2px 8px", fontSize:9, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em" }}>{topGenre}</span>}
+            <TierBadge tier={tier} onSetTier={onSetTier} />
           </div>
         </div>
-        <div style={{ display:"flex", alignItems:"center", gap:6, flexShrink:0 }}>
-          <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600, background:"rgba(138,90,40,0.18)", color:"#8a5a28", border:"1px solid rgba(138,90,40,0.3)", borderRadius:20, padding:"3px 9px" }}>{countStr}</span>
-          <button {...tc(() => onAuthor && onAuthor(authorName), true)} style={{ background:"transparent", border:"none", cursor:"pointer", padding:"2px 4px 0", color:"rgba(120,70,20,0.6)", fontSize:16, lineHeight:1 }}>↗</button>
+        <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", justifyContent:"space-between", flexShrink:0, alignSelf:"stretch" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+            <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600, background:"rgba(138,90,40,0.18)", color:"#8a5a28", border:"1px solid rgba(138,90,40,0.3)", borderRadius:20, padding:"3px 9px" }}>{countStr}</span>
+            <button {...tc(() => onAuthor && onAuthor(authorName), true)} style={{ background:"transparent", border:"none", cursor:"pointer", padding:"2px 4px 0", color:"rgba(120,70,20,0.6)", fontSize:16, lineHeight:1 }}>↗</button>
+          </div>
+          <button {...tc(handleToggleUnread, true)} style={{ background:"transparent", border:"none", fontFamily:"'DM Sans',sans-serif", fontSize:10, color:showUnread ? WOOD.amber : WOOD.textFaint, cursor:"pointer", padding:0, fontWeight: showUnread ? 700 : 400 }}>
+            {unreadLoading ? "Loading…" : showUnread ? "Hide unread" : "Show unread"}
+          </button>
         </div>
       </div>
       <div style={{ display:"flex", gap:6, overflowX:"auto", paddingBottom:4, scrollbarWidth:"none", marginLeft:-2 }}>
