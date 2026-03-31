@@ -62,50 +62,59 @@ function mapGoogleItem(item) {
 }
 
 async function googleBooksSearch(query) {
-  const [general, titled] = await Promise.all([
-    fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=15&printType=books`).then(r => r.json()).catch(e => ({ _err: e.message })),
-    fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(`intitle:${query}`)}&maxResults=10&printType=books`).then(r => r.json()).catch(e => ({ _err: e.message })),
-  ]);
-  if (general?._err || titled?._err || general?.error || titled?.error) {
-    return { items: [], _debug: { general: general?.error?.message || general?._err || "ok", titled: titled?.error?.message || titled?._err || "ok" } };
+  try {
+    const [general, titled] = await Promise.all([
+      fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=15&printType=books`).then(r => r.json()).catch(() => null),
+      fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(`intitle:${query}`)}&maxResults=10&printType=books`).then(r => r.json()).catch(() => null),
+    ]);
+    const seen = new Set();
+    const results = [];
+    for (const item of [...(general?.items || []), ...(titled?.items || [])]) {
+      const key = docKey(item.volumeInfo?.title || "", (item.volumeInfo?.authors || [])[0] || "");
+      if (!seen.has(key)) { seen.add(key); results.push(mapGoogleItem(item)); }
+    }
+    return results;
+  } catch {
+    return [];
   }
-  const seen = new Set();
-  const results = [];
-  for (const item of [...(general?.items || []), ...(titled?.items || [])]) {
-    const key = docKey(item.volumeInfo?.title || "", (item.volumeInfo?.authors || [])[0] || "");
-    if (!seen.has(key)) { seen.add(key); results.push(mapGoogleItem(item)); }
-  }
-  return { items: results };
 }
 
 async function olSearch(query) {
-  const fields = "title,author_name,number_of_pages_median,subject,cover_i,first_publish_year";
-  const url = query.startsWith("http")
-    ? query
-    : `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=7&fields=${fields}`;
-  const res = await fetch(url);
-  const data = await res.json();
-  return { items: (data.docs || []).map(doc => ({
-    title:       toTitleCase(doc.title || "Unknown"),
-    author:      (doc.author_name || [])[0] || "Unknown",
-    pages:       doc.number_of_pages_median || 0,
-    genre:       inferGenre(doc.subject || []),
-    coverUrl:    doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg` : null,
-    publishYear: doc.first_publish_year || null,
-  })) };
+  try {
+    const fields = "title,author_name,number_of_pages_median,subject,cover_i,first_publish_year";
+    const url = query.startsWith("http")
+      ? query
+      : `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=7&fields=${fields}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    return (data.docs || []).map(doc => ({
+      title:       toTitleCase(doc.title || "Unknown"),
+      author:      (doc.author_name || [])[0] || "Unknown",
+      pages:       doc.number_of_pages_median || 0,
+      genre:       inferGenre(doc.subject || []),
+      coverUrl:    doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg` : null,
+      publishYear: doc.first_publish_year || null,
+    }));
+  } catch {
+    return [];
+  }
 }
 
 async function itunesSearch(query) {
-  const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=ebook&limit=7&media=ebook`);
-  const data = await res.json();
-  return { items: (data.results || []).map(r => ({
-    title:       toTitleCase(r.trackName || "Unknown"),
-    author:      r.artistName || "Unknown",
-    pages:       0,
-    genre:       inferGenre([r.primaryGenreName || ""]),
-    coverUrl:    r.artworkUrl100 ? r.artworkUrl100.replace("/100x100bb.", "/400x600bb.") : null,
-    publishYear: r.releaseDate ? parseInt(r.releaseDate) : null,
-  })) };
+  try {
+    const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(query)}&entity=ebook&limit=7&media=ebook`);
+    const data = await res.json();
+    return (data.results || []).map(r => ({
+      title:       toTitleCase(r.trackName || "Unknown"),
+      author:      r.artistName || "Unknown",
+      pages:       0,
+      genre:       inferGenre([r.primaryGenreName || ""]),
+      coverUrl:    r.artworkUrl100 ? r.artworkUrl100.replace("/100x100bb.", "/400x600bb.") : null,
+      publishYear: r.releaseDate ? parseInt(r.releaseDate) : null,
+    }));
+  } catch {
+    return [];
+  }
 }
 
 const TITLE_LOWER = new Set(["a","an","the","and","but","or","nor","for","so","yet","at","by","in","of","on","to","up","as","vs","via"]);
@@ -149,22 +158,19 @@ export default async function handler(req, res) {
     ? `https://openlibrary.org/search.json?author=${encodeURIComponent(query)}&limit=7&fields=title,author_name,number_of_pages_median,subject,cover_i,first_publish_year`
     : null;
 
-  const [google, ol, itunes] = await Promise.all([
-    googleBooksSearch(googleQuery).catch(e => ({ items: [], _debug: e.message })),
-    olSearch(olQuery || query).catch(e => ({ items: [], _debug: e.message })),
-    itunesSearch(query).catch(e => ({ items: [], _debug: e.message })),
+  const [googleItems, olItems, itunesItems] = await Promise.all([
+    googleBooksSearch(googleQuery),
+    olSearch(olQuery || query),
+    itunesSearch(query),
   ]);
 
   const seen = new Set();
   const results = [];
-  for (const item of [...(google.items || []), ...(ol.items || []), ...(itunes.items || [])]) {
+  for (const item of [...googleItems, ...olItems, ...itunesItems]) {
     if (results.length >= 7) break;
     const key = docKey(item.title, item.author);
     if (!seen.has(key) && isRelevant(item, queryWords)) { seen.add(key); results.push(item); }
   }
 
-  if (results.length === 0) {
-    return res.json({ results: [], _debug: { google: google._debug || `${google.items?.length} items`, ol: ol._debug || `${ol.items?.length} items`, itunes: itunes._debug || `${itunes.items?.length} items` } });
-  }
   res.json(results);
 }
