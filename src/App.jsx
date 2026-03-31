@@ -5414,7 +5414,7 @@ function toTitleCase(str) {
 }
 
 function normBookKey(title) {
-  return (title || '').replace(/\s*[(:].*/,'').toLowerCase().replace(/[^\w]/g, '');
+  return (title || '').replace(/\s*[(:].*/,'').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^\w]/g, '');
 }
 
 function normalizeGenre(genre) {
