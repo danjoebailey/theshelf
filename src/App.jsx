@@ -1370,7 +1370,7 @@ function AuthorShelfRow({ authorName, books, onEdit, onAddBook, onAuthor, tier, 
   );
 }
 
-function AuthorCard({ authorName, books, onEdit, onRemove, onShelfChange, onSaveProgress, onSavePages, onSaveAspects, tier, onSetTier }) {
+function AuthorCard({ authorName, books, onEdit, onRemove, onShelfChange, onSaveProgress, onSavePages, onSaveAspects, onAuthor, tier, onSetTier }) {
   const [expanded, setExpanded] = useState(false);
   const [unreadBiblio, setUnreadBiblio] = useState(null); // null=not fetched, []=fetched
   const [unreadLoading, setUnreadLoading] = useState(false);
@@ -1412,6 +1412,7 @@ function AuthorCard({ authorName, books, onEdit, onRemove, onShelfChange, onSave
         <div style={{ display:"flex", alignItems:"center", gap:8, flexShrink:0 }}>
           {avgRating && <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:WOOD.textDim }}>★ {avgRating}</span>}
           <TierBadge tier={tier} onSetTier={onSetTier} />
+          <button {...tc(() => onAuthor && onAuthor(authorName), true)} style={{ background:"transparent", border:"none", cursor:"pointer", padding:"2px 4px 0", color:"rgba(120,70,20,0.6)", fontSize:16, lineHeight:1 }}>↗</button>
           <svg width="10" height="6" viewBox="0 0 10 6" fill="none" style={{ transition:"transform 0.2s", transform: expanded?"rotate(180deg)":"rotate(0deg)" }}>
             <path d="M1 1l4 4 4-4" stroke={WOOD.textFaint} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
@@ -1478,7 +1479,7 @@ function AuthorsView({ allBooks, authorSort, authorTiers, onSetAuthorTier, serie
         </div>
       ) : seriesViewStyle === "list"
         ? entries.map(([name, books]) => (
-            <AuthorCard key={name} authorName={name} books={books} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} tier={authorTiers[name]||null} onSetTier={t => onSetAuthorTier && onSetAuthorTier(name, t)} />
+            <AuthorCard key={name} authorName={name} books={books} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} tier={authorTiers[name]||null} onSetTier={t => onSetAuthorTier && onSetAuthorTier(name, t)} />
           ))
         : entries.map(([name, books]) => (
             <AuthorShelfRow key={name} authorName={name} books={books} onEdit={onEdit} onAddBook={onAddBook} onAuthor={onAuthor} tier={authorTiers[name]||null} onSetTier={t => onSetAuthorTier && onSetAuthorTier(name, t)} />
