@@ -1407,11 +1407,13 @@ function AuthorCard({ authorName, books, onEdit, onRemove, onShelfChange, onSave
         <div style={{ flex:1, minWidth:0 }}>
           <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:18, color:WOOD.text, lineHeight:1.2, marginBottom:2 }}>{authorName}</p>
           <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:WOOD.textFaint, marginBottom:4 }}>{books.length} book{books.length!==1?"s":""}</p>
-          {topGenre && <span style={{ display:"inline-block", background:GENRE_COLORS[topGenre]||"#94a3b8", color:"#fff", borderRadius:20, padding:"2px 8px", fontSize:9, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em" }}>{topGenre}</span>}
+          <div style={{ display:"flex", alignItems:"center", gap:5, marginTop:2 }}>
+            {topGenre && <span style={{ display:"inline-block", background:GENRE_COLORS[topGenre]||"#94a3b8", color:"#fff", borderRadius:20, padding:"2px 8px", fontSize:9, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em" }}>{topGenre}</span>}
+            <TierBadge tier={tier} onSetTier={onSetTier} />
+          </div>
         </div>
         <div style={{ display:"flex", alignItems:"center", gap:8, flexShrink:0 }}>
           {avgRating && <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:WOOD.textDim }}>★ {avgRating}</span>}
-          <TierBadge tier={tier} onSetTier={onSetTier} />
           <button {...tc(() => onAuthor && onAuthor(authorName), true)} style={{ background:"transparent", border:"none", cursor:"pointer", padding:"2px 4px 0", color:"rgba(120,70,20,0.6)", fontSize:16, lineHeight:1 }}>↗</button>
           <svg width="10" height="6" viewBox="0 0 10 6" fill="none" style={{ transition:"transform 0.2s", transform: expanded?"rotate(180deg)":"rotate(0deg)" }}>
             <path d="M1 1l4 4 4-4" stroke={WOOD.textFaint} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
