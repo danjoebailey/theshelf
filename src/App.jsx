@@ -1555,7 +1555,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
     clearTimeout(searchTimer.current);
     if (searchAbort.current) { searchAbort.current.abort(); searchAbort.current = null; }
     setApiResults([]);
-    if (q.trim().length >= 2) {
+    if (q.trim().length >= 3) {
       setApiSearching(true);
       searchTimer.current = setTimeout(async () => {
         const controller = new AbortController();
