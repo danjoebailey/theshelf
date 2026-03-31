@@ -141,7 +141,7 @@ const STOP_WORDS = new Set(["the","a","an","and","of","by","in","on","at","to","
 function isRelevant(item, queryWords) {
   if (!queryWords.length) return true;
   const haystack = `${item.title} ${item.author}`.toLowerCase();
-  return queryWords.some(w => haystack.includes(w));
+  return queryWords.every(w => haystack.includes(w));
 }
 
 export default async function handler(req, res) {
@@ -152,9 +152,7 @@ export default async function handler(req, res) {
 
   const queryWords = query.toLowerCase().split(/\s+/).filter(w => w.length > 1 && !STOP_WORDS.has(w));
 
-  const googleQuery = mode === "Books" || mode === "Series" ? `intitle:${query}`
-    : mode === "Authors" ? `inauthor:${query}`
-    : query;
+  const googleQuery = mode === "Authors" ? `inauthor:${query}` : query;
   const olQuery = mode === "Authors"
     ? `https://openlibrary.org/search.json?author=${encodeURIComponent(query)}&limit=7&fields=title,author_name,number_of_pages_median,subject,cover_i,first_publish_year`
     : null;
