@@ -1636,7 +1636,15 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
           </div>
 
           {/* dropdown results */}
-          {apiResults.length > 0 && showApiResults && (
+          {(() => {
+            const q = search.toLowerCase();
+            const localMatches = search.trim().length >= 2
+              ? books.filter(b => b.title.toLowerCase().includes(q) || (b.author||"").toLowerCase().includes(q)).slice(0, 3)
+              : [];
+            const localTitles = new Set(localMatches.map(b => normBookKey(b.title)));
+            const newApiResults = apiResults.filter(b => !localTitles.has(normBookKey(b.title)));
+            const showDropdown = (localMatches.length > 0 || newApiResults.length > 0) && showApiResults;
+            return showDropdown && (
             <div style={{
               position:"absolute", top:"calc(100% + 6px)", left:0, right:0, zIndex:200,
               background:"#fff",
@@ -1645,10 +1653,28 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
               border:"1px solid #e5e7eb",
               maxHeight:320, overflowY:"auto",
             }}>
-              {searchMode !== "Authors" && apiResults.map((book, i) => (
+              {localMatches.map((book, i) => (
+                <button key={`local-${book.id}`} onClick={() => { setSearch(""); setApiResults([]); setShowApiResults(true); onEdit && onEdit(book); }} style={{
+                  background:"rgba(138,90,40,0.05)",
+                  border:"none", borderBottom:"1px solid #f3f4f6",
+                  padding:"10px 14px", textAlign:"left", cursor:"pointer",
+                  display:"flex", alignItems:"center", gap:10, width:"100%",
+                }}>
+                  {book.coverUrl
+                    ? <img src={book.coverUrl} alt={book.title} style={{ width:28, height:42, objectFit:"cover", borderRadius:3, boxShadow:"1px 1px 4px rgba(0,0,0,0.25)", flexShrink:0 }} />
+                    : <BookSpine title={book.title} genre={book.genre} size={28} />
+                  }
+                  <div style={{ minWidth:0, flex:1 }}>
+                    <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{book.title}</p>
+                    <p style={{ fontSize:11, color:WOOD.textDim, fontStyle:"italic" }}>{book.author}</p>
+                  </div>
+                  <span style={{ fontSize:9, fontFamily:"'DM Sans',sans-serif", color:WOOD.textFaint, flexShrink:0 }}>in library</span>
+                </button>
+              ))}
+              {searchMode !== "Authors" && newApiResults.map((book, i) => (
                 <button key={i} onClick={() => { setSearch(""); setApiResults([]); setShowApiResults(true); onAddBook({ ...book, _fromRecs: true }); }} style={{
                   background:"transparent",
-                  border:"none", borderBottom: i < apiResults.length-1 ? "1px solid #f3f4f6" : "none",
+                  border:"none", borderBottom: i < newApiResults.length-1 ? "1px solid #f3f4f6" : "none",
                   padding:"10px 14px", textAlign:"left", cursor:"pointer",
                   display:"flex", alignItems:"center", gap:10, width:"100%",
                 }}>
@@ -1700,7 +1726,8 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
                 color:"#6b7280",
               }}>View shelf results ↓</button>
             </div>
-          )}
+            );
+          })()}
           {/* re-open results hint */}
           {apiResults.length > 0 && !showApiResults && (
             <button onClick={()=>setShowApiResults(true)} style={{
@@ -6347,6 +6374,17 @@ export default function App() {
     setToast({ title: book.title, shelf: book.shelf || "Read" });
     toastTimer.current = setTimeout(() => setToast(null), 3000);
     if (!guestMode && !book.series) autoDetectSeries(book);
+    if (!book.coverUrl) {
+      fetch("/api/fetch-cover", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ title: book.title, author: book.author }) })
+        .then(r => r.json())
+        .then(d => {
+          if (!d.coverUrl) return;
+          const updated = { ...book, coverUrl: d.coverUrl };
+          setBooks(prev => prev.map(b => b.id === book.id ? updated : b));
+          if (!guestMode) dbUpdateBook(updated, userId);
+        })
+        .catch(() => {});
+    }
   }
 
   async function autoDetectSeries(book) {

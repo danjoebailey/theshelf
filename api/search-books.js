@@ -146,24 +146,11 @@ export default async function handler(req, res) {
     ? `https://openlibrary.org/search.json?author=${encodeURIComponent(query)}&limit=7&fields=title,author_name,number_of_pages_median,subject,cover_i,first_publish_year`
     : null;
 
-  // Run all three in parallel; Google Books primary, OL fills gaps, iTunes catches the rest
-  const [googleItems, olItems, itunesItems] = await Promise.all([
-    googleBooksSearch(googleQuery),
-    olQuery ? fetch(olQuery).then(r => r.json()).then(data => (data.docs || []).map(doc => ({
-      title: toTitleCase(doc.title || "Unknown"),
-      author: (doc.author_name || [])[0] || "Unknown",
-      pages: doc.number_of_pages_median || 0,
-      genre: inferGenre(doc.subject || []),
-      coverUrl: doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg` : null,
-      publishYear: doc.first_publish_year || null,
-    }))).catch(() => []) : olSearch(query),
-    itunesSearch(query),
-  ]);
+  const googleItems = await googleBooksSearch(googleQuery);
 
   const seen = new Set();
   const results = [];
-
-  for (const item of [...googleItems, ...olItems, ...itunesItems]) {
+  for (const item of googleItems) {
     if (results.length >= 7) break;
     if (!isRelevant(item, queryWords)) continue;
     const key = docKey(item.title, item.author);
