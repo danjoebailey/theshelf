@@ -8,30 +8,6 @@ const supabase = createClient(
 const GENRES = ["Fiction","Non-Fiction","Fantasy","Sci-Fi","Mystery","Thriller","Horror","Romance","Biography","History","Historical Fiction","Young Adult","Self-Help","Graphic Novel","Other"];
 const RESULT_FORMAT = `Return ONLY a valid JSON array — no markdown, no explanation, no code blocks. The array must be sorted from most to least culturally significant and widely known. Each object must have exactly these keys: "title" (string — just the book title, no series info), "series" (string or null — e.g. "Malazan Book of the Fallen, #3"), "publishYear" (number or null), "pages" (number — approximate page count, or null if unknown), "tier" (number — 1 for essential/landmark works, 2 for notable/recommended works, 3 for minor/obscure/completionist works), "genre" (string — must be exactly one of: ${GENRES.join(", ")}). Example: [{"title":"Memories of Ice","series":"Malazan Book of the Fallen, #3","publishYear":2001,"pages":943,"tier":1,"genre":"Fantasy"}]`;
 
-function titleMatches(returned, query) {
-  const normalize = s => s.toLowerCase().replace(/[^a-z0-9,:\s]/g, "").replace(/\s+/g, " ").trim();
-  const r = normalize(returned), q = normalize(query);
-  if (r === q) return true;
-  if (r.startsWith(q + ":") || r.startsWith(q + ", ") || r.startsWith(q + ",")) return true;
-  return r.split(/\s*[,:]\s*/)[0].trim() === q.split(/\s*[,:]\s*/)[0].trim();
-}
-
-async function fetchCoverUrl(title, author) {
-  try {
-    const [gbData, itunesData] = await Promise.all([
-      fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(`${title} ${author}`)}&maxResults=5&printType=books`)
-        .then(r => r.json()).catch(() => null),
-      fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(`${title} ${author}`)}&entity=ebook&limit=5&media=ebook`)
-        .then(r => r.json()).catch(() => null),
-    ]);
-    const gbItem = (gbData?.items || []).find(i => titleMatches(i.volumeInfo?.title || "", title) && i.volumeInfo?.imageLinks?.thumbnail);
-    const itunesItem = (itunesData?.results || []).find(r => titleMatches(r.trackName || "", title) && r.artworkUrl100);
-    const itunesUrl = itunesItem?.artworkUrl100?.replace("/100x100bb.", "/600x600bb.");
-    const gbUrl = gbItem?.volumeInfo.imageLinks.thumbnail.replace("http://", "https://").replace("&edge=curl", "");
-    return itunesUrl || gbUrl || null;
-  } catch {}
-  return null;
-}
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
@@ -88,20 +64,5 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "Failed to parse AI response", raw: text });
   }
 
-  // Fetch covers in parallel batches of 5
-  const itemsWithCovers = [...items];
-  for (let i = 0; i < items.length; i += 5) {
-    const batch = items.slice(i, i + 5);
-    const covers = await Promise.all(batch.map(item => fetchCoverUrl(item.title, author)));
-    covers.forEach((coverUrl, j) => { itemsWithCovers[i + j] = { ...items[i + j], coverUrl: coverUrl || null }; });
-  }
-
-  // Cache in Supabase
-  await supabase.from("author_bibliographies").upsert({
-    author,
-    items: itemsWithCovers,
-    generated_at: new Date().toISOString(),
-  });
-
-  res.json({ items: itemsWithCovers, cached: false });
+  res.json({ items, cached: false });
 }
