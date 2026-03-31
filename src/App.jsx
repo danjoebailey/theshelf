@@ -1247,6 +1247,47 @@ function SeriesCard({ seriesName, books, seriesTotal, onEdit, onRemove, onShelfC
   );
 }
 
+// Shared helper: fetch full bibliography (cache → API → cover enrich → upsert).
+// Calls onProgress(items) incrementally as covers load.
+// Returns the full enriched items array.
+async function fetchAuthorBiblio(authorName, { onProgress, forceRefresh = false } = {}) {
+  if (!forceRefresh) {
+    const { data: cached } = await supabase
+      .from("author_bibliographies")
+      .select("items, cached_at")
+      .eq("author_name", authorName)
+      .single();
+    if (cached?.items?.length) {
+      const age = (Date.now() - new Date(cached.cached_at).getTime()) / 86400000;
+      if (age < 365) { onProgress && onProgress(cached.items); return cached.items; }
+    }
+  }
+  const res = await fetch("/api/author-bibliography", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ author: authorName }),
+  });
+  const data = await res.json();
+  const enriched = (data.items || []).map(b => ({ ...b }));
+  onProgress && onProgress(enriched);
+  const BATCH = 5;
+  for (let i = 0; i < enriched.length; i += BATCH) {
+    await Promise.all(enriched.slice(i, i + BATCH).map(async b => {
+      if (b.coverUrl) return;
+      try {
+        const r = await fetch("/api/fetch-cover", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ title: b.title, author: authorName }) });
+        const d = await r.json();
+        if (d.coverUrl) b.coverUrl = d.coverUrl;
+      } catch {}
+    }));
+    onProgress && onProgress([...enriched]);
+  }
+  await supabase.from("author_bibliographies").upsert(
+    { author_name: authorName, items: enriched, cached_at: new Date().toISOString() },
+    { onConflict: "author_name" }
+  );
+  return enriched;
+}
+
 function AuthorShelfRow({ authorName, books, onEdit, tier, onSetTier }) {
   const [showUnread, setShowUnread] = useState(false);
   const [unreadBiblio, setUnreadBiblio] = useState(null); // null=not fetched, []=fetched
@@ -1262,45 +1303,11 @@ function AuthorShelfRow({ authorName, books, onEdit, tier, onSetTier }) {
   async function fetchUnread() {
     if (unreadLoading) return;
     setUnreadLoading(true);
+    const ownedTitles = new Set(books.map(b => b.title.toLowerCase().trim()));
     try {
-      const ownedTitles = new Set(books.map(b => b.title.toLowerCase().trim()));
-      // Check shared cache first
-      const { data: cached } = await supabase
-        .from("author_bibliographies")
-        .select("items, cached_at")
-        .eq("author_name", authorName)
-        .single();
-      if (cached?.items?.length) {
-        const age = (Date.now() - new Date(cached.cached_at).getTime()) / 86400000;
-        if (age < 365) {
-          setUnreadBiblio(cached.items.filter(item => !ownedTitles.has(item.title.toLowerCase().trim())));
-          return;
-        }
-      }
-      // Cache miss — full fetch + cover enrichment
-      const res = await fetch("/api/author-bibliography", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ author: authorName }),
+      await fetchAuthorBiblio(authorName, {
+        onProgress: items => setUnreadBiblio(items.filter(item => !ownedTitles.has(item.title.toLowerCase().trim()))),
       });
-      const data = await res.json();
-      const allItems = data.items || [];
-      const enriched = allItems.map(b => ({ ...b }));
-      const BATCH = 5;
-      for (let i = 0; i < enriched.length; i += BATCH) {
-        await Promise.all(enriched.slice(i, i + BATCH).map(async b => {
-          if (b.coverUrl) return;
-          try {
-            const r = await fetch("/api/fetch-cover", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ title: b.title, author: authorName }) });
-            const d = await r.json();
-            if (d.coverUrl) b.coverUrl = d.coverUrl;
-          } catch {}
-        }));
-        setUnreadBiblio(enriched.filter(item => !ownedTitles.has(item.title.toLowerCase().trim())));
-      }
-      await supabase.from("author_bibliographies").upsert(
-        { author_name: authorName, items: enriched, cached_at: new Date().toISOString() },
-        { onConflict: "author_name" }
-      );
     } catch {} finally { setUnreadLoading(false); }
   }
 
@@ -1362,25 +1369,17 @@ function AuthorCard({ authorName, books, onEdit, onRemove, onShelfChange, onSave
   const initials = authorName.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
   const sorted = [...books].sort((a,b)=>((b.date||"").localeCompare(a.date||"")));
 
-  // Lazy-load from cache on first expand
+  // Lazy-load full bibliography on first expand (cache → API → covers → upsert)
   useEffect(() => {
     if (!expanded || unreadBiblio !== null || unreadLoading) return;
     let cancelled = false;
     setUnreadLoading(true);
+    const ownedTitles = new Set(books.map(b => b.title.toLowerCase().trim()));
     (async () => {
       try {
-        const ownedTitles = new Set(books.map(b => b.title.toLowerCase().trim()));
-        const { data: cached } = await supabase
-          .from("author_bibliographies")
-          .select("items, cached_at")
-          .eq("author_name", authorName)
-          .single();
-        let result = [];
-        if (cached?.items?.length) {
-          const age = (Date.now() - new Date(cached.cached_at).getTime()) / 86400000;
-          if (age < 365) result = cached.items.filter(item => !ownedTitles.has(item.title.toLowerCase().trim()));
-        }
-        if (!cancelled) setUnreadBiblio(result);
+        await fetchAuthorBiblio(authorName, {
+          onProgress: items => { if (!cancelled) setUnreadBiblio(items.filter(item => !ownedTitles.has(item.title.toLowerCase().trim()))); },
+        });
       } catch { if (!cancelled) setUnreadBiblio([]); }
       finally { if (!cancelled) setUnreadLoading(false); }
     })();
