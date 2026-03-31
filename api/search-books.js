@@ -64,13 +64,12 @@ function mapGoogleItem(item) {
 async function googleBooksSearch(query) {
   try {
     const k = process.env.GOOGLE_BOOKS_KEY ? `&key=${process.env.GOOGLE_BOOKS_KEY}` : "";
-    const [general, titled] = await Promise.all([
-      fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=15&printType=books&orderBy=relevance${k}`).then(r => r.json()).catch(() => null),
-      fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=10&printType=books&orderBy=newest${k}`).then(r => r.json()).catch(() => null),
-    ]);
+    const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=12&printType=books&orderBy=relevance${k}`);
+    const data = await res.json();
+    if (data.error) return [];
     const seen = new Set();
     const results = [];
-    for (const item of [...(general?.items || []), ...(titled?.items || [])]) {
+    for (const item of (data.items || [])) {
       const key = docKey(item.volumeInfo?.title || "", (item.volumeInfo?.authors || [])[0] || "");
       if (!seen.has(key)) { seen.add(key); results.push(mapGoogleItem(item)); }
     }

@@ -1574,7 +1574,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
           if (err.name !== "AbortError") setApiResults([]);
         }
         setApiSearching(false);
-      }, 250);
+      }, 450);
     } else {
       setApiSearching(false);
     }
