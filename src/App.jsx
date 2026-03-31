@@ -1248,12 +1248,67 @@ function SeriesCard({ seriesName, books, seriesTotal, onEdit, onRemove, onShelfC
 }
 
 function AuthorShelfRow({ authorName, books, onEdit, tier, onSetTier }) {
+  const [showUnread, setShowUnread] = useState(false);
+  const [unreadBiblio, setUnreadBiblio] = useState(null); // null=not fetched, []=fetched
+  const [unreadLoading, setUnreadLoading] = useState(false);
+
   const sorted = [...books].sort((a, b) => ((b.date||"").localeCompare(a.date||"")));
   const readCount = books.filter(b => (b.shelf||"Read") === "Read" || b.shelf === "DNF").length;
   const genreCount = {};
   books.forEach(b => { if (b.genre) genreCount[b.genre] = (genreCount[b.genre]||0)+1; });
   const topGenre = Object.entries(genreCount).sort((a,b)=>b[1]-a[1])[0]?.[0];
   const countStr = books.length + " book" + (books.length !== 1 ? "s" : "");
+
+  async function fetchUnread() {
+    if (unreadLoading) return;
+    setUnreadLoading(true);
+    try {
+      const ownedTitles = new Set(books.map(b => b.title.toLowerCase().trim()));
+      // Check shared cache first
+      const { data: cached } = await supabase
+        .from("author_bibliographies")
+        .select("items, cached_at")
+        .eq("author_name", authorName)
+        .single();
+      if (cached?.items?.length) {
+        const age = (Date.now() - new Date(cached.cached_at).getTime()) / 86400000;
+        if (age < 365) {
+          setUnreadBiblio(cached.items.filter(item => !ownedTitles.has(item.title.toLowerCase().trim())));
+          return;
+        }
+      }
+      // Cache miss — full fetch + cover enrichment
+      const res = await fetch("/api/author-bibliography", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ author: authorName }),
+      });
+      const data = await res.json();
+      const allItems = data.items || [];
+      const enriched = allItems.map(b => ({ ...b }));
+      const BATCH = 5;
+      for (let i = 0; i < enriched.length; i += BATCH) {
+        await Promise.all(enriched.slice(i, i + BATCH).map(async b => {
+          if (b.coverUrl) return;
+          try {
+            const r = await fetch("/api/fetch-cover", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ title: b.title, author: authorName }) });
+            const d = await r.json();
+            if (d.coverUrl) b.coverUrl = d.coverUrl;
+          } catch {}
+        }));
+        setUnreadBiblio(enriched.filter(item => !ownedTitles.has(item.title.toLowerCase().trim())));
+      }
+      await supabase.from("author_bibliographies").upsert(
+        { author_name: authorName, items: enriched, cached_at: new Date().toISOString() },
+        { onConflict: "author_name" }
+      );
+    } catch {} finally { setUnreadLoading(false); }
+  }
+
+  function handleToggleUnread() {
+    if (!showUnread && unreadBiblio === null) fetchUnread();
+    setShowUnread(v => !v);
+  }
+
   return (
     <div style={{ marginBottom:8, background:WOOD.card, borderRadius:12, border:`1px solid ${WOOD.cardBorder}`, borderLeft:"4px solid #8a5a28", padding:"14px 16px", boxShadow:"0 1px 4px rgba(0,0,0,0.08)" }}>
       <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", marginBottom:10 }}>
@@ -1263,6 +1318,9 @@ function AuthorShelfRow({ authorName, books, onEdit, tier, onSetTier }) {
           {topGenre && <span style={{ display:"inline-block", marginTop:5, background:GENRE_COLORS[topGenre]||"#94a3b8", color:"#fff", borderRadius:20, padding:"2px 8px", fontSize:9, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em" }}>{topGenre}</span>}
         </div>
         <div style={{ display:"flex", alignItems:"center", gap:6, flexShrink:0 }}>
+          <button {...tc(handleToggleUnread, true)} style={{ background:"transparent", border:"none", fontFamily:"'DM Sans',sans-serif", fontSize:10, color:showUnread ? WOOD.amber : WOOD.textFaint, cursor:"pointer", padding:"3px 6px", fontWeight: showUnread ? 700 : 400 }}>
+            {unreadLoading ? "Loading…" : showUnread ? "Hide unread" : "Show unread"}
+          </button>
           <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600, background:"rgba(138,90,40,0.18)", color:"#8a5a28", border:"1px solid rgba(138,90,40,0.3)", borderRadius:20, padding:"3px 9px" }}>{countStr}</span>
           <TierBadge tier={tier} onSetTier={onSetTier} />
         </div>
@@ -1281,6 +1339,11 @@ function AuthorShelfRow({ authorName, books, onEdit, tier, onSetTier }) {
             </div>
           );
         })}
+        {showUnread && unreadBiblio && unreadBiblio.map((item, i) => (
+          <div key={`unread-${i}`} style={{ flexShrink:0, filter:"grayscale(70%) brightness(0.75)", opacity:0.65, cursor:"default" }} title={item.title}>
+            <BookCoverThumb book={{ title: item.title, coverUrl: item.coverUrl, genre: item.genre }} />
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -1288,6 +1351,9 @@ function AuthorShelfRow({ authorName, books, onEdit, tier, onSetTier }) {
 
 function AuthorCard({ authorName, books, onEdit, onRemove, onShelfChange, onSaveProgress, onSavePages, onSaveAspects, tier, onSetTier }) {
   const [expanded, setExpanded] = useState(false);
+  const [unreadBiblio, setUnreadBiblio] = useState(null); // null=not fetched, []=fetched
+  const [unreadLoading, setUnreadLoading] = useState(false);
+
   const readBooks = books.filter(b => b.rating > 0);
   const avgRating = readBooks.length > 0 ? (readBooks.reduce((s,b)=>s+b.rating,0)/readBooks.length).toFixed(1) : null;
   const genreCount = {};
@@ -1295,6 +1361,32 @@ function AuthorCard({ authorName, books, onEdit, onRemove, onShelfChange, onSave
   const topGenre = Object.entries(genreCount).sort((a,b)=>b[1]-a[1])[0]?.[0];
   const initials = authorName.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
   const sorted = [...books].sort((a,b)=>((b.date||"").localeCompare(a.date||"")));
+
+  // Lazy-load from cache on first expand
+  useEffect(() => {
+    if (!expanded || unreadBiblio !== null || unreadLoading) return;
+    let cancelled = false;
+    setUnreadLoading(true);
+    (async () => {
+      try {
+        const ownedTitles = new Set(books.map(b => b.title.toLowerCase().trim()));
+        const { data: cached } = await supabase
+          .from("author_bibliographies")
+          .select("items, cached_at")
+          .eq("author_name", authorName)
+          .single();
+        let result = [];
+        if (cached?.items?.length) {
+          const age = (Date.now() - new Date(cached.cached_at).getTime()) / 86400000;
+          if (age < 365) result = cached.items.filter(item => !ownedTitles.has(item.title.toLowerCase().trim()));
+        }
+        if (!cancelled) setUnreadBiblio(result);
+      } catch { if (!cancelled) setUnreadBiblio([]); }
+      finally { if (!cancelled) setUnreadLoading(false); }
+    })();
+    return () => { cancelled = true; };
+  }, [expanded, authorName]);
+
   return (
     <div style={{ marginBottom:8 }}>
       <div onClick={() => setExpanded(e => !e)} style={{ background:WOOD.card, borderRadius:12, padding:"14px 16px", border:`1px solid ${WOOD.cardBorder}`, borderLeft:"4px solid #8a5a28", boxShadow:"0 1px 4px rgba(0,0,0,0.08)", cursor:"pointer", display:"flex", alignItems:"center", gap:12 }}>
@@ -1317,6 +1409,30 @@ function AuthorCard({ authorName, books, onEdit, onRemove, onShelfChange, onSave
           {sorted.map((book, i) => (
             <BookRow key={book.id} book={book} index={i} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} />
           ))}
+          {unreadBiblio && unreadBiblio.length > 0 && (
+            <>
+              <div style={{ padding:"8px 16px 4px", background:"rgba(255,235,195,0.4)", borderTop:`1px solid ${WOOD.cardBorder}` }}>
+                <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:10, color:WOOD.textFaint, fontWeight:600, textTransform:"uppercase", letterSpacing:"0.08em" }}>Not in library</p>
+              </div>
+              {unreadBiblio.map((item, i) => (
+                <div key={`unread-${i}`} style={{ display:"flex", alignItems:"center", gap:10, padding:"8px 16px", background:"rgba(255,235,195,0.25)", borderTop:`1px solid ${WOOD.cardBorder}`, opacity:0.55 }}>
+                  {item.coverUrl
+                    ? <img src={item.coverUrl} alt={item.title} style={{ height:40, width:27, objectFit:"cover", borderRadius:3, boxShadow:"0 1px 4px rgba(0,0,0,0.25)", flexShrink:0, filter:"grayscale(60%)" }} />
+                    : <div style={{ height:40, width:27, borderRadius:3, background:GENRE_COLORS[item.genre]||"#7b6fa0", flexShrink:0, filter:"grayscale(60%)" }} />
+                  }
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:WOOD.text, lineHeight:1.2, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{item.title}</p>
+                    {item.year && <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, color:WOOD.textFaint }}>{item.year}</p>}
+                  </div>
+                </div>
+              ))}
+            </>
+          )}
+          {unreadLoading && (
+            <div style={{ padding:"10px 16px", background:"rgba(255,235,195,0.25)", borderTop:`1px solid ${WOOD.cardBorder}`, textAlign:"center" }}>
+              <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, color:WOOD.textFaint }}>Loading bibliography…</p>
+            </div>
+          )}
         </div>
       )}
     </div>
