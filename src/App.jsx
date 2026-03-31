@@ -1518,17 +1518,10 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
   const [browseModeDropOpen, setBrowseModeDropOpen] = useState(false);
   const [authorSort, setAuthorSort] = useState("read");
   const [detectingSeriesLoading, setDetectingSeriesLoading] = useState(false);
-  const [searchMode, setSearchMode] = useState("All");
   const searchTimer = useRef(null);
   const searchAbort = useRef(null);
 
-  const SEARCH_MODES = ["All", "Books", "Authors", "Series"];
-  function cycleSearchMode() {
-    setSearchMode(m => {
-      const next = SEARCH_MODES[(SEARCH_MODES.indexOf(m) + 1) % SEARCH_MODES.length];
-      return next;
-    });
-  }
+  const searchMode = browseMode === "authors" ? "Authors" : browseMode === "series" ? "Series" : "All";
 
   const shelfBooks = useMemo(() => books.filter(b => (b.shelf || "Read") === activeShelf), [books, activeShelf]);
   const years   = useMemo(() => [...new Set(shelfBooks.map(b => b.date?.slice(0,4)).filter(Boolean))].sort((a,b)=>b-a), [shelfBooks]);
@@ -1640,7 +1633,6 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
             {apiSearching && <span style={{ position:"absolute", right:10, top:"50%", transform:"translateY(-50%)", fontSize:12, color:"#999", fontFamily:"'DM Sans',sans-serif" }}>Searching…</span>}
             {search && !apiSearching && <button onClick={()=>{ setSearch(""); setApiResults([]); }} style={{ position:"absolute", right:8, top:"50%", transform:"translateY(-50%)", background:"transparent", color:"#999", fontSize:13, border:"none", cursor:"pointer" }}>✕</button>}
           </div>
-          <button {...tc(cycleSearchMode, true)} style={{ flexShrink:0, height:42, padding:"0 12px", background: searchMode === "All" ? "rgba(15,8,2,0.55)" : WOOD.amber, border: searchMode === "All" ? "1px solid rgba(120,70,20,0.3)" : `1px solid ${WOOD.amber}`, borderRadius:8, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:600, color: searchMode === "All" ? "rgba(255,255,255,0.8)" : "#1a0900", backdropFilter:"blur(4px)", transition:"all 0.15s", whiteSpace:"nowrap" }}>{searchMode}</button>
           </div>
 
           {/* dropdown results */}
