@@ -1347,7 +1347,7 @@ function AuthorShelfRow({ authorName, books, onEdit, onAddBook, tier, onSetTier 
           );
         })}
         {showUnread && unreadBiblio && unreadBiblio.map((item, i) => (
-          <div key={`unread-${i}`} {...tc(() => onAddBook && onAddBook({ title: item.title, author: authorName, genre: item.genre, coverUrl: item.coverUrl, pages: 0 }), true)} style={{ flexShrink:0, filter:"grayscale(70%) brightness(0.75)", opacity:0.65, cursor:"pointer" }} title={item.title}>
+          <div key={`unread-${i}`} {...tc(() => onAddBook && onAddBook({ title: item.title, author: authorName, genre: item.genre, coverUrl: item.coverUrl, pages: 0, _fromRecs: true }), true)} style={{ flexShrink:0, filter:"grayscale(70%) brightness(0.75)", opacity:0.65, cursor:"pointer" }} title={item.title}>
             <BookCoverThumb book={{ title: item.title, coverUrl: item.coverUrl, genre: item.genre }} />
           </div>
         ))}
