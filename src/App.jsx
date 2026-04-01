@@ -4484,13 +4484,13 @@ function StatsTab({ books }) {
       if (groupBy === "rating") key = b.rating ? `${b.rating} ★` : "Unrated";
       else if (groupBy === "genre") key = b.genre || "Other";
       else if (groupBy === "year") key = b.date?.slice(0,4) || "Unknown";
-      else if (groupBy === "month") { const m = b.date?.slice(5,7); key = m ? MONTH_NAMES[parseInt(m,10)-1] + " " + (b.date?.slice(0,4)||"") : "Unknown"; }
+      else if (groupBy === "month") { const m = b.date?.slice(5,7); key = m ? MONTH_NAMES[parseInt(m,10)-1] : "Unknown"; }
       if (!groups[key]) groups[key] = [];
       groups[key].push(b);
     });
     if (groupBy === "rating") return Object.entries(groups).sort((a,b) => parseFloat(b[0]) - parseFloat(a[0]));
     if (groupBy === "year") return Object.entries(groups).sort((a,b) => b[0].localeCompare(a[0]));
-    if (groupBy === "month") return Object.entries(groups).sort((a,b) => { const pa = a[0].split(" "), pb = b[0].split(" "); const ya = parseInt(pa[1])||0, yb = parseInt(pb[1])||0; const ma = MONTH_NAMES.indexOf(pa[0]), mb = MONTH_NAMES.indexOf(pb[0]); return ya !== yb ? ya - yb : ma - mb; });
+    if (groupBy === "month") return Object.entries(groups).sort((a,b) => MONTH_NAMES.indexOf(a[0]) - MONTH_NAMES.indexOf(b[0]));
     return Object.entries(groups).sort((a,b) => b[1].length - a[1].length);
   }, [filteredBooks, groupBy]);
 
