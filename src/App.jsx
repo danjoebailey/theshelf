@@ -1939,10 +1939,8 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
                   <div>
                     <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:21, color:WOOD.text, lineHeight:1.2, marginBottom:1, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>Import from Goodreads</p>
                     <p style={{ fontSize:12, color:WOOD.textDim, fontStyle:"italic", marginBottom:2 }}>The Lore Wanderer</p>
-                    <StarRating value={5} readonly size={18} />
                   </div>
-                  <div style={{ display:"flex", gap:7, alignItems:"center", justifyContent:"space-between" }}>
-                    <span style={{ background:GENRE_COLORS["Fantasy"], color:"#fff", borderRadius:"20px", padding:"3px 10px", fontSize:9, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", flexShrink:0, lineHeight:1 }}>Fantasy</span>
+                  <div style={{ display:"flex", gap:7, alignItems:"center", justifyContent:"flex-end" }}>
                     <button {...tc(onImport, true)} style={{
                       display:"flex", alignItems:"center", gap:6,
                       background:WOOD.amber, borderRadius:20, padding:"5px 14px",
