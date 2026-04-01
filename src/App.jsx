@@ -2457,15 +2457,17 @@ function PaigeTab({ books, userId, onAddDirect, onEdit, onAddBook }) {
           </div>
 
           {/* Filters */}
-          <div style={{ display:"flex", alignItems:"center", gap:10, margin:"0 18px 14px", flexWrap:"wrap" }}>
-            <select value={filterGenre || ""} onChange={e => setFilterGenre(e.target.value || null)} style={{
-              padding:"6px 10px", borderRadius:8, fontSize:12, fontFamily:"'DM Sans',sans-serif",
-              background:"rgba(255,235,195,0.12)", color:"rgba(255,235,195,0.85)", border:"1px solid rgba(138,90,40,0.3)",
-              cursor:"pointer", appearance:"auto",
-            }}>
-              <option value="">All genres</option>
-              {["Fiction","Non-Fiction","Fantasy","Sci-Fi","Mystery","Thriller","Horror","Romance","Biography","History","Historical Fiction","Young Adult","Self-Help","Graphic Novel"].map(g => <option key={g} value={g}>{g}</option>)}
-            </select>
+          {/* Filters */}
+          <div style={{ display:"flex", alignItems:"center", gap:7, margin:"0 18px 14px", flexWrap:"wrap" }}>
+            {["Fiction","Non-Fiction","Fantasy","Sci-Fi","Mystery","Thriller","Horror","Romance","Biography","History","Historical Fiction","Young Adult","Self-Help","Graphic Novel"].map(g => (
+              <button key={g} onClick={() => setFilterGenre(filterGenre === g ? null : g)} style={{
+                padding:"6px 14px", borderRadius:20, fontSize:12, fontFamily:"'DM Sans',sans-serif", fontWeight:600,
+                cursor:"pointer", transition:"all 0.15s", border:"1px solid",
+                background: filterGenre === g ? WOOD.amber : "rgba(138,90,40,0.1)",
+                color: filterGenre === g ? "#1a0900" : "rgba(255,235,195,0.7)",
+                borderColor: filterGenre === g ? WOOD.amber : "rgba(138,90,40,0.3)",
+              }}>{g}</button>
+            ))}
             <button onClick={() => setHideOnShelf(h => !h)} style={{
               padding:"6px 14px", borderRadius:20, fontSize:12, fontFamily:"'DM Sans',sans-serif", fontWeight:600,
               cursor:"pointer", transition:"all 0.15s", border:"1px solid",
