@@ -1517,6 +1517,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
   const [seriesAuthorSortDropOpen, setSeriesAuthorSortDropOpen] = useState(false);
   const [browseModeDropOpen, setBrowseModeDropOpen] = useState(false);
   const [authorSort, setAuthorSort] = useState("read");
+  const searchInputRef = useRef(null);
   const [detectingSeriesLoading, setDetectingSeriesLoading] = useState(false);
   const searchTimer = useRef(null);
   const searchAbort = useRef(null);
@@ -1628,7 +1629,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
         <div style={{ position:"relative" }}>
           <div style={{ display:"flex", gap:6 }}>
           <div style={{ position:"relative", flex:1 }}>
-            <input type="text" value={search} onChange={handleSearchChange} placeholder="Search for a book to add…"
+            <input ref={searchInputRef} type="text" value={search} onChange={handleSearchChange} placeholder="Search for a book to add…"
               onTouchEnd={e=>{ e.stopPropagation(); e.currentTarget.focus(); }}
               style={{ width:"100%", boxSizing:"border-box", padding:"10px 36px 10px 12px", border:"1px solid #d1d5db", borderRadius:8, fontSize:15, fontFamily:"'DM Sans',sans-serif", outline:"none", background:"#fff", color:"#111" }}/>
             {apiSearching && <span style={{ position:"absolute", right:10, top:"50%", transform:"translateY(-50%)", fontSize:12, color:"#999", fontFamily:"'DM Sans',sans-serif" }}>Searching…</span>}
@@ -1891,29 +1892,71 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
       {/* book list */}
       <div style={{ flex:1, overflowY:"auto", padding:"4px 16px 16px", position:"relative", zIndex:1, WebkitOverflowScrolling:"touch" }} onScroll={handleScroll}>
         {browseMode === "books" && filtered.length===0 && apiResults.length===0 && !apiSearching && (
-          <div style={{ textAlign:"center", marginTop:60 }}>
-            <div style={{
-              display:"inline-block",
-              background: WOOD.card,
-              border: `1px solid ${WOOD.cardBorder}`,
-              borderRadius:16,
-              padding:"18px 28px",
-            }}>
-              <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:18, fontStyle:"italic", color:WOOD.textFaint, marginBottom:8 }}>
-                Search to add books
-              </p>
-              <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, fontStyle:"italic", color:WOOD.textFaint, marginBottom:8 }}>or</p>
-              <button {...tc(onImport)} style={{
-                display:"flex", alignItems:"center", gap:8, margin:"0 auto",
-                background:WOOD.amber, borderRadius:20, padding:"8px 18px",
-                border:"none", cursor:"pointer",
-                fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:600, color:"#1a0900",
-              }}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-                </svg>
-                Import from Goodreads
-              </button>
+          <div style={{ display:"flex", flexDirection:"column", gap:10, marginTop:40 }}>
+            {/* Search to Add Books card */}
+            <div
+              {...tc(()=>{ searchInputRef.current?.focus(); })}
+              style={{
+                background:WOOD.card, backdropFilter:"blur(6px)", borderRadius:12,
+                padding:"14px 16px", borderTop:"6px solid #8a5a28", borderLeft:"6px solid #8a5a28",
+                borderBottom:"6px solid #8a5a28", borderRight:"none",
+                boxShadow:"0 2px 8px rgba(0,0,0,0.15)", cursor:"pointer", touchAction:"manipulation",
+                animation:"fadeUp 0.28s ease 0s both",
+              }}
+            >
+              <div style={{ display:"flex", gap:14, alignItems:"stretch" }}>
+                <div style={{ flexShrink:0, display:"flex" }}>
+                  <img src="/library-knight.png" alt="The Library Knight" style={{ width:53, height:80, borderRadius:4, objectFit:"cover", boxShadow:"2px 2px 8px rgba(0,0,0,0.35)" }} />
+                </div>
+                <div style={{ flex:1, minWidth:0, display:"flex", flexDirection:"column", justifyContent:"space-between" }}>
+                  <div>
+                    <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:21, color:WOOD.text, lineHeight:1.2, marginBottom:1, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>Search to Add Books</p>
+                    <p style={{ fontSize:12, color:WOOD.textDim, fontStyle:"italic", marginBottom:2 }}>The Library Knight</p>
+                    <StarRating value={5} readonly size={18} />
+                  </div>
+                  <div style={{ display:"flex", gap:7, alignItems:"center" }}>
+                    <span style={{ background:GENRE_COLORS["Fantasy"], color:"#fff", borderRadius:"20px", padding:"3px 10px", fontSize:9, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", flexShrink:0, lineHeight:1 }}>Fantasy</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Import from Goodreads card */}
+            <div
+              style={{
+                background:WOOD.card, backdropFilter:"blur(6px)", borderRadius:12,
+                padding:"14px 16px", borderTop:"6px solid #8a5a28", borderLeft:"6px solid #8a5a28",
+                borderBottom:"6px solid #8a5a28", borderRight:"none",
+                boxShadow:"0 2px 8px rgba(0,0,0,0.15)", touchAction:"manipulation",
+                animation:"fadeUp 0.28s ease 0.05s both",
+              }}
+            >
+              <div style={{ display:"flex", gap:14, alignItems:"stretch" }}>
+                <div style={{ flexShrink:0, display:"flex" }}>
+                  <img src="/lore-wanderer.png" alt="The Lore Wanderer" style={{ width:53, height:80, borderRadius:4, objectFit:"cover", boxShadow:"2px 2px 8px rgba(0,0,0,0.35)" }} />
+                </div>
+                <div style={{ flex:1, minWidth:0, display:"flex", flexDirection:"column", justifyContent:"space-between" }}>
+                  <div>
+                    <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:21, color:WOOD.text, lineHeight:1.2, marginBottom:1, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>Import from Goodreads</p>
+                    <p style={{ fontSize:12, color:WOOD.textDim, fontStyle:"italic", marginBottom:2 }}>The Lore Wanderer</p>
+                    <StarRating value={5} readonly size={18} />
+                  </div>
+                  <div style={{ display:"flex", gap:7, alignItems:"center", justifyContent:"space-between" }}>
+                    <span style={{ background:GENRE_COLORS["Fantasy"], color:"#fff", borderRadius:"20px", padding:"3px 10px", fontSize:9, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", flexShrink:0, lineHeight:1 }}>Fantasy</span>
+                    <button {...tc(onImport, true)} style={{
+                      display:"flex", alignItems:"center", gap:6,
+                      background:WOOD.amber, borderRadius:20, padding:"5px 14px",
+                      border:"none", cursor:"pointer",
+                      fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600, color:"#1a0900",
+                    }}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                      </svg>
+                      Import
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}
