@@ -6594,7 +6594,7 @@ export default function App() {
                 transform: `translateY(${-progress * SHELF_H}px)`,
                 willChange: "transform, opacity",
               }}>
-                <DecorativeShelf books={books} />
+                {tab==="shelf" && <DecorativeShelf books={books} />}
                 {tab==="stats" && <div style={{ padding:"2px 20px 4px" }}><h1 style={{ fontFamily:"'Crimson Pro',serif", fontWeight:300, fontSize:30, color:WOOD.text, letterSpacing:"-0.01em" }}>Statistics</h1></div>}
                 {tab==="rankings" && <div style={{ padding:"2px 20px 4px" }}><h1 style={{ fontFamily:"'Crimson Pro',serif", fontWeight:300, fontSize:30, color:WOOD.text, letterSpacing:"-0.01em" }}>Rankings</h1></div>}
               </div>
