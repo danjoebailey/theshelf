@@ -2291,6 +2291,8 @@ function PaigeTab({ books, userId, onAddDirect, onEdit, onAddBook }) {
   const [covers, setCovers] = useState({});   // { [mode]: { [title]: url } }
   const [error, setError] = useState(null);
   const [nextLoading, setNextLoading] = useState(false);
+  const [filterGenre, setFilterGenre] = useState(null);
+  const [hideOnShelf, setHideOnShelf] = useState(false);
 
   const readBooks = books.filter(b => (b.shelf || "Read") === "Read");
   const profile = readBooks.map(b => ({ title: b.title, author: b.author, genre: b.genre, rating: b.rating || 0 }));
@@ -2477,11 +2479,37 @@ function PaigeTab({ books, userId, onAddDirect, onEdit, onAddBook }) {
           )}
 
           {/* Results */}
-          {currentRecs && currentRecs.length > 0 && (
+          {currentRecs && currentRecs.length > 0 && (() => {
+            const deduped = [...new Map(currentRecs.map(r => [r.title.toLowerCase(), r])).values()];
+            const recGenres = [...new Set(deduped.map(r => r.genre).filter(Boolean))].sort();
+            const filtered = deduped.filter(r => {
+              if (filterGenre && r.genre !== filterGenre) return false;
+              if (hideOnShelf && books.find(b => normBookKey(b.title) === normBookKey(r.title))) return false;
+              return true;
+            });
+            return (
             <div style={{ padding:"0 18px" }}>
-              <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:10, fontWeight:700, color:"rgba(255,255,255,0.6)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:12 }}>Recommended for you</p>
+              {/* Filters */}
+              <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:14, flexWrap:"wrap" }}>
+                <select value={filterGenre || ""} onChange={e => setFilterGenre(e.target.value || null)} style={{
+                  padding:"6px 10px", borderRadius:8, fontSize:12, fontFamily:"'DM Sans',sans-serif",
+                  background:"rgba(255,235,195,0.12)", color:"rgba(255,235,195,0.85)", border:"1px solid rgba(138,90,40,0.3)",
+                  cursor:"pointer", appearance:"auto",
+                }}>
+                  <option value="">All genres</option>
+                  {recGenres.map(g => <option key={g} value={g}>{g}</option>)}
+                </select>
+                <button onClick={() => setHideOnShelf(h => !h)} style={{
+                  padding:"6px 14px", borderRadius:20, fontSize:12, fontFamily:"'DM Sans',sans-serif", fontWeight:600,
+                  cursor:"pointer", transition:"all 0.15s", border:"1px solid",
+                  background: hideOnShelf ? WOOD.amber : "rgba(138,90,40,0.1)",
+                  color: hideOnShelf ? "#1a0900" : "rgba(255,235,195,0.7)",
+                  borderColor: hideOnShelf ? WOOD.amber : "rgba(138,90,40,0.3)",
+                }}>Hide on shelf</button>
+              </div>
+              <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:10, fontWeight:700, color:"rgba(255,255,255,0.6)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:12 }}>Recommended for you · {filtered.length}</p>
               <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-                {[...new Map(currentRecs.map(r => [r.title.toLowerCase(), r])).values()].map((rec, i) => (
+                {filtered.map((rec, i) => (
                   <RecCard key={i} index={i} rec={rec} coverUrl={currentCovers[rec.title] || null} ownedBook={books.find(b => normBookKey(b.title) === normBookKey(rec.title))} onAddDirect={onAddDirect} onEdit={onEdit} onAddBook={onAddBook} />
                 ))}
               </div>
@@ -2500,7 +2528,8 @@ function PaigeTab({ books, userId, onAddDirect, onEdit, onAddBook }) {
                 }
               </button>
             </div>
-          )}
+            );
+          })()}
         </>
       )}
     </div>
