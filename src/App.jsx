@@ -2362,14 +2362,13 @@ function PaigeTab({ books, userId, onAddDirect, onEdit, onAddBook }) {
       const res = await fetch("/api/paige-recommendations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ profile, mode, exclude: [], genre: filterGenre || undefined, excludeShelfTitles: hideOnShelf ? books.map(b => b.title) : [] }),
+        body: JSON.stringify({ profile, mode, exclude: [], genre: filterGenre || undefined }),
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
       const readKeys = new Set(readBooks.map(b => normBookKey(b.title)));
-      const shelfKeys = hideOnShelf ? new Set(books.map(b => normBookKey(b.title))) : readKeys;
-      const results = (data.recommendations || []).filter(r => !shelfKeys.has(normBookKey(r.title)));
-      const res2 = (data.reserve || []).filter(r => !shelfKeys.has(normBookKey(r.title)));
+      const results = (data.recommendations || []).filter(r => !readKeys.has(normBookKey(r.title)));
+      const res2 = (data.reserve || []).filter(r => !readKeys.has(normBookKey(r.title)));
       setRecs(prev => ({ ...prev, [mode]: results }));
       setReserve(prev => ({ ...prev, [mode]: res2 }));
       const covMap = await fetchCoversForRecs([...results, ...res2], mode);
@@ -2404,15 +2403,14 @@ function PaigeTab({ books, userId, onAddDirect, onEdit, onAddBook }) {
       const res = await fetch("/api/paige-recommendations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ profile, mode, exclude, genre: filterGenre || undefined, excludeShelfTitles: hideOnShelf ? books.map(b => b.title) : [] }),
+        body: JSON.stringify({ profile, mode, exclude, genre: filterGenre || undefined }),
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
       const readKeys = new Set(readBooks.map(b => normBookKey(b.title)));
-      const shelfKeys = hideOnShelf ? new Set(books.map(b => normBookKey(b.title))) : readKeys;
       const seenKeys = new Set(exclude.map(normBookKey));
-      const newResults = (data.recommendations || []).filter(r => !shelfKeys.has(normBookKey(r.title)) && !seenKeys.has(normBookKey(r.title)));
-      const newReserve = (data.reserve || []).filter(r => !shelfKeys.has(normBookKey(r.title)) && !seenKeys.has(normBookKey(r.title)));
+      const newResults = (data.recommendations || []).filter(r => !readKeys.has(normBookKey(r.title)) && !seenKeys.has(normBookKey(r.title)));
+      const newReserve = (data.reserve || []).filter(r => !readKeys.has(normBookKey(r.title)) && !seenKeys.has(normBookKey(r.title)));
       const combined = [...existing, ...newResults];
       setRecs(prev => ({ ...prev, [mode]: combined }));
       setReserve(prev => ({ ...prev, [mode]: newReserve }));

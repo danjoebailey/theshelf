@@ -42,20 +42,16 @@ async function claudeCall(apiKey, prompt, maxTokens = 2000) {
   return (data.content?.[0]?.text || "").trim();
 }
 
-async function generate(apiKey, profileLines, mode, exclude, count, { genre = null, shelfSet = new Set() } = {}) {
+async function generate(apiKey, profileLines, mode, exclude, count, { genre = null } = {}) {
   const excludeLines = exclude.length > 0
     ? `\n\nDo NOT recommend any of the following — they have already been seen:\n${exclude.map(t => `- "${t}"`).join("\n")}`
-    : "";
-
-  const shelfLines = shelfSet.size > 0
-    ? `\n\nDo NOT recommend any of the following — the reader already has them on their shelf:\n${[...shelfSet].map(t => `- "${t}"`).join("\n")}`
     : "";
 
   const genreConstraint = genre
     ? `\n\nIMPORTANT: Only recommend books in the "${genre}" genre. Every recommendation must be ${genre}.`
     : "";
 
-  const prompt = `Here is a reader's library — books they have read, with ratings where available:\n${profileLines}${excludeLines}${shelfLines}${genreConstraint}\n\nMode: ${MODE_GENERATION[mode]}\n\nRecommend exactly ${count} books. For each, provide a concise reason (1–2 sentences) explaining why it fits this reader specifically. Respond ONLY with a JSON object — no markdown, no explanation — in this exact format:\n{"recommendations":[{"title":"...","author":"...","genre":"...","publishYear":1954,"pages":320,"reason":"..."},...]}\n\nGenres must be one of: Fiction, Non-Fiction, Fantasy, Sci-Fi, Mystery, Thriller, Horror, Romance, Biography, History, Historical Fiction, Young Adult, Self-Help, Graphic Novel, Other.`;
+  const prompt = `Here is a reader's library — books they have read, with ratings where available:\n${profileLines}${excludeLines}${genreConstraint}\n\nMode: ${MODE_GENERATION[mode]}\n\nRecommend exactly ${count} books. For each, provide a concise reason (1–2 sentences) explaining why it fits this reader specifically. Respond ONLY with a JSON object — no markdown, no explanation — in this exact format:\n{"recommendations":[{"title":"...","author":"...","genre":"...","publishYear":1954,"pages":320,"reason":"..."},...]}\n\nGenres must be one of: Fiction, Non-Fiction, Fantasy, Sci-Fi, Mystery, Thriller, Horror, Romance, Biography, History, Historical Fiction, Young Adult, Self-Help, Graphic Novel, Other.`;
 
   const text = await claudeCall(apiKey, prompt, 2500);
   const parsed = parseJson(text);
@@ -83,7 +79,7 @@ async function validate(apiKey, books, mode, profileLines) {
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
 
-  const { profile, mode, exclude = [], genre = null, excludeShelfTitles = [] } = req.body;
+  const { profile, mode, exclude = [], genre = null } = req.body;
   if (!profile || !Array.isArray(profile) || profile.length === 0)
     return res.status(400).json({ error: "No profile data provided." });
   if (!MODE_GENERATION[mode])
@@ -97,22 +93,21 @@ export default async function handler(req, res) {
     .map(b => `- "${b.title}" by ${b.author} (${b.genre})${b.rating ? `, rated ${b.rating}/5` : ""}`)
     .join("\n");
 
-  const shelfSet = new Set(excludeShelfTitles.map(t => t.toLowerCase()));
   const seen = new Set(exclude.map(t => t.toLowerCase()));
 
   try {
     // Round 1: generate 20 for trending (stricter validation), 15 for all others
-    const genOpts = { genre, shelfSet };
+    const genOpts = { genre };
     const initialCount = mode === "trending" ? 20 : 15;
     const batch1 = await generate(apiKey, profileLines, mode, exclude, initialCount, genOpts);
-    const fresh1 = batch1.filter(b => !seen.has(b.title.toLowerCase()) && !shelfSet.has(b.title.toLowerCase()));
+    const fresh1 = batch1.filter(b => !seen.has(b.title.toLowerCase()));
     fresh1.forEach(b => seen.add(b.title.toLowerCase()));
     let validated = await validate(apiKey, fresh1, mode, profileLines);
 
     // Round 2: if <10, top up with 5 more, validate new ones only
     if (validated.length < 10) {
       const batch2 = await generate(apiKey, profileLines, mode, [...seen], 5, genOpts);
-      const fresh2 = batch2.filter(b => !seen.has(b.title.toLowerCase()) && !shelfSet.has(b.title.toLowerCase()));
+      const fresh2 = batch2.filter(b => !seen.has(b.title.toLowerCase()));
       fresh2.forEach(b => seen.add(b.title.toLowerCase()));
       const validated2 = await validate(apiKey, fresh2, mode, profileLines);
       validated = [...validated, ...validated2];
@@ -121,7 +116,7 @@ export default async function handler(req, res) {
     // Round 3: if still <10, one final top-up of 5
     if (validated.length < 10) {
       const batch3 = await generate(apiKey, profileLines, mode, [...seen], 5, genOpts);
-      const fresh3 = batch3.filter(b => !seen.has(b.title.toLowerCase()) && !shelfSet.has(b.title.toLowerCase()));
+      const fresh3 = batch3.filter(b => !seen.has(b.title.toLowerCase()));
       fresh3.forEach(b => seen.add(b.title.toLowerCase()));
       const validated3 = await validate(apiKey, fresh3, mode, profileLines);
       validated = [...validated, ...validated3];
@@ -131,7 +126,7 @@ export default async function handler(req, res) {
     if (validated.length < 10) {
       const needed = 10 - validated.length;
       const fallback = await generate(apiKey, profileLines, mode, [...seen], needed, genOpts);
-      const freshFallback = fallback.filter(b => !seen.has(b.title.toLowerCase()) && !shelfSet.has(b.title.toLowerCase()));
+      const freshFallback = fallback.filter(b => !seen.has(b.title.toLowerCase()));
       validated = [...validated, ...freshFallback].slice(0, 10);
     }
 
