@@ -1905,8 +1905,8 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
               }}
             >
               <div style={{ display:"flex", gap:14, alignItems:"stretch" }}>
-                <div style={{ flexShrink:0, display:"flex", alignItems:"flex-end", marginTop:-20, marginBottom:-6, marginLeft:-4 }}>
-                  <img src="/library-knight.png" alt="The Library Knight" style={{ width:70, height:90, objectFit:"contain", filter:"drop-shadow(1px 2px 3px rgba(0,0,0,0.2))" }} />
+                <div style={{ flexShrink:0, display:"flex" }}>
+                  <img src="/library-knight.png" alt="The Library Knight" style={{ width:53, height:80, objectFit:"cover" }} />
                 </div>
                 <div style={{ flex:1, minWidth:0, display:"flex", flexDirection:"column", justifyContent:"space-between" }}>
                   <div>
@@ -1932,8 +1932,8 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
               }}
             >
               <div style={{ display:"flex", gap:14, alignItems:"stretch" }}>
-                <div style={{ flexShrink:0, display:"flex", alignItems:"flex-end", marginTop:-20, marginBottom:-6, marginLeft:-4 }}>
-                  <img src="/lore-wanderer.png" alt="The Lore Wanderer" style={{ width:70, height:90, objectFit:"contain", filter:"drop-shadow(1px 2px 3px rgba(0,0,0,0.2))" }} />
+                <div style={{ flexShrink:0, display:"flex" }}>
+                  <img src="/lore-wanderer.png" alt="The Lore Wanderer" style={{ width:53, height:80, objectFit:"cover" }} />
                 </div>
                 <div style={{ flex:1, minWidth:0, display:"flex", flexDirection:"column", justifyContent:"space-between" }}>
                   <div>
