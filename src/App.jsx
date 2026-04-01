@@ -2509,11 +2509,18 @@ function PaigeTab({ books, userId, onAddDirect, onEdit, onAddBook }) {
           )}
 
           {/* Results */}
-          {currentRecs && currentRecs.length > 0 && (
+          {currentRecs && currentRecs.length > 0 && (() => {
+            const deduped = [...new Map(currentRecs.map(r => [r.title.toLowerCase(), r])).values()];
+            const filtered = deduped.filter(r => {
+              if (filterGenre && r.genre !== filterGenre) return false;
+              if (hideOnShelf && books.find(b => normBookKey(b.title) === normBookKey(r.title))) return false;
+              return true;
+            });
+            return (
             <div style={{ padding:"0 18px" }}>
-              <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:10, fontWeight:700, color:"rgba(255,255,255,0.6)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:12 }}>Recommended for you · {[...new Map(currentRecs.map(r => [r.title.toLowerCase(), r])).values()].length}</p>
+              <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:10, fontWeight:700, color:"rgba(255,255,255,0.6)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:12 }}>Recommended for you · {filtered.length}</p>
               <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-                {[...new Map(currentRecs.map(r => [r.title.toLowerCase(), r])).values()].map((rec, i) => (
+                {filtered.map((rec, i) => (
                   <RecCard key={i} index={i} rec={rec} coverUrl={currentCovers[rec.title] || null} ownedBook={books.find(b => normBookKey(b.title) === normBookKey(rec.title))} onAddDirect={onAddDirect} onEdit={onEdit} onAddBook={onAddBook} />
                 ))}
               </div>
@@ -2532,7 +2539,8 @@ function PaigeTab({ books, userId, onAddDirect, onEdit, onAddBook }) {
                 }
               </button>
             </div>
-          )}
+            );
+          })()}
         </>
       )}
     </div>
