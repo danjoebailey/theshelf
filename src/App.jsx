@@ -4490,7 +4490,7 @@ function StatsTab({ books }) {
     });
     if (groupBy === "rating") return Object.entries(groups).sort((a,b) => parseFloat(b[0]) - parseFloat(a[0]));
     if (groupBy === "year") return Object.entries(groups).sort((a,b) => b[0].localeCompare(a[0]));
-    if (groupBy === "month") return Object.entries(groups).sort((a,b) => b[0].localeCompare(a[0]));
+    if (groupBy === "month") return Object.entries(groups).sort((a,b) => { const pa = a[0].split(" "), pb = b[0].split(" "); const ya = parseInt(pa[1])||0, yb = parseInt(pb[1])||0; const ma = MONTH_NAMES.indexOf(pa[0]), mb = MONTH_NAMES.indexOf(pb[0]); return ya !== yb ? ya - yb : ma - mb; });
     return Object.entries(groups).sort((a,b) => b[1].length - a[1].length);
   }, [filteredBooks, groupBy]);
 
