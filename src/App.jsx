@@ -6592,6 +6592,28 @@ export default function App() {
               dbUpdateBook(updated, userId);
             }
           }
+          // One-time series sync from static catalog
+          if (!localStorage.getItem("seriesSynced1")) {
+            await _staticReady;
+            localStorage.setItem("seriesSynced1", "1");
+            const updates = [];
+            loadedBooks.forEach(book => {
+              const meta = staticBookMeta(book.title, book.author);
+              if (meta?.series) {
+                const current = book.series || "";
+                if (current !== meta.series) {
+                  updates.push({ ...book, series: meta.series });
+                }
+              }
+            });
+            if (updates.length > 0) {
+              setBooks(prev => prev.map(b => {
+                const u = updates.find(u => u.id === b.id);
+                return u ? { ...b, series: u.series } : b;
+              }));
+              updates.forEach(u => dbUpdateBook(u, userId));
+            }
+          }
           // Silently fetch covers for books that don't have one
           const missing = loadedBooks.filter(b => !b.coverUrl);
           for (let i = 0; i < missing.length; i += 4) {
