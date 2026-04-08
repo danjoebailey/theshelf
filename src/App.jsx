@@ -6592,17 +6592,15 @@ export default function App() {
               dbUpdateBook(updated, userId);
             }
           }
-          // Sync series data from static catalog
+          // Wipe old series data and repopulate from static catalog
           {
             await _staticReady;
             const updates = [];
             loadedBooks.forEach(book => {
               const meta = staticBookMeta(book.title, book.author);
-              if (meta?.series) {
-                const current = book.series || "";
-                if (current !== meta.series) {
-                  updates.push({ ...book, series: meta.series });
-                }
+              const newSeries = meta?.series || null;
+              if (book.series !== newSeries) {
+                updates.push({ ...book, series: newSeries });
               }
             });
             if (updates.length > 0) {
