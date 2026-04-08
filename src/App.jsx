@@ -101,7 +101,9 @@ function staticBookMeta(title, author) {
   return {
     genre: match.genre,
     pages: match.pageCount,
-    series: match.series ? `${match.series.name}, #${match.series.order}` : null,
+    series: match.series ? match.series.name : null,
+    seriesOrder: match.series ? match.series.order : null,
+    seriesTotal: match.series ? match.series.total : null,
     publishYear: match.publicationDate ? parseInt(match.publicationDate) : null,
   };
 }
@@ -6599,14 +6601,15 @@ export default function App() {
             loadedBooks.forEach(book => {
               const meta = staticBookMeta(book.title, book.author);
               const newSeries = meta?.series || null;
-              if (book.series !== newSeries) {
-                updates.push({ ...book, series: newSeries });
+              const newTotal = meta?.seriesTotal || null;
+              if (book.series !== newSeries || book.seriesTotal !== newTotal) {
+                updates.push({ ...book, series: newSeries, seriesTotal: newTotal });
               }
             });
             if (updates.length > 0) {
               setBooks(prev => prev.map(b => {
                 const u = updates.find(u => u.id === b.id);
-                return u ? { ...b, series: u.series } : b;
+                return u ? { ...b, series: u.series, seriesTotal: u.seriesTotal } : b;
               }));
               updates.forEach(u => dbUpdateBook(u, userId));
             }
@@ -6677,8 +6680,8 @@ export default function App() {
       // Check static data first
       const meta = staticBookMeta(book.title, book.author);
       if (meta?.series) {
-        const updated = { ...book, series: meta.series, seriesTotal: null };
-        setBooks(prev => prev.map(b => b.id === book.id ? { ...b, series: meta.series } : b));
+        const updated = { ...book, series: meta.series, seriesTotal: meta.seriesTotal };
+        setBooks(prev => prev.map(b => b.id === book.id ? { ...b, series: meta.series, seriesTotal: meta.seriesTotal } : b));
         dbUpdateBook(updated, userId);
         return;
       }
@@ -6705,7 +6708,7 @@ export default function App() {
     for (const book of targets) {
       const meta = staticBookMeta(book.title, book.author);
       if (meta?.series) {
-        staticResolved.push({ ...book, series: meta.series });
+        staticResolved.push({ ...book, series: meta.series, seriesTotal: meta.seriesTotal });
       } else {
         remaining.push(book);
       }
@@ -6713,7 +6716,7 @@ export default function App() {
     if (staticResolved.length > 0) {
       setBooks(prev => prev.map(b => {
         const u = staticResolved.find(s => s.id === b.id);
-        return u ? { ...b, series: u.series } : b;
+        return u ? { ...b, series: u.series, seriesTotal: u.seriesTotal } : b;
       }));
       staticResolved.forEach(u => dbUpdateBook(u, userId));
     }
