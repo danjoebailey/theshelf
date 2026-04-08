@@ -6226,11 +6226,6 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd, userI
                     Show next 10
                   </button>
                 )}
-                {biblio && !biblioLoading && (
-                  <button onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); setBiblio(null); setSortedUnread(null); setUnreadCovers({}); setBiblioForceRefresh(true); }} onClick={()=>{ setBiblio(null); setSortedUnread(null); setUnreadCovers({}); setBiblioForceRefresh(true); }} style={{ width:"100%", padding:"10px", marginTop:8, background:"transparent", border:"none", color:CR.textDim, fontSize:11, fontFamily:"'DM Sans',sans-serif", cursor:"pointer", opacity:0.5 }}>
-                    Refresh bibliography
-                  </button>
-                )}
               </div>
             );
           })()}
