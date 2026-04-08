@@ -1555,7 +1555,7 @@ function AuthorCard({ authorName, books, onEdit, onRemove, onShelfChange, onSave
                 <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:10, color:WOOD.textFaint, fontWeight:600, textTransform:"uppercase", letterSpacing:"0.08em" }}>Not in library</p>
               </div>
               {unreadBiblio.map((item, i) => (
-                <div key={`unread-${i}`} style={{ display:"flex", alignItems:"center", gap:10, padding:"8px 16px", background:"rgba(255,235,195,0.25)", borderTop:`1px solid ${WOOD.cardBorder}`, opacity:0.75 }}>
+                <div key={`unread-${i}`} style={{ display:"flex", alignItems:"center", gap:10, padding:"8px 16px", background:"rgba(255,235,195,0.25)", borderTop:`1px solid ${WOOD.cardBorder}`, opacity:0.85 }}>
                   {item.coverUrl
                     ? <img src={item.coverUrl} alt={item.title} style={{ height:40, width:27, objectFit:"cover", borderRadius:3, boxShadow:"0 1px 4px rgba(0,0,0,0.25)", flexShrink:0, filter:"grayscale(60%)" }} />
                     : <div style={{ height:40, width:27, borderRadius:3, background:GENRE_COLORS[item.genre]||"#7b6fa0", flexShrink:0, filter:"grayscale(60%)" }} />
@@ -6320,7 +6320,7 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd, userI
                           <div key={i} style={{
                             display: "flex", alignItems: "center", gap: 10, padding: "8px 14px",
                             borderTop: `1px solid ${CR.border}`,
-                            opacity: isOwned ? 1 : 0.75,
+                            opacity: isOwned ? 1 : 0.85,
                           }}>
                             <span style={{
                               width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
