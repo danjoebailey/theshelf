@@ -1660,10 +1660,21 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
     setShowApiResults(true);
     clearTimeout(searchTimer.current);
     if (searchAbort.current) { searchAbort.current.abort(); searchAbort.current = null; }
-    // Show static results instantly
+    // Show static results instantly, then fetch covers in background
     if (q.trim().length >= 2) {
       const staticHits = staticSearchBooks(q, searchMode);
       setApiResults(staticHits);
+      if (staticHits.length > 0) {
+        staticHits.forEach(async b => {
+          try {
+            const r = await fetch("/api/fetch-cover", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: b.title, author: b.author }) });
+            const d = await r.json();
+            if (d.coverUrl) {
+              setApiResults(prev => prev.map(p => p.title === b.title && p.author === b.author ? { ...p, coverUrl: d.coverUrl } : p));
+            }
+          } catch {}
+        });
+      }
     } else {
       setApiResults([]);
     }
