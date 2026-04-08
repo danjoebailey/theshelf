@@ -6249,7 +6249,83 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd, userI
             </div>
           )}
 
-          {(activeTab === "series" || activeTab === "awards" || activeTab === "related") && (
+          {activeTab === "series" && (() => {
+            // Build series data from static catalog
+            const norm = s => (s || "").toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim();
+            const na = norm(author);
+            const catalogBooks = (_staticBooks || []).filter(b => {
+              const nb = norm(b.author);
+              return nb === na || nb.startsWith(na) || na.startsWith(nb);
+            });
+            const seriesMap = {};
+            catalogBooks.forEach(b => {
+              if (!b.series) return;
+              const sn = b.series.name;
+              if (!seriesMap[sn]) seriesMap[sn] = { name: sn, total: b.series.total, books: [] };
+              seriesMap[sn].books.push(b);
+              if (b.series.total > seriesMap[sn].total) seriesMap[sn].total = b.series.total;
+            });
+            // Sort books within each series by order
+            Object.values(seriesMap).forEach(s => s.books.sort((a, b) => a.series.order - b.series.order));
+            const seriesList = Object.values(seriesMap).sort((a, b) => b.books.length - a.books.length);
+
+            // Match user's library books
+            const ownedKeys = new Set(
+              books.filter(b => { const nb = norm(b.author); return nb === na || nb.startsWith(na) || na.startsWith(nb); })
+                .map(b => normBookKey(b.title))
+            );
+
+            if (seriesList.length === 0) return (
+              <p style={{ color: CR.textDim, fontStyle: "italic", textAlign: "center", paddingTop: 40 }}>No series data available for this author.</p>
+            );
+
+            return (
+              <div style={{ padding: "0 16px 20px" }}>
+                {seriesList.map(s => {
+                  const owned = s.books.filter(b => ownedKeys.has(normBookKey(b.title))).length;
+                  const complete = owned >= s.books.length;
+                  return (
+                    <div key={s.name} style={{ marginBottom: 20, background: CR.panel, borderRadius: 12, border: `1px solid ${CR.border}`, overflow: "hidden" }}>
+                      <div style={{ padding: "12px 14px 8px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 17, color: CR.text, fontWeight: 500 }}>{s.name}</p>
+                        <span style={{
+                          fontSize: 10, fontFamily: "'DM Sans',sans-serif", fontWeight: 700,
+                          background: complete ? "rgba(46,125,50,0.15)" : "rgba(138,90,40,0.12)",
+                          color: complete ? "#2e7d32" : CR.textDim,
+                          borderRadius: 20, padding: "3px 10px",
+                        }}>{owned}/{s.books.length}</span>
+                      </div>
+                      {s.books.map((b, i) => {
+                        const isOwned = ownedKeys.has(normBookKey(b.title));
+                        return (
+                          <div key={i} style={{
+                            display: "flex", alignItems: "center", gap: 10, padding: "8px 14px",
+                            borderTop: `1px solid ${CR.border}`,
+                            opacity: isOwned ? 1 : 0.5,
+                          }}>
+                            <span style={{
+                              width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
+                              display: "flex", alignItems: "center", justifyContent: "center",
+                              fontSize: 10, fontWeight: 700, fontFamily: "'DM Sans',sans-serif",
+                              background: isOwned ? "rgba(46,125,50,0.15)" : "rgba(138,90,40,0.1)",
+                              color: isOwned ? "#2e7d32" : CR.textFaint,
+                            }}>{b.series.order}</span>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 14, color: CR.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{b.title}</p>
+                              <p style={{ fontSize: 10, color: CR.textDim, fontFamily: "'DM Sans',sans-serif" }}>{b.publicationDate}{b.pageCount ? ` · ${b.pageCount}pp` : ""}</p>
+                            </div>
+                            {isOwned && <span style={{ fontSize: 9, fontFamily: "'DM Sans',sans-serif", color: "#2e7d32", fontWeight: 600 }}>✓</span>}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
+
+          {(activeTab === "awards" || activeTab === "related") && (
             <p style={{ color:CR.textDim, fontStyle:"italic", textAlign:"center", paddingTop:40 }}>Coming soon.</p>
           )}
 
