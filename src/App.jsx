@@ -1356,7 +1356,24 @@ async function fetchAuthorBiblio(authorName, { onProgress, forceRefresh = false 
   if (!forceRefresh) {
     await _staticReady;
     const staticItems = staticAuthorBiblio(authorName);
-    if (staticItems && staticItems.length > 0) { onProgress && onProgress(staticItems); return staticItems; }
+    if (staticItems && staticItems.length > 0) {
+      onProgress && onProgress(staticItems);
+      // Fetch covers in background
+      const enriched = staticItems.map(b => ({ ...b }));
+      const BATCH = 5;
+      for (let i = 0; i < enriched.length; i += BATCH) {
+        await Promise.all(enriched.slice(i, i + BATCH).map(async b => {
+          if (b.coverUrl) return;
+          try {
+            const r = await fetch("/api/fetch-cover", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: b.title, author: authorName }) });
+            const d = await r.json();
+            if (d.coverUrl) b.coverUrl = d.coverUrl;
+          } catch {}
+        }));
+        onProgress && onProgress([...enriched]);
+      }
+      return enriched;
+    }
   }
   if (!forceRefresh) {
     const { data: cached } = await supabase
