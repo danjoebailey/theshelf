@@ -1692,26 +1692,26 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
           });
           const apiData = await res.json();
           const apiArr = Array.isArray(apiData) ? apiData : [];
-          // Merge: static results first, then API results that aren't duplicates
-          const staticHits = staticSearchBooks(q, searchMode);
-          const seen = new Set(staticHits.map(b => `${b.title.toLowerCase()}|${b.author.toLowerCase()}`));
-          const merged = [...staticHits];
-          for (const b of apiArr) {
-            const key = `${b.title.toLowerCase()}|${b.author.toLowerCase()}`;
-            if (!seen.has(key)) { seen.add(key); merged.push(b); }
-            else {
-              // API has coverUrl — patch it into the static result
-              const idx = merged.findIndex(m => `${m.title.toLowerCase()}|${m.author.toLowerCase()}` === key);
-              if (idx !== -1 && b.coverUrl && !merged[idx].coverUrl) merged[idx] = { ...merged[idx], coverUrl: b.coverUrl };
+          // Merge: preserve current results (may have covers already), add new API results
+          setApiResults(prev => {
+            const seen = new Map(prev.map(b => [`${b.title.toLowerCase()}|${b.author.toLowerCase()}`, b]));
+            for (const b of apiArr) {
+              const key = `${b.title.toLowerCase()}|${b.author.toLowerCase()}`;
+              if (seen.has(key)) {
+                // Patch cover from API if we don't have one yet
+                const existing = seen.get(key);
+                if (b.coverUrl && !existing.coverUrl) seen.set(key, { ...existing, coverUrl: b.coverUrl });
+              } else {
+                seen.set(key, b);
+              }
             }
-          }
-          setApiResults(merged.slice(0, 7));
-          track("search", { query: q, mode: searchMode, results: merged.length });
+            return [...seen.values()].slice(0, 7);
+          });
+          track("search", { query: q, mode: searchMode, results: apiArr.length });
         } catch (err) {
           if (err.name !== "AbortError") {
-            // Keep static results if API fails
-            const staticHits = staticSearchBooks(q, searchMode);
-            setApiResults(staticHits.length > 0 ? staticHits : []);
+            // Keep existing results (static + any covers already fetched)
+            setApiResults(prev => prev.length > 0 ? prev : []);
           }
         }
         setApiSearching(false);
