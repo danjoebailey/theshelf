@@ -6592,10 +6592,9 @@ export default function App() {
               dbUpdateBook(updated, userId);
             }
           }
-          // One-time series sync from static catalog
-          if (!localStorage.getItem("seriesSynced1")) {
+          // Sync series data from static catalog
+          {
             await _staticReady;
-            localStorage.setItem("seriesSynced1", "1");
             const updates = [];
             loadedBooks.forEach(book => {
               const meta = staticBookMeta(book.title, book.author);
