@@ -91,7 +91,7 @@ function staticAuthorBiblio(authorName) {
 
 function staticBookMeta(title, author) {
   if (!_staticBooks) return null;
-  const norm = s => (s || "").toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim();
+  const norm = s => (s || "").replace(/\s*\(.*$/, "").toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim();
   const nt = norm(title);
   const na = norm(author);
   const candidates = _staticByTitle.get(nt);
