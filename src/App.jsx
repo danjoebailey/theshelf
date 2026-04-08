@@ -11,6 +11,101 @@ const GENRE_COLORS = {
 };
 const SHELVES = ["Read", "Reading", "The List", "Curious", "DNF"];
 
+// ── Static book catalog (loaded once, used as first-pass for search + bibliographies) ──
+let _staticBooks = null;
+let _staticByAuthor = null; // Map<normalizedAuthor, book[]>
+let _staticByTitle = null;  // Map<normalizedTitle, book[]>
+const _staticReady = fetch("/book-data.json").then(r => r.json()).then(data => {
+  _staticBooks = data;
+  _staticByAuthor = new Map();
+  _staticByTitle = new Map();
+  const norm = s => (s || "").toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim();
+  data.forEach(b => {
+    const na = norm(b.author);
+    if (!_staticByAuthor.has(na)) _staticByAuthor.set(na, []);
+    _staticByAuthor.get(na).push(b);
+    const nt = norm(b.title);
+    if (!_staticByTitle.has(nt)) _staticByTitle.set(nt, []);
+    _staticByTitle.get(nt).push(b);
+  });
+}).catch(() => { _staticBooks = []; _staticByAuthor = new Map(); _staticByTitle = new Map(); });
+
+function staticSearchBooks(query, mode = "All") {
+  if (!_staticBooks) return [];
+  const q = (query || "").toLowerCase().trim();
+  if (q.length < 2) return [];
+  const results = [];
+  const seen = new Set();
+  for (const b of _staticBooks) {
+    if (results.length >= 7) break;
+    const hay = mode === "Authors" ? b.author.toLowerCase() : `${b.title} ${b.author}`.toLowerCase();
+    if (!hay.includes(q)) continue;
+    const key = `${b.title.toLowerCase()}|${b.author.toLowerCase()}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    results.push({
+      title: b.title,
+      author: b.author,
+      pages: b.pageCount,
+      genre: b.genre,
+      publishYear: b.publicationDate ? parseInt(b.publicationDate) : null,
+      coverUrl: null, // static data has no covers — search will merge with API results
+      _static: true,
+    });
+  }
+  return results;
+}
+
+function staticAuthorBiblio(authorName) {
+  if (!_staticByAuthor) return null;
+  const norm = s => (s || "").toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim();
+  const na = norm(authorName);
+  // Try exact, then prefix, then contains
+  let books = _staticByAuthor.get(na);
+  if (!books) {
+    for (const [key, val] of _staticByAuthor) {
+      if (key.startsWith(na) || na.startsWith(key)) { books = val; break; }
+    }
+  }
+  if (!books || books.length === 0) return null;
+  // Sort by topRank first, then tier, then title
+  const sorted = [...books].sort((a, b) => {
+    if (a.topRank && b.topRank) return a.topRank - b.topRank;
+    if (a.topRank) return -1;
+    if (b.topRank) return 1;
+    if (a.tier !== b.tier) return a.tier - b.tier;
+    return a.title.localeCompare(b.title);
+  });
+  // Map to the format the app expects from the API
+  return sorted.map(b => ({
+    title: b.title,
+    series: b.series ? `${b.series.name}, #${b.series.order}` : null,
+    publishYear: b.publicationDate ? parseInt(b.publicationDate) : null,
+    pages: b.pageCount,
+    tier: b.tier,
+    genre: b.genre,
+    description: b.description,
+    coverUrl: null,
+  }));
+}
+
+function staticBookMeta(title, author) {
+  if (!_staticBooks) return null;
+  const norm = s => (s || "").toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim();
+  const nt = norm(title);
+  const na = norm(author);
+  const candidates = _staticByTitle.get(nt);
+  if (!candidates) return null;
+  const match = candidates.find(b => norm(b.author) === na) || candidates.find(b => norm(b.author).includes(na) || na.includes(norm(b.author)));
+  if (!match) return null;
+  return {
+    genre: match.genre,
+    pages: match.pageCount,
+    series: match.series ? `${match.series.name}, #${match.series.order}` : null,
+    publishYear: match.publicationDate ? parseInt(match.publicationDate) : null,
+  };
+}
+
 // Touch-click helper: fires action on touchEnd (no 300ms delay) and onClick (desktop).
 // stopProp=true also stops event propagation (for buttons inside click-to-close containers).
 function tc(action, stopProp = false) {
@@ -340,6 +435,8 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
   async function fetchPageCount() {
     setPagesLoading(true);
     try {
+      const meta = staticBookMeta(book.title, book.author);
+      if (meta?.pages > 0) { if (onSavePages) onSavePages(book.id, meta.pages); setPagesLoading(false); return; }
       const res = await fetch("/api/book-metadata", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ title:book.title, author:book.author }) });
       const data = await res.json();
       if (data.pages > 0 && onSavePages) onSavePages(book.id, data.pages);
@@ -683,6 +780,8 @@ function BookRowExpanded({ book, onEdit, onRemove, onAdd, onSaveProgress, onSave
   async function fetchPageCount() {
     setPagesLoading(true);
     try {
+      const meta = staticBookMeta(book.title, book.author);
+      if (meta?.pages > 0) { if (onSavePages) onSavePages(book.id, meta.pages); setPagesLoading(false); return; }
       const res = await fetch("/api/book-metadata", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ title:book.title, author:book.author }) });
       const data = await res.json();
       if (data.pages > 0 && onSavePages) onSavePages(book.id, data.pages);
@@ -1247,10 +1346,16 @@ function SeriesCard({ seriesName, books, seriesTotal, onEdit, onRemove, onShelfC
   );
 }
 
-// Shared helper: fetch full bibliography (cache → API → cover enrich → upsert).
+// Shared helper: fetch full bibliography (static → cache → API → cover enrich → upsert).
 // Calls onProgress(items) incrementally as covers load.
 // Returns the full enriched items array.
 async function fetchAuthorBiblio(authorName, { onProgress, forceRefresh = false } = {}) {
+  // Check static catalog first (instant, free)
+  if (!forceRefresh) {
+    await _staticReady;
+    const staticItems = staticAuthorBiblio(authorName);
+    if (staticItems && staticItems.length > 0) { onProgress && onProgress(staticItems); return staticItems; }
+  }
   if (!forceRefresh) {
     const { data: cached } = await supabase
       .from("author_bibliographies")
@@ -1555,7 +1660,13 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
     setShowApiResults(true);
     clearTimeout(searchTimer.current);
     if (searchAbort.current) { searchAbort.current.abort(); searchAbort.current = null; }
-    setApiResults([]);
+    // Show static results instantly
+    if (q.trim().length >= 2) {
+      const staticHits = staticSearchBooks(q, searchMode);
+      setApiResults(staticHits);
+    } else {
+      setApiResults([]);
+    }
     if (q.trim().length >= 3) {
       setApiSearching(true);
       searchTimer.current = setTimeout(async () => {
@@ -1568,11 +1679,29 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
             body: JSON.stringify({ query: q, mode: searchMode }),
             signal: controller.signal,
           });
-          const data = await res.json();
-          setApiResults(Array.isArray(data) ? data : []);
-          track("search", { query: q, mode: searchMode, results: Array.isArray(data) ? data.length : 0 });
+          const apiData = await res.json();
+          const apiArr = Array.isArray(apiData) ? apiData : [];
+          // Merge: static results first, then API results that aren't duplicates
+          const staticHits = staticSearchBooks(q, searchMode);
+          const seen = new Set(staticHits.map(b => `${b.title.toLowerCase()}|${b.author.toLowerCase()}`));
+          const merged = [...staticHits];
+          for (const b of apiArr) {
+            const key = `${b.title.toLowerCase()}|${b.author.toLowerCase()}`;
+            if (!seen.has(key)) { seen.add(key); merged.push(b); }
+            else {
+              // API has coverUrl — patch it into the static result
+              const idx = merged.findIndex(m => `${m.title.toLowerCase()}|${m.author.toLowerCase()}` === key);
+              if (idx !== -1 && b.coverUrl && !merged[idx].coverUrl) merged[idx] = { ...merged[idx], coverUrl: b.coverUrl };
+            }
+          }
+          setApiResults(merged.slice(0, 7));
+          track("search", { query: q, mode: searchMode, results: merged.length });
         } catch (err) {
-          if (err.name !== "AbortError") setApiResults([]);
+          if (err.name !== "AbortError") {
+            // Keep static results if API fails
+            const staticHits = staticSearchBooks(q, searchMode);
+            setApiResults(staticHits.length > 0 ? staticHits : []);
+          }
         }
         setApiSearching(false);
       }, 450);
@@ -4108,54 +4237,8 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, onAddBook,
       fetchCannedList(genreFilter, rankingMode, scoreCategory, (items) => { setAiItems(items); setGenerated(true); }, sid);
       return;
     }
-    setGenerating(true);
-    setAiItems([]);
-    setGenerated(false);
-    try {
-      const library = rankingMode === "foryou"
-        ? books.filter(b => b.rating > 0).map(b => ({ title: b.title, author: b.author, genre: b.genre, rating: b.rating, likedAspects: b.likedAspects || [], dislikedAspects: b.dislikedAspects || [] }))
-        : [];
-      const res = await fetch("/api/ai-rankings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ genre: genreFilter, category: scoreCategory, rankingMode, library }),
-      });
-      const data = await res.json();
-      if (!data.error) {
-        const items = data.items || [];
-        setAiItems(items);
-        setGenerated(true);
-
-        const unmatched = items.filter(item => !findInLibrary(item.title));
-        const itemsWithCovers = items.map(i => ({ ...i }));
-        const BATCH = 5;
-        for (let b = 0; b < unmatched.length; b += BATCH) {
-          if (fetchSession.current !== sid) break;
-          await Promise.all(unmatched.slice(b, b + BATCH).map(async item => {
-            try {
-              const r = await fetch("/api/fetch-cover", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ title: item.title, author: item.author }),
-              });
-              const d = await r.json();
-              const idx = itemsWithCovers.findIndex(x => x.title === item.title && x.author === item.author);
-              if (idx !== -1) itemsWithCovers[idx].coverUrl = d.coverUrl || null;
-            } catch { /* leave coverUrl as-is */ }
-          }));
-          if (b + BATCH < unmatched.length) await new Promise(r => setTimeout(r, 200));
-        }
-        if (fetchSession.current === sid) setAiItems([...itemsWithCovers]);
-        if (userId && userId !== "guest" && (rankingMode === "alltime" || rankingMode === "foryou")) {
-          const genreKey = rankingMode === "foryou" ? `foryou:${genreFilter}` : genreFilter;
-          supabase.from("ai_rankings")
-            .upsert({ user_id: userId, genre: genreKey, category: scoreCategory, items: itemsWithCovers, generated_at: new Date().toISOString() }, { onConflict: "user_id,genre,category" })
-            .then(({ error }) => console.log("[ai_rankings save]", error || "ok"));
-        }
-      }
-    } catch (e) { console.error(e); }
-    track("rankings_generated");
-    setGenerating(false);
+    // No canned list for this combo — AI generation disabled to save costs
+    return;
   }
 
   const aiDisplayItems = generated ? (topN === "all" ? aiItems : aiItems.slice(0, Number(topN))) : [];
@@ -4292,8 +4375,11 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, onAddBook,
             </div>
           )}
 
-          {/* Row 4 (AI only): generate button centered */}
+          {/* Row 4 (AI only): generate button centered — only show if a canned list exists */}
           {mode === "ai" && entityType !== "authors" && (
+            (rankingMode === "alltime" && genreFilter === "All" && (scoreCategory === "all" || scoreCategory === "prose")) ||
+            CANNED_LISTS.has(cannedKey(genreFilter, rankingMode, scoreCategory))
+          ) && (
             <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}>
               <button {...tc(generating ? ()=>{} : generateAIRankings)} style={{
                 padding:"5px 16px", borderRadius:20,
@@ -5705,6 +5791,14 @@ async function enrichBooksFromOpenLibrary(books, onProgress) {
     if (onProgress) onProgress(results.length, books.length, "covers");
   }
 
+  // Static genre classification first
+  for (const b of results) {
+    if (b.genre === "Other") {
+      const meta = staticBookMeta(b.title, b.author);
+      if (meta?.genre) b.genre = meta.genre;
+    }
+  }
+
   // AI genre classification for any books still on "Other"
   const unresolved = results.filter(b => b.genre === "Other");
   if (unresolved.length > 0) {
@@ -5849,6 +5943,16 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd, userI
 
     (async () => {
       try {
+        // 0. Check static catalog first (instant, free)
+        if (!biblioForceRefresh) {
+          await _staticReady;
+          const staticItems = staticAuthorBiblio(author);
+          if (staticItems && staticItems.length > 0) {
+            if (!cancelled) { setBiblio(staticItems); setBiblioForceRefresh(false); }
+            return;
+          }
+        }
+
         // 1. Check cache (shared across all users, 365-day TTL) unless force refresh
         if (!biblioForceRefresh) {
           const { data: cached } = await supabase
@@ -6469,6 +6573,14 @@ export default function App() {
 
   async function autoDetectSeries(book) {
     try {
+      // Check static data first
+      const meta = staticBookMeta(book.title, book.author);
+      if (meta?.series) {
+        const updated = { ...book, series: meta.series, seriesTotal: null };
+        setBooks(prev => prev.map(b => b.id === book.id ? { ...b, series: meta.series } : b));
+        dbUpdateBook(updated, userId);
+        return;
+      }
       const res = await fetch("/api/detect-series", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -6486,9 +6598,28 @@ export default function App() {
   async function batchDetectSeries() {
     const targets = books.filter(b => b.title && b.author && (!b.series || !b.seriesTotal));
     if (!targets.length) return;
+    // Resolve what we can from static data first
+    const staticResolved = [];
+    const remaining = [];
+    for (const book of targets) {
+      const meta = staticBookMeta(book.title, book.author);
+      if (meta?.series) {
+        staticResolved.push({ ...book, series: meta.series });
+      } else {
+        remaining.push(book);
+      }
+    }
+    if (staticResolved.length > 0) {
+      setBooks(prev => prev.map(b => {
+        const u = staticResolved.find(s => s.id === b.id);
+        return u ? { ...b, series: u.series } : b;
+      }));
+      staticResolved.forEach(u => dbUpdateBook(u, userId));
+    }
+    if (!remaining.length) return;
     const CHUNK = 30;
-    for (let i = 0; i < targets.length; i += CHUNK) {
-      const chunk = targets.slice(i, i + CHUNK);
+    for (let i = 0; i < remaining.length; i += CHUNK) {
+      const chunk = remaining.slice(i, i + CHUNK);
       try {
         const res = await fetch("/api/detect-series", {
           method: "POST",
