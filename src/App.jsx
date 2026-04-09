@@ -1118,21 +1118,6 @@ function SeriesView({ shelfBooks, allUserBooks, seriesViewStyle, setSeriesViewSt
         <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:"rgba(255,235,195,0.45)" }}>
           {seriesEntries.length} series · {seriesBooks.length} books
         </p>
-        {onBatchDetectSeries && (
-          <button {...tc(async () => {
-            if (detectingSeriesLoading) return;
-            setDetectingSeriesLoading(true);
-            await onBatchDetectSeries();
-            setDetectingSeriesLoading(false);
-          }, true)} style={{
-            fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600,
-            background: detectingSeriesLoading ? "rgba(138,90,40,0.35)" : "rgba(138,90,40,0.18)",
-            color:"rgba(200,160,100,0.85)",
-            border:"1px solid rgba(138,90,40,0.3)", borderRadius:20,
-            padding:"4px 10px", cursor: detectingSeriesLoading ? "default" : "pointer",
-            opacity: detectingSeriesLoading ? 0.7 : 1,
-          }}>{detectingSeriesLoading ? "Detecting…" : "Detect All Series"}</button>
-        )}
       </div>
       {seriesEntries.length === 0 ? (
         <div style={{ textAlign:"center", marginTop:60 }}>
