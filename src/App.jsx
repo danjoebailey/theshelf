@@ -1145,8 +1145,6 @@ function SeriesView({ shelfBooks, allUserBooks, seriesViewStyle, setSeriesViewSt
 }
 
 function SeriesShelfRow({ name, books, seriesTotal, allBooks, onEdit, onAddBook, tier, onSetTier, onSetTotal }) {
-  const [editingTotal, setEditingTotal] = useState(false);
-  const [totalDraft, setTotalDraft] = useState("");
   const [showUnread, setShowUnread] = useState(false);
   const [unreadBooks, setUnreadBooks] = useState(null);
   const readCount = books.filter(b => b.rating > 0).length;
@@ -1178,19 +1176,12 @@ function SeriesShelfRow({ name, books, seriesTotal, allBooks, onEdit, onAddBook,
         </div>
         <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", justifyContent:"space-between", flexShrink:0, alignSelf:"stretch" }}>
           <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-            {editingTotal
-              ? <input autoFocus type="number" min="1" defaultValue={seriesTotal||""} placeholder="Total?"
-                  style={{ width:64, fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600, background:"#fff", color:"#8a5a28", border:"1px solid rgba(138,90,40,0.5)", borderRadius:20, padding:"3px 9px", outline:"none" }}
-                  onBlur={e => { const v = parseInt(e.target.value); if (v > 0) onSetTotal && onSetTotal(v); setEditingTotal(false); }}
-                  onKeyDown={e => { if (e.key === "Enter") e.target.blur(); if (e.key === "Escape") setEditingTotal(false); }}
-                />
-              : <span {...tc(()=>{ setTotalDraft(seriesTotal||""); setEditingTotal(true); })} style={{
+            <span style={{
                   fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600,
                   background:"rgba(138,90,40,0.18)", color:"#8a5a28",
                   border:"1px solid rgba(138,90,40,0.3)", borderRadius:20,
-                  padding:"3px 9px", cursor:"pointer",
+                  padding:"3px 9px",
                 }}>{countStr}</span>
-            }
             <TierBadge tier={tier} onSetTier={onSetTier} />
           </div>
           <button {...tc(() => {
@@ -1312,8 +1303,6 @@ function TierBadge({ tier, onSetTier }) {
 
 function SeriesCard({ seriesName, books, seriesTotal, onEdit, onRemove, onShelfChange, onSaveProgress, onSavePages, onSaveAspects, onAuthor, tier, onSetTier, onSetTotal }) {
   const [expanded, setExpanded] = useState(false);
-  const [editingTotal, setEditingTotal] = useState(false);
-
   const author = books[0]?.author || "";
   const readBooks = books.filter(b => b.rating > 0);
   const avgRating = readBooks.length > 0
@@ -1360,17 +1349,11 @@ function SeriesCard({ seriesName, books, seriesTotal, onEdit, onRemove, onShelfC
               ★ {avgRating}
             </span>
           )}
-          {editingTotal
-            ? <input autoFocus type="number" min="1" defaultValue={seriesTotal||""} placeholder="Total?"
-                style={{ width:64, fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600, background:"#fff", color:"#8a5a28", border:"1px solid rgba(138,90,40,0.5)", borderRadius:20, padding:"3px 9px", outline:"none" }}
-                onBlur={e => { const v = parseInt(e.target.value); if (v > 0) onSetTotal && onSetTotal(v); setEditingTotal(false); }}
-                onKeyDown={e => { if (e.key === "Enter") e.target.blur(); if (e.key === "Escape") setEditingTotal(false); }}
-              />
-            : <span {...tc(e => { e.stopPropagation(); setEditingTotal(true); })} style={{
+          <span style={{
                 fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600,
                 background:"rgba(138,90,40,0.18)", color:"#8a5a28",
                 border:"1px solid rgba(138,90,40,0.3)", borderRadius:20,
-                padding:"3px 9px", cursor:"pointer",
+                padding:"3px 9px",
               }}>{countStr}</span>
           }
           <TierBadge tier={tier} onSetTier={onSetTier} />
