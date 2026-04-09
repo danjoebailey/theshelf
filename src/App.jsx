@@ -6369,7 +6369,7 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd, userI
                             }}>{b.series.order}</span>
                             <div style={{ flex: 1, minWidth: 0 }}>
                               <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 14, color: CR.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{b.title}</p>
-                              <p style={{ fontSize: 10, color: CR.textDim, fontFamily: "'DM Sans',sans-serif" }}>{b.publicationDate}{b.pageCount ? ` · ${b.pageCount}pp` : ""}</p>
+                              <p style={{ fontSize: 10, color: CR.textDim, fontFamily: "'DM Sans',sans-serif" }}>{b.publicationDate}{b.pageCount ? ` · ${b.pageCount} pages` : ""}</p>
                             </div>
                             {isOwned && <span style={{ fontSize: 9, fontFamily: "'DM Sans',sans-serif", color: "#2e7d32", fontWeight: 600 }}>✓</span>}
                           </div>
