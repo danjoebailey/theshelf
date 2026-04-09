@@ -28,6 +28,11 @@ const _staticReady = fetch("/book-data.json").then(r => r.json()).then(data => {
     const nt = normTitle(b.title);
     if (!_staticByTitle.has(nt)) _staticByTitle.set(nt, []);
     _staticByTitle.get(nt).push(b);
+    if (b.altTitles) b.altTitles.forEach(alt => {
+      const nat = normTitle(alt);
+      if (!_staticByTitle.has(nat)) _staticByTitle.set(nat, []);
+      _staticByTitle.get(nat).push(b);
+    });
   });
 }).catch(() => { _staticBooks = []; _staticByAuthor = new Map(); _staticByTitle = new Map(); });
 
@@ -87,6 +92,7 @@ function staticAuthorBiblio(authorName) {
     genre: b.genre,
     description: b.description,
     coverUrl: null,
+    altTitles: b.altTitles || null,
   }));
 }
 
@@ -1195,7 +1201,8 @@ function SeriesShelfRow({ name, books, seriesTotal, allBooks, onEdit, onAddBook,
                 const readTitles = new Set((allBooks || books).filter(b => b.shelf === "Read" || b.shelf === "DNF").map(b => normBookKey(b.title)));
                 const staticItems = staticAuthorBiblio(author);
                 if (staticItems) {
-                  const seriesBooks = staticItems.filter(b => b.series && b.series.startsWith(name + ", #") && !readTitles.has(normBookKey(b.title)))
+                  const isRead = b => readTitles.has(normBookKey(b.title)) || (b.altTitles && b.altTitles.some(alt => readTitles.has(normBookKey(alt))));
+                  const seriesBooks = staticItems.filter(b => b.series && b.series.startsWith(name + ", #") && !isRead(b))
                     .sort((a, b) => { const ao = parseInt((a.series.match(/#(\d+)/) || [])[1]) || 99; const bo = parseInt((b.series.match(/#(\d+)/) || [])[1]) || 99; return ao - bo; });
                   // Fetch covers
                   const enriched = seriesBooks.map(b => ({ ...b }));
@@ -6352,7 +6359,7 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd, userI
             return (
               <div style={{ padding: "0 16px 20px" }}>
                 {seriesList.map(s => {
-                  const owned = s.books.filter(b => ownedKeys.has(normBookKey(b.title))).length;
+                  const owned = s.books.filter(b => ownedKeys.has(normBookKey(b.title)) || (b.altTitles && b.altTitles.some(alt => ownedKeys.has(normBookKey(alt))))).length;
                   const complete = owned >= s.books.length;
                   return (
                     <div key={s.name} style={{ marginBottom: 20, background: CR.panel, borderRadius: 12, border: `1px solid ${CR.border}`, overflow: "hidden" }}>
@@ -6366,7 +6373,7 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd, userI
                         }}>{owned}/{s.books.length}</span>
                       </div>
                       {s.books.map((b, i) => {
-                        const isOwned = ownedKeys.has(normBookKey(b.title));
+                        const isOwned = ownedKeys.has(normBookKey(b.title)) || (b.altTitles && b.altTitles.some(alt => ownedKeys.has(normBookKey(alt))));
                         return (
                           <div key={i} style={{
                             display: "flex", alignItems: "center", gap: 10, padding: "8px 14px",
