@@ -1240,7 +1240,7 @@ function TierBadge({ tier, onSetTier }) {
         background: tier ? TIER_COLORS[tier] : "rgba(138,90,40,0.12)",
         color: tier ? "#fff" : "rgba(138,90,40,0.5)",
         border: tier ? "none" : "1px dashed rgba(138,90,40,0.3)",
-        borderRadius:6, width:26, height:26, cursor:"pointer",
+        borderRadius:20, padding:"2px 8px", cursor:"pointer",
         display:"flex", alignItems:"center", justifyContent:"center",
       }}>{tier || "·"}</button>
       {open && (
