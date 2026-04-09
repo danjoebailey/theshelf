@@ -20,7 +20,7 @@ const _staticReady = fetch("/book-data.json").then(r => r.json()).then(data => {
   _staticByAuthor = new Map();
   _staticByTitle = new Map();
   const normAuthor = s => { let r = (s || "").replace(/\./g, "").toLowerCase().trim(); r = r.replace(/\b([a-z])\s+(?=[a-z]\b)/g, "$1"); return r.replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim(); };
-  const normTitle = s => (s || "").toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim();
+  const normTitle = s => (s || "").toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim().replace(/colour/g,'color').replace(/honour/g,'honor').replace(/favour/g,'favor').replace(/behaviour/g,'behavior').replace(/neighbour/g,'neighbor');
   data.forEach(b => {
     const na = normAuthor(b.author);
     if (!_staticByAuthor.has(na)) _staticByAuthor.set(na, []);
@@ -92,7 +92,7 @@ function staticAuthorBiblio(authorName) {
 
 function staticBookMeta(title, author) {
   if (!_staticBooks) return null;
-  const normT = s => (s || "").replace(/\s*\(.*$/, "").toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim();
+  const normT = s => (s || "").replace(/\s*\(.*$/, "").toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim().replace(/colour/g,'color').replace(/honour/g,'honor').replace(/favour/g,'favor').replace(/behaviour/g,'behavior').replace(/neighbour/g,'neighbor');
   const norm = s => { let r = (s || "").replace(/\./g, "").toLowerCase().trim(); r = r.replace(/\b([a-z])\s+(?=[a-z]\b)/g, "$1"); return r.replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim(); };
   const nt = normT(title);
   const na = norm(author);
