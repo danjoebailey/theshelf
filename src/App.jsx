@@ -19,7 +19,7 @@ const _staticReady = fetch("/book-data.json").then(r => r.json()).then(data => {
   _staticBooks = data;
   _staticByAuthor = new Map();
   _staticByTitle = new Map();
-  const normAuthor = s => { let r = (s || "").replace(/\./g, "").toLowerCase().trim(); r = r.replace(/\b([a-z])\s+(?=[a-z]\b)/g, "$1"); return r.replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim(); };
+  const normAuthor = s => { let r = (s || "").replace(/[åÅ]/g, 'aa').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\./g, "").toLowerCase().trim(); r = r.replace(/\b([a-z])\s+(?=[a-z]\b)/g, "$1"); return r.replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim(); };
   const normTitle = s => (s || "").toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim().replace(/colour/g,'color').replace(/honour/g,'honor').replace(/favour/g,'favor').replace(/behaviour/g,'behavior').replace(/neighbour/g,'neighbor');
   data.forEach(b => {
     const na = normAuthor(b.author);
@@ -59,7 +59,7 @@ function staticSearchBooks(query, mode = "All") {
 
 function staticAuthorBiblio(authorName) {
   if (!_staticByAuthor) return null;
-  const norm = s => { let r = (s || "").replace(/\./g, "").toLowerCase().trim(); r = r.replace(/\b([a-z])\s+(?=[a-z]\b)/g, "$1"); return r.replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim(); };
+  const norm = s => { let r = (s || "").replace(/[åÅ]/g, 'aa').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\./g, "").toLowerCase().trim(); r = r.replace(/\b([a-z])\s+(?=[a-z]\b)/g, "$1"); return r.replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim(); };
   const na = norm(authorName);
   // Try exact, then prefix, then contains
   let books = _staticByAuthor.get(na);
@@ -93,7 +93,7 @@ function staticAuthorBiblio(authorName) {
 function staticBookMeta(title, author) {
   if (!_staticBooks) return null;
   const normT = s => (s || "").replace(/\s*\(.*$/, "").toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim().replace(/colour/g,'color').replace(/honour/g,'honor').replace(/favour/g,'favor').replace(/behaviour/g,'behavior').replace(/neighbour/g,'neighbor');
-  const norm = s => { let r = (s || "").replace(/\./g, "").toLowerCase().trim(); r = r.replace(/\b([a-z])\s+(?=[a-z]\b)/g, "$1"); return r.replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim(); };
+  const norm = s => { let r = (s || "").replace(/[åÅ]/g, 'aa').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\./g, "").toLowerCase().trim(); r = r.replace(/\b([a-z])\s+(?=[a-z]\b)/g, "$1"); return r.replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim(); };
   const nt = normT(title);
   const na = norm(author);
   const candidates = _staticByTitle.get(nt);
@@ -6308,7 +6308,7 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd, userI
 
           {activeTab === "series" && (() => {
             // Build series data from static catalog
-            const norm = s => (s || "").toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim();
+            const norm = s => (s || "").replace(/[åÅ]/g, 'aa').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim();
             const na = norm(author);
             const catalogBooks = (_staticBooks || []).filter(b => {
               const nb = norm(b.author);
