@@ -1417,7 +1417,7 @@ function AuthorShelfRow({ authorName, books, onEdit, onAddBook, onAuthor, tier, 
   const [unreadBiblio, setUnreadBiblio] = useState(null); // null=not fetched, []=fetched
   const [unreadLoading, setUnreadLoading] = useState(false);
 
-  const sorted = [...books].sort((a, b) => ((b.date||"").localeCompare(a.date||"")));
+  const sorted = [...books].sort((a, b) => (b.rating || 0) - (a.rating || 0) || (b.date||"").localeCompare(a.date||""));
   const readCount = books.filter(b => (b.shelf||"Read") === "Read" || b.shelf === "DNF").length;
   const genreCount = {};
   books.forEach(b => { if (b.genre) genreCount[b.genre] = (genreCount[b.genre]||0)+1; });
