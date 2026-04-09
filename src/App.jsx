@@ -1429,10 +1429,10 @@ function AuthorShelfRow({ authorName, books, allBooks, onEdit, onAddBook, onAuth
   async function fetchUnread() {
     if (unreadLoading) return;
     setUnreadLoading(true);
-    const ownedTitles = new Set((allBooks || books).map(b => normBookKey(b.title)));
+    const readTitles = new Set((allBooks || books).filter(b => b.shelf === "Read" || b.shelf === "DNF").map(b => normBookKey(b.title)));
     try {
       await fetchAuthorBiblio(authorName, {
-        onProgress: items => setUnreadBiblio(items.filter(item => !ownedTitles.has(normBookKey(item.title)))),
+        onProgress: items => setUnreadBiblio(items.filter(item => !readTitles.has(normBookKey(item.title)))),
       });
     } catch {} finally { setUnreadLoading(false); }
   }
