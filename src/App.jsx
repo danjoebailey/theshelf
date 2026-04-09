@@ -5684,7 +5684,7 @@ function toTitleCase(str) {
 }
 
 function normBookKey(title) {
-  return (title || '').replace(/\s*[(:].*/,'').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^\w]/g, '');
+  return (title || '').replace(/\s*[(:].*/,'').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^\w]/g, '').replace(/colour/g,'color').replace(/honour/g,'honor').replace(/favour/g,'favor').replace(/behaviour/g,'behavior').replace(/neighbour/g,'neighbor');
 }
 
 function normalizeGenre(genre) {
