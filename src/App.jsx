@@ -1082,7 +1082,7 @@ function BookRowPages({ book, index, onEdit, onRemove, onShelfChange, maxPages, 
   );
 }
 
-function SeriesView({ shelfBooks, seriesViewStyle, setSeriesViewStyle, detectingSeriesLoading, setDetectingSeriesLoading, onBatchDetectSeries, onEdit, onRemove, onShelfChange, onSaveProgress, onSavePages, onSaveAspects, onAuthor, seriesTiers = {}, onSetSeriesTier, seriesSort = "read", onSetSeriesTotal }) {
+function SeriesView({ shelfBooks, allUserBooks, seriesViewStyle, setSeriesViewStyle, detectingSeriesLoading, setDetectingSeriesLoading, onBatchDetectSeries, onEdit, onRemove, onShelfChange, onSaveProgress, onSavePages, onSaveAspects, onAuthor, seriesTiers = {}, onSetSeriesTier, seriesSort = "read", onSetSeriesTotal, onAddBook }) {
   const seriesBooks = shelfBooks.filter(b => b.series);
   const grouped = {};
   seriesBooks.forEach(b => {
@@ -1146,16 +1146,18 @@ function SeriesView({ shelfBooks, seriesViewStyle, setSeriesViewStyle, detecting
             <SeriesCard key={name} seriesName={name} books={sb} seriesTotal={seriesTotal} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} tier={seriesTiers[name] || null} onSetTier={t => onSetSeriesTier && onSetSeriesTier(name, t)} onSetTotal={v => onSetSeriesTotal && onSetSeriesTotal(name, v)} />
           ))
         : seriesEntries.map(([name, { books: sb, seriesTotal }]) => (
-            <SeriesShelfRow key={name} name={name} books={sb} seriesTotal={seriesTotal} onEdit={onEdit} tier={seriesTiers[name] || null} onSetTier={t => onSetSeriesTier && onSetSeriesTier(name, t)} onSetTotal={v => onSetSeriesTotal && onSetSeriesTotal(name, v)} />
+            <SeriesShelfRow key={name} name={name} books={sb} seriesTotal={seriesTotal} allBooks={allUserBooks} onEdit={onEdit} onAddBook={onAddBook} tier={seriesTiers[name] || null} onSetTier={t => onSetSeriesTier && onSetSeriesTier(name, t)} onSetTotal={v => onSetSeriesTotal && onSetSeriesTotal(name, v)} />
           ))
       }
     </>
   );
 }
 
-function SeriesShelfRow({ name, books, seriesTotal, onEdit, tier, onSetTier, onSetTotal }) {
+function SeriesShelfRow({ name, books, seriesTotal, allBooks, onEdit, onAddBook, tier, onSetTier, onSetTotal }) {
   const [editingTotal, setEditingTotal] = useState(false);
   const [totalDraft, setTotalDraft] = useState("");
+  const [showUnread, setShowUnread] = useState(false);
+  const [unreadBooks, setUnreadBooks] = useState(null);
   const readCount = books.filter(b => b.rating > 0).length;
   const pct = seriesTotal ? Math.round((readCount / seriesTotal) * 100) : null;
   const countStr = seriesTotal ? (readCount + " / " + seriesTotal) : (readCount + " book" + (readCount !== 1 ? "s" : ""));
@@ -1183,21 +1185,49 @@ function SeriesShelfRow({ name, books, seriesTotal, onEdit, tier, onSetTier, onS
             return <span style={{ display:"inline-block", marginTop:5, background:bg, color:"#fff", borderRadius:20, padding:"2px 8px", fontSize:9, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em" }}>{topGenre}</span>;
           })()}
         </div>
-        <div style={{ display:"flex", alignItems:"center", gap:6, flexShrink:0 }}>
-          {editingTotal
-            ? <input autoFocus type="number" min="1" defaultValue={seriesTotal||""} placeholder="Total?"
-                style={{ width:64, fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600, background:"#fff", color:"#8a5a28", border:"1px solid rgba(138,90,40,0.5)", borderRadius:20, padding:"3px 9px", outline:"none" }}
-                onBlur={e => { const v = parseInt(e.target.value); if (v > 0) onSetTotal && onSetTotal(v); setEditingTotal(false); }}
-                onKeyDown={e => { if (e.key === "Enter") e.target.blur(); if (e.key === "Escape") setEditingTotal(false); }}
-              />
-            : <span {...tc(()=>{ setTotalDraft(seriesTotal||""); setEditingTotal(true); })} style={{
-                fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600,
-                background:"rgba(138,90,40,0.18)", color:"#8a5a28",
-                border:"1px solid rgba(138,90,40,0.3)", borderRadius:20,
-                padding:"3px 9px", cursor:"pointer",
-              }}>{countStr}</span>
-          }
-          <TierBadge tier={tier} onSetTier={onSetTier} />
+        <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", justifyContent:"space-between", flexShrink:0, alignSelf:"stretch" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+            {editingTotal
+              ? <input autoFocus type="number" min="1" defaultValue={seriesTotal||""} placeholder="Total?"
+                  style={{ width:64, fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600, background:"#fff", color:"#8a5a28", border:"1px solid rgba(138,90,40,0.5)", borderRadius:20, padding:"3px 9px", outline:"none" }}
+                  onBlur={e => { const v = parseInt(e.target.value); if (v > 0) onSetTotal && onSetTotal(v); setEditingTotal(false); }}
+                  onKeyDown={e => { if (e.key === "Enter") e.target.blur(); if (e.key === "Escape") setEditingTotal(false); }}
+                />
+              : <span {...tc(()=>{ setTotalDraft(seriesTotal||""); setEditingTotal(true); })} style={{
+                  fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600,
+                  background:"rgba(138,90,40,0.18)", color:"#8a5a28",
+                  border:"1px solid rgba(138,90,40,0.3)", borderRadius:20,
+                  padding:"3px 9px", cursor:"pointer",
+                }}>{countStr}</span>
+            }
+            <TierBadge tier={tier} onSetTier={onSetTier} />
+          </div>
+          <button {...tc(() => {
+            if (!showUnread && unreadBooks === null) {
+              // Fetch unread books from static catalog for this series
+              const author = books[0]?.author;
+              if (author) {
+                const readTitles = new Set((allBooks || books).filter(b => b.shelf === "Read" || b.shelf === "DNF").map(b => normBookKey(b.title)));
+                const staticItems = staticAuthorBiblio(author);
+                if (staticItems) {
+                  const seriesBooks = staticItems.filter(b => b.series && b.series.includes(name) && !readTitles.has(normBookKey(b.title)));
+                  // Fetch covers
+                  const enriched = seriesBooks.map(b => ({ ...b }));
+                  setUnreadBooks(enriched);
+                  enriched.forEach(async b => {
+                    try {
+                      const r = await fetch("/api/fetch-cover", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: b.title, author }) });
+                      const d = await r.json();
+                      if (d.coverUrl) setUnreadBooks(prev => prev.map(p => p.title === b.title ? { ...p, coverUrl: d.coverUrl } : p));
+                    } catch {}
+                  });
+                }
+              }
+            }
+            setShowUnread(v => !v);
+          }, true)} style={{ background:"transparent", border:"none", fontFamily:"'DM Sans',sans-serif", fontSize:10, color:showUnread ? WOOD.amber : WOOD.textFaint, cursor:"pointer", padding:0, fontWeight: showUnread ? 700 : 400 }}>
+            {showUnread ? "Hide unread" : "Show unread"}
+          </button>
         </div>
       </div>
       <div style={{ display:"flex", gap:6, overflowX:"auto", paddingBottom:4, scrollbarWidth:"none", marginLeft:-2 }}>
@@ -1218,6 +1248,22 @@ function SeriesShelfRow({ name, books, seriesTotal, onEdit, tier, onSetTier, onS
                 <BookCoverThumb book={b} />
               </div>
               {b.rating > 0 && <p style={{ fontSize:9, color:WOOD.amber, marginTop:2, lineHeight:1 }}>{"★".repeat(Math.floor(b.rating))}{b.rating % 1 >= 0.5 ? "½" : ""}</p>}
+            </div>
+          );
+        })}
+        {showUnread && unreadBooks && unreadBooks.map((item, i) => {
+          let tX = 0, tY = 0;
+          const existing = (allBooks || []).find(b => normBookKey(b.title) === normBookKey(item.title));
+          const draft = { title: item.title, author: books[0]?.author, genre: item.genre, coverUrl: item.coverUrl, pages: item.pages || 0, _fromRecs: true };
+          const handleTap = () => existing ? (onEdit && onEdit(existing)) : (onAddBook && onAddBook(draft));
+          return (
+            <div key={`unread-${i}`}
+              onTouchStart={e => { tX = e.touches[0].clientX; tY = e.touches[0].clientY; }}
+              onTouchEnd={e => { const dx = Math.abs(e.changedTouches[0].clientX - tX); const dy = Math.abs(e.changedTouches[0].clientY - tY); if (dx < 8 && dy < 8) { e.preventDefault(); e.stopPropagation(); handleTap(); } }}
+              onClick={e => { e.stopPropagation(); handleTap(); }}
+              style={{ flexShrink:0, cursor:"pointer", textAlign:"center" }}>
+              <BookCoverThumb book={{ title: item.title, coverUrl: item.coverUrl, genre: item.genre }} />
+              {existing?.shelf && existing.shelf !== "Read" && existing.shelf !== "DNF" && <p style={{ fontSize:8, color:WOOD.textDim, fontFamily:"'DM Sans',sans-serif", marginTop:2, lineHeight:1 }}>{existing.shelf}</p>}
             </div>
           );
         })}
@@ -2125,7 +2171,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
           </div>
         )}
         {browseMode === "series"
-          ? <SeriesView shelfBooks={seriesShowAll ? books : books.filter(b=>(b.shelf||"Read")==="Read")} seriesViewStyle={seriesViewStyle} setSeriesViewStyle={setSeriesViewStyle} detectingSeriesLoading={detectingSeriesLoading} setDetectingSeriesLoading={setDetectingSeriesLoading} onBatchDetectSeries={onBatchDetectSeries} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} seriesTiers={seriesTiers} onSetSeriesTier={onSetSeriesTier} seriesSort={seriesSort} onSetSeriesTotal={onSetSeriesTotal} />
+          ? <SeriesView shelfBooks={seriesShowAll ? books : books.filter(b=>(b.shelf||"Read")==="Read")} allUserBooks={books} seriesViewStyle={seriesViewStyle} setSeriesViewStyle={setSeriesViewStyle} detectingSeriesLoading={detectingSeriesLoading} setDetectingSeriesLoading={setDetectingSeriesLoading} onBatchDetectSeries={onBatchDetectSeries} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} seriesTiers={seriesTiers} onSetSeriesTier={onSetSeriesTier} seriesSort={seriesSort} onSetSeriesTotal={onSetSeriesTotal} onAddBook={onAddBook} />
           : browseMode === "authors"
           ? <AuthorsView allBooks={books.filter(b=>(b.shelf||"Read")==="Read")} allUserBooks={books} authorSort={authorSort} authorTiers={authorTiers} onSetAuthorTier={onSetAuthorTier} seriesViewStyle={seriesViewStyle} setSeriesViewStyle={setSeriesViewStyle} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} onAddBook={onAddBook} />
           : filtered.map((book,i)=>(
