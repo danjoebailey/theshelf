@@ -6328,7 +6328,7 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd, userI
 
             // Match user's library books
             const ownedKeys = new Set(
-              books.filter(b => { const nb = norm(b.author); return nb === na || nb.startsWith(na) || na.startsWith(nb); })
+              books.filter(b => { const nb = norm(b.author); return (b.shelf === "Read" || b.shelf === "DNF") && (nb === na || nb.startsWith(na) || na.startsWith(nb)); })
                 .map(b => normBookKey(b.title))
             );
 
