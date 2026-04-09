@@ -1485,7 +1485,7 @@ function AuthorShelfRow({ authorName, books, onEdit, onAddBook, onAuthor, tier, 
             onTouchStart={e => { tX = e.touches[0].clientX; tY = e.touches[0].clientY; }}
             onTouchEnd={e => { const dx = Math.abs(e.changedTouches[0].clientX - tX); const dy = Math.abs(e.changedTouches[0].clientY - tY); if (dx < 8 && dy < 8) { e.preventDefault(); e.stopPropagation(); onAddBook && onAddBook(draft); } }}
             onClick={e => { e.stopPropagation(); onAddBook && onAddBook(draft); }}
-            style={{ flexShrink:0, filter:"grayscale(70%) brightness(0.75)", opacity:0.65, cursor:"pointer" }} title={item.title}>
+            style={{ flexShrink:0, cursor:"pointer" }} title={item.title}>
             <BookCoverThumb book={{ title: item.title, coverUrl: item.coverUrl, genre: item.genre }} />
           </div>
           );
