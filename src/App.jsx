@@ -1473,7 +1473,7 @@ function AuthorShelfRow({ authorName, books, onEdit, onAddBook, onAuthor, tier, 
               style={{ flexShrink:0, cursor:"pointer", textAlign:"center" }}
             >
               <BookCoverThumb book={b} />
-              {b.rating > 0 && <div style={{ marginTop:2, display:"flex", justifyContent:"center" }}><StarRating value={b.rating} size={10} readonly onlyFilled /></div>}
+              {b.rating > 0 && <p style={{ fontSize:9, color:WOOD.amber, marginTop:2, lineHeight:1 }}>{"★".repeat(Math.floor(b.rating))}{b.rating % 1 >= 0.5 ? "½" : ""}</p>}
             </div>
           );
         })}
