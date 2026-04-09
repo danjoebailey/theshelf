@@ -1620,12 +1620,15 @@ function AuthorCard({ authorName, books, onEdit, onRemove, onShelfChange, onSave
 
 function AuthorsView({ allBooks, allUserBooks, authorSort, authorTiers, onSetAuthorTier, seriesViewStyle, setSeriesViewStyle, onEdit, onRemove, onShelfChange, onSaveProgress, onSavePages, onSaveAspects, onAuthor, onAddBook }) {
   const grouped = {};
+  const authorDisplayName = {};
   allBooks.forEach(b => {
     if (!b.author) return;
-    if (!grouped[b.author]) grouped[b.author] = [];
-    grouped[b.author].push(b);
+    const key = normAuthorKey(b.author);
+    if (!authorDisplayName[key]) authorDisplayName[key] = b.author;
+    if (!grouped[key]) grouped[key] = [];
+    grouped[key].push(b);
   });
-  const entries = Object.entries(grouped).sort((a, b) => {
+  const entries = Object.entries(grouped).map(([key, bks]) => [authorDisplayName[key], bks]).sort((a, b) => {
     const tierVal = t => t ? (TIER_ORDER.indexOf(t) + 1) : 99;
     if (authorSort === "read") { const ar = a[1].filter(b=>(b.shelf||"Read")==="Read"||b.shelf==="DNF").length; const br = b[1].filter(b=>(b.shelf||"Read")==="Read"||b.shelf==="DNF").length; return br - ar || a[0].localeCompare(b[0]); }
     if (authorSort === "rating") return tierVal(authorTiers[a[0]]) - tierVal(authorTiers[b[0]]) || a[0].localeCompare(b[0]);
@@ -4035,12 +4038,16 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, onAddBook,
   // Author groupings from read books
   const authorGroups = useMemo(() => {
     const grouped = {};
+    const displayName = {};
     readBooks.forEach(b => {
       if (!b.author) return;
-      if (!grouped[b.author]) grouped[b.author] = [];
-      grouped[b.author].push(b);
+      const key = normAuthorKey(b.author);
+      if (!displayName[key]) displayName[key] = b.author;
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push(b);
     });
-    return Object.entries(grouped).map(([name, bks]) => {
+    return Object.entries(grouped).map(([key, bks]) => {
+      const name = displayName[key];
       const rated = bks.filter(b => b.rating > 0);
       const avgRating = rated.length ? rated.reduce((s,b)=>s+b.rating,0)/rated.length : 0;
       const gc = {}; bks.forEach(b => { if (b.genre) gc[b.genre]=(gc[b.genre]||0)+1; });
@@ -4662,8 +4669,9 @@ function StatsTab({ books }) {
     const genreMap={}, genrePages={}, genreRatingSum={};
     filteredBooks.forEach(b=>{ genreMap[b.genre]=(genreMap[b.genre]||0)+1; genrePages[b.genre]=(genrePages[b.genre]||0)+(b.pages||0); if(b.rating) genreRatingSum[b.genre]=(genreRatingSum[b.genre]||0)+b.rating; });
     const authorMap = {};
-    filteredBooks.forEach(b=>{ if(b.author) authorMap[b.author]=(authorMap[b.author]||0)+1; });
-    const topAuthor = Object.entries(authorMap).sort((a,b)=>b[1]-a[1])[0] || null;
+    const authorDisplay = {};
+    filteredBooks.forEach(b=>{ if(b.author) { const k=normAuthorKey(b.author); if(!authorDisplay[k]) authorDisplay[k]=b.author; authorMap[k]=(authorMap[k]||0)+1; } });
+    const topAuthor = Object.entries(authorMap).sort((a,b)=>b[1]-a[1]).map(([k,v])=>[authorDisplay[k],v])[0] || null;
     const longestBook = filteredBooks.filter(b=>b.pages>0).sort((a,b)=>b.pages-a.pages)[0] || null;
     return { totalPages, avgRating, genreMap, genrePages, genreRatingSum, topAuthor, longestBook };
   }, [filteredBooks]);
@@ -5682,6 +5690,10 @@ function toTitleCase(str) {
     if (!isFirst && !isLast && !prefix && TITLE_LOWER_WORDS.has(rest)) return rest;
     return prefix + rest.charAt(0).toUpperCase() + rest.slice(1);
   }).join(" ");
+}
+
+function normAuthorKey(name) {
+  return (name || '').replace(/[åÅ]/g, 'aa').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\./g, '').toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
 }
 
 function normBookKey(title) {
