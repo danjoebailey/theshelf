@@ -1470,9 +1470,10 @@ function AuthorShelfRow({ authorName, books, onEdit, onAddBook, onAuthor, tier, 
               onTouchStart={e => { touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; }}
               onTouchEnd={e => { const dx = Math.abs(e.changedTouches[0].clientX - touchStartX); const dy = Math.abs(e.changedTouches[0].clientY - touchStartY); if (dx < 8 && dy < 8) { e.preventDefault(); onEdit && onEdit(b); } }}
               onClick={() => onEdit && onEdit(b)}
-              style={{ flexShrink:0, cursor:"pointer" }}
+              style={{ flexShrink:0, cursor:"pointer", textAlign:"center" }}
             >
               <BookCoverThumb book={b} />
+              {b.rating > 0 && <p style={{ fontSize:9, color:WOOD.amber, marginTop:2, lineHeight:1 }}>{"★".repeat(b.rating)}</p>}
             </div>
           );
         })}
