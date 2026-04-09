@@ -1412,7 +1412,7 @@ async function fetchAuthorBiblio(authorName, { onProgress, forceRefresh = false 
   return enriched;
 }
 
-function AuthorShelfRow({ authorName, books, onEdit, onAddBook, onAuthor, tier, onSetTier }) {
+function AuthorShelfRow({ authorName, books, allBooks, onEdit, onAddBook, onAuthor, tier, onSetTier }) {
   const [showUnread, setShowUnread] = useState(false);
   const [unreadBiblio, setUnreadBiblio] = useState(null); // null=not fetched, []=fetched
   const [unreadLoading, setUnreadLoading] = useState(false);
@@ -1429,7 +1429,7 @@ function AuthorShelfRow({ authorName, books, onEdit, onAddBook, onAuthor, tier, 
   async function fetchUnread() {
     if (unreadLoading) return;
     setUnreadLoading(true);
-    const ownedTitles = new Set(books.map(b => normBookKey(b.title)));
+    const ownedTitles = new Set((allBooks || books).map(b => normBookKey(b.title)));
     try {
       await fetchAuthorBiblio(authorName, {
         onProgress: items => setUnreadBiblio(items.filter(item => !ownedTitles.has(normBookKey(item.title)))),
@@ -1479,12 +1479,14 @@ function AuthorShelfRow({ authorName, books, onEdit, onAddBook, onAuthor, tier, 
         })}
         {showUnread && unreadBiblio && unreadBiblio.map((item, i) => {
           let tX = 0, tY = 0;
+          const existing = (allBooks || []).find(b => normBookKey(b.title) === normBookKey(item.title));
           const draft = { title: item.title, author: authorName, genre: item.genre, coverUrl: item.coverUrl, pages: 0, _fromRecs: true };
+          const handleTap = () => existing ? (onEdit && onEdit(existing)) : (onAddBook && onAddBook(draft));
           return (
           <div key={`unread-${i}`}
             onTouchStart={e => { tX = e.touches[0].clientX; tY = e.touches[0].clientY; }}
-            onTouchEnd={e => { const dx = Math.abs(e.changedTouches[0].clientX - tX); const dy = Math.abs(e.changedTouches[0].clientY - tY); if (dx < 8 && dy < 8) { e.preventDefault(); e.stopPropagation(); onAddBook && onAddBook(draft); } }}
-            onClick={e => { e.stopPropagation(); onAddBook && onAddBook(draft); }}
+            onTouchEnd={e => { const dx = Math.abs(e.changedTouches[0].clientX - tX); const dy = Math.abs(e.changedTouches[0].clientY - tY); if (dx < 8 && dy < 8) { e.preventDefault(); e.stopPropagation(); handleTap(); } }}
+            onClick={e => { e.stopPropagation(); handleTap(); }}
             style={{ flexShrink:0, cursor:"pointer" }} title={item.title}>
             <BookCoverThumb book={{ title: item.title, coverUrl: item.coverUrl, genre: item.genre }} />
           </div>
@@ -1580,7 +1582,7 @@ function AuthorCard({ authorName, books, onEdit, onRemove, onShelfChange, onSave
   );
 }
 
-function AuthorsView({ allBooks, authorSort, authorTiers, onSetAuthorTier, seriesViewStyle, setSeriesViewStyle, onEdit, onRemove, onShelfChange, onSaveProgress, onSavePages, onSaveAspects, onAuthor, onAddBook }) {
+function AuthorsView({ allBooks, allUserBooks, authorSort, authorTiers, onSetAuthorTier, seriesViewStyle, setSeriesViewStyle, onEdit, onRemove, onShelfChange, onSaveProgress, onSavePages, onSaveAspects, onAuthor, onAddBook }) {
   const grouped = {};
   allBooks.forEach(b => {
     if (!b.author) return;
@@ -1609,7 +1611,7 @@ function AuthorsView({ allBooks, authorSort, authorTiers, onSetAuthorTier, serie
             <AuthorCard key={name} authorName={name} books={books} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} tier={authorTiers[name]||null} onSetTier={t => onSetAuthorTier && onSetAuthorTier(name, t)} />
           ))
         : entries.map(([name, books]) => (
-            <AuthorShelfRow key={name} authorName={name} books={books} onEdit={onEdit} onAddBook={onAddBook} onAuthor={onAuthor} tier={authorTiers[name]||null} onSetTier={t => onSetAuthorTier && onSetAuthorTier(name, t)} />
+            <AuthorShelfRow key={name} authorName={name} books={books} allBooks={allUserBooks} onEdit={onEdit} onAddBook={onAddBook} onAuthor={onAuthor} tier={authorTiers[name]||null} onSetTier={t => onSetAuthorTier && onSetAuthorTier(name, t)} />
           ))
       }
     </>
@@ -2121,7 +2123,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
         {browseMode === "series"
           ? <SeriesView shelfBooks={seriesShowAll ? books : books.filter(b=>(b.shelf||"Read")==="Read")} seriesViewStyle={seriesViewStyle} setSeriesViewStyle={setSeriesViewStyle} detectingSeriesLoading={detectingSeriesLoading} setDetectingSeriesLoading={setDetectingSeriesLoading} onBatchDetectSeries={onBatchDetectSeries} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} seriesTiers={seriesTiers} onSetSeriesTier={onSetSeriesTier} seriesSort={seriesSort} onSetSeriesTotal={onSetSeriesTotal} />
           : browseMode === "authors"
-          ? <AuthorsView allBooks={books.filter(b=>(b.shelf||"Read")==="Read")} authorSort={authorSort} authorTiers={authorTiers} onSetAuthorTier={onSetAuthorTier} seriesViewStyle={seriesViewStyle} setSeriesViewStyle={setSeriesViewStyle} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} onAddBook={onAddBook} />
+          ? <AuthorsView allBooks={books.filter(b=>(b.shelf||"Read")==="Read")} allUserBooks={books} authorSort={authorSort} authorTiers={authorTiers} onSetAuthorTier={onSetAuthorTier} seriesViewStyle={seriesViewStyle} setSeriesViewStyle={setSeriesViewStyle} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} onAddBook={onAddBook} />
           : filtered.map((book,i)=>(
           <div key={`${book.id}_${i}`} style={{ display:"flex", alignItems:"stretch", gap:0 }}>
             {sort==="custom" && (
