@@ -1195,7 +1195,7 @@ function SeriesShelfRow({ name, books, seriesTotal, allBooks, onEdit, onAddBook,
                 const readTitles = new Set((allBooks || books).filter(b => b.shelf === "Read" || b.shelf === "DNF").map(b => normBookKey(b.title)));
                 const staticItems = staticAuthorBiblio(author);
                 if (staticItems) {
-                  const seriesBooks = staticItems.filter(b => b.series && b.series.includes(name) && !readTitles.has(normBookKey(b.title)));
+                  const seriesBooks = staticItems.filter(b => b.series && b.series === name && !readTitles.has(normBookKey(b.title)));
                   // Fetch covers
                   const enriched = seriesBooks.map(b => ({ ...b }));
                   setUnreadBooks(enriched);
