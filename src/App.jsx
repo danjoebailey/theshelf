@@ -19,12 +19,13 @@ const _staticReady = fetch("/book-data.json").then(r => r.json()).then(data => {
   _staticBooks = data;
   _staticByAuthor = new Map();
   _staticByTitle = new Map();
-  const norm = s => (s || "").toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim();
+  const normAuthor = s => { let r = (s || "").replace(/\./g, "").toLowerCase().trim(); r = r.replace(/\b([a-z])\s+(?=[a-z]\b)/g, "$1"); return r.replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim(); };
+  const normTitle = s => (s || "").toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim();
   data.forEach(b => {
-    const na = norm(b.author);
+    const na = normAuthor(b.author);
     if (!_staticByAuthor.has(na)) _staticByAuthor.set(na, []);
     _staticByAuthor.get(na).push(b);
-    const nt = norm(b.title);
+    const nt = normTitle(b.title);
     if (!_staticByTitle.has(nt)) _staticByTitle.set(nt, []);
     _staticByTitle.get(nt).push(b);
   });
@@ -58,7 +59,7 @@ function staticSearchBooks(query, mode = "All") {
 
 function staticAuthorBiblio(authorName) {
   if (!_staticByAuthor) return null;
-  const norm = s => (s || "").toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim();
+  const norm = s => { let r = (s || "").replace(/\./g, "").toLowerCase().trim(); r = r.replace(/\b([a-z])\s+(?=[a-z]\b)/g, "$1"); return r.replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim(); };
   const na = norm(authorName);
   // Try exact, then prefix, then contains
   let books = _staticByAuthor.get(na);
@@ -91,8 +92,9 @@ function staticAuthorBiblio(authorName) {
 
 function staticBookMeta(title, author) {
   if (!_staticBooks) return null;
-  const norm = s => (s || "").replace(/\s*\(.*$/, "").toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim();
-  const nt = norm(title);
+  const normT = s => (s || "").replace(/\s*\(.*$/, "").toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim();
+  const norm = s => { let r = (s || "").replace(/\./g, "").toLowerCase().trim(); r = r.replace(/\b([a-z])\s+(?=[a-z]\b)/g, "$1"); return r.replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim(); };
+  const nt = normT(title);
   const na = norm(author);
   const candidates = _staticByTitle.get(nt);
   if (!candidates) return null;
