@@ -1212,11 +1212,12 @@ function SeriesShelfRow({ name, books, seriesTotal, onEdit, tier, onSetTier, onS
                 if (dx < 8 && dy < 8) { e.preventDefault(); onEdit && onEdit(b); }
               }}
               onClick={() => onEdit && onEdit(b)}
-              style={{ flexShrink:0, cursor:"pointer" }}
+              style={{ flexShrink:0, cursor:"pointer", textAlign:"center" }}
             >
               <div style={{ filter: b.rating > 0 ? "none" : "grayscale(70%) brightness(0.75)", opacity: b.rating > 0 ? 1 : 0.7, transition:"filter 0.2s" }}>
                 <BookCoverThumb book={b} />
               </div>
+              {b.rating > 0 && <p style={{ fontSize:9, color:WOOD.amber, marginTop:2, lineHeight:1 }}>{"★".repeat(Math.floor(b.rating))}{b.rating % 1 >= 0.5 ? "½" : ""}</p>}
             </div>
           );
         })}
