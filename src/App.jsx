@@ -5111,9 +5111,9 @@ function BookSearchModal({ book, onSave, onClose }) {
         </div>
 
         {!noRating && (
-          <div style={{ marginBottom:20, display:"flex", flexDirection:"column", alignItems:"center" }}>
+          <div style={{ marginBottom:20 }}>
             <p style={{ fontSize:11, color:"#9ca3af", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Your Rating</p>
-            <StarRating value={rating} onChange={setRating} size={40} />
+            <StarRating value={rating} onChange={setRating} size={40} stretch />
           </div>
         )}
 
