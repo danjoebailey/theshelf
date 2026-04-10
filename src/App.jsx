@@ -5546,15 +5546,15 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
             {shelf === "Read" && (
               <div style={{ padding:"0 22px", marginBottom:20 }}>
                 <div style={{ display:"flex", gap:20, alignItems:"flex-end", flexWrap:"wrap" }}>
-                  <div>
+                  <div style={{ flex:1, minWidth:0 }}>
                     <p style={lbl}>Genre</p>
-                    <select value={genre} onChange={e => setGenre(e.target.value)} style={{ padding:"9px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'DM Sans',sans-serif", color:CR.text, outline:"none", cursor:"pointer" }}>
+                    <select value={genre} onChange={e => setGenre(e.target.value)} style={{ width:"100%", padding:"9px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'DM Sans',sans-serif", color:CR.text, outline:"none", cursor:"pointer", textOverflow:"ellipsis" }}>
                       {GENRES.map(g => <option key={g} value={g}>{g}</option>)}
                     </select>
                   </div>
-                  <div>
+                  <div style={{ flex:1, minWidth:0 }}>
                     <p style={lbl}>Date Read</p>
-                    <input type="date" value={date} onChange={e => setDate(e.target.value)} onTouchEnd={e=>e.stopPropagation()} style={{ padding:"9px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'DM Sans',sans-serif", color:CR.text, outline:"none" }} />
+                    <input type="date" value={date} onChange={e => setDate(e.target.value)} onTouchEnd={e=>e.stopPropagation()} style={{ width:"100%", padding:"9px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'DM Sans',sans-serif", color:CR.text, outline:"none", boxSizing:"border-box" }} />
                   </div>
                 </div>
               </div>
