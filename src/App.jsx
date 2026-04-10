@@ -1137,14 +1137,14 @@ function SeriesView({ shelfBooks, allUserBooks, seriesViewStyle, setSeriesViewSt
             <SeriesCard key={name} seriesName={name} books={sb} seriesTotal={seriesTotal} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} tier={seriesTiers[name] || null} onSetTier={t => onSetSeriesTier && onSetSeriesTier(name, t)} onSetTotal={v => onSetSeriesTotal && onSetSeriesTotal(name, v)} />
           ))
         : seriesEntries.map(([name, { books: sb, seriesTotal }]) => (
-            <SeriesShelfRow key={name} name={name} books={sb} seriesTotal={seriesTotal} allBooks={allUserBooks} onEdit={onEdit} onAddBook={onAddBook} tier={seriesTiers[name] || null} onSetTier={t => onSetSeriesTier && onSetSeriesTier(name, t)} onSetTotal={v => onSetSeriesTotal && onSetSeriesTotal(name, v)} />
+            <SeriesShelfRow key={name} name={name} books={sb} seriesTotal={seriesTotal} allBooks={allUserBooks} onEdit={onEdit} onAddBook={onAddBook} onAuthor={onAuthor} tier={seriesTiers[name] || null} onSetTier={t => onSetSeriesTier && onSetSeriesTier(name, t)} onSetTotal={v => onSetSeriesTotal && onSetSeriesTotal(name, v)} />
           ))
       }
     </>
   );
 }
 
-function SeriesShelfRow({ name, books, seriesTotal, allBooks, onEdit, onAddBook, tier, onSetTier, onSetTotal }) {
+function SeriesShelfRow({ name, books, seriesTotal, allBooks, onEdit, onAddBook, onAuthor, tier, onSetTier, onSetTotal }) {
   const [showUnread, setShowUnread] = useState(false);
   const [unreadBooks, setUnreadBooks] = useState(null);
   const readCount = books.filter(b => b.rating > 0).length;
@@ -1185,6 +1185,7 @@ function SeriesShelfRow({ name, books, seriesTotal, allBooks, onEdit, onAddBook,
                   border:"1px solid rgba(138,90,40,0.3)", borderRadius:20,
                   padding:"3px 9px",
                 }}>{countStr}</span>
+            <button {...tc(() => onAuthor && onAuthor({ name: sorted[0]?.author, tab: "series" }), true)} style={{ background:"transparent", border:"none", cursor:"pointer", padding:"2px 4px 0", color:"rgba(120,70,20,0.6)", fontSize:16, lineHeight:1 }}>↗</button>
           </div>
           <button {...tc(() => {
             if (!showUnread && unreadBooks === null) {
@@ -5982,8 +5983,8 @@ function parseGoodreadsCSV(text, shelfMap = DEFAULT_GR_SHELF_MAP) {
   }).filter(b => b.title);
 }
 
-function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd, userId }) {
-  const [activeTab, setActiveTab] = useState("books");
+function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd, userId, initialTab }) {
+  const [activeTab, setActiveTab] = useState(initialTab || "books");
   const [bio, setBio] = useState(null);
   const [bioLoading, setBioLoading] = useState(false);
   const [wikiImage, setWikiImage] = useState(null);
@@ -6971,7 +6972,7 @@ export default function App() {
           {showAdd && <AddSheet onSave={addBook} onClose={()=>setShowAdd(false)} />}
           {addBookDraft && <EditSheet book={addBookDraft} onSave={updated=>{ addBook({...addBookDraft,...updated}); setAddBookDraft(null); }} onClose={()=>setAddBookDraft(null)} onSaveDescription={()=>{}} onSaveScores={()=>{}} onAuthor={setAuthorModal} libraryProfile={books.filter(b => b.shelf === "Read" || b.shelf === "DNF")} userId={userId} initialTab={addBookDraft._fromRecs ? "details" : undefined} />}
           {editBook && <EditSheet key={editBook.id} book={editBook} onSave={updated=>{ saveEdit(updated); setEditBook(null); }} onClose={()=>setEditBook(null)} onSaveDescription={saveDescription} onSaveScores={saveScores} onAuthor={setAuthorModal} onRemove={id=>{ setBooks(prev=>prev.filter(b=>b.id!==id)); track("book_removed"); if (!guestMode) dbDeleteBook(id, userId); setEditBook(null); }} libraryProfile={books.filter(b => b.shelf === "Read" || b.shelf === "DNF")} userId={userId} />}
-          {authorModal && <AuthorModal author={authorModal} books={books} onClose={()=>setAuthorModal(null)} onEdit={book=>{ setAuthorModal(null); setEditBook(book); }} onAdd={draft=>{ setAuthorModal(null); setEditBook(null); setAddBookDraft({ id:Date.now(), title:draft.title, author:draft.author, genre:draft.genre||"Fiction", pages:draft.pages||0, rating:0, shelf:"Read", coverUrl:draft.coverUrl||null, coverId:null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"", _fromRecs:true }); }} onDirectAdd={draft=>{ addBook({ title:draft.title, author:draft.author, genre:draft.genre||"Fiction", pages:draft.pages||0, rating:0, shelf:draft.shelf, coverUrl:draft.coverUrl||null, coverId:null, description:"", scores:null, notes:"" }); }} userId={userId} />}
+          {authorModal && <AuthorModal author={typeof authorModal === "string" ? authorModal : authorModal.name} initialTab={typeof authorModal === "object" ? authorModal.tab : undefined} books={books} onClose={()=>setAuthorModal(null)} onEdit={book=>{ setAuthorModal(null); setEditBook(book); }} onAdd={draft=>{ setAuthorModal(null); setEditBook(null); setAddBookDraft({ id:Date.now(), title:draft.title, author:draft.author, genre:draft.genre||"Fiction", pages:draft.pages||0, rating:0, shelf:"Read", coverUrl:draft.coverUrl||null, coverId:null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"", _fromRecs:true }); }} onDirectAdd={draft=>{ addBook({ title:draft.title, author:draft.author, genre:draft.genre||"Fiction", pages:draft.pages||0, rating:0, shelf:draft.shelf, coverUrl:draft.coverUrl||null, coverId:null, description:"", scores:null, notes:"" }); }} userId={userId} />}
           {showImport && <GoodreadsImportSheet onImport={importBooks} onClose={()=>setShowImport(false)} />}
           {toast && (
             <div style={{
