@@ -1355,7 +1355,6 @@ function SeriesCard({ seriesName, books, seriesTotal, onEdit, onRemove, onShelfC
                 border:"1px solid rgba(138,90,40,0.3)", borderRadius:20,
                 padding:"3px 9px",
               }}>{countStr}</span>
-          }
           <TierBadge tier={tier} onSetTier={onSetTier} />
           <svg width="10" height="6" viewBox="0 0 10 6" fill="none" style={{ transition:"transform 0.2s", transform: expanded ? "rotate(180deg)" : "rotate(0deg)" }}>
             <path d="M1 1l4 4 4-4" stroke={WOOD.textFaint} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -5447,7 +5446,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
   ];
 
   return (
-    <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.5)", zIndex:300, display:"flex", flexDirection:"column", justifyContent:"flex-end" }} onClick={onClose} onTouchEnd={e=>{ if (e.target === e.currentTarget) { e.preventDefault(); onClose(); } }}>
+    <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.5)", zIndex:300, display:"flex", flexDirection:"column", justifyContent:"flex-end" }} onClick={onClose}>
       <div onClick={e=>e.stopPropagation()} onTouchEnd={e=>e.stopPropagation()} style={{ background:CR.bg, borderRadius:0, height:"98%", display:"flex", flexDirection:"column", boxShadow:"0 -4px 40px rgba(0,0,0,0.18)", borderTop:"6px solid #8a5a28", borderLeft:"6px solid #8a5a28" }}>
 
         {/* Header */}
