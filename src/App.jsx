@@ -6674,9 +6674,8 @@ export default function App() {
               updates.forEach(u => dbUpdateBook(u, userId));
             }
           }
-          // One-time: backfill pages and genre from static catalog
-          if (!localStorage.getItem("metaEnriched2")) {
-            localStorage.setItem("metaEnriched2", "1");
+          // Backfill missing pages, publishYear, genre from static catalog
+          {
             const metaUpdates = [];
             loadedBooks.forEach(book => {
               const meta = staticBookMeta(book.title, book.author);
