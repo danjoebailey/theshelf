@@ -6855,7 +6855,8 @@ export default function App() {
   }
 
   function changeShelf(id, shelf, rating) {
-    const next = books.map(b => b.id === id ? { ...b, shelf, ...(rating != null ? { rating } : {}) } : b);
+    const today = new Date().toISOString().slice(0, 10);
+    const next = books.map(b => b.id === id ? { ...b, shelf, ...(rating != null ? { rating } : {}), ...((shelf === "Read" || shelf === "DNF") ? { date: today } : {}) } : b);
     setBooks(next);
     track("shelf_changed", { shelf });
     if (!guestMode) dbUpdateBook(next.find(b => b.id === id), userId);
