@@ -5452,7 +5452,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
       <div onClick={e=>e.stopPropagation()} onTouchEnd={e=>e.stopPropagation()} style={{ background:CR.bg, borderRadius:0, height:"98%", display:"flex", flexDirection:"column", boxShadow:"0 -4px 40px rgba(0,0,0,0.18)", borderTop:"6px solid #8a5a28", borderLeft:"6px solid #8a5a28" }}>
 
         {/* Header */}
-        <div style={{ padding:"20px 16px 0 22px", marginBottom:20, position:"relative", flexShrink:0 }}>
+        <div style={{ padding:"20px 16px 12px 22px", marginBottom:0, position:"relative", flexShrink:0, borderBottom:`1px solid ${CR.border}` }}>
           <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:24, fontWeight:400, color:CR.text, letterSpacing:"-0.01em", lineHeight:1.2, paddingRight:52 }}>{book.title}</p>
           <p onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); onAuthor&&onAuthor(book.author); }} onClick={()=>onAuthor&&onAuthor(book.author)} style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, fontStyle:"italic", color:CR.textDim, marginTop:2, cursor:onAuthor?"pointer":"default", textDecorationLine:onAuthor?"underline":"none", textDecorationStyle:"dotted" }}>{book.author}</p>
           <div style={{ marginTop:7 }}>
@@ -5479,7 +5479,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
         <div style={{ overflowY:"auto", flex:1, paddingBottom:40 }}>
 
           {/* Hero cover */}
-          <div style={{ display:"flex", justifyContent:"center", borderTop:`1px solid ${CR.border}`, borderBottom:`1px solid ${CR.border}`, padding:"20px 0 34px", marginBottom:24 }}>
+          <div style={{ display:"flex", justifyContent:"center", borderBottom:`1px solid ${CR.border}`, padding:"20px 0 34px", marginBottom:24 }}>
             <div style={{ position:"relative" }}>
               <BookCover book={displayBook} width={173} height={255} radius={6} shadow="3px 3px 0 rgba(0,0,0,0.12)" />
               {activeTab === "edit" && (
