@@ -641,13 +641,13 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
       {expanded && (
         <div style={{ marginTop:10, paddingTop:10, borderTop:"1px solid rgba(138,90,40,0.25)" }} onClick={e=>e.stopPropagation()} onTouchEnd={e=>e.stopPropagation()}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
-            {(book.publishYear || book.pages>0) && (
-            <p style={{ color:WOOD.textFaint, fontSize:10, marginBottom:6, fontFamily:"'DM Sans',sans-serif" }}>
-              {book.publishYear ? `Published ${book.publishYear}` : ""}
-              {book.publishYear && book.pages>0 ? " · " : ""}
-              {book.pages>0 ? `${book.pages.toLocaleString()} pages` : ""}
-            </p>
-          )}
+            {(() => { const py = getPublishYear(book); return (py || book.pages>0) ? (
+              <p style={{ color:WOOD.textFaint, fontSize:10, marginBottom:6, fontFamily:"'DM Sans',sans-serif" }}>
+                {py ? `Published ${py}` : ""}
+                {py && book.pages>0 ? " · " : ""}
+                {book.pages>0 ? `${book.pages.toLocaleString()} pages` : ""}
+              </p>
+            ) : null; })()}
             {book.date && (book.shelf||"Read")==="Read" && (
               <p style={{ color:WOOD.textFaint, fontSize:10, fontFamily:"'DM Sans',sans-serif", textAlign:"right", flexShrink:0, marginLeft:8 }}>
                 {new Date(book.date + "T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})}
@@ -850,13 +850,13 @@ function BookRowExpanded({ book, onEdit, onRemove, onAdd, onSaveProgress, onSave
   return (
     <div style={{ marginTop:8, paddingTop:8, borderTop:"1px solid rgba(138,90,40,0.25)" }} onTouchEnd={e=>e.stopPropagation()} onClick={e=>e.stopPropagation()}>
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:4 }}>
-        {(book.publishYear || book.pages>0) && (
+        {(() => { const py = getPublishYear(book); return (py || book.pages>0) ? (
           <p style={{ color:WOOD.textFaint, fontSize:10, fontFamily:"'DM Sans',sans-serif" }}>
-            {book.publishYear ? `Published ${book.publishYear}` : ""}
-            {book.publishYear && book.pages>0 ? " · " : ""}
+            {py ? `Published ${py}` : ""}
+            {py && book.pages>0 ? " · " : ""}
             {book.pages>0 ? `${book.pages.toLocaleString()} pages` : ""}
           </p>
-        )}
+        ) : null; })()}
         {book.date && (book.shelf||"Read")==="Read" && (
           <p style={{ color:WOOD.textFaint, fontSize:10, fontFamily:"'DM Sans',sans-serif", textAlign:"right", flexShrink:0, marginLeft:8 }}>
             {new Date(book.date + "T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})}
@@ -5323,6 +5323,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
   const [shelf, setShelf] = useState(book.shelf || "Read");
   const [genre, setGenre] = useState(book.genre || "Other");
   const [date, setDate] = useState(book.date || new Date().toISOString().slice(0,10));
+  const [dateStarted, setDateStarted] = useState(book.dateStarted || "");
   const [notes, setNotes] = useState(book.notes || "");
   const [coverUrl, setCoverUrl] = useState(book.coverUrl || null);
   const [coverId, setCoverId] = useState(book.coverId || null);
@@ -5450,14 +5451,17 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
       <div onClick={e=>e.stopPropagation()} onTouchEnd={e=>e.stopPropagation()} style={{ background:CR.bg, borderRadius:0, height:"98%", display:"flex", flexDirection:"column", boxShadow:"0 -4px 40px rgba(0,0,0,0.18)", borderTop:"6px solid #8a5a28", borderLeft:"6px solid #8a5a28" }}>
 
         {/* Header */}
-        <div style={{ padding:"20px 16px 0 22px", marginBottom:20, position:"relative", flexShrink:0 }}>
+        <div style={{ padding:"20px 16px 12px 22px", marginBottom:0, position:"relative", flexShrink:0, borderBottom:`1px solid ${CR.border}` }}>
           <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:24, fontWeight:400, color:CR.text, letterSpacing:"-0.01em", lineHeight:1.2, paddingRight:52 }}>{book.title}</p>
           <p onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); onAuthor&&onAuthor(book.author); }} onClick={()=>onAuthor&&onAuthor(book.author)} style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, fontStyle:"italic", color:CR.textDim, marginTop:2, cursor:onAuthor?"pointer":"default", textDecorationLine:onAuthor?"underline":"none", textDecorationStyle:"dotted" }}>{book.author}</p>
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:7, flexWrap:"wrap", gap:6 }}>
-            <div style={{ display:"flex", alignItems:"center", gap:6, fontSize:11, color:CR.textFaint, flexWrap:"wrap" }}>
-              <span style={{ background:GENRE_COLORS[book.genre]||"#94a3b8", color:"#fff", borderRadius:"20px", padding:"3px 10px", fontSize:9, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", lineHeight:1 }}>{book.genre}</span>
-              {book.pages > 0 && <><span style={{ color:CR.border }}>·</span><span>{book.pages} pages</span></>}
-              {book.year && <><span style={{ color:CR.border }}>·</span><span>{book.year}</span></>}
+          <div style={{ marginTop:7 }}>
+            <span style={{ background:GENRE_COLORS[book.genre]||"#94a3b8", color:"#fff", borderRadius:"20px", padding:"3px 10px", fontSize:9, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", lineHeight:1, display:"inline-block" }}>{book.genre}</span>
+          </div>
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:1, gap:6 }}>
+            <div style={{ fontSize:11, color:CR.textFaint, fontFamily:"'DM Sans',sans-serif", display:"flex", alignItems:"center", gap:6 }}>
+              {(() => { const py = getPublishYear(book); return py ? <span>Published {py}</span> : null; })()}
+              {(() => { const py = getPublishYear(book); return py && book.pages > 0 ? <span style={{ color:CR.border }}>·</span> : null; })()}
+              {book.pages > 0 && <span>{book.pages.toLocaleString()} pages</span>}
             </div>
             <div style={{ display:"flex", gap:2, background:CR.panel, borderRadius:6, padding:2, flexShrink:0 }}>
               {tabs.map(t => (
@@ -5474,7 +5478,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
         <div style={{ overflowY:"auto", flex:1, paddingBottom:40 }}>
 
           {/* Hero cover */}
-          <div style={{ display:"flex", justifyContent:"center", borderTop:`1px solid ${CR.border}`, borderBottom:`1px solid ${CR.border}`, padding:"20px 0 34px", marginBottom:24 }}>
+          <div style={{ display:"flex", justifyContent:"center", borderBottom:`1px solid ${CR.border}`, padding:"20px 0 34px", marginBottom:24 }}>
             <div style={{ position:"relative" }}>
               <BookCover book={displayBook} width={173} height={255} radius={6} shadow="3px 3px 0 rgba(0,0,0,0.12)" />
               {activeTab === "edit" && (
@@ -5548,6 +5552,10 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
                     <select value={genre} onChange={e => setGenre(e.target.value)} style={{ padding:"9px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'DM Sans',sans-serif", color:CR.text, outline:"none", cursor:"pointer" }}>
                       {GENRES.map(g => <option key={g} value={g}>{g}</option>)}
                     </select>
+                  </div>
+                  <div>
+                    <p style={lbl}>Date Started</p>
+                    <input type="date" value={dateStarted} onChange={e => setDateStarted(e.target.value)} onTouchEnd={e=>e.stopPropagation()} style={{ padding:"9px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'DM Sans',sans-serif", color:CR.text, outline:"none" }} />
                   </div>
                   <div>
                     <p style={lbl}>Date Read</p>
@@ -5642,7 +5650,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
           )}
 
           {/* Save */}
-          {activeTab === "edit" && <button onClick={() => onSave({ id:book.id, rating, shelf, genre, date, notes, coverUrl, coverId })} style={{ display:"block", width:"calc(100% - 44px)", margin:"20px 22px 0", padding:14, background:CR.text, border:"none", borderRadius:8, color:CR.bg, fontSize:14, fontFamily:"'DM Sans',sans-serif", fontWeight:500, letterSpacing:"0.05em", cursor:"pointer" }}>Save changes</button>}
+          {activeTab === "edit" && <button onClick={() => onSave({ id:book.id, rating, shelf, genre, date, dateStarted: dateStarted || null, notes, coverUrl, coverId })} style={{ display:"block", width:"calc(100% - 44px)", margin:"20px 22px 0", padding:14, background:CR.text, border:"none", borderRadius:8, color:CR.bg, fontSize:14, fontFamily:"'DM Sans',sans-serif", fontWeight:500, letterSpacing:"0.05em", cursor:"pointer" }}>Save changes</button>}
           {activeTab === "edit" && onRemove && !confirmRemove && (
             <p onClick={()=>setConfirmRemove(true)} style={{ textAlign:"center", margin:"16px 0 8px", fontSize:13, color:"#a0524a", fontFamily:"'DM Sans',sans-serif", cursor:"pointer", textDecorationLine:"underline", textDecorationStyle:"dotted" }}>Remove from library</p>
           )}
@@ -5680,6 +5688,12 @@ function toTitleCase(str) {
     if (!isFirst && !isLast && !prefix && TITLE_LOWER_WORDS.has(rest)) return rest;
     return prefix + rest.charAt(0).toUpperCase() + rest.slice(1);
   }).join(" ");
+}
+
+function getPublishYear(book) {
+  if (book.publishYear) return book.publishYear;
+  const meta = staticBookMeta(book.title, book.author);
+  return meta?.publishYear || null;
 }
 
 function normAuthorKey(name) {
@@ -5733,6 +5747,7 @@ function bookToRow(book, userId) {
     notes: book.notes || null,
     series: book.series || null,
     series_total: book.seriesTotal || null,
+    date_started: book.dateStarted || null,
   };
 }
 
@@ -5757,6 +5772,7 @@ function rowToBook(row) {
     notes: row.notes || "",
     series: row.series || null,
     seriesTotal: row.series_total || null,
+    dateStarted: row.date_started || null,
   };
 }
 
@@ -6263,7 +6279,7 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd, userI
                     <BookCover book={{ title:book.title, coverUrl:unreadCovers[book.title]||null }} width={42} height={62} radius={3} shadow="1px 1px 5px rgba(0,0,0,0.2)" />
                     <div style={{ flex:1, minWidth:0 }}>
                       <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:17, color:CR.text, lineHeight:1.2, marginBottom:4 }}>{book.title}{book.series ? ` (${book.series})` : ""}</p>
-                      {book.publishYear && <p style={{ fontSize:11, color:CR.textDim, fontFamily:"'DM Sans',sans-serif", marginBottom:6 }}>{book.publishYear}{book.pages ? ` · ${book.pages} pages` : ""}</p>}
+                      {(() => { const py = getPublishYear(book); return py ? <p style={{ fontSize:11, color:CR.textDim, fontFamily:"'DM Sans',sans-serif", marginBottom:6 }}>{py}{book.pages ? ` · ${book.pages} pages` : ""}</p> : null; })()}
                       {book.genre && <span style={{ background:GENRE_COLORS[book.genre]||"#94a3b8", color:"#fff", borderRadius:"20px", padding:"3px 8px", fontSize:8, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", lineHeight:1 }}>{book.genre}</span>}
                     </div>
                   </div>
@@ -6840,13 +6856,14 @@ export default function App() {
   }
 
   function saveEdit(updated) {
-    const next = books.map(b => b.id === updated.id ? { ...b, rating: updated.rating, shelf: updated.shelf, genre: updated.genre ?? b.genre, date: updated.date ?? b.date, notes: updated.notes ?? b.notes, coverUrl: updated.coverUrl ?? b.coverUrl, coverId: updated.coverId ?? b.coverId } : b);
+    const next = books.map(b => b.id === updated.id ? { ...b, rating: updated.rating, shelf: updated.shelf, genre: updated.genre ?? b.genre, date: updated.date ?? b.date, dateStarted: updated.dateStarted ?? b.dateStarted, notes: updated.notes ?? b.notes, coverUrl: updated.coverUrl ?? b.coverUrl, coverId: updated.coverId ?? b.coverId } : b);
     setBooks(next);
     if (!guestMode) dbUpdateBook(next.find(b => b.id === updated.id), userId);
   }
 
   function changeShelf(id, shelf, rating) {
-    const next = books.map(b => b.id === id ? { ...b, shelf, ...(rating != null ? { rating } : {}) } : b);
+    const today = new Date().toISOString().slice(0, 10);
+    const next = books.map(b => b.id === id ? { ...b, shelf, ...(rating != null ? { rating } : {}), ...((shelf === "Read" || shelf === "DNF") ? { date: today } : {}), ...(shelf === "Reading" && !b.dateStarted ? { dateStarted: today } : {}) } : b);
     setBooks(next);
     track("shelf_changed", { shelf });
     if (!guestMode) dbUpdateBook(next.find(b => b.id === id), userId);
