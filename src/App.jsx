@@ -5324,6 +5324,8 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
   const [genre, setGenre] = useState(book.genre || "Other");
   const [date, setDate] = useState(book.date || new Date().toISOString().slice(0,10));
   const [dateStarted, setDateStarted] = useState(book.dateStarted || "");
+  const dateStartedRef = useRef(null);
+  const dateReadRef = useRef(null);
   const [notes, setNotes] = useState(book.notes || "");
   const [coverUrl, setCoverUrl] = useState(book.coverUrl || null);
   const [coverId, setCoverId] = useState(book.coverId || null);
@@ -5553,13 +5555,15 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
                       {GENRES.map(g => <option key={g} value={g}>{g}</option>)}
                     </select>
                   </div>
-                  <div>
+                  <div style={{ position:"relative" }}>
                     <p style={lbl}>Date Started</p>
-                    <input type="date" value={dateStarted} onChange={e => setDateStarted(e.target.value)} onTouchEnd={e=>e.stopPropagation()} style={{ padding:"9px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'DM Sans',sans-serif", color:CR.text, outline:"none" }} />
+                    <input ref={dateStartedRef} type="date" value={dateStarted} onChange={e => setDateStarted(e.target.value)} style={{ position:"absolute", top:0, left:0, width:"1px", height:"1px", opacity:0, overflow:"hidden" }} />
+                    <div onClick={()=>dateStartedRef.current?.showPicker()} onTouchEnd={e=>{e.stopPropagation();e.preventDefault();dateStartedRef.current?.showPicker();}} style={{ padding:"9px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'DM Sans',sans-serif", color:CR.text, cursor:"pointer" }}>{dateStarted ? new Date(dateStarted+"T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}) : "—"}</div>
                   </div>
-                  <div>
+                  <div style={{ position:"relative" }}>
                     <p style={lbl}>Date Read</p>
-                    <input type="date" value={date} onChange={e => setDate(e.target.value)} onTouchEnd={e=>e.stopPropagation()} style={{ padding:"9px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'DM Sans',sans-serif", color:CR.text, outline:"none" }} />
+                    <input ref={dateReadRef} type="date" value={date} onChange={e => setDate(e.target.value)} style={{ position:"absolute", top:0, left:0, width:"1px", height:"1px", opacity:0, overflow:"hidden" }} />
+                    <div onClick={()=>dateReadRef.current?.showPicker()} onTouchEnd={e=>{e.stopPropagation();e.preventDefault();dateReadRef.current?.showPicker();}} style={{ padding:"9px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'DM Sans',sans-serif", color:CR.text, cursor:"pointer" }}>{date ? new Date(date+"T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}) : "—"}</div>
                   </div>
                 </div>
               </div>
