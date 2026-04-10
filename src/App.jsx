@@ -641,14 +641,13 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
       {expanded && (
         <div style={{ marginTop:10, paddingTop:10, borderTop:"1px solid rgba(138,90,40,0.25)" }} onClick={e=>e.stopPropagation()} onTouchEnd={e=>e.stopPropagation()}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
-            <div>
-              {(() => { const py = getPublishYear(book); return py ? (
-                <p style={{ color:WOOD.textFaint, fontSize:10, marginBottom:2, fontFamily:"'DM Sans',sans-serif" }}>Published {py}</p>
-              ) : null; })()}
-              {book.pages > 0 && (
-                <p style={{ color:WOOD.textFaint, fontSize:10, marginBottom:4, fontFamily:"'DM Sans',sans-serif" }}>{book.pages.toLocaleString()} pages</p>
-              )}
-            </div>
+            {(() => { const py = getPublishYear(book); return (py || book.pages>0) ? (
+              <p style={{ color:WOOD.textFaint, fontSize:10, marginBottom:6, fontFamily:"'DM Sans',sans-serif" }}>
+                {py ? `Published ${py}` : ""}
+                {py && book.pages>0 ? " · " : ""}
+                {book.pages>0 ? `${book.pages.toLocaleString()} pages` : ""}
+              </p>
+            ) : null; })()}
             {book.date && (book.shelf||"Read")==="Read" && (
               <p style={{ color:WOOD.textFaint, fontSize:10, fontFamily:"'DM Sans',sans-serif", textAlign:"right", flexShrink:0, marginLeft:8 }}>
                 {new Date(book.date + "T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})}
@@ -851,14 +850,13 @@ function BookRowExpanded({ book, onEdit, onRemove, onAdd, onSaveProgress, onSave
   return (
     <div style={{ marginTop:8, paddingTop:8, borderTop:"1px solid rgba(138,90,40,0.25)" }} onTouchEnd={e=>e.stopPropagation()} onClick={e=>e.stopPropagation()}>
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:4 }}>
-        <div>
-          {(() => { const py = getPublishYear(book); return py ? (
-            <p style={{ color:WOOD.textFaint, fontSize:10, marginBottom:2, fontFamily:"'DM Sans',sans-serif" }}>Published {py}</p>
-          ) : null; })()}
-          {book.pages > 0 && (
-            <p style={{ color:WOOD.textFaint, fontSize:10, marginBottom:2, fontFamily:"'DM Sans',sans-serif" }}>{book.pages.toLocaleString()} pages</p>
-          )}
-        </div>
+        {(() => { const py = getPublishYear(book); return (py || book.pages>0) ? (
+          <p style={{ color:WOOD.textFaint, fontSize:10, fontFamily:"'DM Sans',sans-serif" }}>
+            {py ? `Published ${py}` : ""}
+            {py && book.pages>0 ? " · " : ""}
+            {book.pages>0 ? `${book.pages.toLocaleString()} pages` : ""}
+          </p>
+        ) : null; })()}
         {book.date && (book.shelf||"Read")==="Read" && (
           <p style={{ color:WOOD.textFaint, fontSize:10, fontFamily:"'DM Sans',sans-serif", textAlign:"right", flexShrink:0, marginLeft:8 }}>
             {new Date(book.date + "T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})}
