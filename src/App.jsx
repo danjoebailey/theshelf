@@ -5449,7 +5449,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
 
   return (
     <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.5)", zIndex:300, display:"flex", flexDirection:"column", justifyContent:"flex-end" }} onClick={onClose}>
-      <div onClick={e=>e.stopPropagation()} onTouchEnd={e=>e.stopPropagation()} style={{ background:CR.bg, borderRadius:0, height:"98%", display:"flex", flexDirection:"column", boxShadow:"0 -4px 40px rgba(0,0,0,0.18)", borderTop:"6px solid #8a5a28", borderLeft:"6px solid #8a5a28" }}>
+      <div onClick={e=>e.stopPropagation()} onTouchEnd={e=>e.stopPropagation()} style={{ background:CR.bg, borderRadius:0, height:"98%", display:"flex", flexDirection:"column", boxShadow:"0 -4px 40px rgba(0,0,0,0.18)", borderTop:"6px solid #8a5a28", borderLeft:"6px solid #8a5a28", touchAction:"manipulation" }}>
 
         {/* Header */}
         <div style={{ padding:"20px 16px 12px 22px", marginBottom:0, position:"relative", flexShrink:0, borderBottom:`1px solid ${CR.border}` }}>
@@ -5547,29 +5547,20 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
             {/* Genre + Date */}
             {shelf === "Read" && (
               <div style={{ padding:"0 22px", marginBottom:20 }}>
-                <div style={{ display:"flex", gap:12, alignItems:"flex-end", flexWrap:"wrap" }}>
+                <div style={{ display:"flex", gap:20, alignItems:"flex-end", flexWrap:"wrap" }}>
                   <div>
                     <p style={lbl}>Genre</p>
-                    <div style={{ position:"relative" }}>
-                      <select value={genre} onChange={e => setGenre(e.target.value)} style={{ padding:"9px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'DM Sans',sans-serif", color:CR.text, cursor:"pointer", position:"absolute", opacity:0, width:"100%", height:"100%", top:0, left:0, zIndex:2 }}>
-                        {GENRES.map(g => <option key={g} value={g}>{g}</option>)}
-                      </select>
-                      <div style={{ padding:"9px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'DM Sans',sans-serif", color:CR.text }}>{genre}</div>
-                    </div>
+                    <select value={genre} onChange={e => setGenre(e.target.value)} style={{ padding:"9px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'DM Sans',sans-serif", color:CR.text, outline:"none", cursor:"pointer" }}>
+                      {GENRES.map(g => <option key={g} value={g}>{g}</option>)}
+                    </select>
                   </div>
                   <div>
                     <p style={lbl}>Date Started</p>
-                    <div style={{ position:"relative" }}>
-                      <input ref={dateStartedRef} type="date" value={dateStarted} onChange={e => setDateStarted(e.target.value)} style={{ padding:"9px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'DM Sans',sans-serif", color:CR.text, position:"absolute", opacity:0, width:"100%", height:"100%", top:0, left:0, zIndex:2 }} />
-                      <div style={{ padding:"9px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'DM Sans',sans-serif", color:CR.text }}>{dateStarted ? new Date(dateStarted + "T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}) : "—"}</div>
-                    </div>
+                    <input type="date" value={dateStarted} onChange={e => setDateStarted(e.target.value)} onTouchEnd={e=>e.stopPropagation()} style={{ padding:"9px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'DM Sans',sans-serif", color:CR.text, outline:"none" }} />
                   </div>
                   <div>
                     <p style={lbl}>Date Read</p>
-                    <div style={{ position:"relative" }}>
-                      <input ref={dateReadRef} type="date" value={date} onChange={e => setDate(e.target.value)} style={{ padding:"9px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'DM Sans',sans-serif", color:CR.text, position:"absolute", opacity:0, width:"100%", height:"100%", top:0, left:0, zIndex:2 }} />
-                      <div style={{ padding:"9px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'DM Sans',sans-serif", color:CR.text }}>{date ? new Date(date + "T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}) : "—"}</div>
-                    </div>
+                    <input type="date" value={date} onChange={e => setDate(e.target.value)} onTouchEnd={e=>e.stopPropagation()} style={{ padding:"9px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'DM Sans',sans-serif", color:CR.text, outline:"none" }} />
                   </div>
                 </div>
               </div>
