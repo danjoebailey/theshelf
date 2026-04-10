@@ -5326,6 +5326,8 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
   const [notes, setNotes] = useState(book.notes || "");
   const [coverUrl, setCoverUrl] = useState(book.coverUrl || null);
   const [coverId, setCoverId] = useState(book.coverId || null);
+  const dateStartedRef = useRef(null);
+  const dateReadRef = useRef(null);
   const [coverFetch, setCoverFetch] = useState(null);
   const defaultTab = initialTab || ((book.shelf === "Curious" || !book.shelf) ? "details" : "edit");
   const [activeTab, setActiveTab] = useState(defaultTab);
@@ -5543,40 +5545,35 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
             )}
 
             {/* Genre + Date */}
-            {shelf === "Read" && (() => {
-              const dateRef1 = React.createRef();
-              const dateRef2 = React.createRef();
-              const fmtDate = d => d ? new Date(d + "T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}) : "—";
-              const inputStyle = { padding:"9px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'DM Sans',sans-serif", color:CR.text, cursor:"pointer" };
-              return (
+            {shelf === "Read" && (
               <div style={{ padding:"0 22px", marginBottom:20 }}>
                 <div style={{ display:"flex", gap:12, alignItems:"flex-end", flexWrap:"wrap" }}>
                   <div>
                     <p style={lbl}>Genre</p>
                     <div style={{ position:"relative" }}>
-                      <select value={genre} onChange={e => setGenre(e.target.value)} style={{ ...inputStyle, position:"absolute", opacity:0, width:"100%", height:"100%", top:0, left:0, zIndex:2 }}>
+                      <select value={genre} onChange={e => setGenre(e.target.value)} style={{ padding:"9px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'DM Sans',sans-serif", color:CR.text, cursor:"pointer", position:"absolute", opacity:0, width:"100%", height:"100%", top:0, left:0, zIndex:2 }}>
                         {GENRES.map(g => <option key={g} value={g}>{g}</option>)}
                       </select>
-                      <div style={inputStyle}>{genre}</div>
+                      <div style={{ padding:"9px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'DM Sans',sans-serif", color:CR.text }}>{genre}</div>
                     </div>
                   </div>
                   <div>
                     <p style={lbl}>Date Started</p>
                     <div style={{ position:"relative" }}>
-                      <input ref={dateRef1} type="date" value={dateStarted} onChange={e => setDateStarted(e.target.value)} style={{ ...inputStyle, position:"absolute", opacity:0, width:"100%", height:"100%", top:0, left:0, zIndex:2 }} />
-                      <div {...tc(()=>dateRef1.current?.showPicker?.())} style={inputStyle}>{fmtDate(dateStarted)}</div>
+                      <input ref={dateStartedRef} type="date" value={dateStarted} onChange={e => setDateStarted(e.target.value)} style={{ padding:"9px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'DM Sans',sans-serif", color:CR.text, position:"absolute", opacity:0, width:"100%", height:"100%", top:0, left:0, zIndex:2 }} />
+                      <div style={{ padding:"9px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'DM Sans',sans-serif", color:CR.text }}>{dateStarted ? new Date(dateStarted + "T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}) : "—"}</div>
                     </div>
                   </div>
                   <div>
                     <p style={lbl}>Date Read</p>
                     <div style={{ position:"relative" }}>
-                      <input ref={dateRef2} type="date" value={date} onChange={e => setDate(e.target.value)} style={{ ...inputStyle, position:"absolute", opacity:0, width:"100%", height:"100%", top:0, left:0, zIndex:2 }} />
-                      <div {...tc(()=>dateRef2.current?.showPicker?.())} style={inputStyle}>{fmtDate(date)}</div>
+                      <input ref={dateReadRef} type="date" value={date} onChange={e => setDate(e.target.value)} style={{ padding:"9px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'DM Sans',sans-serif", color:CR.text, position:"absolute", opacity:0, width:"100%", height:"100%", top:0, left:0, zIndex:2 }} />
+                      <div style={{ padding:"9px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'DM Sans',sans-serif", color:CR.text }}>{date ? new Date(date + "T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}) : "—"}</div>
                     </div>
                   </div>
                 </div>
               </div>
-            );})()}
+            )}
 
             {/* Notes */}
             {(shelf === "Read" || shelf === "Reading") && (
