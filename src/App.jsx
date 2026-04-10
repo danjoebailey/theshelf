@@ -5557,13 +5557,17 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
                   </div>
                   <div>
                     <p style={lbl}>Date Started</p>
-                    <input ref={dateStartedRef} type="date" value={dateStarted} onChange={e => setDateStarted(e.target.value)} style={{ position:"absolute", opacity:0, pointerEvents:"none" }} />
-                    <button {...tc(()=>dateStartedRef.current?.showPicker?.(), true)} style={{ padding:"9px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'DM Sans',sans-serif", color:CR.text, cursor:"pointer" }}>{dateStarted ? new Date(dateStarted+"T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}) : "—"}</button>
+                    <label style={{ display:"block", padding:"9px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'DM Sans',sans-serif", color:CR.text, cursor:"pointer" }}>
+                      {dateStarted ? new Date(dateStarted+"T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}) : "—"}
+                      <input type="date" value={dateStarted} onChange={e => setDateStarted(e.target.value)} style={{ position:"absolute", opacity:0, width:0, height:0 }} />
+                    </label>
                   </div>
                   <div>
                     <p style={lbl}>Date Read</p>
-                    <input ref={dateReadRef} type="date" value={date} onChange={e => setDate(e.target.value)} style={{ position:"absolute", opacity:0, pointerEvents:"none" }} />
-                    <button {...tc(()=>dateReadRef.current?.showPicker?.(), true)} style={{ padding:"9px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'DM Sans',sans-serif", color:CR.text, cursor:"pointer" }}>{date ? new Date(date+"T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}) : "—"}</button>
+                    <label style={{ display:"block", padding:"9px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'DM Sans',sans-serif", color:CR.text, cursor:"pointer" }}>
+                      {date ? new Date(date+"T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}) : "—"}
+                      <input type="date" value={date} onChange={e => setDate(e.target.value)} style={{ position:"absolute", opacity:0, width:0, height:0 }} />
+                    </label>
                   </div>
                 </div>
               </div>
