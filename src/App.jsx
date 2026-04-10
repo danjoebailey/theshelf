@@ -1355,6 +1355,7 @@ function SeriesCard({ seriesName, books, seriesTotal, onEdit, onRemove, onShelfC
                 border:"1px solid rgba(138,90,40,0.3)", borderRadius:20,
                 padding:"3px 9px",
               }}>{countStr}</span>
+          }
           <TierBadge tier={tier} onSetTier={onSetTier} />
           <svg width="10" height="6" viewBox="0 0 10 6" fill="none" style={{ transition:"transform 0.2s", transform: expanded ? "rotate(180deg)" : "rotate(0deg)" }}>
             <path d="M1 1l4 4 4-4" stroke={WOOD.textFaint} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -5295,7 +5296,7 @@ function AddSheet({ onSave, onClose, initialBook = null }) {
           </div>
 
           {!noRating && (
-            <div style={{ background:"rgba(10,5,1,0.5)", border:`1px solid rgba(120,70,20,0.3)`, borderRadius:10, padding:14, marginBottom:16, textAlign:"center" }}>
+            <div style={{ background:"rgba(10,5,1,0.5)", border:`1px solid rgba(120,70,20,0.3)`, borderRadius:10, padding:14, marginBottom:16 }}>
               <p style={{ fontSize:11, color:WOOD.textFaint, marginBottom:10, textTransform:"uppercase", letterSpacing:"0.1em" }}>Your Rating</p>
               <StarRating value={rating} onChange={setRating} size={44} stretch />
             </div>
@@ -5456,7 +5457,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
           <div style={{ marginTop:7 }}>
             <span style={{ background:GENRE_COLORS[book.genre]||"#94a3b8", color:"#fff", borderRadius:"20px", padding:"3px 10px", fontSize:9, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", lineHeight:1, display:"inline-block" }}>{book.genre}</span>
           </div>
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:0, gap:6 }}>
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:1, gap:6 }}>
             <div style={{ fontSize:11, color:CR.textFaint, fontFamily:"'DM Sans',sans-serif", display:"flex", alignItems:"center", gap:6 }}>
               {(() => { const py = getPublishYear(book); return py ? <span>Published {py}</span> : null; })()}
               {(() => { const py = getPublishYear(book); return py && book.pages > 0 ? <span style={{ color:CR.border }}>·</span> : null; })()}
@@ -5464,7 +5465,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
             </div>
             <div style={{ display:"flex", gap:2, background:CR.panel, borderRadius:6, padding:2, flexShrink:0 }}>
               {tabs.map(t => (
-                <button key={t.key} onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); setActiveTab(t.key); }} onClick={() => setActiveTab(t.key)} title={t.label} style={{ display:"flex", alignItems:"center", gap:4, padding:"4px 8px", border:"none", borderRadius:4, background:activeTab===t.key ? "#8a5a28" : "transparent", color:activeTab===t.key ? "#fff" : CR.textDim, fontSize:10, fontFamily:"'DM Sans',sans-serif", cursor:"pointer", boxShadow:"none", transition:"all 0.12s", whiteSpace:"nowrap", lineHeight:1 }}>
+                <button key={t.key} onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); setActiveTab(t.key); }} onClick={() => setActiveTab(t.key)} title={t.label} style={{ display:"flex", alignItems:"center", gap:4, padding:"8px 10px", border:"none", borderRadius:4, background:activeTab===t.key ? "#8a5a28" : "transparent", color:activeTab===t.key ? "#fff" : CR.textDim, fontSize:11, fontFamily:"'DM Sans',sans-serif", cursor:"pointer", boxShadow:"none", transition:"all 0.12s", whiteSpace:"nowrap" }}>
                   {t.icon}{activeTab===t.key && <span style={{ marginLeft:2 }}>{t.label}</span>}
                 </button>
               ))}
@@ -6855,7 +6856,7 @@ export default function App() {
   }
 
   function saveEdit(updated) {
-    const next = books.map(b => b.id === updated.id ? { ...b, rating: updated.rating, shelf: updated.shelf, genre: updated.genre ?? b.genre, date: updated.date ?? b.date, notes: updated.notes ?? b.notes, coverUrl: updated.coverUrl ?? b.coverUrl, coverId: updated.coverId ?? b.coverId } : b);
+    const next = books.map(b => b.id === updated.id ? { ...b, rating: updated.rating, shelf: updated.shelf, genre: updated.genre ?? b.genre, date: updated.date ?? b.date, dateStarted: updated.dateStarted ?? b.dateStarted, notes: updated.notes ?? b.notes, coverUrl: updated.coverUrl ?? b.coverUrl, coverId: updated.coverId ?? b.coverId } : b);
     setBooks(next);
     if (!guestMode) dbUpdateBook(next.find(b => b.id === updated.id), userId);
   }
