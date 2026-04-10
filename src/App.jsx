@@ -5323,6 +5323,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
   const [shelf, setShelf] = useState(book.shelf || "Read");
   const [genre, setGenre] = useState(book.genre || "Other");
   const [date, setDate] = useState(book.date || new Date().toISOString().slice(0,10));
+  const [dateStarted, setDateStarted] = useState(book.dateStarted || "");
   const [notes, setNotes] = useState(book.notes || "");
   const [coverUrl, setCoverUrl] = useState(book.coverUrl || null);
   const [coverId, setCoverId] = useState(book.coverId || null);
@@ -5553,6 +5554,10 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
                     </select>
                   </div>
                   <div style={{ flex:1, minWidth:0 }}>
+                    <p style={lbl}>Date Started</p>
+                    <input type="date" value={dateStarted} onChange={e => setDateStarted(e.target.value)} onTouchEnd={e=>e.stopPropagation()} style={{ width:"100%", padding:"9px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'DM Sans',sans-serif", color:CR.text, outline:"none", boxSizing:"border-box" }} />
+                  </div>
+                  <div style={{ flex:1, minWidth:0 }}>
                     <p style={lbl}>Date Read</p>
                     <input type="date" value={date} onChange={e => setDate(e.target.value)} onTouchEnd={e=>e.stopPropagation()} style={{ width:"100%", padding:"9px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'DM Sans',sans-serif", color:CR.text, outline:"none", boxSizing:"border-box" }} />
                   </div>
@@ -5645,7 +5650,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
           )}
 
           {/* Save */}
-          {activeTab === "edit" && <button onClick={() => onSave({ id:book.id, rating, shelf, genre, date, notes, coverUrl, coverId })} style={{ display:"block", width:"calc(100% - 44px)", margin:"20px 22px 0", padding:14, background:CR.text, border:"none", borderRadius:8, color:CR.bg, fontSize:14, fontFamily:"'DM Sans',sans-serif", fontWeight:500, letterSpacing:"0.05em", cursor:"pointer" }}>Save changes</button>}
+          {activeTab === "edit" && <button onClick={() => onSave({ id:book.id, rating, shelf, genre, date, dateStarted: dateStarted || null, notes, coverUrl, coverId })} style={{ display:"block", width:"calc(100% - 44px)", margin:"20px 22px 0", padding:14, background:CR.text, border:"none", borderRadius:8, color:CR.bg, fontSize:14, fontFamily:"'DM Sans',sans-serif", fontWeight:500, letterSpacing:"0.05em", cursor:"pointer" }}>Save changes</button>}
           {activeTab === "edit" && onRemove && !confirmRemove && (
             <p onClick={()=>setConfirmRemove(true)} style={{ textAlign:"center", margin:"16px 0 8px", fontSize:13, color:"#a0524a", fontFamily:"'DM Sans',sans-serif", cursor:"pointer", textDecorationLine:"underline", textDecorationStyle:"dotted" }}>Remove from library</p>
           )}
@@ -5742,6 +5747,7 @@ function bookToRow(book, userId) {
     notes: book.notes || null,
     series: book.series || null,
     series_total: book.seriesTotal || null,
+    date_started: book.dateStarted || null,
   };
 }
 
@@ -5766,6 +5772,7 @@ function rowToBook(row) {
     notes: row.notes || "",
     series: row.series || null,
     seriesTotal: row.series_total || null,
+    dateStarted: row.date_started || null,
   };
 }
 
@@ -6856,7 +6863,7 @@ export default function App() {
 
   function changeShelf(id, shelf, rating) {
     const today = new Date().toISOString().slice(0, 10);
-    const next = books.map(b => b.id === id ? { ...b, shelf, ...(rating != null ? { rating } : {}), ...((shelf === "Read" || shelf === "DNF") ? { date: today } : {}) } : b);
+    const next = books.map(b => b.id === id ? { ...b, shelf, ...(rating != null ? { rating } : {}), ...((shelf === "Read" || shelf === "DNF") ? { date: today } : {}), ...(shelf === "Reading" && !b.dateStarted ? { dateStarted: today } : {}) } : b);
     setBooks(next);
     track("shelf_changed", { shelf });
     if (!guestMode) dbUpdateBook(next.find(b => b.id === id), userId);
