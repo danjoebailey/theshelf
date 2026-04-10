@@ -303,7 +303,7 @@ function StarRating({ value, onChange, size=22, readonly=false, stretch=false, o
   const display = hovered ?? value;
   const uid = useRef(`sr-${Math.random().toString(36).slice(2)}`);
   return (
-    <div style={{ display:"flex", gap:stretch?0:2, justifyContent:stretch?"space-between":"flex-start", width:stretch?"100%":"auto", cursor:readonly?"default":"pointer" }}
+    <div style={{ display:"flex", gap:stretch?size*0.4:2, justifyContent:"center", width:stretch?"100%":"auto", cursor:readonly?"default":"pointer" }}
       onMouseLeave={()=>!readonly&&setHovered(null)}>
       {[1,2,3,4,5].map(star => {
         const full = display >= star, half = !full && display >= star-0.5;
