@@ -5555,15 +5555,19 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
                       {GENRES.map(g => <option key={g} value={g}>{g}</option>)}
                     </select>
                   </div>
-                  <div style={{ position:"relative" }}>
+                  <div>
                     <p style={lbl}>Date Started</p>
-                    <input ref={dateStartedRef} type="date" value={dateStarted} onChange={e => setDateStarted(e.target.value)} style={{ position:"absolute", top:0, left:0, width:"1px", height:"1px", opacity:0, overflow:"hidden" }} />
-                    <div onClick={()=>dateStartedRef.current?.showPicker()} onTouchEnd={e=>{e.stopPropagation();e.preventDefault();dateStartedRef.current?.showPicker();}} style={{ padding:"9px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'DM Sans',sans-serif", color:CR.text, cursor:"pointer" }}>{dateStarted ? new Date(dateStarted+"T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}) : "—"}</div>
+                    <div style={{ position:"relative", display:"inline-block" }}>
+                      <input ref={dateStartedRef} type="date" value={dateStarted} onChange={e => setDateStarted(e.target.value)} style={{ position:"absolute", top:0, left:0, width:"100%", height:"100%", opacity:0, cursor:"pointer", zIndex:1 }} />
+                      <div style={{ padding:"9px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'DM Sans',sans-serif", color:CR.text }}>{dateStarted ? new Date(dateStarted+"T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}) : "—"}</div>
+                    </div>
                   </div>
-                  <div style={{ position:"relative" }}>
+                  <div>
                     <p style={lbl}>Date Read</p>
-                    <input ref={dateReadRef} type="date" value={date} onChange={e => setDate(e.target.value)} style={{ position:"absolute", top:0, left:0, width:"1px", height:"1px", opacity:0, overflow:"hidden" }} />
-                    <div onClick={()=>dateReadRef.current?.showPicker()} onTouchEnd={e=>{e.stopPropagation();e.preventDefault();dateReadRef.current?.showPicker();}} style={{ padding:"9px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'DM Sans',sans-serif", color:CR.text, cursor:"pointer" }}>{date ? new Date(date+"T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}) : "—"}</div>
+                    <div style={{ position:"relative", display:"inline-block" }}>
+                      <input ref={dateReadRef} type="date" value={date} onChange={e => setDate(e.target.value)} style={{ position:"absolute", top:0, left:0, width:"100%", height:"100%", opacity:0, cursor:"pointer", zIndex:1 }} />
+                      <div style={{ padding:"9px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'DM Sans',sans-serif", color:CR.text }}>{date ? new Date(date+"T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}) : "—"}</div>
+                    </div>
                   </div>
                 </div>
               </div>
