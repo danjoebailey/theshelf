@@ -641,13 +641,14 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
       {expanded && (
         <div style={{ marginTop:10, paddingTop:10, borderTop:"1px solid rgba(138,90,40,0.25)" }} onClick={e=>e.stopPropagation()} onTouchEnd={e=>e.stopPropagation()}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
-            {(() => { const py = getPublishYear(book); return (py || book.pages>0) ? (
-            <p style={{ color:WOOD.textFaint, fontSize:10, marginBottom:6, fontFamily:"'DM Sans',sans-serif" }}>
-              {py ? `Published ${py}` : ""}
-              {py && book.pages>0 ? " · " : ""}
-              {book.pages>0 ? `${book.pages.toLocaleString()} pages` : ""}
-            </p>
-          ) : null; })()}
+            <div>
+              {(() => { const py = getPublishYear(book); return py ? (
+                <p style={{ color:WOOD.textFaint, fontSize:10, marginBottom:2, fontFamily:"'DM Sans',sans-serif" }}>Published {py}</p>
+              ) : null; })()}
+              {book.pages > 0 && (
+                <p style={{ color:WOOD.textFaint, fontSize:10, marginBottom:4, fontFamily:"'DM Sans',sans-serif" }}>{book.pages.toLocaleString()} pages</p>
+              )}
+            </div>
             {book.date && (book.shelf||"Read")==="Read" && (
               <p style={{ color:WOOD.textFaint, fontSize:10, fontFamily:"'DM Sans',sans-serif", textAlign:"right", flexShrink:0, marginLeft:8 }}>
                 {new Date(book.date + "T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})}
@@ -850,14 +851,14 @@ function BookRowExpanded({ book, onEdit, onRemove, onAdd, onSaveProgress, onSave
   return (
     <div style={{ marginTop:8, paddingTop:8, borderTop:"1px solid rgba(138,90,40,0.25)" }} onTouchEnd={e=>e.stopPropagation()} onClick={e=>e.stopPropagation()}>
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:4 }}>
-        {(() => { const py = getPublishYear(book); return (py || book.pages>0) ? (
-          <p style={{ color:WOOD.textFaint, fontSize:10, fontFamily:"'DM Sans',sans-serif" }}>
-            {py ? `Published ${py}` : ""}
-            {py && book.pages>0 ? " · " : ""}
-            {book.pages>0 ? `${book.pages.toLocaleString()} pages` : ""}
-          </p>
-        ) : null; })()}
-        )}
+        <div>
+          {(() => { const py = getPublishYear(book); return py ? (
+            <p style={{ color:WOOD.textFaint, fontSize:10, marginBottom:2, fontFamily:"'DM Sans',sans-serif" }}>Published {py}</p>
+          ) : null; })()}
+          {book.pages > 0 && (
+            <p style={{ color:WOOD.textFaint, fontSize:10, marginBottom:2, fontFamily:"'DM Sans',sans-serif" }}>{book.pages.toLocaleString()} pages</p>
+          )}
+        </div>
         {book.date && (book.shelf||"Read")==="Read" && (
           <p style={{ color:WOOD.textFaint, fontSize:10, fontFamily:"'DM Sans',sans-serif", textAlign:"right", flexShrink:0, marginLeft:8 }}>
             {new Date(book.date + "T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})}
@@ -5454,11 +5455,14 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
         <div style={{ padding:"20px 16px 0 22px", marginBottom:20, position:"relative", flexShrink:0 }}>
           <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:24, fontWeight:400, color:CR.text, letterSpacing:"-0.01em", lineHeight:1.2, paddingRight:52 }}>{book.title}</p>
           <p onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); onAuthor&&onAuthor(book.author); }} onClick={()=>onAuthor&&onAuthor(book.author)} style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, fontStyle:"italic", color:CR.textDim, marginTop:2, cursor:onAuthor?"pointer":"default", textDecorationLine:onAuthor?"underline":"none", textDecorationStyle:"dotted" }}>{book.author}</p>
+          <div style={{ marginTop:7 }}>
+            <span style={{ background:GENRE_COLORS[book.genre]||"#94a3b8", color:"#fff", borderRadius:"20px", padding:"3px 10px", fontSize:9, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", lineHeight:1, display:"inline-block" }}>{book.genre}</span>
+          </div>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:7, flexWrap:"wrap", gap:6 }}>
-            <div style={{ display:"flex", alignItems:"center", gap:6, fontSize:11, color:CR.textFaint, flexWrap:"wrap" }}>
-              <span style={{ background:GENRE_COLORS[book.genre]||"#94a3b8", color:"#fff", borderRadius:"20px", padding:"3px 10px", fontSize:9, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", lineHeight:1 }}>{book.genre}</span>
-              {book.pages > 0 && <><span style={{ color:CR.border }}>·</span><span>{book.pages} pages</span></>}
-              {book.year && <><span style={{ color:CR.border }}>·</span><span>{book.year}</span></>}
+            <div style={{ fontSize:11, color:CR.textFaint, fontFamily:"'DM Sans',sans-serif", display:"flex", alignItems:"center", gap:6 }}>
+              {(() => { const py = getPublishYear(book); return py ? <span>Published {py}</span> : null; })()}
+              {(() => { const py = getPublishYear(book); return py && book.pages > 0 ? <span style={{ color:CR.border }}>·</span> : null; })()}
+              {book.pages > 0 && <span>{book.pages.toLocaleString()} pages</span>}
             </div>
             <div style={{ display:"flex", gap:2, background:CR.panel, borderRadius:6, padding:2, flexShrink:0 }}>
               {tabs.map(t => (
