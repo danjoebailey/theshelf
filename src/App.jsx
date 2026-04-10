@@ -5524,7 +5524,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
             {!noRating.includes(shelf) && (
               <div style={{ padding:"0 22px", marginBottom:20 }}>
                 <p style={lbl}>Rating</p>
-                <div style={{ display:"flex", gap:6 }}>
+                <div style={{ display:"flex", gap:6, justifyContent:"center" }}>
                   {[1,2,3,4,5].map(star => {
                     const full = rating >= star, half = !full && rating >= star-0.5, sz = 38;
                     return (
