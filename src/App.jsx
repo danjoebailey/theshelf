@@ -5111,7 +5111,7 @@ function BookSearchModal({ book, onSave, onClose }) {
         </div>
 
         {!noRating && (
-          <div style={{ marginBottom:20 }}>
+          <div style={{ marginBottom:20, textAlign:"center" }}>
             <p style={{ fontSize:11, color:"#9ca3af", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:8 }}>Your Rating</p>
             <StarRating value={rating} onChange={setRating} size={40} stretch />
           </div>
@@ -5298,7 +5298,7 @@ function AddSheet({ onSave, onClose, initialBook = null }) {
           </div>
 
           {!noRating && (
-            <div style={{ background:"rgba(10,5,1,0.5)", border:`1px solid rgba(120,70,20,0.3)`, borderRadius:10, padding:14, marginBottom:16 }}>
+            <div style={{ background:"rgba(10,5,1,0.5)", border:`1px solid rgba(120,70,20,0.3)`, borderRadius:10, padding:14, marginBottom:16, textAlign:"center" }}>
               <p style={{ fontSize:11, color:WOOD.textFaint, marginBottom:10, textTransform:"uppercase", letterSpacing:"0.1em" }}>Your Rating</p>
               <StarRating value={rating} onChange={setRating} size={44} stretch />
             </div>
