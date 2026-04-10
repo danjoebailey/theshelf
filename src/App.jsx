@@ -5458,7 +5458,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
           <div style={{ marginTop:7 }}>
             <span style={{ background:GENRE_COLORS[book.genre]||"#94a3b8", color:"#fff", borderRadius:"20px", padding:"3px 10px", fontSize:9, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", lineHeight:1, display:"inline-block" }}>{book.genre}</span>
           </div>
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:1, flexWrap:"wrap", gap:6 }}>
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:0, gap:6 }}>
             <div style={{ fontSize:11, color:CR.textFaint, fontFamily:"'DM Sans',sans-serif", display:"flex", alignItems:"center", gap:6 }}>
               {(() => { const py = getPublishYear(book); return py ? <span>Published {py}</span> : null; })()}
               {(() => { const py = getPublishYear(book); return py && book.pages > 0 ? <span style={{ color:CR.border }}>·</span> : null; })()}
@@ -5466,7 +5466,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
             </div>
             <div style={{ display:"flex", gap:2, background:CR.panel, borderRadius:6, padding:2, flexShrink:0 }}>
               {tabs.map(t => (
-                <button key={t.key} onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); setActiveTab(t.key); }} onClick={() => setActiveTab(t.key)} title={t.label} style={{ display:"flex", alignItems:"center", gap:4, padding:"5px 8px", border:"none", borderRadius:4, background:activeTab===t.key ? "#8a5a28" : "transparent", color:activeTab===t.key ? "#fff" : CR.textDim, fontSize:11, fontFamily:"'DM Sans',sans-serif", cursor:"pointer", boxShadow:"none", transition:"all 0.12s", whiteSpace:"nowrap" }}>
+                <button key={t.key} onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); setActiveTab(t.key); }} onClick={() => setActiveTab(t.key)} title={t.label} style={{ display:"flex", alignItems:"center", gap:4, padding:"4px 8px", border:"none", borderRadius:4, background:activeTab===t.key ? "#8a5a28" : "transparent", color:activeTab===t.key ? "#fff" : CR.textDim, fontSize:10, fontFamily:"'DM Sans',sans-serif", cursor:"pointer", boxShadow:"none", transition:"all 0.12s", whiteSpace:"nowrap", lineHeight:1 }}>
                   {t.icon}{activeTab===t.key && <span style={{ marginLeft:2 }}>{t.label}</span>}
                 </button>
               ))}
