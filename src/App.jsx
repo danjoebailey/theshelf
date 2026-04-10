@@ -5326,8 +5326,6 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
   const [notes, setNotes] = useState(book.notes || "");
   const [coverUrl, setCoverUrl] = useState(book.coverUrl || null);
   const [coverId, setCoverId] = useState(book.coverId || null);
-  const dateStartedRef = useRef(null);
-  const dateReadRef = useRef(null);
   const [coverFetch, setCoverFetch] = useState(null);
   const defaultTab = initialTab || ((book.shelf === "Curious" || !book.shelf) ? "details" : "edit");
   const [activeTab, setActiveTab] = useState(defaultTab);
@@ -5449,7 +5447,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
 
   return (
     <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.5)", zIndex:300, display:"flex", flexDirection:"column", justifyContent:"flex-end" }} onClick={onClose}>
-      <div onClick={e=>e.stopPropagation()} onTouchEnd={e=>e.stopPropagation()} style={{ background:CR.bg, borderRadius:0, height:"98%", display:"flex", flexDirection:"column", boxShadow:"0 -4px 40px rgba(0,0,0,0.18)", borderTop:"6px solid #8a5a28", borderLeft:"6px solid #8a5a28", touchAction:"manipulation" }}>
+      <div onClick={e=>e.stopPropagation()} onTouchEnd={e=>e.stopPropagation()} style={{ background:CR.bg, borderRadius:0, height:"98%", display:"flex", flexDirection:"column", boxShadow:"0 -4px 40px rgba(0,0,0,0.18)", borderTop:"6px solid #8a5a28", borderLeft:"6px solid #8a5a28" }}>
 
         {/* Header */}
         <div style={{ padding:"20px 16px 12px 22px", marginBottom:0, position:"relative", flexShrink:0, borderBottom:`1px solid ${CR.border}` }}>
@@ -5508,13 +5506,13 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
           {activeTab === "edit" && coverFetch === "notfound" && <p style={{ padding:"0 22px", marginBottom:16, fontSize:12, color:CR.textDim, fontStyle:"italic" }}>No cover found.</p>}
 
           {/* EDIT TAB */}
-          <div style={{ display: activeTab === "edit" ? "block" : "none" }}>
+          {activeTab === "edit" && <>
             {/* Shelf */}
             <div style={{ padding:"0 22px", marginBottom:20 }}>
               <p style={lbl}>Shelf</p>
               <div style={{ display:"grid", gridTemplateColumns:"repeat(5,1fr)", gap:5 }}>
                 {SHELVES.map(s => (
-                  <button key={s} onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); setShelf(s); }} onClick={() => setShelf(s)} style={{ padding:"8px 4px", border:`1px solid ${shelf===s ? CR.text : CR.border}`, background:shelf===s ? CR.text : CR.panel, color:shelf===s ? CR.bg : CR.textDim, fontSize:12, fontFamily:"'DM Sans',sans-serif", borderRadius:4, cursor:"pointer", textAlign:"center", transition:"all 0.12s" }}>{s}</button>
+                  <button key={s} onClick={() => setShelf(s)} style={{ padding:"8px 4px", border:`1px solid ${shelf===s ? CR.text : CR.border}`, background:shelf===s ? CR.text : CR.panel, color:shelf===s ? CR.bg : CR.textDim, fontSize:12, fontFamily:"'DM Sans',sans-serif", borderRadius:4, cursor:"pointer", textAlign:"center", transition:"all 0.12s" }}>{s}</button>
                 ))}
               </div>
             </div>
@@ -5535,8 +5533,8 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
                           <defs><clipPath id={`es${star}`}><rect x="0" y="0" width={full?20:10} height="20"/></clipPath></defs>
                           <polygon points="10,2 12.4,7.5 18.5,7.5 13.7,11.4 15.5,17.5 10,13.8 4.5,17.5 6.3,11.4 1.5,7.5 7.6,7.5" fill={CR.amber} clipPath={`url(#es${star})`}/>
                         </svg>}
-                        <div style={{ position:"absolute", left:0, top:0, width:"50%", height:"100%", zIndex:10, cursor:"pointer" }} onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); setRating(star-0.5); }} onClick={() => setRating(star-0.5)}/>
-                        <div style={{ position:"absolute", left:"50%", top:0, width:"50%", height:"100%", zIndex:10, cursor:"pointer" }} onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); setRating(star); }} onClick={() => setRating(star)}/>
+                        <div style={{ position:"absolute", left:0, top:0, width:"50%", height:"100%", zIndex:10, cursor:"pointer" }} onClick={() => setRating(star-0.5)}/>
+                        <div style={{ position:"absolute", left:"50%", top:0, width:"50%", height:"100%", zIndex:10, cursor:"pointer" }} onClick={() => setRating(star)}/>
                       </div>
                     );
                   })}
@@ -5573,7 +5571,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
                 <textarea rows={3} value={notes} onChange={e => setNotes(e.target.value)} placeholder="Your thoughts on the book…" style={{ width:"100%", padding:"10px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'Crimson Pro',serif", color:CR.text, resize:"none", outline:"none", lineHeight:1.6, boxSizing:"border-box" }} />
               </div>
             )}
-          </div>
+          </>}
 
           {/* DETAILS TAB */}
           {activeTab === "details" && (
@@ -5651,7 +5649,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
           )}
 
           {/* Save */}
-          {activeTab === "edit" && <button {...tc(() => onSave({ id:book.id, rating, shelf, genre, date, dateStarted: dateStarted || null, notes, coverUrl, coverId }), true)} style={{ display:"block", width:"calc(100% - 44px)", margin:"20px 22px 0", padding:14, background:CR.text, border:"none", borderRadius:8, color:CR.bg, fontSize:14, fontFamily:"'DM Sans',sans-serif", fontWeight:500, letterSpacing:"0.05em", cursor:"pointer" }}>Save changes</button>}
+          {activeTab === "edit" && <button onClick={() => onSave({ id:book.id, rating, shelf, genre, date, dateStarted: dateStarted || null, notes, coverUrl, coverId })} style={{ display:"block", width:"calc(100% - 44px)", margin:"20px 22px 0", padding:14, background:CR.text, border:"none", borderRadius:8, color:CR.bg, fontSize:14, fontFamily:"'DM Sans',sans-serif", fontWeight:500, letterSpacing:"0.05em", cursor:"pointer" }}>Save changes</button>}
           {activeTab === "edit" && onRemove && !confirmRemove && (
             <p onClick={()=>setConfirmRemove(true)} style={{ textAlign:"center", margin:"16px 0 8px", fontSize:13, color:"#a0524a", fontFamily:"'DM Sans',sans-serif", cursor:"pointer", textDecorationLine:"underline", textDecorationStyle:"dotted" }}>Remove from library</p>
           )}
