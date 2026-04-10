@@ -5474,7 +5474,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
         </div>
 
         {/* Scrollable body */}
-        <div style={{ overflowY:"auto", flex:1, paddingBottom:40 }}>
+        <div style={{ overflowY:"auto", flex:1, paddingBottom:40, touchAction:"manipulation" }}>
 
           {/* Hero cover */}
           <div style={{ display:"flex", justifyContent:"center", borderBottom:`1px solid ${CR.border}`, padding:"20px 0 34px", marginBottom:24 }}>
