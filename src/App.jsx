@@ -641,13 +641,13 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
       {expanded && (
         <div style={{ marginTop:10, paddingTop:10, borderTop:"1px solid rgba(138,90,40,0.25)" }} onClick={e=>e.stopPropagation()} onTouchEnd={e=>e.stopPropagation()}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
-            {(book.publishYear || book.pages>0) && (
+            {(() => { const py = getPublishYear(book); return (py || book.pages>0) ? (
             <p style={{ color:WOOD.textFaint, fontSize:10, marginBottom:6, fontFamily:"'DM Sans',sans-serif" }}>
-              {book.publishYear ? `Published ${book.publishYear}` : ""}
-              {book.publishYear && book.pages>0 ? " · " : ""}
+              {py ? `Published ${py}` : ""}
+              {py && book.pages>0 ? " · " : ""}
               {book.pages>0 ? `${book.pages.toLocaleString()} pages` : ""}
             </p>
-          )}
+          ) : null; })()}
             {book.date && (book.shelf||"Read")==="Read" && (
               <p style={{ color:WOOD.textFaint, fontSize:10, fontFamily:"'DM Sans',sans-serif", textAlign:"right", flexShrink:0, marginLeft:8 }}>
                 {new Date(book.date + "T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"})}
@@ -850,12 +850,13 @@ function BookRowExpanded({ book, onEdit, onRemove, onAdd, onSaveProgress, onSave
   return (
     <div style={{ marginTop:8, paddingTop:8, borderTop:"1px solid rgba(138,90,40,0.25)" }} onTouchEnd={e=>e.stopPropagation()} onClick={e=>e.stopPropagation()}>
       <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:4 }}>
-        {(book.publishYear || book.pages>0) && (
+        {(() => { const py = getPublishYear(book); return (py || book.pages>0) ? (
           <p style={{ color:WOOD.textFaint, fontSize:10, fontFamily:"'DM Sans',sans-serif" }}>
-            {book.publishYear ? `Published ${book.publishYear}` : ""}
-            {book.publishYear && book.pages>0 ? " · " : ""}
+            {py ? `Published ${py}` : ""}
+            {py && book.pages>0 ? " · " : ""}
             {book.pages>0 ? `${book.pages.toLocaleString()} pages` : ""}
           </p>
+        ) : null; })()}
         )}
         {book.date && (book.shelf||"Read")==="Read" && (
           <p style={{ color:WOOD.textFaint, fontSize:10, fontFamily:"'DM Sans',sans-serif", textAlign:"right", flexShrink:0, marginLeft:8 }}>
@@ -5682,6 +5683,12 @@ function toTitleCase(str) {
   }).join(" ");
 }
 
+function getPublishYear(book) {
+  if (book.publishYear) return book.publishYear;
+  const meta = staticBookMeta(book.title, book.author);
+  return meta?.publishYear || null;
+}
+
 function normAuthorKey(name) {
   return (name || '').replace(/[åÅ]/g, 'aa').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\./g, '').toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
 }
@@ -5733,7 +5740,6 @@ function bookToRow(book, userId) {
     notes: book.notes || null,
     series: book.series || null,
     series_total: book.seriesTotal || null,
-    publish_year: book.publishYear || null,
   };
 }
 
@@ -5756,7 +5762,6 @@ function rowToBook(row) {
     likedAspects: row.liked_aspects || [],
     dislikedAspects: row.disliked_aspects || [],
     notes: row.notes || "",
-    publishYear: row.publish_year || null,
     series: row.series || null,
     seriesTotal: row.series_total || null,
   };
@@ -6265,7 +6270,7 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd, userI
                     <BookCover book={{ title:book.title, coverUrl:unreadCovers[book.title]||null }} width={42} height={62} radius={3} shadow="1px 1px 5px rgba(0,0,0,0.2)" />
                     <div style={{ flex:1, minWidth:0 }}>
                       <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:17, color:CR.text, lineHeight:1.2, marginBottom:4 }}>{book.title}{book.series ? ` (${book.series})` : ""}</p>
-                      {book.publishYear && <p style={{ fontSize:11, color:CR.textDim, fontFamily:"'DM Sans',sans-serif", marginBottom:6 }}>{book.publishYear}{book.pages ? ` · ${book.pages} pages` : ""}</p>}
+                      {(() => { const py = getPublishYear(book); return py ? <p style={{ fontSize:11, color:CR.textDim, fontFamily:"'DM Sans',sans-serif", marginBottom:6 }}>{py}{book.pages ? ` · ${book.pages} pages` : ""}</p> : null; })()}
                       {book.genre && <span style={{ background:GENRE_COLORS[book.genre]||"#94a3b8", color:"#fff", borderRadius:"20px", padding:"3px 8px", fontSize:8, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", lineHeight:1 }}>{book.genre}</span>}
                     </div>
                   </div>
@@ -6672,28 +6677,6 @@ export default function App() {
                 return u ? { ...b, series: u.series, seriesTotal: u.seriesTotal } : b;
               }));
               updates.forEach(u => dbUpdateBook(u, userId));
-            }
-          }
-          // Backfill missing pages, publishYear, genre from static catalog
-          {
-            const metaUpdates = [];
-            loadedBooks.forEach(book => {
-              const meta = staticBookMeta(book.title, book.author);
-              if (!meta) return;
-              const changes = {};
-              if (!book.pages && meta.pages) changes.pages = meta.pages;
-              if (!book.publishYear && meta.publishYear) changes.publishYear = meta.publishYear;
-              if ((!book.genre || book.genre === "Other") && meta.genre) changes.genre = meta.genre;
-              if (Object.keys(changes).length > 0) {
-                metaUpdates.push({ ...book, ...changes });
-              }
-            });
-            if (metaUpdates.length > 0) {
-              setBooks(prev => prev.map(b => {
-                const u = metaUpdates.find(u => u.id === b.id);
-                return u ? { ...b, pages: u.pages, publishYear: u.publishYear, genre: u.genre } : b;
-              }));
-              metaUpdates.forEach(u => dbUpdateBook(u, userId));
             }
           }
           // Silently fetch covers for books that don't have one
