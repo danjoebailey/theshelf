@@ -5733,6 +5733,7 @@ function bookToRow(book, userId) {
     notes: book.notes || null,
     series: book.series || null,
     series_total: book.seriesTotal || null,
+    publish_year: book.publishYear || null,
   };
 }
 
@@ -5755,6 +5756,7 @@ function rowToBook(row) {
     likedAspects: row.liked_aspects || [],
     dislikedAspects: row.disliked_aspects || [],
     notes: row.notes || "",
+    publishYear: row.publish_year || null,
     series: row.series || null,
     seriesTotal: row.series_total || null,
   };
@@ -6670,6 +6672,29 @@ export default function App() {
                 return u ? { ...b, series: u.series, seriesTotal: u.seriesTotal } : b;
               }));
               updates.forEach(u => dbUpdateBook(u, userId));
+            }
+          }
+          // One-time: backfill pages and genre from static catalog
+          if (!localStorage.getItem("metaEnriched1")) {
+            localStorage.setItem("metaEnriched1", "1");
+            const metaUpdates = [];
+            loadedBooks.forEach(book => {
+              const meta = staticBookMeta(book.title, book.author);
+              if (!meta) return;
+              const changes = {};
+              if (!book.pages && meta.pages) changes.pages = meta.pages;
+              if (!book.publishYear && meta.publishYear) changes.publishYear = meta.publishYear;
+              if ((!book.genre || book.genre === "Other") && meta.genre) changes.genre = meta.genre;
+              if (Object.keys(changes).length > 0) {
+                metaUpdates.push({ ...book, ...changes });
+              }
+            });
+            if (metaUpdates.length > 0) {
+              setBooks(prev => prev.map(b => {
+                const u = metaUpdates.find(u => u.id === b.id);
+                return u ? { ...b, pages: u.pages, publishYear: u.publishYear, genre: u.genre } : b;
+              }));
+              metaUpdates.forEach(u => dbUpdateBook(u, userId));
             }
           }
           // Silently fetch covers for books that don't have one
