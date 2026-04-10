@@ -6675,8 +6675,8 @@ export default function App() {
             }
           }
           // One-time: backfill pages and genre from static catalog
-          if (!localStorage.getItem("metaEnriched1")) {
-            localStorage.setItem("metaEnriched1", "1");
+          if (!localStorage.getItem("metaEnriched2")) {
+            localStorage.setItem("metaEnriched2", "1");
             const metaUpdates = [];
             loadedBooks.forEach(book => {
               const meta = staticBookMeta(book.title, book.author);
