@@ -5447,7 +5447,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
 
   return (
     <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.5)", zIndex:300, display:"flex", flexDirection:"column", justifyContent:"flex-end" }} onClick={onClose}>
-      <div onClick={e=>e.stopPropagation()} style={{ background:CR.bg, borderRadius:0, height:"98%", display:"flex", flexDirection:"column", boxShadow:"0 -4px 40px rgba(0,0,0,0.18)", borderTop:"6px solid #8a5a28", borderLeft:"6px solid #8a5a28" }}>
+      <div onClick={e=>e.stopPropagation()} onTouchEnd={e=>e.stopPropagation()} style={{ background:CR.bg, borderRadius:0, height:"98%", display:"flex", flexDirection:"column", boxShadow:"0 -4px 40px rgba(0,0,0,0.18)", borderTop:"6px solid #8a5a28", borderLeft:"6px solid #8a5a28" }}>
 
         {/* Header */}
         <div style={{ padding:"20px 16px 12px 22px", marginBottom:0, position:"relative", flexShrink:0, borderBottom:`1px solid ${CR.border}` }}>
@@ -5474,7 +5474,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
         </div>
 
         {/* Scrollable body */}
-        <div style={{ overflowY:"auto", flex:1, paddingBottom:40, touchAction:"manipulation" }}>
+        <div style={{ overflowY:"auto", flex:1, paddingBottom:40 }}>
 
           {/* Hero cover */}
           <div style={{ display:"flex", justifyContent:"center", borderBottom:`1px solid ${CR.border}`, padding:"20px 0 34px", marginBottom:24 }}>
@@ -5546,19 +5546,19 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
             {shelf === "Read" && (
               <div style={{ padding:"0 22px", marginBottom:20 }}>
                 <div style={{ display:"flex", gap:20, alignItems:"flex-end", flexWrap:"wrap" }}>
-                  <div style={{ flex:1, minWidth:0 }}>
+                  <div>
                     <p style={lbl}>Genre</p>
-                    <select value={genre} onChange={e => setGenre(e.target.value)} onMouseDown={e=>e.stopPropagation()} style={{ width:"100%", padding:"9px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'DM Sans',sans-serif", color:CR.text, outline:"none", cursor:"pointer", textOverflow:"ellipsis" }}>
+                    <select value={genre} onChange={e => setGenre(e.target.value)} style={{ padding:"9px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'DM Sans',sans-serif", color:CR.text, outline:"none", cursor:"pointer" }}>
                       {GENRES.map(g => <option key={g} value={g}>{g}</option>)}
                     </select>
                   </div>
-                  <div style={{ flex:1, minWidth:0 }}>
+                  <div>
                     <p style={lbl}>Date Started</p>
-                    <input type="date" value={dateStarted} onChange={e => setDateStarted(e.target.value)} onMouseDown={e=>e.stopPropagation()} style={{ width:"100%", padding:"9px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'DM Sans',sans-serif", color:CR.text, outline:"none", boxSizing:"border-box" }} />
+                    <input type="date" value={dateStarted} onChange={e => setDateStarted(e.target.value)} onTouchEnd={e=>e.stopPropagation()} style={{ padding:"9px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'DM Sans',sans-serif", color:CR.text, outline:"none" }} />
                   </div>
-                  <div style={{ flex:1, minWidth:0 }}>
+                  <div>
                     <p style={lbl}>Date Read</p>
-                    <input type="date" value={date} onChange={e => setDate(e.target.value)} onMouseDown={e=>e.stopPropagation()} style={{ width:"100%", padding:"9px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'DM Sans',sans-serif", color:CR.text, outline:"none", boxSizing:"border-box" }} />
+                    <input type="date" value={date} onChange={e => setDate(e.target.value)} onTouchEnd={e=>e.stopPropagation()} style={{ padding:"9px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'DM Sans',sans-serif", color:CR.text, outline:"none" }} />
                   </div>
                 </div>
               </div>
