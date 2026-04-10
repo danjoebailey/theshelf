@@ -1165,14 +1165,17 @@ function SeriesShelfRow({ name, books, seriesTotal, allBooks, onEdit, onAddBook,
         <div>
           <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:18, color:WOOD.text, lineHeight:1.2 }}>{name}</p>
           <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:WOOD.textFaint, marginTop:2 }}>{sorted[0] && sorted[0].author}</p>
-          {(() => {
-            const genreCount = {};
-            sorted.forEach(b => { if (b.genre) genreCount[b.genre] = (genreCount[b.genre] || 0) + 1; });
-            const topGenre = Object.entries(genreCount).sort((a, b) => b[1] - a[1])[0]?.[0];
-            if (!topGenre) return null;
-            const bg = GENRE_COLORS[topGenre] || "#94a3b8";
-            return <span style={{ display:"inline-block", marginTop:5, background:bg, color:"#fff", borderRadius:20, padding:"2px 8px", fontSize:9, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em" }}>{topGenre}</span>;
-          })()}
+          <div style={{ display:"flex", alignItems:"center", gap:6, marginTop:5 }}>
+            {(() => {
+              const genreCount = {};
+              sorted.forEach(b => { if (b.genre) genreCount[b.genre] = (genreCount[b.genre] || 0) + 1; });
+              const topGenre = Object.entries(genreCount).sort((a, b) => b[1] - a[1])[0]?.[0];
+              if (!topGenre) return null;
+              const bg = GENRE_COLORS[topGenre] || "#94a3b8";
+              return <span style={{ background:bg, color:"#fff", borderRadius:20, padding:"2px 8px", fontSize:9, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em" }}>{topGenre}</span>;
+            })()}
+            <TierBadge tier={tier} onSetTier={onSetTier} />
+          </div>
         </div>
         <div style={{ display:"flex", flexDirection:"column", alignItems:"flex-end", justifyContent:"space-between", flexShrink:0, alignSelf:"stretch" }}>
           <div style={{ display:"flex", alignItems:"center", gap:6 }}>
@@ -1182,7 +1185,6 @@ function SeriesShelfRow({ name, books, seriesTotal, allBooks, onEdit, onAddBook,
                   border:"1px solid rgba(138,90,40,0.3)", borderRadius:20,
                   padding:"3px 9px",
                 }}>{countStr}</span>
-            <TierBadge tier={tier} onSetTier={onSetTier} />
           </div>
           <button {...tc(() => {
             if (!showUnread && unreadBooks === null) {
