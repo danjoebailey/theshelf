@@ -4670,7 +4670,7 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, seriesTier
           </div>
         ))}
         {/* Series rankings */}
-        {entityType === "series" && (mode === "user" ? userRankedSeries : []).length === 0 && (
+        {entityType === "series" && mode === "user" && userRankedSeries.length === 0 && (
           <div style={{ textAlign:"center", padding:"48px 24px" }}>
             <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, fontStyle:"italic", color:"rgba(255,235,195,0.35)" }}>
               {readBooks.length === 0 ? "No read books yet" : "No series match this filter"}
