@@ -6396,7 +6396,6 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd, userI
                           <div key={i} style={{
                             display: "flex", alignItems: "center", gap: 10, padding: "8px 14px",
                             borderTop: `1px solid ${CR.border}`,
-                            opacity: shelf ? 1 : 0.85,
                           }}>
                             <span style={{
                               width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
