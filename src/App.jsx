@@ -1163,7 +1163,7 @@ function SeriesShelfRow({ name, books, seriesTotal, allBooks, onEdit, onAddBook,
     }}>
       <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", marginBottom:10 }}>
         <div>
-          <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:18, color:WOOD.text, lineHeight:1.2 }}>{name}</p>
+          <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:22, color:WOOD.text, lineHeight:1.2 }}>{name}</p>
           <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:WOOD.textFaint, marginTop:2 }}>{sorted[0] && sorted[0].author}</p>
           <div style={{ display:"flex", alignItems:"center", gap:6, marginTop:5 }}>
             {(() => {
