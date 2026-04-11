@@ -1088,7 +1088,8 @@ function BookRowPages({ book, index, onEdit, onRemove, onShelfChange, maxPages, 
   );
 }
 
-function SeriesView({ shelfBooks, allUserBooks, seriesViewStyle, setSeriesViewStyle, detectingSeriesLoading, setDetectingSeriesLoading, onBatchDetectSeries, onEdit, onRemove, onShelfChange, onSaveProgress, onSavePages, onSaveAspects, onAuthor, seriesTiers = {}, onSetSeriesTier, seriesSort = "read", onSetSeriesTotal, onAddBook }) {
+function SeriesView({ shelfBooks, allUserBooks, activeShelf = "Read", seriesViewStyle, setSeriesViewStyle, detectingSeriesLoading, setDetectingSeriesLoading, onBatchDetectSeries, onEdit, onRemove, onShelfChange, onSaveProgress, onSavePages, onSaveAspects, onAuthor, seriesTiers = {}, onSetSeriesTier, seriesSort = "read", onSetSeriesTotal, onAddBook }) {
+  const SHELF_PRIORITY = { "Read": 0, "DNF": 1, "Reading": 2, "The List": 3, "Curious": 4 };
   const seriesBooks = shelfBooks.filter(b => b.series);
   const grouped = {};
   seriesBooks.forEach(b => {
@@ -1096,7 +1097,18 @@ function SeriesView({ shelfBooks, allUserBooks, seriesViewStyle, setSeriesViewSt
     grouped[b.series].books.push(b);
     if (b.seriesTotal && !grouped[b.series].seriesTotal) grouped[b.series].seriesTotal = b.seriesTotal;
   });
-  const seriesEntries = Object.entries(grouped).sort((a, b) => {
+  // Determine each series' home shelf by highest-priority book
+  const seriesHomeShelf = {};
+  Object.entries(grouped).forEach(([name, { books: sb }]) => {
+    let best = 99, bestShelf = "Read";
+    sb.forEach(b => {
+      const p = SHELF_PRIORITY[b.shelf || "Read"] ?? 99;
+      if (p < best) { best = p; bestShelf = b.shelf || "Read"; }
+    });
+    seriesHomeShelf[name] = bestShelf;
+  });
+  const filteredEntries = Object.entries(grouped).filter(([name]) => seriesHomeShelf[name] === activeShelf);
+  const seriesEntries = filteredEntries.sort((a, b) => {
     if (seriesSort === "read") {
       const aRead = a[1].books.filter(x => x.rating > 0).length;
       const bRead = b[1].books.filter(x => x.rating > 0).length;
@@ -2047,9 +2059,6 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
                 : <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor"><rect x="0" y="0" width="6" height="11" rx="1"/><rect x="7" y="0" width="6" height="11" rx="1"/><rect x="0" y="12" width="13" height="1" rx="0.5"/></svg>
               }
             </button>
-            {browseMode === "series" && (
-              <button {...tc(()=>setSeriesShowAll(v=>!v), true)} style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600, background:"rgba(15,8,2,0.55)", color:"rgba(255,235,195,0.55)", border:"1px solid rgba(120,70,20,0.3)", borderRadius:20, padding:"4px 10px", cursor:"pointer", backdropFilter:"blur(4px)" }}>{seriesShowAll ? "All" : "Read"}</button>
-            )}
             </div>
             {/* sort dropdown pill */}
             <div style={{ position:"relative" }}>
@@ -2153,7 +2162,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
           </div>
         )}
         {browseMode === "series"
-          ? <SeriesView shelfBooks={seriesShowAll ? books : books.filter(b=>(b.shelf||"Read")==="Read")} allUserBooks={books} seriesViewStyle={seriesViewStyle} setSeriesViewStyle={setSeriesViewStyle} detectingSeriesLoading={detectingSeriesLoading} setDetectingSeriesLoading={setDetectingSeriesLoading} onBatchDetectSeries={onBatchDetectSeries} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} seriesTiers={seriesTiers} onSetSeriesTier={onSetSeriesTier} seriesSort={seriesSort} onSetSeriesTotal={onSetSeriesTotal} onAddBook={onAddBook} />
+          ? <SeriesView shelfBooks={books} allUserBooks={books} activeShelf={activeShelf} seriesViewStyle={seriesViewStyle} setSeriesViewStyle={setSeriesViewStyle} detectingSeriesLoading={detectingSeriesLoading} setDetectingSeriesLoading={setDetectingSeriesLoading} onBatchDetectSeries={onBatchDetectSeries} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} seriesTiers={seriesTiers} onSetSeriesTier={onSetSeriesTier} seriesSort={seriesSort} onSetSeriesTotal={onSetSeriesTotal} onAddBook={onAddBook} />
           : browseMode === "authors"
           ? <AuthorsView allBooks={books.filter(b=>(b.shelf||"Read")==="Read")} allUserBooks={books} authorSort={authorSort} authorTiers={authorTiers} onSetAuthorTier={onSetAuthorTier} seriesViewStyle={seriesViewStyle} setSeriesViewStyle={setSeriesViewStyle} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} onAddBook={onAddBook} />
           : filtered.map((book,i)=>(
