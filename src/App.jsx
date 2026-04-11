@@ -4756,8 +4756,13 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, seriesTier
                           if (userBook) { onEdit && onEdit(userBook); }
                           else { onAddBook && onAddBook({ title: b.title, author: item.author, genre: b.genre || item.genre, pages: b.pages || 0, coverUrl, _fromRecs: true }); }
                         };
+                        let tX = 0, tY = 0;
                         return (
-                          <div key={j} {...tc(handleTap, true)} style={{ flexShrink:0, textAlign:"center", maxWidth:52, cursor:"pointer" }}>
+                          <div key={j}
+                            onTouchStart={e => { tX = e.touches[0].clientX; tY = e.touches[0].clientY; }}
+                            onTouchEnd={e => { const dx = Math.abs(e.changedTouches[0].clientX - tX); const dy = Math.abs(e.changedTouches[0].clientY - tY); if (dx < 8 && dy < 8) { e.preventDefault(); e.stopPropagation(); handleTap(); } }}
+                            onClick={e => { e.stopPropagation(); handleTap(); }}
+                            style={{ flexShrink:0, textAlign:"center", maxWidth:52, cursor:"pointer" }}>
                             <BookCoverThumb book={{ title: b.title, coverUrl, genre: b.genre || item.genre }} />
                             {isRead && <p style={{ fontSize:8, color:"#2e7d32", fontFamily:"'DM Sans',sans-serif", fontWeight:700, marginTop:2 }}>✓</p>}
                             {shelf && !isRead && <p style={{ fontSize:7, color:"#4a78b4", fontFamily:"'DM Sans',sans-serif", fontWeight:700, marginTop:2, textTransform:"uppercase" }}>{shelf}</p>}
