@@ -4382,24 +4382,36 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, seriesTier
     fetchCannedList("fantasy-series", rankingMode, "all", (items) => {
       setAiSeriesItems(items);
       setAiSeriesGenerated(true);
-      // Fetch covers for all series books
+      // Fetch covers for all series books (batched, deduplicated)
       const userCoverMap = {};
       books.forEach(b => { if (b.coverUrl) userCoverMap[normBookKey(b.title)] = b.coverUrl; });
+      const toFetch = [];
+      const seen = new Set();
       items.forEach(item => {
         const biblio = staticAuthorBiblio(item.author);
         if (!biblio) return;
         let seriesBooks = biblio.filter(b => b.series && b.series.startsWith(item.series + ", #"));
         if (!seriesBooks.length) seriesBooks = biblio.filter(b => b.series);
-        seriesBooks.forEach(async b => {
+        seriesBooks.forEach(b => {
           const key = normBookKey(b.title);
           if (userCoverMap[key]) { setAiSeriesCovers(prev => ({ ...prev, [key]: userCoverMap[key] })); return; }
-          try {
-            const r = await fetch("/api/fetch-cover", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ title:b.title, author:item.author }) });
-            const d = await r.json();
-            if (d.coverUrl) setAiSeriesCovers(prev => ({ ...prev, [key]: d.coverUrl }));
-          } catch {}
+          if (seen.has(key)) return;
+          seen.add(key);
+          toFetch.push({ title: b.title, author: item.author, key });
         });
       });
+      (async () => {
+        const BATCH = 5;
+        for (let i = 0; i < toFetch.length; i += BATCH) {
+          await Promise.all(toFetch.slice(i, i + BATCH).map(async ({ title, author, key }) => {
+            try {
+              const r = await fetch("/api/fetch-cover", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ title, author }) });
+              const d = await r.json();
+              if (d.coverUrl) setAiSeriesCovers(prev => ({ ...prev, [key]: d.coverUrl }));
+            } catch {}
+          }));
+        }
+      })();
     }, sid);
   }
 
