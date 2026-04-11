@@ -1474,7 +1474,7 @@ function AuthorShelfRow({ authorName, books, allBooks, onEdit, onAddBook, onAuth
     <div style={{ marginBottom:8, background:WOOD.card, borderRadius:12, border:`1px solid ${WOOD.cardBorder}`, borderLeft:"4px solid #8a5a28", padding:"14px 16px", boxShadow:"0 1px 4px rgba(0,0,0,0.08)" }}>
       <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", marginBottom:10 }}>
         <div>
-          <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:18, color:WOOD.text, lineHeight:1.2 }}>{authorName}</p>
+          <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:22, color:WOOD.text, lineHeight:1.2 }}>{authorName}</p>
           <div style={{ display:"flex", alignItems:"center", gap:5, marginTop:4 }}>
             {topGenre && <span style={{ display:"inline-block", background:GENRE_COLORS[topGenre]||"#94a3b8", color:"#fff", borderRadius:20, padding:"2px 8px", fontSize:9, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em" }}>{topGenre}</span>}
             <TierBadge tier={tier} onSetTier={onSetTier} />
