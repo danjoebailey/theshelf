@@ -4397,18 +4397,33 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, seriesTier
           if (userCoverMap[key]) { setAiSeriesCovers(prev => ({ ...prev, [key]: userCoverMap[key] })); return; }
           if (seen.has(key)) return;
           seen.add(key);
-          toFetch.push({ title: b.title, author: item.author, key });
+          toFetch.push({ title: b.title, author: item.author, key, altTitles: b.altTitles || [] });
         });
       });
       (async () => {
         const BATCH = 5;
         for (let i = 0; i < toFetch.length; i += BATCH) {
-          await Promise.all(toFetch.slice(i, i + BATCH).map(async ({ title, author, key }) => {
+          await Promise.all(toFetch.slice(i, i + BATCH).map(async ({ title, author, key, altTitles }) => {
+            let fallbackCover = null;
             try {
               const r = await fetch("/api/fetch-cover", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ title, author }) });
               const d = await r.json();
-              if (d.coverUrl) setAiSeriesCovers(prev => ({ ...prev, [key]: d.coverUrl }));
+              if (d.coverUrl) {
+                const hasGoodSource = d.options?.some(o => o.source.startsWith("iTunes") || o.source.startsWith("Open Library"));
+                if (hasGoodSource || !altTitles.length) { setAiSeriesCovers(prev => ({ ...prev, [key]: d.coverUrl })); return; }
+                fallbackCover = d.coverUrl;
+              }
             } catch {}
+            // Try alt titles for a better cover
+            for (const alt of altTitles) {
+              try {
+                const r = await fetch("/api/fetch-cover", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ title: alt, author }) });
+                const d = await r.json();
+                if (d.coverUrl) { setAiSeriesCovers(prev => ({ ...prev, [key]: d.coverUrl })); return; }
+              } catch {}
+            }
+            // Use Google Books fallback if alt titles also failed
+            if (fallbackCover) setAiSeriesCovers(prev => ({ ...prev, [key]: fallbackCover }));
           }));
         }
       })();
