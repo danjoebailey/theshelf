@@ -6414,13 +6414,14 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd, userI
                             {!shelf && (
                               <div style={{ position: "relative", flexShrink: 0 }}>
                                 <span onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); const r = e.currentTarget.getBoundingClientRect(); setOpenDropdown(openDropdown===dropKey ? null : { key:dropKey, openUp: r.top > window.innerHeight / 2 }); }} onClick={e=>{ e.stopPropagation(); const r = e.currentTarget.getBoundingClientRect(); setOpenDropdown(openDropdown?.key===dropKey ? null : { key:dropKey, openUp: r.top > window.innerHeight / 2 }); }} style={{ background:"rgba(138,90,40,0.18)", color:CR.textDim, border:"1px solid rgba(138,90,40,0.3)", borderRadius:20, padding:"3px 10px", fontSize:9, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", lineHeight:1, cursor:"pointer", whiteSpace:"nowrap" }}>+ Add</span>
-                                {openDropdown?.key === dropKey && (
+                                {openDropdown?.key === dropKey && (<>
+                                  <div onClick={()=>setOpenDropdown(null)} onTouchEnd={e=>{e.preventDefault();setOpenDropdown(null);}} style={{ position:"fixed", inset:0, zIndex:49 }} />
                                   <div onClick={e=>e.stopPropagation()} onTouchEnd={e=>e.stopPropagation()} style={{ position:"absolute", right:0, zIndex:50, minWidth:120, background:"#f5e8d0", borderRadius:10, overflow:"hidden", boxShadow:"0 4px 20px rgba(0,0,0,0.25)", border:"1px solid rgba(138,90,40,0.3)", ...(openDropdown.openUp ? { bottom:"calc(100% + 4px)" } : { top:"calc(100% + 4px)" }) }}>
                                     {SHELVES.map(sh => (
                                       <button key={sh} onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); setOpenDropdown(null); onDirectAdd&&onDirectAdd({ ...draft, shelf:sh }); }} onClick={e=>{ e.stopPropagation(); setOpenDropdown(null); onDirectAdd&&onDirectAdd({ ...draft, shelf:sh }); }} style={{ display:"block", width:"100%", padding:"9px 14px", textAlign:"left", border:"none", background:"transparent", color:"#5a3820", fontSize:13, fontFamily:"'DM Sans',sans-serif", cursor:"pointer" }}>{sh}</button>
                                     ))}
                                   </div>
-                                )}
+                                </>)}
                               </div>
                             )}
                           </div>
