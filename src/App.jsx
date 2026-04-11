@@ -4752,8 +4752,12 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, seriesTier
                         const shelf = userBook ? (userBook.shelf || "Read") : null;
                         const isRead = shelf === "Read" || shelf === "DNF";
                         const coverUrl = userBook?.coverUrl || aiSeriesCovers[normBookKey(b.title)] || null;
+                        const handleTap = () => {
+                          if (userBook) { onEdit && onEdit(userBook); }
+                          else { onAddBook && onAddBook({ title: b.title, author: item.author, genre: b.genre || item.genre, pages: b.pages || 0, coverUrl, _fromRecs: true }); }
+                        };
                         return (
-                          <div key={j} style={{ flexShrink:0, textAlign:"center", maxWidth:52 }}>
+                          <div key={j} {...tc(handleTap, true)} style={{ flexShrink:0, textAlign:"center", maxWidth:52, cursor:"pointer" }}>
                             <BookCoverThumb book={{ title: b.title, coverUrl, genre: b.genre || item.genre }} />
                             {isRead && <p style={{ fontSize:8, color:"#2e7d32", fontFamily:"'DM Sans',sans-serif", fontWeight:700, marginTop:2 }}>✓</p>}
                             {shelf && !isRead && <p style={{ fontSize:7, color:"#4a78b4", fontFamily:"'DM Sans',sans-serif", fontWeight:700, marginTop:2, textTransform:"uppercase" }}>{shelf}</p>}
