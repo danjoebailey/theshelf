@@ -1164,11 +1164,11 @@ function SeriesShelfRow({ name, books, seriesTotal, allBooks, onEdit, onAddBook,
     if (unreadBooks !== null) return;
     const author = books[0]?.author;
     if (!author) return;
-    const readTitles = new Set((allBooks || books).filter(b => b.shelf === "Read" || b.shelf === "DNF").map(b => normBookKey(b.title)));
+    const ownedTitles = new Set((allBooks || books).map(b => normBookKey(b.title)));
     const staticItems = staticAuthorBiblio(author);
     if (!staticItems) return;
-    const isRead = b => readTitles.has(normBookKey(b.title)) || (b.altTitles && b.altTitles.some(alt => readTitles.has(normBookKey(alt))));
-    const seriesBooks = staticItems.filter(b => b.series && b.series.startsWith(name + ", #") && !isRead(b))
+    const isOwned = b => ownedTitles.has(normBookKey(b.title)) || (b.altTitles && b.altTitles.some(alt => ownedTitles.has(normBookKey(alt))));
+    const seriesBooks = staticItems.filter(b => b.series && b.series.startsWith(name + ", #") && !isOwned(b))
       .sort((a, b) => { const ao = parseInt((a.series.match(/#(\d+)/) || [])[1]) || 99; const bo = parseInt((b.series.match(/#(\d+)/) || [])[1]) || 99; return ao - bo; });
     const enriched = seriesBooks.map(b => ({ ...b }));
     setUnreadBooks(enriched);
