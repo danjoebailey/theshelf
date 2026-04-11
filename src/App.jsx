@@ -3685,6 +3685,7 @@ const CANNED_LISTS = new Set([
   "fantasy-series-alltime-all",
   "fantasy-series-vacuum-all",
   "sci-fi-series-alltime-all",
+  "sci-fi-series-vacuum-all",
 ]);
 function cannedKey(genre, rankingMode, scoreCategory) {
   return `${genre.toLowerCase().replace(/[^a-z0-9]/g, "-")}-${rankingMode}-${scoreCategory}`;
@@ -4627,7 +4628,7 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, seriesTier
                 }}>{label}</button>
               ))}
               <span style={{ width:4 }} />
-              {[["alltime","All Time"], ...(genreFilter === "Fantasy" ? [["vacuum","Vacuum"]] : [])].map(([m, label]) => (
+              {[["alltime","All Time"],["vacuum","Vacuum"]].map(([m, label]) => (
                 <button key={m} {...tc(() => { setRankingMode(m); setAiSeriesGenerated(false); setAiSeriesItems([]); setAiSeriesCovers({}); })} style={{
                   padding:"3px 10px", borderRadius:20,
                   border:`1px solid ${rankingMode===m ? WOOD.amber : "rgba(255,235,195,0.18)"}`,
