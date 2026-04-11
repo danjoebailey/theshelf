@@ -4703,16 +4703,18 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, seriesTier
                     .filter(b => b.series && b.series.startsWith(item.series + ", #"))
                     .sort((a, b) => { const ao = parseInt((a.series.match(/#(\d+)/) || [])[1]) || 99; const bo = parseInt((b.series.match(/#(\d+)/) || [])[1]) || 99; return ao - bo; });
                   if (!seriesBooks.length) return null;
-                  const shelfByTitle = {};
-                  books.forEach(b => { shelfByTitle[normBookKey(b.title)] = b.shelf || "Read"; });
+                  const userBookMap = {};
+                  books.forEach(b => { userBookMap[normBookKey(b.title)] = b; });
                   return (
                     <div style={{ display:"flex", gap:6, overflowX:"auto", paddingBottom:4, scrollbarWidth:"none", marginTop:10 }}>
                       {seriesBooks.map((b, j) => {
-                        const shelf = shelfByTitle[normBookKey(b.title)] || (b.altTitles && b.altTitles.find(alt => shelfByTitle[normBookKey(alt)]) ? shelfByTitle[normBookKey(b.altTitles.find(alt => shelfByTitle[normBookKey(alt)]))] : null);
+                        const userBook = userBookMap[normBookKey(b.title)] || (b.altTitles && b.altTitles.reduce((found, alt) => found || userBookMap[normBookKey(alt)], null));
+                        const shelf = userBook ? (userBook.shelf || "Read") : null;
                         const isRead = shelf === "Read" || shelf === "DNF";
+                        const coverUrl = userBook?.coverUrl || item.coverUrl || null;
                         return (
                           <div key={j} style={{ flexShrink:0, textAlign:"center", maxWidth:52 }}>
-                            <BookCoverThumb book={{ title: b.title, coverUrl: null, genre: b.genre || item.genre }} />
+                            <BookCoverThumb book={{ title: b.title, coverUrl, genre: b.genre || item.genre }} />
                             {isRead && <p style={{ fontSize:8, color:"#2e7d32", fontFamily:"'DM Sans',sans-serif", fontWeight:700, marginTop:2 }}>✓</p>}
                             {shelf && !isRead && <p style={{ fontSize:7, color:"#4a78b4", fontFamily:"'DM Sans',sans-serif", fontWeight:700, marginTop:2, textTransform:"uppercase" }}>{shelf}</p>}
                           </div>
