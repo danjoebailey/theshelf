@@ -6356,11 +6356,14 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd, userI
             Object.values(seriesMap).forEach(s => s.books.sort((a, b) => a.series.order - b.series.order));
             const seriesList = Object.values(seriesMap).sort((a, b) => b.books.length - a.books.length);
 
-            // Match user's library books
+            // Match user's library books (all shelves)
             const ownedKeys = new Set(
               books.filter(b => { const nb = norm(b.author); return (b.shelf === "Read" || b.shelf === "DNF") && (nb === na || nb.startsWith(na) || na.startsWith(nb)); })
                 .map(b => normBookKey(b.title))
             );
+            const shelfByTitle = {};
+            books.filter(b => { const nb = norm(b.author); return nb === na || nb.startsWith(na) || na.startsWith(nb); })
+              .forEach(b => { shelfByTitle[normBookKey(b.title)] = b.shelf || "Read"; });
 
             if (seriesList.length === 0) return (
               <p style={{ color: CR.textDim, fontStyle: "italic", textAlign: "center", paddingTop: 40 }}>No series data available for this author.</p>
@@ -6383,25 +6386,43 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd, userI
                         }}>{owned}/{s.books.length}</span>
                       </div>
                       {s.books.map((b, i) => {
-                        const isOwned = ownedKeys.has(normBookKey(b.title)) || (b.altTitles && b.altTitles.some(alt => ownedKeys.has(normBookKey(alt))));
+                        const bk = normBookKey(b.title);
+                        const altMatch = b.altTitles && b.altTitles.find(alt => shelfByTitle[normBookKey(alt)]);
+                        const shelf = shelfByTitle[bk] || (altMatch ? shelfByTitle[normBookKey(altMatch)] : null);
+                        const isRead = shelf === "Read" || shelf === "DNF";
+                        const dropKey = s.name + ":" + b.title;
+                        const draft = { title: b.title, author: author, genre: b.genre, pages: b.pageCount || 0, coverUrl: null, _fromRecs: true };
                         return (
                           <div key={i} style={{
                             display: "flex", alignItems: "center", gap: 10, padding: "8px 14px",
                             borderTop: `1px solid ${CR.border}`,
-                            opacity: isOwned ? 1 : 0.85,
+                            opacity: shelf ? 1 : 0.85,
                           }}>
                             <span style={{
                               width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
                               display: "flex", alignItems: "center", justifyContent: "center",
                               fontSize: 10, fontWeight: 700, fontFamily: "'DM Sans',sans-serif",
-                              background: isOwned ? "rgba(46,125,50,0.15)" : "rgba(138,90,40,0.1)",
-                              color: isOwned ? "#2e7d32" : CR.textFaint,
+                              background: isRead ? "rgba(46,125,50,0.15)" : shelf ? "rgba(80,120,180,0.15)" : "rgba(138,90,40,0.1)",
+                              color: isRead ? "#2e7d32" : shelf ? "#4a78b4" : CR.textFaint,
                             }}>{b.series.order}</span>
                             <div style={{ flex: 1, minWidth: 0 }}>
                               <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 14, color: CR.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{b.title}</p>
                               <p style={{ fontSize: 10, color: CR.textDim, fontFamily: "'DM Sans',sans-serif" }}>{b.publicationDate}{b.pageCount ? ` · ${b.pageCount} pages` : ""}</p>
                             </div>
-                            {isOwned && <span style={{ fontSize: 9, fontFamily: "'DM Sans',sans-serif", color: "#2e7d32", fontWeight: 600 }}>✓</span>}
+                            {isRead && <span style={{ fontSize: 9, fontFamily: "'DM Sans',sans-serif", color: "#2e7d32", fontWeight: 600 }}>✓</span>}
+                            {shelf && !isRead && <span style={{ fontSize: 8, fontFamily: "'DM Sans',sans-serif", fontWeight: 700, color: "#4a78b4", textTransform: "uppercase", letterSpacing: "0.08em" }}>{shelf}</span>}
+                            {!shelf && (
+                              <div style={{ position: "relative", flexShrink: 0 }}>
+                                <span onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); setOpenDropdown(openDropdown===dropKey ? null : dropKey); }} onClick={e=>{ e.stopPropagation(); setOpenDropdown(openDropdown===dropKey ? null : dropKey); }} style={{ background:"rgba(138,90,40,0.18)", color:CR.textDim, border:"1px solid rgba(138,90,40,0.3)", borderRadius:20, padding:"3px 10px", fontSize:9, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", lineHeight:1, cursor:"pointer", whiteSpace:"nowrap" }}>+ Add</span>
+                                {openDropdown === dropKey && (
+                                  <div onClick={e=>e.stopPropagation()} onTouchEnd={e=>e.stopPropagation()} style={{ position:"absolute", top:"calc(100% + 4px)", right:0, zIndex:50, minWidth:120, background:"#f5e8d0", borderRadius:10, overflow:"hidden", boxShadow:"0 4px 20px rgba(0,0,0,0.25)", border:"1px solid rgba(138,90,40,0.3)" }}>
+                                    {SHELVES.map(sh => (
+                                      <button key={sh} onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); setOpenDropdown(null); onDirectAdd&&onDirectAdd({ ...draft, shelf:sh }); }} onClick={e=>{ e.stopPropagation(); setOpenDropdown(null); onDirectAdd&&onDirectAdd({ ...draft, shelf:sh }); }} style={{ display:"block", width:"100%", padding:"9px 14px", textAlign:"left", border:"none", background:"transparent", color:"#5a3820", fontSize:13, fontFamily:"'DM Sans',sans-serif", cursor:"pointer" }}>{sh}</button>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </div>
                         );
                       })}
