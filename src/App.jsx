@@ -3684,6 +3684,7 @@ const CANNED_LISTS = new Set([
   "non-fiction-vacuum-all",
   "fantasy-series-alltime-all",
   "fantasy-series-vacuum-all",
+  "sci-fi-series-alltime-all",
 ]);
 function cannedKey(genre, rankingMode, scoreCategory) {
   return `${genre.toLowerCase().replace(/[^a-z0-9]/g, "-")}-${rankingMode}-${scoreCategory}`;
@@ -4263,7 +4264,7 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, seriesTier
     if (mode !== "ai" || entityType !== "series") return;
     if (aiSeriesGenerated && aiSeriesItems.length > 0) return;
     generateAISeriesRankings();
-  }, [mode, entityType, rankingMode]);
+  }, [mode, entityType, rankingMode, genreFilter]);
 
   const bookMap = useMemo(() => new Map(books.map(b => [b.id, b])), [books]);
 
@@ -4379,7 +4380,8 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, seriesTier
 
   async function generateAISeriesRankings() {
     const sid = ++fetchSession.current;
-    fetchCannedList("fantasy-series", rankingMode, "all", (items) => {
+    const seriesGenre = genreFilter === "Sci-Fi" ? "sci-fi-series" : "fantasy-series";
+    fetchCannedList(seriesGenre, rankingMode, "all", (items) => {
       setAiSeriesItems(items);
       setAiSeriesGenerated(true);
       // Fetch covers for all series books (batched, deduplicated)
@@ -4503,7 +4505,7 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, seriesTier
 
         {/* Row 1: entity left | mode center | icons right */}
         <div style={{ display:"grid", gridTemplateColumns:"1fr auto 1fr", alignItems:"center", marginBottom: controlsOpen ? 6 : 0 }}>
-          <div><EntityDropdown value={entityType} onChange={setEntityType} /></div>
+          <div><EntityDropdown value={entityType} onChange={v => { setEntityType(v); if (v === "series") setGenreFilter("Fantasy"); }} /></div>
           {controlsOpen
             ? <div style={{ display:"flex", gap:4 }}>
                 {[["user","Your Ranking"],["ai","Obi Ranking"]].map(([m, label]) => (
@@ -4613,9 +4615,20 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, seriesTier
             </div>
           )}
           {mode === "ai" && entityType === "series" && (
-            <div style={{ display:"flex", gap:4, justifyContent:"center", paddingTop:5, borderTop:"1px solid rgba(200,144,90,0.12)", marginBottom:8 }}>
-              {[["alltime","All Time"],["vacuum","Vacuum"]].map(([m, label]) => (
-                <button key={m} {...tc(() => { setRankingMode(m); setAiSeriesGenerated(false); setAiSeriesItems([]); })} style={{
+            <div style={{ display:"flex", gap:4, justifyContent:"center", paddingTop:5, borderTop:"1px solid rgba(200,144,90,0.12)", marginBottom:8, flexWrap:"wrap" }}>
+              {[["Fantasy","Fantasy"],["Sci-Fi","Sci-Fi"]].map(([g, label]) => (
+                <button key={g} {...tc(() => { setGenreFilter(g); setAiSeriesGenerated(false); setAiSeriesItems([]); setAiSeriesCovers({}); })} style={{
+                  padding:"3px 10px", borderRadius:20,
+                  border:`1px solid ${genreFilter===g ? WOOD.amber : "rgba(255,235,195,0.18)"}`,
+                  background: genreFilter===g ? WOOD.amber : "transparent",
+                  color: genreFilter===g ? "#1a0900" : "rgba(255,235,195,0.5)",
+                  fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600, cursor:"pointer",
+                  transition:"all 0.15s",
+                }}>{label}</button>
+              ))}
+              <span style={{ width:4 }} />
+              {[["alltime","All Time"], ...(genreFilter === "Fantasy" ? [["vacuum","Vacuum"]] : [])].map(([m, label]) => (
+                <button key={m} {...tc(() => { setRankingMode(m); setAiSeriesGenerated(false); setAiSeriesItems([]); setAiSeriesCovers({}); })} style={{
                   padding:"3px 10px", borderRadius:20,
                   border:`1px solid ${rankingMode===m ? WOOD.amber : "rgba(255,235,195,0.18)"}`,
                   background: rankingMode===m ? WOOD.amber : "transparent",
