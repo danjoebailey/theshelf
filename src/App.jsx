@@ -4726,7 +4726,6 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, seriesTier
                     <button {...tc(() => onAuthor && onAuthor({ name: item.author, tab: "series" }), true)} style={{ background:"transparent", border:"none", cursor:"pointer", padding:"2px 4px 0", color:"rgba(120,70,20,0.6)", fontSize:16, lineHeight:1 }}>↗</button>
                   </div>
                 </div>
-                {item.justification && <p style={{ fontSize:11, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif", marginTop:8, lineHeight:1.5, fontStyle:"italic" }}>{item.justification}</p>}
                 {(() => {
                   const biblio = staticAuthorBiblio(item.author);
                   if (!biblio) return null;
@@ -4764,6 +4763,7 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, seriesTier
                     </div>
                   );
                 })()}
+                {item.justification && <p style={{ fontSize:11, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif", marginTop:8, lineHeight:1.5, fontStyle:"italic" }}>{item.justification}</p>}
               </div>
             </div>
           );
