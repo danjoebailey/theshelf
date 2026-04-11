@@ -2087,6 +2087,23 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
                 );
               })()}
             </div>
+            {browseMode === "series" && (
+              <div style={{ position:"relative" }}>
+                <button {...tc(()=>{ setShelfDropOpen(o=>!o); setSeriesAuthorSortDropOpen(false); setBrowseModeDropOpen(false); }, true)} style={{ display:"flex", alignItems:"center", gap:5, background:"rgba(15,8,2,0.55)", borderRadius:20, padding:"5px 12px", border:"1px solid rgba(120,70,20,0.3)", backdropFilter:"blur(4px)", cursor:"pointer", color:"#fff", fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:500 }}>
+                  <span>{activeShelf}</span>
+                  <span style={{ fontSize:10, color:"rgba(255,255,255,0.5)", display:"inline-block", transition:"transform 0.2s", transform: shelfDropOpen?"rotate(180deg)":"rotate(0deg)" }}>▾</span>
+                </button>
+                {shelfDropOpen && (
+                  <div onClick={e=>e.stopPropagation()} style={{ position:"absolute", top:"calc(100% + 4px)", right:0, zIndex:30, minWidth:130, background:"#f5e8d0", borderRadius:10, overflow:"hidden", boxShadow:"0 4px 20px rgba(0,0,0,0.25)", border:"1px solid rgba(138,90,40,0.3)", animation:"fadeIn 0.12s ease" }}>
+                    {SHELVES.map((s, i) => (
+                      <button key={s} {...tc(()=>{ setActiveShelf(s); setShelfDropOpen(false); })} style={{ display:"block", width:"100%", padding:"10px 14px", textAlign:"left", background: s===activeShelf?"rgba(138,90,40,0.12)":"transparent", border:"none", borderBottom: i<SHELVES.length-1?"1px solid rgba(138,90,40,0.12)":"none", cursor:"pointer", fontFamily:"'Crimson Pro',serif", fontSize:15, color: s===activeShelf?WOOD.amber:WOOD.text, fontWeight: s===activeShelf?600:400 }}>
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>
