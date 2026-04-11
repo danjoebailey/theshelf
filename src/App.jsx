@@ -4729,9 +4729,19 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, seriesTier
                 {(() => {
                   const biblio = staticAuthorBiblio(item.author);
                   if (!biblio) return null;
-                  const seriesBooks = biblio
+                  let seriesBooks = biblio
                     .filter(b => b.series && b.series.startsWith(item.series + ", #"))
                     .sort((a, b) => { const ao = parseInt((a.series.match(/#(\d+)/) || [])[1]) || 99; const bo = parseInt((b.series.match(/#(\d+)/) || [])[1]) || 99; return ao - bo; });
+                  // Fallback: if umbrella series name doesn't match, show all series books by this author
+                  if (!seriesBooks.length) {
+                    seriesBooks = biblio.filter(b => b.series).sort((a, b) => {
+                      const sa = a.series || "", sb = b.series || "";
+                      if (sa !== sb) return sa.localeCompare(sb);
+                      const ao = parseInt((a.series.match(/#(\d+)/) || [])[1]) || 99;
+                      const bo = parseInt((b.series.match(/#(\d+)/) || [])[1]) || 99;
+                      return ao - bo;
+                    });
+                  }
                   if (!seriesBooks.length) return null;
                   const userBookMap = {};
                   books.forEach(b => { userBookMap[normBookKey(b.title)] = b; });
