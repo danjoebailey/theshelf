@@ -6375,7 +6375,7 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd, userI
                   const owned = s.books.filter(b => ownedKeys.has(normBookKey(b.title)) || (b.altTitles && b.altTitles.some(alt => ownedKeys.has(normBookKey(alt))))).length;
                   const complete = owned >= s.books.length;
                   return (
-                    <div key={s.name} style={{ marginBottom: 20, background: CR.panel, borderRadius: 12, border: `1px solid ${CR.border}`, overflow: "hidden" }}>
+                    <div key={s.name} style={{ marginBottom: 20, background: CR.panel, borderRadius: 12, border: `1px solid ${CR.border}`, overflow: "visible" }}>
                       <div style={{ padding: "12px 14px 8px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 17, color: CR.text, fontWeight: 500 }}>{s.name}</p>
                         <span style={{
@@ -6415,7 +6415,7 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd, userI
                               <div style={{ position: "relative", flexShrink: 0 }}>
                                 <span onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); setOpenDropdown(openDropdown===dropKey ? null : dropKey); }} onClick={e=>{ e.stopPropagation(); setOpenDropdown(openDropdown===dropKey ? null : dropKey); }} style={{ background:"rgba(138,90,40,0.18)", color:CR.textDim, border:"1px solid rgba(138,90,40,0.3)", borderRadius:20, padding:"3px 10px", fontSize:9, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", lineHeight:1, cursor:"pointer", whiteSpace:"nowrap" }}>+ Add</span>
                                 {openDropdown === dropKey && (
-                                  <div onClick={e=>e.stopPropagation()} onTouchEnd={e=>e.stopPropagation()} style={{ position:"absolute", top:"calc(100% + 4px)", right:0, zIndex:50, minWidth:120, background:"#f5e8d0", borderRadius:10, overflow:"hidden", boxShadow:"0 4px 20px rgba(0,0,0,0.25)", border:"1px solid rgba(138,90,40,0.3)" }}>
+                                  <div onClick={e=>e.stopPropagation()} onTouchEnd={e=>e.stopPropagation()} style={{ position:"absolute", bottom:"calc(100% + 4px)", right:0, zIndex:50, minWidth:120, background:"#f5e8d0", borderRadius:10, overflow:"hidden", boxShadow:"0 4px 20px rgba(0,0,0,0.25)", border:"1px solid rgba(138,90,40,0.3)" }}>
                                     {SHELVES.map(sh => (
                                       <button key={sh} onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); setOpenDropdown(null); onDirectAdd&&onDirectAdd({ ...draft, shelf:sh }); }} onClick={e=>{ e.stopPropagation(); setOpenDropdown(null); onDirectAdd&&onDirectAdd({ ...draft, shelf:sh }); }} style={{ display:"block", width:"100%", padding:"9px 14px", textAlign:"left", border:"none", background:"transparent", color:"#5a3820", fontSize:13, fontFamily:"'DM Sans',sans-serif", cursor:"pointer" }}>{sh}</button>
                                     ))}
