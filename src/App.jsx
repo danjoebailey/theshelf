@@ -4388,7 +4388,8 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, seriesTier
       items.forEach(item => {
         const biblio = staticAuthorBiblio(item.author);
         if (!biblio) return;
-        const seriesBooks = biblio.filter(b => b.series && b.series.startsWith(item.series + ", #"));
+        let seriesBooks = biblio.filter(b => b.series && b.series.startsWith(item.series + ", #"));
+        if (!seriesBooks.length) seriesBooks = biblio.filter(b => b.series);
         seriesBooks.forEach(async b => {
           const key = normBookKey(b.title);
           if (userCoverMap[key]) { setAiSeriesCovers(prev => ({ ...prev, [key]: userCoverMap[key] })); return; }
