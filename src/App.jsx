@@ -3683,6 +3683,7 @@ const CANNED_LISTS = new Set([
   "non-fiction-alltime-all",
   "non-fiction-vacuum-all",
   "fantasy-series-alltime-all",
+  "fantasy-series-vacuum-all",
 ]);
 function cannedKey(genre, rankingMode, scoreCategory) {
   return `${genre.toLowerCase().replace(/[^a-z0-9]/g, "-")}-${rankingMode}-${scoreCategory}`;
@@ -4370,7 +4371,7 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, seriesTier
 
   async function generateAISeriesRankings() {
     const sid = ++fetchSession.current;
-    fetchCannedList("fantasy-series", "alltime", "all", (items) => { setAiSeriesItems(items); setAiSeriesGenerated(true); }, sid);
+    fetchCannedList("fantasy-series", rankingMode, "all", (items) => { setAiSeriesItems(items); setAiSeriesGenerated(true); }, sid);
   }
 
   async function generateAIRankings() {
@@ -4553,6 +4554,20 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, seriesTier
                   {aiDisplayItems.length} of {aiItems.length}
                 </span>
               )}
+            </div>
+          )}
+          {mode === "ai" && entityType === "series" && (
+            <div style={{ display:"flex", gap:4, justifyContent:"center", paddingTop:5, borderTop:"1px solid rgba(200,144,90,0.12)", marginBottom:8 }}>
+              {[["alltime","All Time"],["vacuum","Vacuum"]].map(([m, label]) => (
+                <button key={m} {...tc(() => { setRankingMode(m); setAiSeriesGenerated(false); setAiSeriesItems([]); })} style={{
+                  padding:"3px 10px", borderRadius:20,
+                  border:`1px solid ${rankingMode===m ? WOOD.amber : "rgba(255,235,195,0.18)"}`,
+                  background: rankingMode===m ? WOOD.amber : "transparent",
+                  color: rankingMode===m ? "#1a0900" : "rgba(255,235,195,0.5)",
+                  fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600, cursor:"pointer",
+                  transition:"all 0.15s",
+                }}>{label}</button>
+              ))}
             </div>
           )}
           {mode === "ai" && entityType === "series" && (
