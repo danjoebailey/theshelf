@@ -3682,6 +3682,7 @@ const CANNED_LISTS = new Set([
   "fiction-alltime-all",
   "non-fiction-alltime-all",
   "non-fiction-vacuum-all",
+  "fantasy-series-alltime-all",
 ]);
 function cannedKey(genre, rankingMode, scoreCategory) {
   return `${genre.toLowerCase().replace(/[^a-z0-9]/g, "-")}-${rankingMode}-${scoreCategory}`;
@@ -4041,6 +4042,8 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, seriesTier
   const [entityType, setEntityType] = useState("books");
   const [userAuthorOrder, setUserAuthorOrder] = useState(null);
   const [userSeriesOrder, setUserSeriesOrder] = useState(null);
+  const [aiSeriesItems, setAiSeriesItems] = useState([]);
+  const [aiSeriesGenerated, setAiSeriesGenerated] = useState(false);
   const fetchSession = useRef(0);
 
   const readBooks = useMemo(() =>
@@ -4365,6 +4368,11 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, seriesTier
     } catch {}
   }
 
+  async function generateAISeriesRankings() {
+    const sid = ++fetchSession.current;
+    fetchCannedList("fantasy-series", "alltime", "all", (items) => { setAiSeriesItems(items); setAiSeriesGenerated(true); }, sid);
+  }
+
   async function generateAIRankings() {
     const sid = ++fetchSession.current;
     if (rankingMode === "alltime") {
@@ -4547,6 +4555,24 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, seriesTier
               )}
             </div>
           )}
+          {mode === "ai" && entityType === "series" && (
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}>
+              <button {...tc(()=>generateAISeriesRankings())} style={{
+                padding:"5px 16px", borderRadius:20,
+                background: WOOD.amber,
+                color: "#1a0900", border:"none", cursor:"pointer",
+                fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:700,
+                transition:"all 0.15s",
+              }}>
+                {aiSeriesGenerated ? "Regenerate" : "Generate Rankings"}
+              </button>
+              {aiSeriesGenerated && (
+                <span style={{ fontSize:11, color:"rgba(255,235,195,0.45)", fontFamily:"'DM Sans',sans-serif" }}>
+                  {aiSeriesItems.length} series
+                </span>
+              )}
+            </div>
+          )}
         </div>}
       </div>
 
@@ -4632,6 +4658,38 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, seriesTier
             </div>
           </div>
         ))}
+        {entityType === "series" && mode === "ai" && aiSeriesGenerated && aiSeriesItems.map((item, i) => {
+          const userSeries = seriesGroups.find(s => s.name === item.series);
+          const hasRead = !!userSeries;
+          return (
+            <div key={item.series || i} style={{ display:"flex", alignItems:"stretch" }}>
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"center", width:36, flexShrink:0, paddingBottom:10 }}>
+                <span style={rankBadgeStyle(i)}>{i+1}</span>
+              </div>
+              <div style={{ flex:1, minWidth:0, marginBottom:8, background:WOOD.card, borderRadius:12, border:`1px solid ${WOOD.cardBorder}`, borderLeft:"4px solid #8a5a28", padding:"14px 16px", boxShadow:"0 1px 4px rgba(0,0,0,0.08)" }}>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
+                  <div>
+                    <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:22, color:WOOD.text, lineHeight:1.2 }}>{item.series}</p>
+                    <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:WOOD.textFaint, marginTop:2 }}>{item.author}</p>
+                    <div style={{ display:"flex", alignItems:"center", gap:6, marginTop:5 }}>
+                      <span style={{ background:GENRE_COLORS[item.genre]||"#94a3b8", color:"#fff", borderRadius:20, padding:"2px 8px", fontSize:9, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em" }}>{item.genre}</span>
+                      {item.seriesBooks && <span style={{ fontSize:10, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif" }}>{item.seriesBooks} books</span>}
+                    </div>
+                  </div>
+                  <div style={{ display:"flex", alignItems:"center", gap:6, flexShrink:0 }}>
+                    {hasRead && <span style={{ fontSize:9, fontFamily:"'DM Sans',sans-serif", color:"#2e7d32", fontWeight:700, background:"rgba(46,125,50,0.15)", borderRadius:20, padding:"3px 8px" }}>ON SHELF</span>}
+                  </div>
+                </div>
+                {item.justification && <p style={{ fontSize:11, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif", marginTop:8, lineHeight:1.5, fontStyle:"italic" }}>{item.justification}</p>}
+                {item.coverUrl && (
+                  <div style={{ marginTop:10 }}>
+                    <BookCoverThumb book={{ title: item.title, coverUrl: item.coverUrl, genre: item.genre }} />
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
         {entityType === "books" && displayList.length === 0 && (
           <div style={{ textAlign:"center", padding:"48px 24px" }}>
             {generating ? (
