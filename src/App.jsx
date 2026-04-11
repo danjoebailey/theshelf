@@ -1149,16 +1149,38 @@ function SeriesView({ shelfBooks, allUserBooks, activeShelf = "Read", seriesView
             <SeriesCard key={name} seriesName={name} books={sb} seriesTotal={seriesTotal} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} tier={seriesTiers[name] || null} onSetTier={t => onSetSeriesTier && onSetSeriesTier(name, t)} onSetTotal={v => onSetSeriesTotal && onSetSeriesTotal(name, v)} />
           ))
         : seriesEntries.map(([name, { books: sb, seriesTotal }]) => (
-            <SeriesShelfRow key={name} name={name} books={sb} seriesTotal={seriesTotal} allBooks={allUserBooks} onEdit={onEdit} onAddBook={onAddBook} onAuthor={onAuthor} tier={seriesTiers[name] || null} onSetTier={t => onSetSeriesTier && onSetSeriesTier(name, t)} onSetTotal={v => onSetSeriesTotal && onSetSeriesTotal(name, v)} />
+            <SeriesShelfRow key={name} name={name} books={sb} seriesTotal={seriesTotal} allBooks={allUserBooks} onEdit={onEdit} onAddBook={onAddBook} onAuthor={onAuthor} activeShelf={activeShelf} tier={seriesTiers[name] || null} onSetTier={t => onSetSeriesTier && onSetSeriesTier(name, t)} onSetTotal={v => onSetSeriesTotal && onSetSeriesTotal(name, v)} />
           ))
       }
     </>
   );
 }
 
-function SeriesShelfRow({ name, books, seriesTotal, allBooks, onEdit, onAddBook, onAuthor, tier, onSetTier, onSetTotal }) {
-  const [showUnread, setShowUnread] = useState(false);
+function SeriesShelfRow({ name, books, seriesTotal, allBooks, onEdit, onAddBook, onAuthor, activeShelf = "Read", tier, onSetTier, onSetTotal }) {
+  const autoShowUnread = activeShelf !== "Read" && activeShelf !== "DNF";
+  const [showUnread, setShowUnread] = useState(autoShowUnread);
   const [unreadBooks, setUnreadBooks] = useState(null);
+  function fetchUnreadBooks() {
+    if (unreadBooks !== null) return;
+    const author = books[0]?.author;
+    if (!author) return;
+    const readTitles = new Set((allBooks || books).filter(b => b.shelf === "Read" || b.shelf === "DNF").map(b => normBookKey(b.title)));
+    const staticItems = staticAuthorBiblio(author);
+    if (!staticItems) return;
+    const isRead = b => readTitles.has(normBookKey(b.title)) || (b.altTitles && b.altTitles.some(alt => readTitles.has(normBookKey(alt))));
+    const seriesBooks = staticItems.filter(b => b.series && b.series.startsWith(name + ", #") && !isRead(b))
+      .sort((a, b) => { const ao = parseInt((a.series.match(/#(\d+)/) || [])[1]) || 99; const bo = parseInt((b.series.match(/#(\d+)/) || [])[1]) || 99; return ao - bo; });
+    const enriched = seriesBooks.map(b => ({ ...b }));
+    setUnreadBooks(enriched);
+    enriched.forEach(async b => {
+      try {
+        const r = await fetch("/api/fetch-cover", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: b.title, author }) });
+        const d = await r.json();
+        if (d.coverUrl) setUnreadBooks(prev => prev.map(p => p.title === b.title ? { ...p, coverUrl: d.coverUrl } : p));
+      } catch {}
+    });
+  }
+  useEffect(() => { setShowUnread(autoShowUnread); if (autoShowUnread) fetchUnreadBooks(); }, [autoShowUnread]);
   const readCount = books.filter(b => b.rating > 0).length;
   const pct = seriesTotal ? Math.round((readCount / seriesTotal) * 100) : null;
   const countStr = seriesTotal ? (readCount + " / " + seriesTotal) : (readCount + " book" + (readCount !== 1 ? "s" : ""));
@@ -1200,29 +1222,7 @@ function SeriesShelfRow({ name, books, seriesTotal, allBooks, onEdit, onAddBook,
             <button {...tc(() => onAuthor && onAuthor({ name: sorted[0]?.author, tab: "series" }), true)} style={{ background:"transparent", border:"none", cursor:"pointer", padding:"2px 4px 0", color:"rgba(120,70,20,0.6)", fontSize:16, lineHeight:1 }}>↗</button>
           </div>
           <button {...tc(() => {
-            if (!showUnread && unreadBooks === null) {
-              // Fetch unread books from static catalog for this series
-              const author = books[0]?.author;
-              if (author) {
-                const readTitles = new Set((allBooks || books).filter(b => b.shelf === "Read" || b.shelf === "DNF").map(b => normBookKey(b.title)));
-                const staticItems = staticAuthorBiblio(author);
-                if (staticItems) {
-                  const isRead = b => readTitles.has(normBookKey(b.title)) || (b.altTitles && b.altTitles.some(alt => readTitles.has(normBookKey(alt))));
-                  const seriesBooks = staticItems.filter(b => b.series && b.series.startsWith(name + ", #") && !isRead(b))
-                    .sort((a, b) => { const ao = parseInt((a.series.match(/#(\d+)/) || [])[1]) || 99; const bo = parseInt((b.series.match(/#(\d+)/) || [])[1]) || 99; return ao - bo; });
-                  // Fetch covers
-                  const enriched = seriesBooks.map(b => ({ ...b }));
-                  setUnreadBooks(enriched);
-                  enriched.forEach(async b => {
-                    try {
-                      const r = await fetch("/api/fetch-cover", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: b.title, author }) });
-                      const d = await r.json();
-                      if (d.coverUrl) setUnreadBooks(prev => prev.map(p => p.title === b.title ? { ...p, coverUrl: d.coverUrl } : p));
-                    } catch {}
-                  });
-                }
-              }
-            }
+            if (!showUnread) fetchUnreadBooks();
             setShowUnread(v => !v);
           }, true)} style={{ background:"transparent", border:"none", fontFamily:"'DM Sans',sans-serif", fontSize:10, color:showUnread ? WOOD.amber : WOOD.textFaint, cursor:"pointer", padding:0, fontWeight: showUnread ? 700 : 400 }}>
             {showUnread ? "Hide unread" : "Show unread"}
