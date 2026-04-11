@@ -4747,8 +4747,10 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, seriesTier
                   books.forEach(b => { userBookMap[normBookKey(b.title)] = b; });
                   return (
                     <div style={{ display:"flex", gap:6, overflowX:"auto", paddingBottom:4, scrollbarWidth:"none", marginTop:10 }}>
-                      {seriesBooks.map((b, j) => {
+                      {(() => { const seenUserBooks = new Set(); return seriesBooks.map((b, j) => {
                         const userBook = userBookMap[normBookKey(b.title)] || (b.altTitles && b.altTitles.reduce((found, alt) => found || userBookMap[normBookKey(alt)], null));
+                        if (userBook && seenUserBooks.has(userBook.id)) return null;
+                        if (userBook) seenUserBooks.add(userBook.id);
                         const shelf = userBook ? (userBook.shelf || "Read") : null;
                         const isRead = shelf === "Read" || shelf === "DNF";
                         const coverUrl = userBook?.coverUrl || aiSeriesCovers[normBookKey(b.title)] || null;
@@ -4768,7 +4770,7 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, seriesTier
                             {shelf && !isRead && <p style={{ fontSize:7, color:"#4a78b4", fontFamily:"'DM Sans',sans-serif", fontWeight:700, marginTop:2, textTransform:"uppercase" }}>{shelf}</p>}
                           </div>
                         );
-                      })}
+                      }); })()}
                     </div>
                   );
                 })()}
