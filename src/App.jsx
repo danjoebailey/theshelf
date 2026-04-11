@@ -4258,6 +4258,13 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, seriesTier
     }
   }, [userId, mode, genreFilter, topN, scoreCategory, rankingMode]);
 
+  // Auto-load series rankings when switching to AI + series
+  useEffect(() => {
+    if (mode !== "ai" || entityType !== "series") return;
+    if (aiSeriesGenerated && aiSeriesItems.length > 0) return;
+    generateAISeriesRankings();
+  }, [mode, entityType, rankingMode]);
+
   const bookMap = useMemo(() => new Map(books.map(b => [b.id, b])), [books]);
 
   // User ranked list: global order → filter by genre → cap to topN
