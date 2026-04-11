@@ -4025,7 +4025,7 @@ function PillDropdown({ value, onChange, options, maxLabelWidth }) {
   );
 }
 
-function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, onAddBook, onAddDirect, onShelfChange, onEdit }) {
+function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, seriesTiers = {}, onAddBook, onAddDirect, onShelfChange, onEdit }) {
   const [mode, setMode] = useState("user");
   const [genreFilter, setGenreFilter] = useState("All");
   const [topN, setTopN] = useState(10);
@@ -4040,6 +4040,7 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, onAddBook,
   const [rankingMode, setRankingMode] = useState("alltime");
   const [entityType, setEntityType] = useState("books");
   const [userAuthorOrder, setUserAuthorOrder] = useState(null);
+  const [userSeriesOrder, setUserSeriesOrder] = useState(null);
   const fetchSession = useRef(0);
 
   const readBooks = useMemo(() =>
@@ -4074,6 +4075,60 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, onAddBook,
       return { name, books: bks, avgRating, topGenre };
     });
   }, [readBooks]);
+
+  // Series groupings from read books
+  const seriesGroups = useMemo(() => {
+    const grouped = {};
+    readBooks.forEach(b => {
+      if (!b.series) return;
+      if (!grouped[b.series]) grouped[b.series] = { books: [], seriesTotal: b.seriesTotal || null };
+      grouped[b.series].books.push(b);
+      if (b.seriesTotal && !grouped[b.series].seriesTotal) grouped[b.series].seriesTotal = b.seriesTotal;
+    });
+    return Object.entries(grouped).map(([name, { books: bks, seriesTotal }]) => {
+      const rated = bks.filter(b => b.rating > 0);
+      const avgRating = rated.length ? rated.reduce((s,b)=>s+b.rating,0)/rated.length : 0;
+      const gc = {}; bks.forEach(b => { if (b.genre) gc[b.genre]=(gc[b.genre]||0)+1; });
+      const topGenre = Object.entries(gc).sort((a,b)=>b[1]-a[1])[0]?.[0] || null;
+      return { name, books: bks, seriesTotal, avgRating, topGenre };
+    });
+  }, [readBooks]);
+
+  const defaultSeriesOrder = useMemo(() => {
+    const TIER_IDX = { S:0, A:1, B:2, C:3 };
+    return [...seriesGroups]
+      .sort((a, b) => {
+        const at = TIER_IDX[seriesTiers[a.name]] ?? 99;
+        const bt = TIER_IDX[seriesTiers[b.name]] ?? 99;
+        return at !== bt ? at - bt : b.avgRating - a.avgRating;
+      })
+      .map(s => s.name);
+  }, [seriesGroups, seriesTiers]);
+
+  const userRankedSeries = useMemo(() => {
+    const order = userSeriesOrder || defaultSeriesOrder;
+    const nameMap = new Map(seriesGroups.map(s => [s.name, s]));
+    const ordered = order.map(n => nameMap.get(n)).filter(Boolean);
+    const unranked = seriesGroups.filter(s => !order.includes(s.name));
+    const all = [...ordered, ...unranked];
+    const filtered = genreFilter === "All" ? all : all.filter(s => s.topGenre === genreFilter);
+    const cap = topN === "all" ? filtered.length : Number(topN);
+    return filtered.slice(0, cap);
+  }, [userSeriesOrder, defaultSeriesOrder, seriesGroups, genreFilter, topN]);
+
+  function moveSeries(i, dir) {
+    const j = i + dir;
+    if (j < 0 || j >= userRankedSeries.length) return;
+    const nameA = userRankedSeries[i].name;
+    const nameB = userRankedSeries[j].name;
+    const base = userSeriesOrder || defaultSeriesOrder;
+    const next = [...base];
+    const posA = next.indexOf(nameA);
+    const posB = next.indexOf(nameB);
+    if (posA === -1 || posB === -1) return;
+    [next[posA], next[posB]] = [next[posB], next[posA]];
+    setUserSeriesOrder(next);
+  }
 
   const defaultAuthorOrder = useMemo(() => {
     const TIER_IDX = { S:0, A:1, B:2, C:3 };
@@ -4449,7 +4504,7 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, onAddBook,
           </div>
 
           {/* Row 3 (AI only): score left | ranking mode center | spacer right */}
-          {mode === "ai" && entityType !== "authors" && (
+          {mode === "ai" && entityType === "books" && (
             <div style={{ display:"grid", gridTemplateColumns:"1fr auto 1fr", alignItems:"center", gap:4, paddingTop:5, borderTop:"1px solid rgba(200,144,90,0.12)" }}>
               <div style={{ minWidth:0 }}>
                 <PillDropdown value={scoreCategory} onChange={v => { setScoreCategory(v); setGenerated(false); }} options={SCORE_CATEGORIES.map(({ key, label }) => ({ value:key, label }))} maxLabelWidth={80} />
@@ -4471,7 +4526,7 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, onAddBook,
           )}
 
           {/* Row 4 (AI only): generate button centered — only show if a canned list exists */}
-          {mode === "ai" && entityType !== "authors" && (
+          {mode === "ai" && entityType === "books" && (
             (rankingMode === "alltime" && genreFilter === "All" && (scoreCategory === "all" || scoreCategory === "prose")) ||
             CANNED_LISTS.has(cannedKey(genreFilter, rankingMode, scoreCategory))
           ) && (
@@ -4544,7 +4599,40 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, onAddBook,
             </div>
           </div>
         ))}
-        {entityType !== "authors" && displayList.length === 0 && (
+        {/* Series rankings */}
+        {entityType === "series" && (mode === "user" ? userRankedSeries : []).length === 0 && (
+          <div style={{ textAlign:"center", padding:"48px 24px" }}>
+            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, fontStyle:"italic", color:"rgba(255,235,195,0.35)" }}>
+              {readBooks.length === 0 ? "No read books yet" : "No series match this filter"}
+            </p>
+          </div>
+        )}
+        {entityType === "series" && mode === "user" && userRankedSeries.map((series, i) => (
+          <div key={series.name} style={{ display:"flex", alignItems:"stretch" }}>
+            <div style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", width:36, flexShrink:0, paddingBottom:10, gap:2 }}>
+              <button
+                onTouchEnd={e=>{ e.preventDefault(); e.stopPropagation(); if(i>0) moveSeries(i,-1); }}
+                onClick={e=>{ e.stopPropagation(); if(i>0) moveSeries(i,-1); }}
+                disabled={i===0} style={{ background:"none", border:"none", cursor:i===0?"default":"pointer", color:i===0?"rgba(255,255,255,0.12)":"rgba(255,255,255,0.45)", fontSize:14, lineHeight:1, padding:"10px 0", width:"100%" }}>▲</button>
+              <span style={rankBadgeStyle(i)}>{i+1}</span>
+              <button
+                onTouchEnd={e=>{ e.preventDefault(); e.stopPropagation(); if(i<userRankedSeries.length-1) moveSeries(i,1); }}
+                onClick={e=>{ e.stopPropagation(); if(i<userRankedSeries.length-1) moveSeries(i,1); }}
+                disabled={i===userRankedSeries.length-1} style={{ background:"none", border:"none", cursor:i===userRankedSeries.length-1?"default":"pointer", color:i===userRankedSeries.length-1?"rgba(255,255,255,0.12)":"rgba(255,255,255,0.45)", fontSize:14, lineHeight:1, padding:"10px 0", width:"100%" }}>▼</button>
+            </div>
+            <div style={{ flex:1, minWidth:0 }}>
+              <SeriesShelfRow
+                name={series.name}
+                books={[...series.books].sort((a,b)=>(b.rating||0)-(a.rating||0))}
+                seriesTotal={series.seriesTotal}
+                onEdit={onEdit}
+                tier={seriesTiers[series.name]||null}
+                onSetTier={null}
+              />
+            </div>
+          </div>
+        ))}
+        {entityType === "books" && displayList.length === 0 && (
           <div style={{ textAlign:"center", padding:"48px 24px" }}>
             {generating ? (
               <>
@@ -4568,7 +4656,7 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, onAddBook,
         )}
 
         {/* User ranking list */}
-        {entityType !== "authors" && mode === "user" && displayList.map((book, i) => (
+        {entityType === "books" && mode === "user" && displayList.map((book, i) => (
           <div key={i} style={{ display:"flex", alignItems:"stretch" }}>
             <div style={{
               display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
@@ -4606,7 +4694,7 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, onAddBook,
         ))}
 
         {/* AI ranking list */}
-        {entityType !== "authors" && mode === "ai" && generated && aiDisplayItems.map((item, i) => {
+        {entityType === "books" && mode === "ai" && generated && aiDisplayItems.map((item, i) => {
           const matched = findInLibrary(item.title);
           const bookObj = (matched && !matched.coverUrl && item.coverUrl) ? { ...matched, coverUrl: item.coverUrl } : matched || {
             id: `ai_${i}`,
@@ -7013,7 +7101,7 @@ export default function App() {
             : tab==="reiko"
             ? <RecommendPage books={books} userId={userId} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, rating:0, date:new Date().toISOString().slice(0,10) }; setBooks(prev => [...prev, b]); if (!guestMode) dbAddBook(b, userId); }} onAuthor={setAuthorModal} onEdit={setEditBook} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"", _fromRecs:true }); }} onShelfChange={changeShelf} onSaveScores={saveScores} />
             : tab==="rankings"
-            ? <RankingsTab books={books} onSaveScores={saveScores} userId={userId} authorTiers={authorTiers} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"", _fromRecs:true }); }} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, date:new Date().toISOString().slice(0,10) }; setBooks(prev => [...prev, b]); if (!guestMode) dbAddBook(b, userId); }} onShelfChange={changeShelf} onEdit={setEditBook} />
+            ? <RankingsTab books={books} onSaveScores={saveScores} userId={userId} authorTiers={authorTiers} seriesTiers={seriesTiers} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"", _fromRecs:true }); }} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, date:new Date().toISOString().slice(0,10) }; setBooks(prev => [...prev, b]); if (!guestMode) dbAddBook(b, userId); }} onShelfChange={changeShelf} onEdit={setEditBook} />
             : <StatsTab books={books} />
           }
           {showAdd && <AddSheet onSave={addBook} onClose={()=>setShowAdd(false)} />}
