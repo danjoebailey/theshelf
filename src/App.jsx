@@ -4027,7 +4027,7 @@ function PillDropdown({ value, onChange, options, maxLabelWidth }) {
   );
 }
 
-function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, seriesTiers = {}, onAddBook, onAddDirect, onShelfChange, onEdit }) {
+function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, seriesTiers = {}, onAddBook, onAddDirect, onShelfChange, onEdit, onAuthor }) {
   const [mode, setMode] = useState("user");
   const [genreFilter, setGenreFilter] = useState("All");
   const [topN, setTopN] = useState(10);
@@ -4695,6 +4695,7 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, seriesTier
                 books={[...series.books].sort((a,b)=>(b.rating||0)-(a.rating||0))}
                 seriesTotal={series.seriesTotal}
                 onEdit={onEdit}
+                onAuthor={onAuthor}
                 tier={seriesTiers[series.name]||null}
                 onSetTier={null}
               />
@@ -4721,6 +4722,7 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, seriesTier
                   </div>
                   <div style={{ display:"flex", alignItems:"center", gap:6, flexShrink:0 }}>
                     {hasRead && <span style={{ fontSize:9, fontFamily:"'DM Sans',sans-serif", color:"#2e7d32", fontWeight:700, background:"rgba(46,125,50,0.15)", borderRadius:20, padding:"3px 8px" }}>ON SHELF</span>}
+                    <button {...tc(() => onAuthor && onAuthor({ name: item.author, tab: "series" }), true)} style={{ background:"transparent", border:"none", cursor:"pointer", padding:"2px 4px 0", color:"rgba(120,70,20,0.6)", fontSize:16, lineHeight:1 }}>↗</button>
                   </div>
                 </div>
                 {item.justification && <p style={{ fontSize:11, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif", marginTop:8, lineHeight:1.5, fontStyle:"italic" }}>{item.justification}</p>}
@@ -7224,7 +7226,7 @@ export default function App() {
             : tab==="reiko"
             ? <RecommendPage books={books} userId={userId} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, rating:0, date:new Date().toISOString().slice(0,10) }; setBooks(prev => [...prev, b]); if (!guestMode) dbAddBook(b, userId); }} onAuthor={setAuthorModal} onEdit={setEditBook} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"", _fromRecs:true }); }} onShelfChange={changeShelf} onSaveScores={saveScores} />
             : tab==="rankings"
-            ? <RankingsTab books={books} onSaveScores={saveScores} userId={userId} authorTiers={authorTiers} seriesTiers={seriesTiers} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"", _fromRecs:true }); }} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, date:new Date().toISOString().slice(0,10) }; setBooks(prev => [...prev, b]); if (!guestMode) dbAddBook(b, userId); }} onShelfChange={changeShelf} onEdit={setEditBook} />
+            ? <RankingsTab books={books} onSaveScores={saveScores} userId={userId} authorTiers={authorTiers} seriesTiers={seriesTiers} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"", _fromRecs:true }); }} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, date:new Date().toISOString().slice(0,10) }; setBooks(prev => [...prev, b]); if (!guestMode) dbAddBook(b, userId); }} onShelfChange={changeShelf} onEdit={setEditBook} onAuthor={setAuthorModal} />
             : <StatsTab books={books} />
           }
           {showAdd && <AddSheet onSave={addBook} onClose={()=>setShowAdd(false)} />}
