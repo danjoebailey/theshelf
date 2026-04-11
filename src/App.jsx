@@ -4045,6 +4045,7 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, seriesTier
   const [userSeriesOrder, setUserSeriesOrder] = useState(null);
   const [aiSeriesItems, setAiSeriesItems] = useState([]);
   const [aiSeriesGenerated, setAiSeriesGenerated] = useState(false);
+  const [aiSeriesCovers, setAiSeriesCovers] = useState({});
   const fetchSession = useRef(0);
 
   const readBooks = useMemo(() =>
@@ -4371,7 +4372,27 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, seriesTier
 
   async function generateAISeriesRankings() {
     const sid = ++fetchSession.current;
-    fetchCannedList("fantasy-series", rankingMode, "all", (items) => { setAiSeriesItems(items); setAiSeriesGenerated(true); }, sid);
+    fetchCannedList("fantasy-series", rankingMode, "all", (items) => {
+      setAiSeriesItems(items);
+      setAiSeriesGenerated(true);
+      // Fetch covers for all series books
+      const userCoverMap = {};
+      books.forEach(b => { if (b.coverUrl) userCoverMap[normBookKey(b.title)] = b.coverUrl; });
+      items.forEach(item => {
+        const biblio = staticAuthorBiblio(item.author);
+        if (!biblio) return;
+        const seriesBooks = biblio.filter(b => b.series && b.series.startsWith(item.series + ", #"));
+        seriesBooks.forEach(async b => {
+          const key = normBookKey(b.title);
+          if (userCoverMap[key]) { setAiSeriesCovers(prev => ({ ...prev, [key]: userCoverMap[key] })); return; }
+          try {
+            const r = await fetch("/api/fetch-cover", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ title:b.title, author:item.author }) });
+            const d = await r.json();
+            if (d.coverUrl) setAiSeriesCovers(prev => ({ ...prev, [key]: d.coverUrl }));
+          } catch {}
+        });
+      });
+    }, sid);
   }
 
   async function generateAIRankings() {
@@ -4711,7 +4732,7 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, seriesTier
                         const userBook = userBookMap[normBookKey(b.title)] || (b.altTitles && b.altTitles.reduce((found, alt) => found || userBookMap[normBookKey(alt)], null));
                         const shelf = userBook ? (userBook.shelf || "Read") : null;
                         const isRead = shelf === "Read" || shelf === "DNF";
-                        const coverUrl = userBook?.coverUrl || item.coverUrl || null;
+                        const coverUrl = userBook?.coverUrl || aiSeriesCovers[normBookKey(b.title)] || null;
                         return (
                           <div key={j} style={{ flexShrink:0, textAlign:"center", maxWidth:52 }}>
                             <BookCoverThumb book={{ title: b.title, coverUrl, genre: b.genre || item.genre }} />
