@@ -4592,26 +4592,15 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, seriesTier
             </div>
           )}
 
-          {/* Row 4 (AI only): generate button centered — only show if a canned list exists */}
+          {/* Row 4 (AI only): loading state or subtle count indicator for auto-loaded canned lists */}
           {mode === "ai" && entityType === "books" && (
             (rankingMode === "alltime" && genreFilter === "All" && (scoreCategory === "all" || scoreCategory === "prose")) ||
             CANNED_LISTS.has(cannedKey(genreFilter, rankingMode, scoreCategory))
           ) && (
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}>
-              <button {...tc(generating ? ()=>{} : generateAIRankings)} style={{
-                padding:"5px 16px", borderRadius:20,
-                background: generating ? "rgba(184,104,0,0.45)" : WOOD.amber,
-                color: "#1a0900", border:"none", cursor: generating ? "default" : "pointer",
-                fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:700,
-                opacity: generating ? 0.7 : 1, transition:"all 0.15s",
-              }}>
-                {generating ? "Generating…" : generated ? "Regenerate" : "Generate Rankings"}
-              </button>
-              {generated && !generating && (
-                <span style={{ fontSize:11, color:"rgba(255,235,195,0.45)", fontFamily:"'DM Sans',sans-serif" }}>
-                  {aiDisplayItems.length} of {aiItems.length}
-                </span>
-              )}
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"center" }}>
+              <span style={{ fontSize:11, color:"rgba(255,235,195,0.45)", fontFamily:"'DM Sans',sans-serif", fontStyle: generated ? "normal" : "italic" }}>
+                {generated ? `${aiDisplayItems.length} of ${aiItems.length}` : "Loading rankings…"}
+              </span>
             </div>
           )}
           {mode === "ai" && entityType === "series" && (
@@ -4640,21 +4629,10 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, seriesTier
             </div>
           )}
           {mode === "ai" && entityType === "series" && (
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}>
-              <button {...tc(()=>generateAISeriesRankings())} style={{
-                padding:"5px 16px", borderRadius:20,
-                background: WOOD.amber,
-                color: "#1a0900", border:"none", cursor:"pointer",
-                fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:700,
-                transition:"all 0.15s",
-              }}>
-                {aiSeriesGenerated ? "Regenerate" : "Generate Rankings"}
-              </button>
-              {aiSeriesGenerated && (
-                <span style={{ fontSize:11, color:"rgba(255,235,195,0.45)", fontFamily:"'DM Sans',sans-serif" }}>
-                  {aiSeriesItems.length} series
-                </span>
-              )}
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"center" }}>
+              <span style={{ fontSize:11, color:"rgba(255,235,195,0.45)", fontFamily:"'DM Sans',sans-serif", fontStyle: aiSeriesGenerated ? "normal" : "italic" }}>
+                {aiSeriesGenerated ? `${aiSeriesItems.length} series` : "Loading rankings…"}
+              </span>
             </div>
           )}
         </div>}
