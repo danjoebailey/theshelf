@@ -7341,7 +7341,7 @@ export default function App() {
                 transition:"background 0.2s, border-color 0.2s",
               }}>
                 {id==="shelf"
-                  ? <img src="/book_shelf_icon.png" alt="Shelf" style={{ width:44, height:32, objectFit:"contain", display:"block", opacity: tab===id ? 1 : 0.55, transition:"opacity 0.2s" }} />
+                  ? <img src="/shelf-nav-icon.png" alt="Shelf" style={{ width:44, height:32, objectFit:"contain", display:"block", opacity: tab===id ? 1 : 0.55, transition:"opacity 0.2s" }} />
                   : id==="stats"
                   ? <img src="/three_books_breakdown.png" alt="Breakdown" style={{ width:44, height:32, objectFit:"contain", display:"block", opacity: tab===id ? 1 : 0.55, transition:"opacity 0.2s" }} />
                   : id==="reiko"
