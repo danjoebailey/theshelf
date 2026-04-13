@@ -62,6 +62,48 @@ function staticSearchBooks(query, mode = "All") {
   return results;
 }
 
+function buildRecommendationCandidates(mode, readTitles, excludeTitles, genre = null, limit = 60) {
+  if (!_staticBooks) return [];
+  const excluded = new Set([...readTitles, ...excludeTitles].map(t => normBookKey(t)));
+  let pool = _staticBooks.filter(b => {
+    if (excluded.has(normBookKey(b.title))) return false;
+    if (b.altTitles && b.altTitles.some(alt => excluded.has(normBookKey(alt)))) return false;
+    if (genre && b.genre !== genre) return false;
+    return true;
+  });
+  const currentYear = new Date().getFullYear();
+  if (mode === "popular") {
+    pool = pool.filter(b => b.topRank !== null || (b.tier || 99) <= 2);
+    pool.sort((a, b) => (a.topRank || 999) - (b.topRank || 999) || (a.tier || 99) - (b.tier || 99));
+  } else if (mode === "trending") {
+    pool = pool.filter(b => {
+      const y = parseInt(b.publicationDate) || 0;
+      return y >= currentYear - 4;
+    });
+    pool.sort((a, b) => (parseInt(b.publicationDate) || 0) - (parseInt(a.publicationDate) || 0));
+  } else if (mode === "hidden_gems") {
+    pool = pool.filter(b => (b.tier || 99) >= 2 && (b.tier || 99) <= 3 && !b.topRank);
+    for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+  } else if (mode === "comfort_read") {
+    const comfortGenres = new Set(["Romance","Fantasy","Mystery","Young Adult","Historical Fiction","Fiction"]);
+    pool = pool.filter(b => comfortGenres.has(b.genre));
+    pool.sort((a, b) => (a.topRank || 999) - (b.topRank || 999) || (a.tier || 99) - (b.tier || 99));
+  } else if (mode === "challenge_me") {
+    pool = pool.filter(b => (b.tier || 99) <= 2);
+    for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+  } else if (mode === "new_to_me") {
+    for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+  }
+  return pool.slice(0, limit).map(b => ({
+    title: b.title,
+    author: b.author,
+    genre: b.genre,
+    publishYear: b.publicationDate ? parseInt(b.publicationDate) : null,
+    pages: b.pageCount,
+    description: b.description,
+  }));
+}
+
 function staticAuthorBiblio(authorName) {
   if (!_staticByAuthor) return null;
   const norm = s => { let r = (s || "").replace(/[åÅ]/g, 'aa').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\./g, "").toLowerCase().trim(); r = r.replace(/\b([a-z])\s+(?=[a-z]\b)/g, "$1"); return r.replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim(); };
@@ -2579,10 +2621,12 @@ function PaigeTab({ books, userId, onAddDirect, onEdit, onAddBook }) {
     setReserve(prev => ({ ...prev, [mode]: [] }));
     setCovers(prev => ({ ...prev, [mode]: {} }));
     try {
+      const readTitles = readBooks.map(b => b.title);
+      const candidates = buildRecommendationCandidates(mode, readTitles, [], filterGenre || null);
       const res = await fetch("/api/paige-recommendations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ profile, mode, exclude: [], genre: filterGenre || undefined }),
+        body: JSON.stringify({ profile, mode, exclude: [], genre: filterGenre || undefined, candidates }),
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
@@ -2620,10 +2664,12 @@ function PaigeTab({ books, userId, onAddDirect, onEdit, onAddBook }) {
     // Reserve exhausted — generate fresh
     const exclude = existing.map(r => r.title);
     try {
+      const readTitles = readBooks.map(b => b.title);
+      const candidates = buildRecommendationCandidates(mode, readTitles, exclude, filterGenre || null);
       const res = await fetch("/api/paige-recommendations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ profile, mode, exclude, genre: filterGenre || undefined }),
+        body: JSON.stringify({ profile, mode, exclude, genre: filterGenre || undefined, candidates }),
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
