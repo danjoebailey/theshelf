@@ -1,19 +1,15 @@
-const MODE_GENERATION = {
-  popular:      "Recommend books that are widely recognised and broadly read — major bestsellers, award winners, cultural touchstones, or books that have been adapted for film or TV. Judge purely by notoriety and reach. Tone does not matter — a bleak or demanding book belongs here if it is genuinely well-known.",
-  trending:     "Recommend books that are currently having a moment — recent releases (2021–2025) that are being actively discussed in book communities, on social media, in book clubs, and on podcasts. These should be books people are talking about right now, not just historically popular titles.",
-  hidden_gems:  "Recommend books that deserve far more readers than they have — overlooked gems that punch well above their recognition. These could be out-of-print classics, debut novels that got lost, or international titles that never broke through in English-speaking markets.",
-  comfort_read: "Recommend books optimised for pure reading pleasure — satisfying, warm, fast-paced, and emotionally rewarding. These are books you reach for when you want to feel good, not be challenged. Prioritise readability, pacing, and satisfying endings.",
-  challenge_me: "Recommend books that will push this reader beyond their comfort zone — denser prose, more complex structures, demanding ideas, or genres they haven't explored. These should feel like a genuine stretch based on their reading history.",
-  new_to_me:    "Recommend books in genres, styles, or from authors that are clearly absent from this reader's history. Identify the gaps in their reading profile and fill them with excellent books they're unlikely to have encountered.",
-};
+const MODE_PROMPTS = {
+  popular: `Recommend books that are widely recognised and broadly read — major bestsellers, award winners, cultural touchstones, or books that have been adapted for film or TV. Notoriety and reach are what matter — not tone, accessibility, or whether the book is feel-good. A bleak or demanding book can still be popular. Be strict: every book must have genuine mainstream cultural recognition, not just be well-regarded within a niche.`,
 
-const MODE_VALIDATION = {
-  popular:      "Is this book widely recognised and broadly read? Has it appeared on major bestseller lists, won major awards, been adapted for film or TV, or achieved genuine cultural notoriety? Notoriety and reach are what matter — not tone, accessibility, or whether the book is feel-good. A bleak or demanding book can still be popular.",
-  trending:     "Is this book currently generating active buzz in reading communities? Is it being widely discussed on social media, in book clubs, or on book podcasts right now? Books that are historically popular but no longer generating active conversation do NOT qualify. An older book experiencing a genuine resurgence does qualify.",
-  hidden_gems:  "Does this book deserve far more readers than it actually has? Is it meaningfully overlooked or underappreciated relative to its quality — not just modestly less famous, but genuinely under-recognised?",
-  comfort_read: "Is this book easy, warm, fast-paced, and emotionally satisfying? Would a reader reach for it when they want to feel good rather than be challenged? Does it have accessible prose and a rewarding ending? Books that are dense, demanding, intellectually heavy, or emotionally gruelling do NOT qualify.",
-  challenge_me: "Is this book genuinely demanding? Does it feature dense or complex prose, a non-linear or experimental structure, difficult philosophical or intellectual ideas, or does it require significant effort from the reader?",
-  new_to_me:    "Based on the reader's library profile provided, is this book in a genre, style, time period, or from an author that is clearly absent or underrepresented in their reading history?",
+  trending: `Recommend books that are currently having a moment — recent releases (2022 onwards) that are being actively discussed in book communities, on social media, in book clubs, and on podcasts right now. Books that are historically popular but no longer generating active conversation do NOT qualify. An older book experiencing a genuine resurgence does qualify. Be strict: every book must feel like something people are talking about TODAY.`,
+
+  hidden_gems: `Recommend books that deserve far more readers than they have — genuinely overlooked gems that punch well above their recognition. These could be out-of-print classics, debut novels that got lost, or international titles that never broke through in English-speaking markets. Be strict: every book must be meaningfully under-recognised relative to its quality, not just modestly less famous than a bestseller.`,
+
+  comfort_read: `Recommend books optimised for pure reading pleasure — satisfying, warm, fast-paced, and emotionally rewarding. These are books you reach for when you want to feel good, not be challenged. Prioritise readability, pacing, and satisfying endings. Be strict: books that are dense, demanding, intellectually heavy, or emotionally gruelling do NOT qualify, even if they're widely loved.`,
+
+  challenge_me: `Recommend books that will push this reader beyond their comfort zone — denser prose, more complex structures, demanding ideas, or genres they haven't explored. Be strict: every book must feature genuinely demanding qualities like complex prose, non-linear/experimental structure, difficult philosophical ideas, or require significant effort. Pleasant reads don't qualify.`,
+
+  new_to_me: `Recommend books in genres, styles, time periods, or from authors that are clearly absent or underrepresented in this reader's history. Identify the gaps in their reading profile and fill them with excellent books they're unlikely to have encountered. Be strict: every book must represent something meaningfully new relative to their demonstrated reading patterns.`,
 };
 
 function parseJson(text) {
@@ -23,7 +19,7 @@ function parseJson(text) {
   return null;
 }
 
-async function claudeCall(apiKey, prompt, maxTokens = 2000) {
+async function claudeCall(apiKey, prompt, maxTokens = 2500) {
   const response = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -44,36 +40,18 @@ async function claudeCall(apiKey, prompt, maxTokens = 2000) {
 
 async function generate(apiKey, profileLines, mode, exclude, count, { genre = null } = {}) {
   const excludeLines = exclude.length > 0
-    ? `\n\nDo NOT recommend any of the following — they have already been seen:\n${exclude.map(t => `- "${t}"`).join("\n")}`
+    ? `\n\nDo NOT recommend any of the following — they have already been seen or read:\n${exclude.map(t => `- "${t}"`).join("\n")}`
     : "";
 
   const genreConstraint = genre
     ? `\n\nIMPORTANT: Only recommend books in the "${genre}" genre. Every recommendation must be ${genre}.`
     : "";
 
-  const prompt = `Here is a reader's library — books they have read, with ratings where available:\n${profileLines}${excludeLines}${genreConstraint}\n\nMode: ${MODE_GENERATION[mode]}\n\nRecommend exactly ${count} books. For each, provide a concise reason (1–2 sentences) explaining why it fits this reader specifically. Respond ONLY with a JSON object — no markdown, no explanation — in this exact format:\n{"recommendations":[{"title":"...","author":"...","genre":"...","publishYear":1954,"pages":320,"reason":"..."},...]}\n\nGenres must be one of: Fiction, Non-Fiction, Fantasy, Sci-Fi, Mystery, Thriller, Horror, Romance, Biography, History, Historical Fiction, Young Adult, Self-Help, Graphic Novel, Other.`;
+  const prompt = `Here is a reader's library — books they have read, with ratings where available:\n${profileLines}${excludeLines}${genreConstraint}\n\nTask: ${MODE_PROMPTS[mode]}\n\nRecommend exactly ${count} books that STRICTLY meet the criterion above AND match this reader's demonstrated taste. Be rigorous — if a book only partially fits the criterion, don't include it. For each book, provide a concise reason (1–2 sentences) explaining why it both fits the criterion and suits this reader specifically. Respond ONLY with a JSON object — no markdown, no explanation — in this exact format:\n{"recommendations":[{"title":"...","author":"...","genre":"...","publishYear":1954,"pages":320,"reason":"..."},...]}\n\nGenres must be one of: Fiction, Non-Fiction, Fantasy, Sci-Fi, Mystery, Thriller, Horror, Romance, Biography, History, Historical Fiction, Young Adult, Self-Help, Graphic Novel, Other.`;
 
   const text = await claudeCall(apiKey, prompt, 2500);
   const parsed = parseJson(text);
   return parsed?.recommendations || [];
-}
-
-async function validate(apiKey, books, mode, profileLines) {
-  if (!books.length) return [];
-
-  const bookList = books.map((b, i) => `${i + 1}. "${b.title}" by ${b.author} (${b.genre}, ${b.publishYear || ""})`).join("\n");
-  const criterion = MODE_VALIDATION[mode];
-
-  const prompt = `You are validating a list of book recommendations against a specific criterion.\n\nReader's library:\n${profileLines}\n\nCriterion: ${criterion}\n\nFor each book below, answer strictly yes or no — does it meet the criterion above?\n\n${bookList}\n\nRespond ONLY with a JSON object in this exact format (no markdown, no explanation):\n{"results":[{"title":"...","passes":true},...]}\n\nBe strict. If a book only partially meets the criterion, mark it false.`;
-
-  const text = await claudeCall(apiKey, prompt, 1000);
-  const parsed = parseJson(text);
-  if (!parsed?.results) return books; // if validation fails to parse, pass all through
-
-  const passingTitles = new Set(
-    parsed.results.filter(r => r.passes).map(r => r.title.toLowerCase())
-  );
-  return books.filter(b => passingTitles.has(b.title.toLowerCase()));
 }
 
 export default async function handler(req, res) {
@@ -82,7 +60,7 @@ export default async function handler(req, res) {
   const { profile, mode, exclude = [], genre = null } = req.body;
   if (!profile || !Array.isArray(profile) || profile.length === 0)
     return res.status(400).json({ error: "No profile data provided." });
-  if (!MODE_GENERATION[mode])
+  if (!MODE_PROMPTS[mode])
     return res.status(400).json({ error: "Invalid mode." });
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -96,45 +74,25 @@ export default async function handler(req, res) {
   const seen = new Set(exclude.map(t => t.toLowerCase()));
 
   try {
-    // Round 1: generate 20 for trending (stricter validation), 15 for all others
+    // Round 1: generate 10 that self-filter against the strict criterion
     const genOpts = { genre };
-    const initialCount = mode === "trending" ? 20 : 15;
-    const batch1 = await generate(apiKey, profileLines, mode, exclude, initialCount, genOpts);
-    const fresh1 = batch1.filter(b => !seen.has(b.title.toLowerCase()));
-    fresh1.forEach(b => seen.add(b.title.toLowerCase()));
-    let validated = await validate(apiKey, fresh1, mode, profileLines);
+    const batch1 = await generate(apiKey, profileLines, mode, exclude, 10, genOpts);
+    let recommendations = batch1.filter(b => !seen.has(b.title.toLowerCase()));
+    recommendations.forEach(b => seen.add(b.title.toLowerCase()));
 
-    // Round 2: if <10, top up with 5 more, validate new ones only
-    if (validated.length < 10) {
-      const batch2 = await generate(apiKey, profileLines, mode, [...seen], 5, genOpts);
-      const fresh2 = batch2.filter(b => !seen.has(b.title.toLowerCase()));
-      fresh2.forEach(b => seen.add(b.title.toLowerCase()));
-      const validated2 = await validate(apiKey, fresh2, mode, profileLines);
-      validated = [...validated, ...validated2];
+    // Single top-up if parser dropped books or duplicates pruned us below 10
+    if (recommendations.length < 10) {
+      const needed = 10 - recommendations.length;
+      const batch2 = await generate(apiKey, profileLines, mode, [...seen], needed + 2, genOpts);
+      const fresh = batch2.filter(b => !seen.has(b.title.toLowerCase()));
+      recommendations = [...recommendations, ...fresh].slice(0, 10);
     }
 
-    // Round 3: if still <10, one final top-up of 5
-    if (validated.length < 10) {
-      const batch3 = await generate(apiKey, profileLines, mode, [...seen], 5, genOpts);
-      const fresh3 = batch3.filter(b => !seen.has(b.title.toLowerCase()));
-      fresh3.forEach(b => seen.add(b.title.toLowerCase()));
-      const validated3 = await validate(apiKey, fresh3, mode, profileLines);
-      validated = [...validated, ...validated3];
-    }
+    // Reserve: any extras from the top-up beyond 10
+    const reserve = recommendations.length > 10 ? recommendations.slice(10) : [];
+    const finalRecs = recommendations.slice(0, 10);
 
-    // Fallback: if still <10 after all rounds, fill gap without validation
-    if (validated.length < 10) {
-      const needed = 10 - validated.length;
-      const fallback = await generate(apiKey, profileLines, mode, [...seen], needed, genOpts);
-      const freshFallback = fallback.filter(b => !seen.has(b.title.toLowerCase()));
-      validated = [...validated, ...freshFallback].slice(0, 10);
-    }
-
-    // Serve first 10, cache remainder as reserve
-    const recommendations = validated.slice(0, 10);
-    const reserve = validated.slice(10);
-
-    res.json({ recommendations, reserve });
+    res.json({ recommendations: finalRecs, reserve });
   } catch (e) {
     res.status(500).json({ error: e.message || "Something went wrong." });
   }
