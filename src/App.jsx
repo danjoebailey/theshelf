@@ -62,6 +62,30 @@ function staticSearchBooks(query, mode = "All") {
   return results;
 }
 
+function buildReikoCandidates(seedBooks, ownedTitles, limit = 60) {
+  if (!_staticBooks) return [];
+  const excluded = new Set(ownedTitles.map(t => normBookKey(t)));
+  const seedGenres = new Set(seedBooks.map(b => b.genre).filter(Boolean));
+  const seedAuthors = new Set(seedBooks.map(b => b.author).filter(Boolean));
+  let pool = _staticBooks.filter(b => {
+    if (excluded.has(normBookKey(b.title))) return false;
+    if (b.altTitles && b.altTitles.some(alt => excluded.has(normBookKey(alt)))) return false;
+    // Prefer matching genre OR same author
+    if (seedGenres.size > 0 && !seedGenres.has(b.genre) && !seedAuthors.has(b.author)) return false;
+    return true;
+  });
+  // Sort by topRank, then tier, then random
+  pool.sort((a, b) => (a.topRank || 999) - (b.topRank || 999) || (a.tier || 99) - (b.tier || 99));
+  return pool.slice(0, limit).map(b => ({
+    title: b.title,
+    author: b.author,
+    genre: b.genre,
+    publishYear: b.publicationDate ? parseInt(b.publicationDate) : null,
+    pages: b.pageCount,
+    description: b.description,
+  }));
+}
+
 function buildRecommendationCandidates(mode, readTitles, excludeTitles, genre = null, limit = 60) {
   if (!_staticBooks) return [];
   const excluded = new Set([...readTitles, ...excludeTitles].map(t => normBookKey(t)));
@@ -3147,10 +3171,12 @@ function ReikoTab({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook }) {
     const seeds = books.filter(b => selected.includes(b.id));
     setLoading(true); setRecs(null); setRecCovers({}); setError(null); setPickerCollapsed(true);
     try {
+      const ownedTitles = books.filter(b => (b.shelf||"Read") === "Read").map(b => b.title);
+      const candidates = buildReikoCandidates(seeds, ownedTitles);
       const res = await fetch("/api/recommend-books", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ books: seeds.map(b => ({ title: b.title, author: b.author, genre: b.genre })), owned: books.filter(b => (b.shelf||"Read") === "Read").map(b => b.title) }),
+        body: JSON.stringify({ books: seeds.map(b => ({ title: b.title, author: b.author, genre: b.genre })), owned: ownedTitles, candidates }),
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
