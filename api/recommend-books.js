@@ -6,7 +6,7 @@ export default async function handler(req, res) {
 
   const { mode } = req.body || {};
 
-  // ── Author recommendations mode (unchanged — uses Sonnet) ────────────────
+  // ── Author recommendations mode ──────────────────────────────────────────
   if (mode === "authors") {
     const { authors, readAuthors } = req.body;
     if (!authors?.length) return res.status(400).json({ error: "Missing authors" });
@@ -42,25 +42,25 @@ export default async function handler(req, res) {
     }
   }
 
-  // ── Book recommendations mode (Haiku + catalog candidates) ───────────────
-  const { books, prompt, candidates } = req.body;
+  // ── Book recommendations mode (default) ──────────────────────────────────
+  const { books, prompt, owned } = req.body;
   if (!books || !Array.isArray(books) || books.length === 0)
     return res.status(400).json({ error: "Please select at least one book." });
-  if (!candidates || !Array.isArray(candidates) || candidates.length === 0)
-    return res.status(400).json({ error: "No candidates provided." });
 
-  const seedList = books.map(b => `- "${b.title}" by ${b.author} (${b.genre})`).join("\n");
+  const bookList = books.map(b => `- "${b.title}" by ${b.author} (${b.genre})`).join("\n");
   const moodLine = prompt ? `\nThe reader also says: "${prompt}"` : "";
-  const candidateList = candidates.map((b, i) => `${i + 1}. "${b.title}" by ${b.author} (${b.genre}${b.publishYear ? `, ${b.publishYear}` : ""})`).join("\n");
+  const excludeLine = owned && owned.length > 0
+    ? `\n\nThe reader has ALREADY READ the following books — do NOT recommend any of them under any circumstances:\n${owned.map(t => `- "${t}"`).join("\n")}`
+    : "";
 
-  const userMessage = `A reader has enjoyed these books:\n${seedList}${moodLine}\n\nFrom the candidate pool below, pick exactly 10 books this reader would most enjoy. For each pick, write a concise 1-2 sentence reason tied to the seed books.\n\nCandidate pool:\n${candidateList}\n\nRespond ONLY with a JSON object — no markdown, no explanation — in this exact format:\n{"recommendations":[{"title":"...","author":"...","genre":"...","publishYear":1954,"pages":320,"reason":"..."}]}\n\nUse the exact titles and authors from the candidate pool.`;
+  const userMessage = `Based on these books the reader has enjoyed:\n${bookList}${moodLine}${excludeLine}\n\nRecommend exactly 10 books they would love. For each, provide a concise reason (1–2 sentences) explaining why it fits their taste. Respond ONLY with a JSON object — no markdown, no explanation — in this exact format:\n{"recommendations":[{"title":"...","author":"...","genre":"...","publishYear":1954,"pages":320,"reason":"..."},...]}\n\nGenres must be one of: Fiction, Non-Fiction, Fantasy, Sci-Fi, Mystery, Thriller, Horror, Romance, Biography, History, Historical Fiction, Young Adult, Self-Help, Graphic Novel, Other.`;
 
   const response = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "Content-Type": "application/json", "x-api-key": apiKey, "anthropic-version": "2023-06-01" },
     body: JSON.stringify({
-      model: "claude-haiku-4-5-20251001",
-      max_tokens: 1800,
+      model: "claude-sonnet-4-6",
+      max_tokens: 2000,
       messages: [{ role: "user", content: userMessage }],
     }),
   });
@@ -70,27 +70,13 @@ export default async function handler(req, res) {
   const data = await response.json();
   const text = (data.content?.[0]?.text || "").trim();
 
-  let parsed;
-  try { parsed = JSON.parse(text); }
-  catch {
+  try {
+    return res.json(JSON.parse(text));
+  } catch {
     const match = text.match(/\{[\s\S]*\}/);
-    if (match) { try { parsed = JSON.parse(match[0]); } catch {} }
+    if (match) {
+      try { return res.json(JSON.parse(match[0])); } catch {}
+    }
+    res.status(500).json({ error: "Failed to parse recommendations." });
   }
-  if (!parsed?.recommendations) return res.status(500).json({ error: "Failed to parse recommendations." });
-
-  // Enrich picks with full metadata from candidate pool
-  const candidateMap = new Map(candidates.map(c => [c.title.toLowerCase(), c]));
-  const recommendations = parsed.recommendations.slice(0, 10).map(r => {
-    const src = candidateMap.get(r.title.toLowerCase()) || {};
-    return {
-      title: r.title,
-      author: r.author || src.author,
-      genre: r.genre || src.genre,
-      publishYear: r.publishYear || src.publishYear,
-      pages: r.pages || src.pages,
-      reason: r.reason,
-    };
-  });
-
-  res.json({ recommendations });
 }
