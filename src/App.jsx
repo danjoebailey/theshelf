@@ -5819,7 +5819,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
               <p style={{...lbl, textAlign:"center"}}>Shelf</p>
               <div style={{ display:"grid", gridTemplateColumns:"repeat(5,1fr)", gap:5 }}>
                 {SHELVES.map(s => (
-                  <button key={s} onClick={() => setShelf(s)} style={{ padding:"8px 4px", border:`1px solid ${shelf===s ? CR.text : CR.border}`, background:shelf===s ? CR.text : CR.panel, color:shelf===s ? CR.bg : CR.textDim, fontSize:12, fontFamily:"'DM Sans',sans-serif", borderRadius:4, cursor:"pointer", textAlign:"center", transition:"all 0.12s" }}>{s}</button>
+                  <button key={s} onClick={() => { if (s === "Read" && shelf === "Reading") setDate(new Date().toISOString().slice(0,10)); setShelf(s); }} style={{ padding:"8px 4px", border:`1px solid ${shelf===s ? CR.text : CR.border}`, background:shelf===s ? CR.text : CR.panel, color:shelf===s ? CR.bg : CR.textDim, fontSize:12, fontFamily:"'DM Sans',sans-serif", borderRadius:4, cursor:"pointer", textAlign:"center", transition:"all 0.12s" }}>{s}</button>
                 ))}
               </div>
             </div>
