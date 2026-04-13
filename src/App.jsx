@@ -244,7 +244,7 @@ function DecorativeShelf({ books }) {
             style={{ height:120, width:"auto", maxWidth:260, objectFit:"contain", objectPosition:"bottom left", transform:"translateY(30px)" }} />
         </div>
         <img src="/left-knight.png" alt="" style={{ height:72, width:"auto", flexShrink:0, objectFit:"contain", objectPosition:"bottom", filter:"drop-shadow(1px 3px 4px rgba(0,0,0,0.4))", alignSelf:"flex-end", marginRight:-16, transform:"scaleX(-1) translateY(4px)" }} />
-        <img src="/shelf-nav-books.png" alt="books" style={{ height:55, width:"auto", flexShrink:0, objectFit:"contain", objectPosition:"bottom", alignSelf:"flex-end", transform:"translateY(4px)" }} />
+        <img src="/shelf-nav-books.png" alt="books" style={{ height:58, width:"auto", flexShrink:0, objectFit:"contain", objectPosition:"bottom", alignSelf:"flex-end", transform:"translateY(4px)" }} />
         <img src="/knight.png" alt="knight" style={{ height:72, width:"auto", flexShrink:0, filter:"drop-shadow(2px 4px 6px rgba(0,0,0,0.5))", objectFit:"contain", alignSelf:"flex-end", transform:"translateY(4px)" }} />
       </div>
       <div style={{
