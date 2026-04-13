@@ -8,15 +8,24 @@ const MODE_GUIDANCE = {
 };
 
 function compressProfile(profile) {
-  const top = [...profile].sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 20);
+  const top = [...profile].filter(b => (b.rating || 0) >= 4).sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 15);
+  const dnf = profile.filter(b => b.shelf === "DNF").slice(0, 5);
+  const lowRated = profile.filter(b => b.rating && b.rating > 0 && b.rating <= 2).slice(0, 5);
   const genreCount = {};
   profile.forEach(b => { if (b.genre) genreCount[b.genre] = (genreCount[b.genre] || 0) + 1; });
   const genreSummary = Object.entries(genreCount).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([g, c]) => `${g} (${c})`).join(", ");
   const authorCount = {};
   profile.forEach(b => { if (b.author) authorCount[b.author] = (authorCount[b.author] || 0) + 1; });
   const topAuthors = Object.entries(authorCount).sort((a, b) => b[1] - a[1]).slice(0, 8).map(([a, c]) => `${a} (${c})`).join(", ");
-  const topList = top.map(b => `- "${b.title}" by ${b.author} (${b.genre})${b.rating ? `, ${b.rating}/5` : ""}`).join("\n");
-  return `Library size: ${profile.length} books\nGenre distribution: ${genreSummary}\nMost-read authors: ${topAuthors}\n\nTop-rated books:\n${topList}`;
+  const allLiked = new Set(); const allDisliked = new Set();
+  profile.forEach(b => { (b.likedAspects || []).forEach(a => allLiked.add(a)); (b.dislikedAspects || []).forEach(a => allDisliked.add(a)); });
+  const likedList = [...allLiked].slice(0, 10).join(", ");
+  const dislikedList = [...allDisliked].slice(0, 10).join(", ");
+  const topList = top.map(b => `- "${b.title}" by ${b.author} (${b.genre}), ${b.rating}/5`).join("\n");
+  const dnfList = dnf.length ? "\n\nDid not finish (avoid similar):\n" + dnf.map(b => `- "${b.title}" by ${b.author} (${b.genre})`).join("\n") : "";
+  const lowList = lowRated.length ? "\n\nLow-rated (avoid similar):\n" + lowRated.map(b => `- "${b.title}" by ${b.author} (${b.genre}), ${b.rating}/5`).join("\n") : "";
+  const aspects = (likedList || dislikedList) ? `\n\nLiked themes: ${likedList || "none yet"}\nDisliked themes: ${dislikedList || "none yet"}` : "";
+  return `Library size: ${profile.length} books\nGenre distribution: ${genreSummary}\nMost-read authors: ${topAuthors}${aspects}\n\nFavorites (4-5 stars):\n${topList}${dnfList}${lowList}`;
 }
 
 export default async function handler(req, res) {

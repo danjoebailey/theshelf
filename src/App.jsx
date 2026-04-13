@@ -2582,7 +2582,7 @@ function PaigeTab({ books, userId, onAddDirect, onEdit, onAddBook }) {
   const [hideOnShelf, setHideOnShelf] = useState(false);
 
   const readBooks = books.filter(b => (b.shelf || "Read") === "Read");
-  const profile = readBooks.map(b => ({ title: b.title, author: b.author, genre: b.genre, rating: b.rating || 0 }));
+  const profile = readBooks.map(b => ({ title: b.title, author: b.author, genre: b.genre, rating: b.rating || 0, shelf: b.shelf, likedAspects: b.likedAspects || [], dislikedAspects: b.dislikedAspects || [] }));
   const hasBooks = readBooks.length > 0;
   const currentRecs = recs[mode] || null;
   const currentCovers = covers[mode] || {};
