@@ -1,0 +1,1194 @@
+{
+  "54": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 6,
+      "warmth": 5,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 8,
+      "fabulism": 0,
+      "emotional_register": 2,
+      "interiority": 4,
+      "tone": 3,
+      "difficulty": 6
+    },
+    "tags": [
+      "narrative-nonfiction",
+      "military-history",
+      "ww1-era",
+      "deeply-researched",
+      "political-history",
+      "20th-century",
+      "diplomacy"
+    ]
+  },
+  "60": {
+    "vibes": {
+      "prose_craft": 4,
+      "prose_style": 5,
+      "warmth": 7,
+      "intensity": 5,
+      "pace": 6,
+      "moral_complexity": 6,
+      "fabulism": 9,
+      "emotional_register": 5,
+      "interiority": 5,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "epic-fantasy",
+      "hard-magic",
+      "magic-system-focused",
+      "multi-pov",
+      "doorstopper",
+      "secondary-world",
+      "chosen-one",
+      "prophecy",
+      "ensemble-cast",
+      "knight-protagonist",
+      "war-trauma",
+      "sword-and-sorcery",
+      "worldbuilding-heavy",
+      "nonlinear",
+      "high-fantasy"
+    ]
+  },
+  "64": {
+    "vibes": {
+      "prose_craft": 4,
+      "prose_style": 5,
+      "warmth": 7,
+      "intensity": 5,
+      "pace": 6,
+      "moral_complexity": 7,
+      "fabulism": 9,
+      "emotional_register": 5,
+      "interiority": 6,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "epic-fantasy",
+      "hard-magic",
+      "magic-system-focused",
+      "multi-pov",
+      "doorstopper",
+      "secondary-world",
+      "worldbuilding-heavy",
+      "war-trauma",
+      "mental-illness",
+      "found-family",
+      "sword-and-sorcery",
+      "ensemble-cast"
+    ]
+  },
+  "117": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 7,
+      "warmth": 6,
+      "intensity": 6,
+      "pace": 6,
+      "moral_complexity": 8,
+      "fabulism": 9,
+      "emotional_register": 4,
+      "interiority": 8,
+      "tone": 4,
+      "difficulty": 8
+    },
+    "tags": [
+      "space-opera",
+      "far-future",
+      "frame-story",
+      "multi-pov",
+      "philosophical-sf",
+      "ensemble-cast",
+      "quest",
+      "AI",
+      "time-travel",
+      "priest-protagonist",
+      "soldier-protagonist",
+      "scholar-protagonist",
+      "worldbuilding-heavy"
+    ]
+  },
+  "166": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 7,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 8,
+      "fabulism": 9,
+      "emotional_register": 4,
+      "interiority": 5,
+      "tone": 2,
+      "difficulty": 7
+    },
+    "tags": [
+      "space-opera",
+      "far-future",
+      "political-intrigue",
+      "ecological",
+      "desert-setting",
+      "worldbuilding-heavy",
+      "chosen-one",
+      "dynastic",
+      "aristocratic",
+      "philosophical-sf",
+      "multi-pov"
+    ]
+  },
+  "192": {
+    "vibes": {
+      "prose_craft": 10,
+      "prose_style": 9,
+      "warmth": 4,
+      "intensity": 6,
+      "pace": 3,
+      "moral_complexity": 9,
+      "fabulism": 10,
+      "emotional_register": 3,
+      "interiority": 8,
+      "tone": 2,
+      "difficulty": 10
+    },
+    "tags": [
+      "baroque-prose",
+      "first-person",
+      "unreliable-narrator",
+      "far-future",
+      "quest",
+      "morally-gray-protagonist",
+      "worldbuilding-heavy"
+    ]
+  },
+  "251": {
+    "vibes": {
+      "prose_craft": 5,
+      "prose_style": 4,
+      "warmth": 4,
+      "intensity": 3,
+      "pace": 6,
+      "moral_complexity": 6,
+      "fabulism": 9,
+      "emotional_register": 5,
+      "interiority": 4,
+      "tone": 4,
+      "difficulty": 5
+    },
+    "tags": [
+      "space-opera",
+      "far-future",
+      "hard-sf",
+      "political-sf",
+      "ensemble-cast",
+      "episodic",
+      "prophecy",
+      "scientist-protagonist"
+    ]
+  },
+  "273": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 7,
+      "warmth": 7,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 5,
+      "fabulism": 9,
+      "emotional_register": 5,
+      "interiority": 5,
+      "tone": 4,
+      "difficulty": 6
+    },
+    "tags": [
+      "epic-fantasy",
+      "high-fantasy",
+      "secondary-world",
+      "quest",
+      "chosen-one",
+      "ensemble-cast",
+      "multi-pov",
+      "mythic-fantasy",
+      "elves",
+      "dwarves",
+      "dragons",
+      "found-family",
+      "prophecy",
+      "ancient-evil",
+      "doorstopper"
+    ]
+  },
+  "310": {
+    "vibes": {
+      "prose_craft": 6,
+      "prose_style": 4,
+      "warmth": 4,
+      "intensity": 8,
+      "pace": 7,
+      "moral_complexity": 9,
+      "fabulism": 9,
+      "emotional_register": 2,
+      "interiority": 5,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "grimdark",
+      "epic-fantasy",
+      "multi-pov",
+      "morally-gray-protagonist",
+      "antihero",
+      "sword-and-sorcery",
+      "secondary-world",
+      "political-intrigue",
+      "war",
+      "ensemble-cast",
+      "violence"
+    ]
+  },
+  "319": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 8,
+      "intensity": 6,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 5,
+      "interiority": 6,
+      "tone": 6,
+      "difficulty": 4
+    },
+    "tags": [
+      "family-saga",
+      "writer-protagonist",
+      "motherhood",
+      "feminism",
+      "20th-century",
+      "contemporary-setting",
+      "bildungsroman",
+      "social-panorama",
+      "new-england-setting",
+      "absurdist"
+    ]
+  },
+  "326": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 2,
+      "warmth": 6,
+      "intensity": 3,
+      "pace": 2,
+      "moral_complexity": 7,
+      "fabulism": 0,
+      "emotional_register": 2,
+      "interiority": 9,
+      "tone": 2,
+      "difficulty": 4
+    },
+    "tags": [
+      "restrained-prose",
+      "close-third",
+      "academia",
+      "marriage",
+      "quiet-drama",
+      "midwestern-setting",
+      "melancholic",
+      "grief",
+      "regret",
+      "scholar-protagonist",
+      "linear",
+      "working-class",
+      "loss",
+      "male-protagonist",
+      "bildungsroman"
+    ]
+  },
+  "329": {
+    "vibes": {
+      "prose_craft": 6,
+      "prose_style": 4,
+      "warmth": 6,
+      "intensity": 5,
+      "pace": 6,
+      "moral_complexity": 7,
+      "fabulism": 0,
+      "emotional_register": 3,
+      "interiority": 6,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "narrative-nonfiction",
+      "biography",
+      "investigative-journalism",
+      "wilderness",
+      "road-trip",
+      "deeply-researched",
+      "reportage",
+      "outsider-protagonist",
+      "mortality",
+      "20th-century",
+      "alienation",
+      "male-protagonist"
+    ]
+  },
+  "355": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 2,
+      "warmth": 5,
+      "intensity": 5,
+      "pace": 6,
+      "moral_complexity": 9,
+      "fabulism": 6,
+      "emotional_register": 3,
+      "interiority": 6,
+      "tone": 6,
+      "difficulty": 5
+    },
+    "tags": [
+      "absurdist",
+      "time-travel",
+      "ww2-era",
+      "war-trauma",
+      "nonlinear",
+      "metafiction",
+      "aliens",
+      "soft-sf",
+      "satirical",
+      "fragmented-prose",
+      "genocide",
+      "male-protagonist",
+      "short-chapters",
+      "alienation",
+      "experimental-form"
+    ]
+  },
+  "438": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 8,
+      "warmth": 3,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 9,
+      "fabulism": 6,
+      "emotional_register": 2,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 6
+    },
+    "tags": [
+      "witty-prose",
+      "baroque-prose",
+      "gothic-atmosphere",
+      "19th-century",
+      "aristocratic",
+      "morally-gray-protagonist",
+      "philosophical",
+      "male-protagonist"
+    ]
+  },
+  "441": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 6,
+      "warmth": 6,
+      "intensity": 4,
+      "pace": 5,
+      "moral_complexity": 6,
+      "fabulism": 9,
+      "emotional_register": 5,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "frame-story",
+      "coming-of-age",
+      "first-person",
+      "lyrical-prose",
+      "musician-protagonist",
+      "orphan-protagonist",
+      "secondary-world",
+      "high-fantasy",
+      "romance-subplot",
+      "poverty",
+      "revenge-plot",
+      "doorstopper"
+    ]
+  },
+  "449": {
+    "vibes": {
+      "prose_craft": 6,
+      "prose_style": 4,
+      "warmth": 3,
+      "intensity": 5,
+      "pace": 6,
+      "moral_complexity": 9,
+      "fabulism": 7,
+      "emotional_register": 2,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 6
+    },
+    "tags": [
+      "near-future",
+      "post-apocalyptic",
+      "dystopian",
+      "AI",
+      "philosophical-sf",
+      "soft-sf",
+      "urban",
+      "male-protagonist",
+      "alienation",
+      "identity",
+      "bleak"
+    ]
+  },
+  "459": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 8,
+      "warmth": 4,
+      "intensity": 6,
+      "pace": 5,
+      "moral_complexity": 10,
+      "fabulism": 0,
+      "emotional_register": 2,
+      "interiority": 8,
+      "tone": 3,
+      "difficulty": 7
+    },
+    "tags": [
+      "dense-prose",
+      "first-person",
+      "nested-narrator",
+      "campus-novel",
+      "race",
+      "identity",
+      "shame",
+      "20th-century",
+      "Black-protagonist",
+      "scholar-protagonist",
+      "marriage",
+      "postmodern",
+      "social-panorama",
+      "betrayal"
+    ]
+  },
+  "478": {
+    "vibes": {
+      "prose_craft": 5,
+      "prose_style": 5,
+      "warmth": 6,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 6,
+      "fabulism": 9,
+      "emotional_register": 5,
+      "interiority": 5,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "epic-fantasy",
+      "high-fantasy",
+      "chosen-one",
+      "prophecy",
+      "multi-pov",
+      "ensemble-cast",
+      "quest",
+      "coming-of-age",
+      "secondary-world",
+      "doorstopper",
+      "mythic-fantasy",
+      "magic-system-focused",
+      "mentor-student",
+      "found-family"
+    ]
+  },
+  "507": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 7,
+      "warmth": 5,
+      "intensity": 7,
+      "pace": 5,
+      "moral_complexity": 9,
+      "fabulism": 10,
+      "emotional_register": 3,
+      "interiority": 6,
+      "tone": 3,
+      "difficulty": 8
+    },
+    "tags": [
+      "epic-fantasy",
+      "grimdark",
+      "multi-pov",
+      "worldbuilding-heavy",
+      "ensemble-cast",
+      "ancient-evil",
+      "gods-walking",
+      "war",
+      "morally-gray-protagonist",
+      "doorstopper",
+      "high-fantasy",
+      "secondary-world",
+      "mythic-fantasy"
+    ]
+  },
+  "511": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 4,
+      "warmth": 6,
+      "intensity": 3,
+      "pace": 4,
+      "moral_complexity": 7,
+      "fabulism": 9,
+      "emotional_register": 5,
+      "interiority": 9,
+      "tone": 5,
+      "difficulty": 6
+    },
+    "tags": [
+      "diary-form",
+      "first-person",
+      "portal-fantasy",
+      "lyrical-prose",
+      "dreamlike",
+      "solitude",
+      "memory",
+      "identity",
+      "unreliable-narrator",
+      "meditative",
+      "dark-fantasy"
+    ]
+  },
+  "512": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 6,
+      "pace": 5,
+      "moral_complexity": 8,
+      "fabulism": 0,
+      "emotional_register": 1,
+      "interiority": 10,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "first-person",
+      "autofiction",
+      "female-protagonist",
+      "mental-illness",
+      "suicide",
+      "20th-century",
+      "writer-protagonist",
+      "coming-of-age",
+      "feminism",
+      "alienation",
+      "bildungsroman"
+    ]
+  },
+  "550": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 6,
+      "warmth": 6,
+      "intensity": 3,
+      "pace": 3,
+      "moral_complexity": 9,
+      "fabulism": 9,
+      "emotional_register": 4,
+      "interiority": 8,
+      "tone": 3,
+      "difficulty": 7
+    },
+    "tags": [
+      "soft-sf",
+      "philosophical-sf",
+      "dual-timeline",
+      "scholar-protagonist",
+      "alienation",
+      "family",
+      "colony-world"
+    ]
+  },
+  "574": {
+    "vibes": {
+      "prose_craft": 10,
+      "prose_style": 10,
+      "warmth": 3,
+      "intensity": 6,
+      "pace": 2,
+      "moral_complexity": 9,
+      "fabulism": 3,
+      "emotional_register": 1,
+      "interiority": 10,
+      "tone": 1,
+      "difficulty": 10
+    },
+    "tags": [
+      "stream-of-consciousness",
+      "experimental-form",
+      "nonlinear",
+      "multi-pov",
+      "modernist",
+      "southern-gothic",
+      "family-saga",
+      "fragmented-prose",
+      "sibling-bond",
+      "race",
+      "20th-century",
+      "mental-illness",
+      "grief",
+      "intimate",
+      "doorstopper"
+    ]
+  },
+  "624": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 8,
+      "intensity": 3,
+      "pace": 6,
+      "moral_complexity": 5,
+      "fabulism": 10,
+      "emotional_register": 8,
+      "interiority": 4,
+      "tone": 9,
+      "difficulty": 3
+    },
+    "tags": [
+      "comic-fantasy",
+      "secondary-world",
+      "satirical",
+      "witty-prose",
+      "absurdist",
+      "parody",
+      "ensemble-cast",
+      "wizard-protagonist",
+      "soft-magic",
+      "quest",
+      "metafiction"
+    ]
+  },
+  "690": {
+    "vibes": {
+      "prose_craft": 4,
+      "prose_style": 4,
+      "warmth": 8,
+      "intensity": 5,
+      "pace": 7,
+      "moral_complexity": 5,
+      "fabulism": 9,
+      "emotional_register": 6,
+      "interiority": 6,
+      "tone": 5,
+      "difficulty": 3
+    },
+    "tags": [
+      "romantasy",
+      "faerie-courts",
+      "enemies-to-lovers",
+      "female-protagonist",
+      "first-person",
+      "high-fantasy",
+      "romance-subplot",
+      "slow-burn",
+      "forbidden-love",
+      "steamy"
+    ]
+  },
+  "750": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 9,
+      "intensity": 2,
+      "pace": 3,
+      "moral_complexity": 5,
+      "fabulism": 2,
+      "emotional_register": 8,
+      "interiority": 5,
+      "tone": 7,
+      "difficulty": 5
+    },
+    "tags": [
+      "historical-fiction",
+      "witty-prose",
+      "father-daughter",
+      "quiet-drama",
+      "melancholic",
+      "hopeful",
+      "20th-century",
+      "aristocratic",
+      "meditative"
+    ]
+  },
+  "844": {
+    "vibes": {
+      "prose_craft": 5,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 8,
+      "pace": 9,
+      "moral_complexity": 6,
+      "fabulism": 9,
+      "emotional_register": 3,
+      "interiority": 5,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "far-future",
+      "space-opera",
+      "dystopian",
+      "military-sf",
+      "first-person",
+      "male-protagonist",
+      "revenge-plot",
+      "oppression",
+      "grimdark"
+    ]
+  },
+  "865": {
+    "vibes": {
+      "prose_craft": 5,
+      "prose_style": 3,
+      "warmth": 7,
+      "intensity": 5,
+      "pace": 6,
+      "moral_complexity": 6,
+      "fabulism": 9,
+      "emotional_register": 5,
+      "interiority": 4,
+      "tone": 5,
+      "difficulty": 3
+    },
+    "tags": [
+      "low-fantasy",
+      "historical-fantasy",
+      "secondary-world",
+      "knight-protagonist",
+      "mentor-student",
+      "novella-length",
+      "coming-of-age",
+      "linear",
+      "medieval-setting",
+      "sword-and-sorcery",
+      "male-protagonist",
+      "friendship",
+      "quest",
+      "episodic"
+    ]
+  },
+  "1171": {
+    "vibes": {
+      "prose_craft": 6,
+      "prose_style": 4,
+      "warmth": 1,
+      "intensity": 9,
+      "pace": 4,
+      "moral_complexity": 10,
+      "fabulism": 3,
+      "emotional_register": 1,
+      "interiority": 8,
+      "tone": 3,
+      "difficulty": 7
+    },
+    "tags": [
+      "first-person",
+      "unreliable-narrator",
+      "satirical",
+      "postmodern",
+      "urban",
+      "graphic-violence",
+      "capitalism",
+      "alienation",
+      "antihero",
+      "male-protagonist",
+      "social-panorama"
+    ]
+  },
+  "1174": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 2,
+      "warmth": 5,
+      "intensity": 7,
+      "pace": 6,
+      "moral_complexity": 7,
+      "fabulism": 0,
+      "emotional_register": 3,
+      "interiority": 6,
+      "tone": 5,
+      "difficulty": 2
+    },
+    "tags": [
+      "first-person",
+      "autofiction",
+      "plain-prose",
+      "working-class",
+      "urban",
+      "addiction",
+      "male-protagonist",
+      "episodic",
+      "vignettes",
+      "writer-protagonist"
+    ]
+  },
+  "1255": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 4,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 7,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 5,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "hardboiled",
+      "noir",
+      "private-eye",
+      "first-person",
+      "urban",
+      "witty-prose",
+      "interwar-setting",
+      "cat-and-mouse",
+      "femme-fatale",
+      "series-detective",
+      "male-protagonist",
+      "corrupt-cop",
+      "conspiracy"
+    ]
+  },
+  "1321": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 6,
+      "warmth": 2,
+      "intensity": 7,
+      "pace": 5,
+      "moral_complexity": 9,
+      "fabulism": 0,
+      "emotional_register": 1,
+      "interiority": 8,
+      "tone": 2,
+      "difficulty": 7
+    },
+    "tags": [
+      "first-person",
+      "picaresque",
+      "conversational-prose",
+      "ww1-era",
+      "colonialism",
+      "war-trauma",
+      "alienation",
+      "autofiction",
+      "translated-from",
+      "urban",
+      "poverty",
+      "male-protagonist",
+      "episodic",
+      "bleak",
+      "morally-gray-protagonist"
+    ]
+  },
+  "1326": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 8,
+      "warmth": 6,
+      "intensity": 7,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 5,
+      "interiority": 8,
+      "tone": 5,
+      "difficulty": 7
+    },
+    "tags": [
+      "baroque-prose",
+      "first-person",
+      "autofiction",
+      "picaresque",
+      "stream-of-consciousness",
+      "urban",
+      "interwar-setting",
+      "poverty",
+      "writer-protagonist",
+      "sexuality",
+      "friendship",
+      "alienation",
+      "male-protagonist",
+      "20th-century",
+      "vignettes"
+    ]
+  },
+  "1410": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 4,
+      "warmth": 9,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 6,
+      "fabulism": 0,
+      "emotional_register": 6,
+      "interiority": 6,
+      "tone": 6,
+      "difficulty": 3
+    },
+    "tags": [
+      "first-person",
+      "coming-of-age",
+      "small-town",
+      "father-son",
+      "working-class",
+      "linear",
+      "regional-literature",
+      "quiet-drama",
+      "family",
+      "20th-century",
+      "male-protagonist",
+      "child-protagonist",
+      "bildungsroman",
+      "witty-prose",
+      "contemporary-setting"
+    ]
+  },
+  "1998": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 5,
+      "warmth": 6,
+      "intensity": 6,
+      "pace": 6,
+      "moral_complexity": 9,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "historical-fiction",
+      "first-person",
+      "Black-protagonist",
+      "slavery",
+      "identity",
+      "19th-century",
+      "coming-of-age",
+      "satirical"
+    ]
+  },
+  "2217": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 9,
+      "warmth": 1,
+      "intensity": 9,
+      "pace": 6,
+      "moral_complexity": 10,
+      "fabulism": 5,
+      "emotional_register": 1,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 8
+    },
+    "tags": [
+      "first-person",
+      "dystopian",
+      "near-future",
+      "violence",
+      "philosophical",
+      "morally-gray-protagonist",
+      "satirical",
+      "experimental-form"
+    ]
+  },
+  "2609": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 5,
+      "warmth": 2,
+      "intensity": 6,
+      "pace": 5,
+      "moral_complexity": 8,
+      "fabulism": 2,
+      "emotional_register": 1,
+      "interiority": 10,
+      "tone": 2,
+      "difficulty": 6
+    },
+    "tags": [
+      "first-person",
+      "stream-of-consciousness",
+      "urban",
+      "poverty",
+      "writer-protagonist",
+      "alienation",
+      "mental-illness",
+      "translated-from",
+      "19th-century",
+      "male-protagonist"
+    ]
+  },
+  "2684": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 7,
+      "warmth": 5,
+      "intensity": 4,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 0,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 9,
+      "difficulty": 6
+    },
+    "tags": [
+      "comic-novel",
+      "picaresque",
+      "satirical",
+      "episodic",
+      "antihero",
+      "baroque-prose",
+      "20th-century",
+      "southern-gothic",
+      "regional-literature",
+      "absurdist",
+      "social-panorama"
+    ]
+  },
+  "3365": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 5,
+      "warmth": 7,
+      "intensity": 5,
+      "pace": 3,
+      "moral_complexity": 8,
+      "fabulism": 0,
+      "emotional_register": 3,
+      "interiority": 10,
+      "tone": 3,
+      "difficulty": 6
+    },
+    "tags": [
+      "autofiction",
+      "first-person",
+      "stream-of-consciousness",
+      "family-saga",
+      "father-son",
+      "grief",
+      "memory",
+      "translated-from",
+      "contemporary-setting",
+      "writer-protagonist"
+    ]
+  },
+  "3407": {
+    "vibes": {
+      "prose_craft": 6,
+      "prose_style": 4,
+      "warmth": 6,
+      "intensity": 3,
+      "pace": 5,
+      "moral_complexity": 6,
+      "fabulism": 9,
+      "emotional_register": 5,
+      "interiority": 4,
+      "tone": 6,
+      "difficulty": 3
+    },
+    "tags": [
+      "space-opera",
+      "episodic",
+      "far-future",
+      "soft-sf",
+      "ecological",
+      "morally-gray-protagonist",
+      "aliens",
+      "witty-prose",
+      "male-protagonist"
+    ]
+  },
+  "3739": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 3,
+      "warmth": 4,
+      "intensity": 8,
+      "pace": 5,
+      "moral_complexity": 8,
+      "fabulism": 0,
+      "emotional_register": 2,
+      "interiority": 5,
+      "tone": 2,
+      "difficulty": 4
+    },
+    "tags": [
+      "southern-gothic",
+      "working-class",
+      "rural-poor",
+      "violence",
+      "addiction",
+      "male-protagonist",
+      "father-son",
+      "mentor-student",
+      "social-realism",
+      "bleak",
+      "regional-literature"
+    ]
+  },
+  "5972": {
+    "vibes": {
+      "prose_craft": 10,
+      "prose_style": 8,
+      "warmth": 3,
+      "intensity": 7,
+      "pace": 4,
+      "moral_complexity": 9,
+      "fabulism": 9,
+      "emotional_register": 2,
+      "interiority": 10,
+      "tone": 3,
+      "difficulty": 7
+    },
+    "tags": [
+      "first-person",
+      "mythology-retelling",
+      "lyrical-prose",
+      "dark-fantasy",
+      "novella-length",
+      "medieval-setting",
+      "antihero",
+      "alienation",
+      "loneliness",
+      "philosophical-sf",
+      "outsider-protagonist",
+      "bleak"
+    ]
+  }
+}
