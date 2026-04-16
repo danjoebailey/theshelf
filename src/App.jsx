@@ -1,6 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { supabase } from "./supabase.js";
 import { track } from "@vercel/analytics";
+import { generatePaigeRecs } from "./lib/paige-client.js";
 
 const GENRES = ["Fiction","Non-Fiction","Fantasy","Sci-Fi","Mystery","Thriller","Horror","Romance","Biography","History","Historical Fiction","Young Adult","Self-Help","Graphic Novel","Other"];
 const GENRE_COLORS = {
@@ -2571,19 +2572,13 @@ function PaigeTab({ books, userId, onAddDirect, onEdit, onAddBook }) {
   }
 
   async function generate() {
-    if (!profile.length) return;
+    if (!readBooks.length) return;
     setLoading(true); setError(null);
     setRecs(prev => ({ ...prev, [mode]: null }));
     setReserve(prev => ({ ...prev, [mode]: [] }));
     setCovers(prev => ({ ...prev, [mode]: {} }));
     try {
-      const res = await fetch("/api/paige-recommendations", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ profile, mode, exclude: [], genre: filterGenre || undefined }),
-      });
-      const data = await res.json();
-      if (data.error) throw new Error(data.error);
+      const data = await generatePaigeRecs(books, mode, [], filterGenre || null);
       const readKeys = new Set(readBooks.map(b => normBookKey(b.title)));
       const results = (data.recommendations || []).filter(r => !readKeys.has(normBookKey(r.title)));
       const res2 = (data.reserve || []).filter(r => !readKeys.has(normBookKey(r.title)));
@@ -2618,13 +2613,7 @@ function PaigeTab({ books, userId, onAddDirect, onEdit, onAddBook }) {
     // Reserve exhausted — generate fresh
     const exclude = existing.map(r => r.title);
     try {
-      const res = await fetch("/api/paige-recommendations", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ profile, mode, exclude, genre: filterGenre || undefined }),
-      });
-      const data = await res.json();
-      if (data.error) throw new Error(data.error);
+      const data = await generatePaigeRecs(books, mode, exclude, filterGenre || null);
       const readKeys = new Set(readBooks.map(b => normBookKey(b.title)));
       const seenKeys = new Set(exclude.map(normBookKey));
       const newResults = (data.recommendations || []).filter(r => !readKeys.has(normBookKey(r.title)) && !seenKeys.has(normBookKey(r.title)));
