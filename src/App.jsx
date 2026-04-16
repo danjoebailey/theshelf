@@ -2325,6 +2325,7 @@ function BookCoverThumb({ book: b }) {
 }
 
 function RecCard({ rec, coverUrl, ownedBook, onAddDirect, onEdit, onAddBook, index, userId, libraryProfile }) {
+  const [expanded, setExpanded] = useState(false);
   const [dropOpen, setDropOpen] = useState(false);
   const [prose, setProse] = useState(null);
   const [proseLoading, setProseLoading] = useState(false);
@@ -2410,124 +2411,136 @@ function RecCard({ rec, coverUrl, ownedBook, onAddDirect, onEdit, onAddBook, ind
   }
 
   return (
-    <div onClick={() => setDropOpen(false)} style={{
-      background: WOOD.card, backdropFilter: "blur(6px)", borderRadius: 12, padding: "14px 16px",
+    <div onClick={() => { setDropOpen(false); }} style={{
+      background: WOOD.card, backdropFilter: "blur(6px)", borderRadius: 12,
       borderTop: "6px solid #8a5a28", borderLeft: "6px solid #8a5a28", borderBottom: "6px solid #8a5a28", borderRight: "none",
       boxShadow: "0 2px 8px rgba(0,0,0,0.15)", animation: `fadeUp 0.25s ease ${index * 0.06}s both`, position: "relative",
     }}>
-      <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-        <div style={{ height: 72, width: 48, borderRadius: 4, flexShrink: 0, position: "relative", background: GENRE_COLORS[rec.genre] || GENRE_COLORS["Other"], boxShadow: "1px 1px 6px rgba(0,0,0,0.2)" }}>
-          {coverUrl && <img src={coverUrl} alt={rec.title} style={{ position:"absolute", inset:0, height:72, width:48, objectFit:"cover", borderRadius:4, boxShadow:"1px 1px 6px rgba(0,0,0,0.3)" }} onError={e => { e.target.style.display = "none"; }} />}
-        </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", marginBottom:3 }}>
-            <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 17, color: WOOD.text, lineHeight: 1.2, flex:1, paddingRight:6 }}>{rec.title}</p>
-            <button {...tc(()=>{ ownedBook && onEdit ? onEdit(ownedBook) : onAddBook && onAddBook({ title:rec.title, author:rec.author, genre:rec.genre, coverUrl, pages:rec.pages||0 }); }, true)} style={{ background:"transparent", border:"none", cursor:"pointer", padding:"2px 4px 0", color:"rgba(120,70,20,0.6)", fontSize:16, lineHeight:1, flexShrink:0 }}>↗</button>
+      {/* Main card area — tap to expand */}
+      <div {...tc(() => setExpanded(e => !e))} style={{ padding: "14px 16px", cursor: "pointer" }}>
+        <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+          <div style={{ height: 72, width: 48, borderRadius: 4, flexShrink: 0, position: "relative", background: GENRE_COLORS[rec.genre] || GENRE_COLORS["Other"], boxShadow: "1px 1px 6px rgba(0,0,0,0.2)" }}>
+            {coverUrl && <img src={coverUrl} alt={rec.title} style={{ position:"absolute", inset:0, height:72, width:48, objectFit:"cover", borderRadius:4, boxShadow:"1px 1px 6px rgba(0,0,0,0.3)" }} onError={e => { e.target.style.display = "none"; }} />}
           </div>
-          <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: WOOD.textDim, fontStyle: "italic", marginBottom: 3 }}>{rec.author}</p>
-          {rec.genre && <span style={{ background: GENRE_COLORS[rec.genre] || GENRE_COLORS["Other"], color: "#fff", borderRadius: 20, padding: "2px 8px", fontSize: 8, fontFamily: "'DM Sans',sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", display: "inline-block", marginBottom: 3 }}>{rec.genre}</span>}
-          {(rec.publishYear || rec.pages > 0) && (
-            <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, color: WOOD.textFaint, marginBottom: 6 }}>
-              {rec.publishYear ? `Published ${rec.publishYear}` : ""}
-              {rec.publishYear && rec.pages > 0 ? " · " : ""}
-              {rec.pages > 0 ? `${rec.pages.toLocaleString()} pages` : ""}
-            </p>
-          )}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", marginBottom:3 }}>
+              <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 17, color: WOOD.text, lineHeight: 1.2, flex:1, paddingRight:6 }}>{rec.title}</p>
+              <div style={{ display:"flex", alignItems:"center", gap:6, flexShrink:0 }}>
+                <div style={{ position:"relative" }} onClick={e => e.stopPropagation()} onTouchEnd={e => e.stopPropagation()}>
+                  <span {...tc(()=>setDropOpen(o=>!o))} style={{ background:dropMeta.bg, color:dropMeta.color, border:`1px solid ${dropMeta.border}`, borderRadius:20, padding:"3px 10px", fontSize:9, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", lineHeight:1, cursor:"pointer", display:"inline-block" }}>
+                    {dropLabel}
+                  </span>
+                  {dropOpen && (
+                    <div style={{ position:"absolute", bottom:"calc(100% + 4px)", right:0, zIndex:40, minWidth:120, background:"#f5e8d0", borderRadius:10, overflow:"hidden", boxShadow:"0 4px 20px rgba(0,0,0,0.25)", border:"1px solid rgba(138,90,40,0.3)", animation:"fadeIn 0.12s ease" }}>
+                      {SHELVES.map((s, si) => (
+                        <button key={s}
+                          {...tc(()=>{ setDropOpen(false); onAddDirect({ title:rec.title, author:rec.author, genre:rec.genre, coverUrl, pages:0 }, s); })}
+                          style={{ display:"block", width:"100%", padding:"9px 14px", textAlign:"left", background:ownedBook&&(ownedBook.shelf||"Read")===s?"rgba(138,90,40,0.1)":"transparent", border:"none", borderBottom:si<SHELVES.length-1?"1px solid rgba(138,90,40,0.1)":"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:13, color:ownedBook&&(ownedBook.shelf||"Read")===s?WOOD.amber:WOOD.text, fontWeight:ownedBook&&(ownedBook.shelf||"Read")===s?600:400 }}>
+                          {s}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <svg width="10" height="6" viewBox="0 0 10 6" fill="none" style={{ transition:"transform 0.2s", transform: expanded ? "rotate(180deg)" : "rotate(0deg)" }}>
+                  <path d="M1 1l4 4 4-4" stroke={WOOD.textDim} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+            </div>
+            <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: WOOD.textDim, fontStyle: "italic", marginBottom: 3 }}>{rec.author}</p>
+            <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+              {rec.genre && <span style={{ background: GENRE_COLORS[rec.genre] || GENRE_COLORS["Other"], color: "#fff", borderRadius: 20, padding: "2px 8px", fontSize: 8, fontFamily: "'DM Sans',sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", display: "inline-block" }}>{rec.genre}</span>}
+              {(rec.publishYear || rec.pages > 0) && (
+                <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, color: WOOD.textFaint }}>
+                  {rec.publishYear ? `${rec.publishYear}` : ""}
+                  {rec.publishYear && rec.pages > 0 ? " · " : ""}
+                  {rec.pages > 0 ? `${rec.pages.toLocaleString()}p` : ""}
+                </span>
+              )}
+            </div>
+          </div>
         </div>
+        {rec.reason && <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:WOOD.textDim, lineHeight:1.6, fontStyle:"italic", marginTop:8 }}>{rec.reason}</p>}
       </div>
-      {rec.reason && <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:WOOD.textDim, lineHeight:1.6, fontStyle:"italic", marginTop:8 }}>{rec.reason}</p>}
 
-      {/* Action row: About / Prose / Scores + shelf dropdown */}
-      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:10 }} onClick={e=>e.stopPropagation()}>
-        <div style={{ display:"flex", gap:6 }}>
-          <button {...tc(fetchDescription, true)} style={{ display:"flex", alignItems:"center", gap:5, background:showDescription?WOOD.amber:"rgba(138,90,40,0.12)", borderRadius:20, padding:"5px 12px", border:`1px solid ${showDescription?WOOD.amber:"rgba(138,90,40,0.25)"}`, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, color:showDescription?"#1a0900":WOOD.textDim }}>
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 6h16M4 12h16M4 18h12"/></svg>
-            About
-          </button>
-          <button {...tc(fetchProse, true)} style={{ display:"flex", alignItems:"center", gap:5, background:showProse?WOOD.amber:"rgba(138,90,40,0.12)", borderRadius:20, padding:"5px 12px", border:`1px solid ${showProse?WOOD.amber:"rgba(138,90,40,0.25)"}`, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, color:showProse?"#1a0900":WOOD.textDim }}>
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-            Prose
-          </button>
-          <button {...tc(fetchScores, true)} style={{ display:"flex", alignItems:"center", gap:5, background:showScores?WOOD.amber:"rgba(138,90,40,0.12)", borderRadius:20, padding:"5px 12px", border:`1px solid ${showScores?WOOD.amber:"rgba(138,90,40,0.25)"}`, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, color:showScores?"#1a0900":WOOD.textDim }}>
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
-            Scores
-          </button>
-          {userId && userId !== "guest" && (
-            <button {...tc(fetchObi, true)} style={{ display:"flex", alignItems:"center", gap:5, background:showObi?WOOD.amber:"rgba(138,90,40,0.12)", borderRadius:20, padding:"5px 12px", border:`1px solid ${showObi?WOOD.amber:"rgba(138,90,40,0.25)"}`, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, color:showObi?"#1a0900":WOOD.textDim }}>
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v.01"/><path d="M12 12a2 2 0 0 0-2-2 2 2 0 1 1 2-2"/></svg>
-              Ask Obi
+      {/* Expandable section */}
+      {expanded && (
+        <div style={{ padding:"0 16px 14px", borderTop:"1px solid rgba(138,90,40,0.2)" }} onClick={e => e.stopPropagation()} onTouchEnd={e => e.stopPropagation()}>
+          <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginTop:10, marginBottom: (showDescription||showProse||showScores||showObi) ? 10 : 4 }}>
+            <button {...tc(fetchDescription, true)} style={{ display:"flex", alignItems:"center", gap:5, background:showDescription?WOOD.amber:"rgba(138,90,40,0.12)", borderRadius:20, padding:"5px 12px", border:`1px solid ${showDescription?WOOD.amber:"rgba(138,90,40,0.25)"}`, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, color:showDescription?"#1a0900":WOOD.textDim }}>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 6h16M4 12h16M4 18h12"/></svg>
+              About
             </button>
-          )}
-        </div>
-        <div style={{ position:"relative" }}>
-          <span {...tc(()=>setDropOpen(o=>!o))} style={{ background:dropMeta.bg, color:dropMeta.color, border:`1px solid ${dropMeta.border}`, borderRadius:20, padding:"3px 10px", fontSize:9, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", lineHeight:1, cursor:"pointer", display:"inline-block" }}>
-            {dropLabel}
-          </span>
-          {dropOpen && (
-            <div style={{ position:"absolute", bottom:"calc(100% + 4px)", right:0, zIndex:40, minWidth:120, background:"#f5e8d0", borderRadius:10, overflow:"hidden", boxShadow:"0 4px 20px rgba(0,0,0,0.25)", border:"1px solid rgba(138,90,40,0.3)", animation:"fadeIn 0.12s ease" }}>
-              {SHELVES.map((s, si) => (
-                <button key={s}
-                  {...tc(()=>{ setDropOpen(false); onAddDirect({ title:rec.title, author:rec.author, genre:rec.genre, coverUrl, pages:0 }, s); })}
-                  style={{ display:"block", width:"100%", padding:"9px 14px", textAlign:"left", background:ownedBook&&(ownedBook.shelf||"Read")===s?"rgba(138,90,40,0.1)":"transparent", border:"none", borderBottom:si<SHELVES.length-1?"1px solid rgba(138,90,40,0.1)":"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:13, color:ownedBook&&(ownedBook.shelf||"Read")===s?WOOD.amber:WOOD.text, fontWeight:ownedBook&&(ownedBook.shelf||"Read")===s?600:400 }}>
-                  {s}
-                </button>
-              ))}
+            <button {...tc(fetchProse, true)} style={{ display:"flex", alignItems:"center", gap:5, background:showProse?WOOD.amber:"rgba(138,90,40,0.12)", borderRadius:20, padding:"5px 12px", border:`1px solid ${showProse?WOOD.amber:"rgba(138,90,40,0.25)"}`, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, color:showProse?"#1a0900":WOOD.textDim }}>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+              Prose
+            </button>
+            <button {...tc(fetchScores, true)} style={{ display:"flex", alignItems:"center", gap:5, background:showScores?WOOD.amber:"rgba(138,90,40,0.12)", borderRadius:20, padding:"5px 12px", border:`1px solid ${showScores?WOOD.amber:"rgba(138,90,40,0.25)"}`, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, color:showScores?"#1a0900":WOOD.textDim }}>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+              Scores
+            </button>
+            {userId && userId !== "guest" && (
+              <button {...tc(fetchObi, true)} style={{ display:"flex", alignItems:"center", gap:5, background:showObi?WOOD.amber:"rgba(138,90,40,0.12)", borderRadius:20, padding:"5px 12px", border:`1px solid ${showObi?WOOD.amber:"rgba(138,90,40,0.25)"}`, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, color:showObi?"#1a0900":WOOD.textDim }}>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v.01"/><path d="M12 12a2 2 0 0 0-2-2 2 2 0 1 1 2-2"/></svg>
+                Ask Obi
+              </button>
+            )}
+            <button {...tc(()=>{ ownedBook && onEdit ? onEdit(ownedBook) : onAddBook && onAddBook({ title:rec.title, author:rec.author, genre:rec.genre, coverUrl, pages:rec.pages||0 }); }, true)} style={{ display:"flex", alignItems:"center", gap:5, background:"rgba(138,90,40,0.12)", borderRadius:20, padding:"5px 12px", border:"1px solid rgba(138,90,40,0.25)", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, color:WOOD.textDim }}>
+              ↗ Details
+            </button>
+          </div>
+          {showDescription && (
+            <div style={{ animation:"fadeIn 0.18s ease" }}>
+              {descriptionLoading
+                ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:WOOD.textFaint, fontStyle:"italic" }}>Loading…</p>
+                : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:WOOD.text, lineHeight:1.72 }}>{description}</p>}
             </div>
           )}
-        </div>
-      </div>
-
-      {/* Expanded panels */}
-      {showDescription && (
-        <div style={{ marginTop:10, animation:"fadeIn 0.18s ease" }} onClick={e=>e.stopPropagation()}>
-          {descriptionLoading
-            ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:WOOD.textFaint, fontStyle:"italic" }}>Loading…</p>
-            : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:WOOD.text, lineHeight:1.72 }}>{description}</p>}
-        </div>
-      )}
-      {showProse && (
-        <div style={{ marginTop:10, animation:"fadeIn 0.18s ease" }} onClick={e=>e.stopPropagation()}>
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
-            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:11, color:WOOD.amber, letterSpacing:"0.08em", textTransform:"uppercase" }}>Prose Preview · {rec.author}</p>
-            <button {...tc(()=>setShowProse(false), true)} style={{ background:"none", border:"none", cursor:"pointer", color:WOOD.textFaint, fontSize:15, lineHeight:1, padding:"0 2px" }}>✕</button>
-          </div>
-          {proseLoading
-            ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.textFaint, fontStyle:"italic" }}>Generating…</p>
-            : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, lineHeight:1.8 }}>{prose}</p>}
-        </div>
-      )}
-      {showScores && (
-        <div style={{ marginTop:10, animation:"fadeIn 0.18s ease" }} onClick={e=>e.stopPropagation()}>
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
-            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:11, color:WOOD.amber, letterSpacing:"0.08em", textTransform:"uppercase" }}>Scores · {rec.title}</p>
-            <button {...tc(()=>setShowScores(false), true)} style={{ background:"none", border:"none", cursor:"pointer", color:WOOD.textFaint, fontSize:15, lineHeight:1, padding:"0 2px" }}>✕</button>
-          </div>
-          {scoresLoading
-            ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:13, color:WOOD.textFaint, fontStyle:"italic" }}>Scoring…</p>
-            : scores ? (
-              <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
-                {[["Prose",scores.prose],["Plot",scores.plot],["Characters",scores.characters],["Pacing",scores.pacing],["World-building",scores.worldBuilding],["Dialogue",scores.dialogue],["Ending",scores.ending]].map(([label,val]) => val != null && (
-                  <div key={label} style={{ display:"flex", alignItems:"center", gap:8 }}>
-                    <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, color:WOOD.textDim, width:88, flexShrink:0 }}>{label}</span>
-                    <div style={{ flex:1, height:5, borderRadius:3, background:"rgba(138,90,40,0.15)", overflow:"hidden" }}>
-                      <div style={{ height:"100%", borderRadius:3, background:WOOD.amber, width:`${val*10}%`, transition:"width 0.4s ease" }} />
-                    </div>
-                    <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:700, color:WOOD.amber, width:18, textAlign:"right", flexShrink:0 }}>{val}</span>
-                  </div>
-                ))}
+          {showProse && (
+            <div style={{ animation:"fadeIn 0.18s ease" }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
+                <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:11, color:WOOD.amber, letterSpacing:"0.08em", textTransform:"uppercase" }}>Prose Preview · {rec.author}</p>
+                <button {...tc(()=>setShowProse(false), true)} style={{ background:"none", border:"none", cursor:"pointer", color:WOOD.textFaint, fontSize:15, lineHeight:1, padding:"0 2px" }}>✕</button>
               </div>
-            ) : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:13, color:WOOD.textFaint, fontStyle:"italic" }}>Unable to score.</p>}
-        </div>
-      )}
-      {showObi && (
-        <div style={{ marginTop:10, animation:"fadeIn 0.18s ease" }} onClick={e=>e.stopPropagation()}>
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
-            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:11, color:WOOD.amber, letterSpacing:"0.08em", textTransform:"uppercase" }}>Obi's Verdict · {rec.title}</p>
-            <button {...tc(()=>setShowObi(false), true)} style={{ background:"none", border:"none", cursor:"pointer", color:WOOD.textFaint, fontSize:15, lineHeight:1, padding:"0 2px" }}>✕</button>
-          </div>
-          {obiLoading
-            ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.textFaint, fontStyle:"italic" }}>Obi is thinking…</p>
-            : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, lineHeight:1.72 }}>{obiVerdict}</p>}
+              {proseLoading
+                ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.textFaint, fontStyle:"italic" }}>Generating…</p>
+                : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, lineHeight:1.8 }}>{prose}</p>}
+            </div>
+          )}
+          {showScores && (
+            <div style={{ animation:"fadeIn 0.18s ease" }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:10 }}>
+                <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:11, color:WOOD.amber, letterSpacing:"0.08em", textTransform:"uppercase" }}>Scores · {rec.title}</p>
+                <button {...tc(()=>setShowScores(false), true)} style={{ background:"none", border:"none", cursor:"pointer", color:WOOD.textFaint, fontSize:15, lineHeight:1, padding:"0 2px" }}>✕</button>
+              </div>
+              {scoresLoading
+                ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:13, color:WOOD.textFaint, fontStyle:"italic" }}>Scoring…</p>
+                : scores ? (
+                  <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                    {[["Prose",scores.prose],["Plot",scores.plot],["Characters",scores.characters],["Pacing",scores.pacing],["World-building",scores.worldBuilding],["Dialogue",scores.dialogue],["Ending",scores.ending]].map(([label,val]) => val != null && (
+                      <div key={label} style={{ display:"flex", alignItems:"center", gap:8 }}>
+                        <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, color:WOOD.textDim, width:88, flexShrink:0 }}>{label}</span>
+                        <div style={{ flex:1, height:5, borderRadius:3, background:"rgba(138,90,40,0.15)", overflow:"hidden" }}>
+                          <div style={{ height:"100%", borderRadius:3, background:WOOD.amber, width:`${val*10}%`, transition:"width 0.4s ease" }} />
+                        </div>
+                        <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:700, color:WOOD.amber, width:18, textAlign:"right", flexShrink:0 }}>{val}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:13, color:WOOD.textFaint, fontStyle:"italic" }}>Unable to score.</p>}
+            </div>
+          )}
+          {showObi && (
+            <div style={{ animation:"fadeIn 0.18s ease" }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
+                <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:11, color:WOOD.amber, letterSpacing:"0.08em", textTransform:"uppercase" }}>Obi's Verdict · {rec.title}</p>
+                <button {...tc(()=>setShowObi(false), true)} style={{ background:"none", border:"none", cursor:"pointer", color:WOOD.textFaint, fontSize:15, lineHeight:1, padding:"0 2px" }}>✕</button>
+              </div>
+              {obiLoading
+                ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.textFaint, fontStyle:"italic" }}>Obi is thinking…</p>
+                : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, lineHeight:1.72 }}>{obiVerdict}</p>}
+            </div>
+          )}
         </div>
       )}
     </div>
