@@ -2324,7 +2324,7 @@ function BookCoverThumb({ book: b }) {
   );
 }
 
-function RecCard({ rec, coverUrl, ownedBook, onAddDirect, onEdit, onAddBook, index }) {
+function RecCard({ rec, coverUrl, ownedBook, onAddDirect, onEdit, onAddBook, index, userId, libraryProfile }) {
   const [dropOpen, setDropOpen] = useState(false);
   const [prose, setProse] = useState(null);
   const [proseLoading, setProseLoading] = useState(false);
@@ -2335,6 +2335,9 @@ function RecCard({ rec, coverUrl, ownedBook, onAddDirect, onEdit, onAddBook, ind
   const [description, setDescription] = useState(null);
   const [descriptionLoading, setDescriptionLoading] = useState(false);
   const [showDescription, setShowDescription] = useState(false);
+  const [obiVerdict, setObiVerdict] = useState(null);
+  const [obiLoading, setObiLoading] = useState(false);
+  const [showObi, setShowObi] = useState(false);
 
   const SHELF_META = {
     "Read":     { bg:"rgba(60,120,80,0.55)",  color:"rgba(255,255,255,0.9)", border:"rgba(60,120,80,0.4)"  },
@@ -2348,7 +2351,7 @@ function RecCard({ rec, coverUrl, ownedBook, onAddDirect, onEdit, onAddBook, ind
 
   async function fetchDescription() {
     if (showDescription) { setShowDescription(false); return; }
-    setShowProse(false); setShowScores(false); setShowDescription(true);
+    setShowProse(false); setShowScores(false); setShowObi(false); setShowDescription(true);
     if (description) return;
     setDescriptionLoading(true);
     try {
@@ -2361,7 +2364,7 @@ function RecCard({ rec, coverUrl, ownedBook, onAddDirect, onEdit, onAddBook, ind
 
   async function fetchProse() {
     if (showProse) { setShowProse(false); return; }
-    setShowDescription(false); setShowScores(false); setShowProse(true);
+    setShowDescription(false); setShowScores(false); setShowObi(false); setShowProse(true);
     if (prose) return;
     setProseLoading(true);
     try {
@@ -2374,7 +2377,7 @@ function RecCard({ rec, coverUrl, ownedBook, onAddDirect, onEdit, onAddBook, ind
 
   async function fetchScores() {
     if (showScores) { setShowScores(false); return; }
-    setShowDescription(false); setShowProse(false); setShowScores(true);
+    setShowDescription(false); setShowProse(false); setShowObi(false); setShowScores(true);
     if (scores) { return; }
     setScoresLoading(true);
     try {
@@ -2383,6 +2386,27 @@ function RecCard({ rec, coverUrl, ownedBook, onAddDirect, onEdit, onAddBook, ind
       setScores(data.error ? null : data);
     } catch { setScores(null); }
     setScoresLoading(false);
+  }
+
+  async function fetchObi() {
+    if (showObi) { setShowObi(false); return; }
+    setShowDescription(false); setShowProse(false); setShowScores(false); setShowObi(true);
+    if (obiVerdict) return;
+    setObiLoading(true);
+    try {
+      const res = await fetch("/api/ask-obi", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          book: { title: rec.title, author: rec.author, genre: rec.genre },
+          profile: libraryProfile,
+          userId,
+        }),
+      });
+      const data = await res.json();
+      setObiVerdict(data.verdict || "Unable to get a read on this one.");
+    } catch { setObiVerdict("Unable to get a read on this one."); }
+    setObiLoading(false);
   }
 
   return (
@@ -2428,6 +2452,12 @@ function RecCard({ rec, coverUrl, ownedBook, onAddDirect, onEdit, onAddBook, ind
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
             Scores
           </button>
+          {userId && userId !== "guest" && (
+            <button {...tc(fetchObi, true)} style={{ display:"flex", alignItems:"center", gap:5, background:showObi?WOOD.amber:"rgba(138,90,40,0.12)", borderRadius:20, padding:"5px 12px", border:`1px solid ${showObi?WOOD.amber:"rgba(138,90,40,0.25)"}`, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, color:showObi?"#1a0900":WOOD.textDim }}>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v.01"/><path d="M12 12a2 2 0 0 0-2-2 2 2 0 1 1 2-2"/></svg>
+              Ask Obi
+            </button>
+          )}
         </div>
         <div style={{ position:"relative" }}>
           <span {...tc(()=>setDropOpen(o=>!o))} style={{ background:dropMeta.bg, color:dropMeta.color, border:`1px solid ${dropMeta.border}`, borderRadius:20, padding:"3px 10px", fontSize:9, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", lineHeight:1, cursor:"pointer", display:"inline-block" }}>
@@ -2487,6 +2517,17 @@ function RecCard({ rec, coverUrl, ownedBook, onAddDirect, onEdit, onAddBook, ind
                 ))}
               </div>
             ) : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:13, color:WOOD.textFaint, fontStyle:"italic" }}>Unable to score.</p>}
+        </div>
+      )}
+      {showObi && (
+        <div style={{ marginTop:10, animation:"fadeIn 0.18s ease" }} onClick={e=>e.stopPropagation()}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8 }}>
+            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:11, color:WOOD.amber, letterSpacing:"0.08em", textTransform:"uppercase" }}>Obi's Verdict · {rec.title}</p>
+            <button {...tc(()=>setShowObi(false), true)} style={{ background:"none", border:"none", cursor:"pointer", color:WOOD.textFaint, fontSize:15, lineHeight:1, padding:"0 2px" }}>✕</button>
+          </div>
+          {obiLoading
+            ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.textFaint, fontStyle:"italic" }}>Obi is thinking…</p>
+            : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, lineHeight:1.72 }}>{obiVerdict}</p>}
         </div>
       )}
     </div>
@@ -2726,7 +2767,7 @@ function PaigeTab({ books, userId, onAddDirect, onEdit, onAddBook }) {
               <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:10, fontWeight:700, color:"rgba(255,255,255,0.6)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:12 }}>Recommended for you · {filtered.length}</p>
               <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
                 {filtered.map((rec, i) => (
-                  <RecCard key={i} index={i} rec={rec} coverUrl={currentCovers[rec.title] || null} ownedBook={books.find(b => normBookKey(b.title) === normBookKey(rec.title))} onAddDirect={onAddDirect} onEdit={onEdit} onAddBook={onAddBook} />
+                  <RecCard key={i} index={i} rec={rec} coverUrl={currentCovers[rec.title] || null} ownedBook={books.find(b => normBookKey(b.title) === normBookKey(rec.title))} onAddDirect={onAddDirect} onEdit={onEdit} onAddBook={onAddBook} userId={userId} libraryProfile={profile} />
                 ))}
               </div>
               {/* Next 10 */}
