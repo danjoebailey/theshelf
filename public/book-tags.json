@@ -265,6 +265,132 @@
       "siege"
     ]
   },
+  "82": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 7,
+      "warmth": 6,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 5,
+      "tone": 5,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "british-setting",
+      "victorian-setting",
+      "male-protagonist",
+      "coming-of-age",
+      "class",
+      "orphan-protagonist",
+      "first-person",
+      "bildungsroman"
+    ]
+  },
+  "83": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 7,
+      "warmth": 6,
+      "intensity": 7,
+      "pace": 6,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 5,
+      "tone": 5,
+      "difficulty": 5
+    },
+    "tags": [
+      "historical-fiction",
+      "french-setting",
+      "london-setting",
+      "revolution",
+      "dual-timeline",
+      "sacrifice",
+      "violence",
+      "ensemble-cast"
+    ]
+  },
+  "84": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 7,
+      "warmth": 6,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 5,
+      "tone": 5,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "british-setting",
+      "victorian-setting",
+      "social-panorama",
+      "class",
+      "ensemble-cast"
+    ]
+  },
+  "85": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 7,
+      "warmth": 6,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 5,
+      "tone": 5,
+      "difficulty": 7
+    },
+    "tags": [
+      "literary-fiction",
+      "british-setting",
+      "victorian-setting",
+      "ensemble-cast",
+      "legal-system",
+      "doorstopper",
+      "social-panorama",
+      "class",
+      "mystery"
+    ]
+  },
+  "86": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 7,
+      "warmth": 6,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 5,
+      "tone": 5,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "british-setting",
+      "victorian-setting",
+      "male-protagonist",
+      "child-protagonist",
+      "orphan-protagonist",
+      "coming-of-age",
+      "poverty",
+      "london-setting"
+    ]
+  },
   "97": {
     "vibes": {
       "prose_craft": 7,
@@ -425,6 +551,186 @@
       "worldbuilding-heavy"
     ]
   },
+  "132": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 3,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 8,
+      "fabulism": 2,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 6
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "academia",
+      "campus-novel",
+      "suburban",
+      "toxic-event",
+      "family",
+      "death",
+      "satirical",
+      "american-setting"
+    ]
+  },
+  "133": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 3,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 8,
+      "fabulism": 2,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 8
+    },
+    "tags": [
+      "literary-fiction",
+      "multi-pov",
+      "american-setting",
+      "cold-war-era",
+      "doorstopper",
+      "dense-prose",
+      "baseball",
+      "nuclear",
+      "ensemble-cast",
+      "nonlinear",
+      "maximalism"
+    ]
+  },
+  "134": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 3,
+      "intensity": 4,
+      "pace": 5,
+      "moral_complexity": 8,
+      "fabulism": 2,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 6
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "american-setting",
+      "conspiracy",
+      "JFK-assassination",
+      "paranoia",
+      "dense-prose"
+    ]
+  },
+  "146": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 4,
+      "warmth": 7,
+      "intensity": 3,
+      "pace": 3,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 3
+    },
+    "tags": [
+      "literary-fiction",
+      "new-england-setting",
+      "female-protagonist",
+      "vignettes",
+      "ensemble-cast",
+      "marriage",
+      "aging",
+      "small-town",
+      "restrained-prose",
+      "quiet-drama"
+    ]
+  },
+  "147": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 4,
+      "warmth": 7,
+      "intensity": 3,
+      "pace": 3,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 3
+    },
+    "tags": [
+      "literary-fiction",
+      "new-england-setting",
+      "female-protagonist",
+      "domestic",
+      "small-town",
+      "restrained-prose",
+      "quiet-drama"
+    ]
+  },
+  "148": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 4,
+      "warmth": 7,
+      "intensity": 3,
+      "pace": 3,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 3
+    },
+    "tags": [
+      "literary-fiction",
+      "new-england-setting",
+      "female-protagonist",
+      "domestic",
+      "small-town",
+      "restrained-prose",
+      "quiet-drama"
+    ]
+  },
+  "155": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 2,
+      "warmth": 5,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 5,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "ocean-setting",
+      "cuban-setting",
+      "fishing",
+      "endurance",
+      "sparse-prose",
+      "novella-length",
+      "aging"
+    ]
+  },
   "156": {
     "vibes": {
       "prose_craft": 9,
@@ -476,6 +782,55 @@
       "war",
       "sparse-prose",
       "loss"
+    ]
+  },
+  "158": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 2,
+      "warmth": 4,
+      "intensity": 7,
+      "pace": 5,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 5,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "spanish-setting",
+      "civil-war",
+      "war",
+      "romance-subplot",
+      "sparse-prose"
+    ]
+  },
+  "159": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 2,
+      "warmth": 6,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 6,
+      "fabulism": 0,
+      "emotional_register": 3,
+      "interiority": 5,
+      "tone": 5,
+      "difficulty": 4
+    },
+    "tags": [
+      "memoir",
+      "male-protagonist",
+      "parisian-setting",
+      "1920s-setting",
+      "writer-protagonist",
+      "lost-generation",
+      "sparse-prose",
+      "nostalgia"
     ]
   },
   "163": {
@@ -872,6 +1227,164 @@
       "italian-inspired"
     ]
   },
+  "233": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 8,
+      "warmth": 4,
+      "intensity": 3,
+      "pace": 2,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 9,
+      "tone": 3,
+      "difficulty": 7
+    },
+    "tags": [
+      "literary-fiction",
+      "female-protagonist",
+      "american-protagonist",
+      "european-setting",
+      "marriage",
+      "class",
+      "psychological",
+      "dense-prose",
+      "19th-century",
+      "doorstopper"
+    ]
+  },
+  "234": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 8,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 2,
+      "moral_complexity": 8,
+      "fabulism": 4,
+      "emotional_register": 3,
+      "interiority": 9,
+      "tone": 3,
+      "difficulty": 7
+    },
+    "tags": [
+      "supernatural-horror",
+      "british-setting",
+      "country-house",
+      "unreliable-narrator",
+      "child-protagonist",
+      "governess",
+      "ghosts",
+      "novella-length"
+    ]
+  },
+  "235": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 8,
+      "warmth": 4,
+      "intensity": 3,
+      "pace": 2,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 9,
+      "tone": 3,
+      "difficulty": 7
+    },
+    "tags": [
+      "literary-fiction",
+      "female-protagonist",
+      "london-setting",
+      "illness",
+      "mortality",
+      "class",
+      "marriage",
+      "dense-prose",
+      "19th-century"
+    ]
+  },
+  "236": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 8,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 3,
+      "moral_complexity": 8,
+      "fabulism": 2,
+      "emotional_register": 3,
+      "interiority": 6,
+      "tone": 3,
+      "difficulty": 8,
+      "craft": 10,
+      "style": 9
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "ocean-setting",
+      "obsession",
+      "first-person",
+      "whaling",
+      "quest",
+      "doorstopper",
+      "biblical-register",
+      "philosophical",
+      "dense-prose",
+      "maximalism"
+    ]
+  },
+  "237": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 8,
+      "warmth": 3,
+      "intensity": 5,
+      "pace": 3,
+      "moral_complexity": 8,
+      "fabulism": 2,
+      "emotional_register": 3,
+      "interiority": 6,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "new-york-setting",
+      "office-setting",
+      "alienation",
+      "novella-length",
+      "restrained-prose"
+    ]
+  },
+  "238": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 8,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 3,
+      "moral_complexity": 9,
+      "fabulism": 2,
+      "emotional_register": 3,
+      "interiority": 6,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "ocean-setting",
+      "naval-setting",
+      "moral-dilemma",
+      "innocence",
+      "violence",
+      "novella-length"
+    ]
+  },
   "240": {
     "vibes": {
       "prose_craft": 8,
@@ -924,6 +1437,82 @@
       "future-setting",
       "music",
       "meditative"
+    ]
+  },
+  "248": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 6,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 4,
+      "craft": 8
+    },
+    "tags": [
+      "literary-fiction",
+      "british-setting",
+      "female-protagonist",
+      "ww2-era",
+      "country-house",
+      "class",
+      "coming-of-age",
+      "guilt",
+      "dual-timeline",
+      "metafiction",
+      "doorstopper"
+    ]
+  },
+  "249": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "british-setting",
+      "domestic",
+      "moral-dilemma"
+    ]
+  },
+  "250": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "british-setting",
+      "dual-pov",
+      "1960s-setting",
+      "sexuality",
+      "marriage",
+      "class",
+      "novella-length",
+      "restrained-prose"
     ]
   },
   "251": {
@@ -1004,6 +1593,82 @@
       "depression-themes"
     ]
   },
+  "270": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 4,
+      "warmth": 3,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 9,
+      "fabulism": 2,
+      "emotional_register": 2,
+      "interiority": 8,
+      "tone": 2,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "south-african-setting",
+      "male-protagonist",
+      "academia",
+      "race",
+      "sexual-violence",
+      "post-apartheid",
+      "restrained-prose",
+      "moral-dilemma",
+      "aging"
+    ]
+  },
+  "271": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 4,
+      "warmth": 3,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 9,
+      "fabulism": 4,
+      "emotional_register": 2,
+      "interiority": 8,
+      "tone": 2,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "colonial-allegory",
+      "torture",
+      "oppression",
+      "restrained-prose",
+      "moral-dilemma",
+      "dystopian"
+    ]
+  },
+  "272": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 4,
+      "warmth": 3,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 9,
+      "fabulism": 3,
+      "emotional_register": 2,
+      "interiority": 8,
+      "tone": 2,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "south-african-setting",
+      "male-protagonist",
+      "survival",
+      "apartheid",
+      "restrained-prose",
+      "quest"
+    ]
+  },
   "273": {
     "vibes": {
       "prose_craft": 8,
@@ -1034,6 +1699,32 @@
       "prophecy",
       "ancient-evil",
       "doorstopper"
+    ]
+  },
+  "279": {
+    "vibes": {
+      "prose_craft": 6,
+      "prose_style": 5,
+      "warmth": 6,
+      "intensity": 4,
+      "pace": 5,
+      "moral_complexity": 5,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 5,
+      "difficulty": 4,
+      "craft": 7
+    },
+    "tags": [
+      "autofiction",
+      "male-protagonist",
+      "california-setting",
+      "beat-generation",
+      "zen",
+      "spiritual",
+      "mountain-setting",
+      "friendship"
     ]
   },
   "308": {
@@ -1140,6 +1831,112 @@
       "social-panorama",
       "new-england-setting",
       "absurdist"
+    ]
+  },
+  "320": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 6,
+      "warmth": 8,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 5,
+      "interiority": 6,
+      "tone": 5,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "new-england-setting",
+      "faith-and-doubt",
+      "family",
+      "coming-of-age",
+      "friendship",
+      "baseball",
+      "bildungsroman"
+    ]
+  },
+  "321": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 6,
+      "warmth": 7,
+      "intensity": 6,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 5,
+      "interiority": 6,
+      "tone": 5,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "new-england-setting",
+      "orphan-protagonist",
+      "doctor-protagonist",
+      "abortion",
+      "moral-dilemma",
+      "coming-of-age"
+    ]
+  },
+  "322": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 4,
+      "warmth": 6,
+      "intensity": 6,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 5,
+      "tone": 3,
+      "difficulty": 4,
+      "craft": 8
+    },
+    "tags": [
+      "literary-fiction",
+      "american-setting",
+      "ensemble-cast",
+      "depression-era",
+      "migration",
+      "working-class",
+      "family-saga",
+      "poverty",
+      "doorstopper",
+      "social-realism"
+    ]
+  },
+  "323": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 4,
+      "warmth": 7,
+      "intensity": 4,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 5,
+      "tone": 3,
+      "difficulty": 4,
+      "craft": 8
+    },
+    "tags": [
+      "literary-fiction",
+      "american-setting",
+      "california-setting",
+      "family-saga",
+      "multigenerational",
+      "moral-dilemma",
+      "biblical",
+      "doorstopper",
+      "farming"
     ]
   },
   "324": {
@@ -1387,6 +2184,131 @@
       "absurdist",
       "far-future",
       "philosophical-sf"
+    ]
+  },
+  "379": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 7,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 6,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "dystopian",
+      "female-protagonist",
+      "first-person",
+      "totalitarian",
+      "near-future",
+      "feminism",
+      "oppression",
+      "sexual-violence",
+      "diary-form"
+    ]
+  },
+  "380": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 7,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "dystopian",
+      "male-protagonist",
+      "near-future",
+      "post-apocalyptic",
+      "genetic-engineering",
+      "corporate",
+      "ecological"
+    ]
+  },
+  "381": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 3,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 4,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "canadian-setting",
+      "female-protagonist",
+      "nonlinear",
+      "family-saga",
+      "nested-narrator",
+      "memory",
+      "dual-timeline"
+    ]
+  },
+  "382": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 3,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "canadian-setting",
+      "female-protagonist",
+      "artist-protagonist",
+      "coming-of-age",
+      "memory",
+      "identity"
+    ]
+  },
+  "383": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 6,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 3,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "historical-fiction",
+      "canadian-setting",
+      "female-protagonist",
+      "19th-century",
+      "prison-setting",
+      "murder",
+      "dual-pov",
+      "mystery",
+      "feminism"
     ]
   },
   "388": {
@@ -1937,6 +2859,133 @@
       "contemporary-setting"
     ]
   },
+  "539": {
+    "vibes": {
+      "prose_craft": 10,
+      "prose_style": 8,
+      "warmth": 5,
+      "intensity": 6,
+      "pace": 3,
+      "moral_complexity": 9,
+      "fabulism": 4,
+      "emotional_register": 3,
+      "interiority": 8,
+      "tone": 2,
+      "difficulty": 7
+    },
+    "tags": [
+      "literary-fiction",
+      "Black-protagonist",
+      "male-protagonist",
+      "american-setting",
+      "family-saga",
+      "quest",
+      "identity",
+      "lyrical-prose",
+      "mythic-fantasy"
+    ]
+  },
+  "540": {
+    "vibes": {
+      "prose_craft": 10,
+      "prose_style": 8,
+      "warmth": 4,
+      "intensity": 6,
+      "pace": 3,
+      "moral_complexity": 9,
+      "fabulism": 4,
+      "emotional_register": 3,
+      "interiority": 8,
+      "tone": 2,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "Black-protagonist",
+      "female-protagonist",
+      "friendship",
+      "domestic",
+      "small-town",
+      "lyrical-prose",
+      "novella-length"
+    ]
+  },
+  "541": {
+    "vibes": {
+      "prose_craft": 10,
+      "prose_style": 8,
+      "warmth": 5,
+      "intensity": 7,
+      "pace": 3,
+      "moral_complexity": 9,
+      "fabulism": 4,
+      "emotional_register": 3,
+      "interiority": 8,
+      "tone": 2,
+      "difficulty": 7
+    },
+    "tags": [
+      "literary-fiction",
+      "Black-protagonist",
+      "female-protagonist",
+      "coming-of-age",
+      "race",
+      "beauty",
+      "domestic",
+      "lyrical-prose"
+    ]
+  },
+  "542": {
+    "vibes": {
+      "prose_craft": 10,
+      "prose_style": 8,
+      "warmth": 5,
+      "intensity": 6,
+      "pace": 3,
+      "moral_complexity": 9,
+      "fabulism": 5,
+      "emotional_register": 3,
+      "interiority": 8,
+      "tone": 2,
+      "difficulty": 7
+    },
+    "tags": [
+      "literary-fiction",
+      "Black-protagonist",
+      "multi-pov",
+      "harlem-setting",
+      "1920s-setting",
+      "jazz",
+      "sexuality",
+      "lyrical-prose"
+    ]
+  },
+  "543": {
+    "vibes": {
+      "prose_craft": 10,
+      "prose_style": 8,
+      "warmth": 5,
+      "intensity": 7,
+      "pace": 3,
+      "moral_complexity": 9,
+      "fabulism": 5,
+      "emotional_register": 3,
+      "interiority": 8,
+      "tone": 2,
+      "difficulty": 7
+    },
+    "tags": [
+      "literary-fiction",
+      "Black-protagonist",
+      "female-protagonist",
+      "utopian",
+      "multi-pov",
+      "race",
+      "community",
+      "violence",
+      "lyrical-prose"
+    ]
+  },
   "547": {
     "vibes": {
       "prose_craft": 8,
@@ -2098,6 +3147,84 @@
       "grief",
       "intimate",
       "doorstopper"
+    ]
+  },
+  "575": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 8,
+      "warmth": 4,
+      "intensity": 6,
+      "pace": 5,
+      "moral_complexity": 9,
+      "fabulism": 2,
+      "emotional_register": 2,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 8
+    },
+    "tags": [
+      "literary-fiction",
+      "southern-gothic",
+      "multi-pov",
+      "family",
+      "death",
+      "rural",
+      "stream-of-consciousness",
+      "grotesque",
+      "experimental-form"
+    ]
+  },
+  "576": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 8,
+      "warmth": 4,
+      "intensity": 6,
+      "pace": 3,
+      "moral_complexity": 9,
+      "fabulism": 2,
+      "emotional_register": 2,
+      "interiority": 7,
+      "tone": 2,
+      "difficulty": 9
+    },
+    "tags": [
+      "literary-fiction",
+      "southern-gothic",
+      "multi-pov",
+      "race",
+      "dynasty",
+      "dense-prose",
+      "nonlinear",
+      "doorstopper",
+      "obsession",
+      "decline"
+    ]
+  },
+  "577": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 8,
+      "warmth": 4,
+      "intensity": 6,
+      "pace": 3,
+      "moral_complexity": 9,
+      "fabulism": 2,
+      "emotional_register": 2,
+      "interiority": 7,
+      "tone": 2,
+      "difficulty": 8
+    },
+    "tags": [
+      "literary-fiction",
+      "southern-gothic",
+      "multi-pov",
+      "race",
+      "identity",
+      "violence",
+      "religion",
+      "outsider-protagonist"
     ]
   },
   "582": {
@@ -2576,6 +3703,85 @@
       "metafiction"
     ]
   },
+  "672": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 6,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 2,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 4,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "Indigenous-protagonist",
+      "american-setting",
+      "north-dakota-setting",
+      "1950s-setting",
+      "labor",
+      "community",
+      "family",
+      "political-intrigue"
+    ]
+  },
+  "673": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 5,
+      "intensity": 7,
+      "pace": 6,
+      "moral_complexity": 7,
+      "fabulism": 2,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 4,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "Indigenous-protagonist",
+      "male-protagonist",
+      "american-setting",
+      "north-dakota-setting",
+      "sexual-violence",
+      "legal-thriller",
+      "family",
+      "revenge-plot"
+    ]
+  },
+  "674": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 6,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 7,
+      "fabulism": 2,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 4,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "Indigenous-protagonist",
+      "multi-pov",
+      "american-setting",
+      "north-dakota-setting",
+      "multigenerational",
+      "family-saga",
+      "nonlinear",
+      "community",
+      "reservation-setting"
+    ]
+  },
   "690": {
     "vibes": {
       "prose_craft": 4,
@@ -2676,6 +3882,31 @@
       "20th-century",
       "aristocratic",
       "meditative"
+    ]
+  },
+  "759": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 6,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "dystopian",
+      "female-protagonist",
+      "first-person",
+      "totalitarian",
+      "near-future",
+      "sequel",
+      "resistance",
+      "multi-pov"
     ]
   },
   "777": {
@@ -2835,6 +4066,161 @@
       "friendship",
       "quest",
       "episodic"
+    ]
+  },
+  "889": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 3,
+      "pace": 4,
+      "moral_complexity": 6,
+      "fabulism": 5,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "translated-from",
+      "japanese-setting",
+      "male-protagonist",
+      "alienation",
+      "loneliness",
+      "surreal",
+      "dreamlike"
+    ]
+  },
+  "890": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 3,
+      "pace": 4,
+      "moral_complexity": 6,
+      "fabulism": 5,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "translated-from",
+      "japanese-setting",
+      "male-protagonist",
+      "alienation",
+      "loneliness",
+      "surreal",
+      "dreamlike"
+    ]
+  },
+  "891": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 6,
+      "fabulism": 5,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "translated-from",
+      "japanese-setting",
+      "male-protagonist",
+      "surreal",
+      "political-intrigue",
+      "violence",
+      "well-setting",
+      "dreamlike",
+      "doorstopper"
+    ]
+  },
+  "892": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 3,
+      "pace": 4,
+      "moral_complexity": 6,
+      "fabulism": 5,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "translated-from",
+      "japanese-setting",
+      "multi-pov",
+      "dual-timeline",
+      "surreal",
+      "doorstopper",
+      "cult-horror",
+      "parallel-worlds"
+    ]
+  },
+  "893": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 3,
+      "pace": 4,
+      "moral_complexity": 6,
+      "fabulism": 7,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "translated-from",
+      "japanese-setting",
+      "male-protagonist",
+      "first-person",
+      "surreal",
+      "dual-narrative",
+      "cyberpunk",
+      "dreamlike"
+    ]
+  },
+  "894": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 3,
+      "pace": 5,
+      "moral_complexity": 6,
+      "fabulism": 5,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "translated-from",
+      "japanese-setting",
+      "male-protagonist",
+      "first-person",
+      "surreal",
+      "quest",
+      "sheep",
+      "alienation"
     ]
   },
   "936": {
@@ -3506,6 +4892,75 @@
       "aging"
     ]
   },
+  "1336": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 7,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 6
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "Jewish-protagonist",
+      "american-setting",
+      "identity",
+      "dense-prose"
+    ]
+  },
+  "1337": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 7,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 6
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "Jewish-protagonist",
+      "american-setting",
+      "identity",
+      "dense-prose"
+    ]
+  },
+  "1338": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 7,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 6
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "Jewish-protagonist",
+      "american-setting",
+      "identity",
+      "dense-prose"
+    ]
+  },
   "1339": {
     "vibes": {
       "prose_craft": 8,
@@ -3530,6 +4985,216 @@
       "new-jersey-setting",
       "betrayal",
       "american-setting"
+    ]
+  },
+  "1340": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 7,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 6,
+      "moral_complexity": 8,
+      "fabulism": 3,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 6
+    },
+    "tags": [
+      "literary-fiction",
+      "alternate-history-sf",
+      "male-protagonist",
+      "Jewish-protagonist",
+      "american-setting",
+      "political-intrigue",
+      "fascism",
+      "family"
+    ]
+  },
+  "1342": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 7,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 6
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "Jewish-protagonist",
+      "american-setting",
+      "identity",
+      "dense-prose"
+    ]
+  },
+  "1343": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 7,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 6
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "Jewish-protagonist",
+      "american-setting",
+      "identity",
+      "dense-prose"
+    ]
+  },
+  "1344": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 7,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 6
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "Jewish-protagonist",
+      "american-setting",
+      "identity",
+      "dense-prose"
+    ]
+  },
+  "1345": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 7,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 6
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "Jewish-protagonist",
+      "american-setting",
+      "identity",
+      "dense-prose"
+    ]
+  },
+  "1347": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 7,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 6
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "Jewish-protagonist",
+      "american-setting",
+      "identity",
+      "dense-prose"
+    ]
+  },
+  "1348": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 7,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 6
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "Jewish-protagonist",
+      "american-setting",
+      "identity",
+      "dense-prose"
+    ]
+  },
+  "1349": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 7,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 8,
+      "fabulism": 4,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 5,
+      "difficulty": 6
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "transformation",
+      "kafka-esque",
+      "novella-length",
+      "satirical",
+      "absurdist"
+    ]
+  },
+  "1350": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 7,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 6
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "Jewish-protagonist",
+      "american-setting",
+      "identity",
+      "dense-prose"
     ]
   },
   "1351": {
@@ -3609,6 +5274,168 @@
       "picaresque",
       "violence",
       "chaos"
+    ]
+  },
+  "1373": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 7,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 6
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "Jewish-protagonist",
+      "american-setting",
+      "identity",
+      "dense-prose"
+    ]
+  },
+  "1374": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 7,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 8,
+      "fabulism": 2,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 7,
+      "difficulty": 6
+    },
+    "tags": [
+      "satirical",
+      "male-protagonist",
+      "political-intrigue",
+      "american-setting",
+      "parody",
+      "dark-humor"
+    ]
+  },
+  "1375": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 7,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 6
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "Jewish-protagonist",
+      "american-setting",
+      "identity",
+      "dense-prose"
+    ]
+  },
+  "1376": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 7,
+      "warmth": 5,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 6
+    },
+    "tags": [
+      "autofiction",
+      "male-protagonist",
+      "writer-protagonist",
+      "Jewish-protagonist",
+      "identity",
+      "metafiction"
+    ]
+  },
+  "1377": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 7,
+      "warmth": 6,
+      "intensity": 4,
+      "pace": 5,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 6
+    },
+    "tags": [
+      "memoir",
+      "male-protagonist",
+      "father-son",
+      "Jewish-protagonist",
+      "grief",
+      "aging",
+      "domestic"
+    ]
+  },
+  "1378": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 7,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 6
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "Jewish-protagonist",
+      "american-setting",
+      "identity",
+      "dense-prose"
+    ]
+  },
+  "1379": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 7,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 6
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "Jewish-protagonist",
+      "american-setting",
+      "identity",
+      "dense-prose"
     ]
   },
   "1381": {
@@ -3693,6 +5520,681 @@
       "contemporary-setting"
     ]
   },
+  "1460": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 6,
+      "warmth": 7,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 5,
+      "interiority": 6,
+      "tone": 5,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "american-setting",
+      "new-england-setting",
+      "family",
+      "coming-of-age",
+      "bildungsroman"
+    ]
+  },
+  "1461": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 6,
+      "warmth": 7,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 5,
+      "interiority": 6,
+      "tone": 5,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "american-setting",
+      "new-england-setting",
+      "family",
+      "coming-of-age",
+      "bildungsroman"
+    ]
+  },
+  "1462": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 6,
+      "warmth": 7,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 5,
+      "interiority": 6,
+      "tone": 5,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "american-setting",
+      "new-england-setting",
+      "family",
+      "coming-of-age",
+      "bildungsroman"
+    ]
+  },
+  "1463": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 6,
+      "warmth": 7,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 5,
+      "interiority": 6,
+      "tone": 5,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "american-setting",
+      "new-england-setting",
+      "family",
+      "coming-of-age",
+      "bildungsroman"
+    ]
+  },
+  "1464": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 6,
+      "warmth": 7,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 5,
+      "interiority": 6,
+      "tone": 5,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "american-setting",
+      "new-england-setting",
+      "family",
+      "coming-of-age",
+      "bildungsroman"
+    ]
+  },
+  "1465": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 6,
+      "warmth": 7,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 5,
+      "interiority": 6,
+      "tone": 5,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "queer-protagonist",
+      "wrestling",
+      "coming-of-age",
+      "new-england-setting",
+      "sexuality",
+      "identity"
+    ]
+  },
+  "1473": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 3,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 8,
+      "fabulism": 2,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 6
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "american-setting",
+      "alienation",
+      "paranoia",
+      "capitalism",
+      "dense-prose"
+    ]
+  },
+  "1474": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 3,
+      "intensity": 4,
+      "pace": 5,
+      "moral_complexity": 8,
+      "fabulism": 2,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 6
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "new-york-setting",
+      "near-future",
+      "capitalism",
+      "technology",
+      "urban",
+      "alienation"
+    ]
+  },
+  "1475": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 3,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 8,
+      "fabulism": 2,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 6
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "american-setting",
+      "alienation",
+      "paranoia",
+      "capitalism",
+      "dense-prose"
+    ]
+  },
+  "1476": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 3,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 8,
+      "fabulism": 2,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 6
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "american-setting",
+      "alienation",
+      "paranoia",
+      "capitalism",
+      "dense-prose"
+    ]
+  },
+  "1477": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 3,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 8,
+      "fabulism": 2,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 6
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "american-setting",
+      "alienation",
+      "paranoia",
+      "capitalism",
+      "dense-prose"
+    ]
+  },
+  "1478": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 3,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 8,
+      "fabulism": 2,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 6
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "american-setting",
+      "alienation",
+      "paranoia",
+      "capitalism",
+      "dense-prose"
+    ]
+  },
+  "1479": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 3,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 8,
+      "fabulism": 2,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 6
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "american-setting",
+      "alienation",
+      "paranoia",
+      "capitalism",
+      "dense-prose"
+    ]
+  },
+  "1480": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 3,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 8,
+      "fabulism": 2,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 6
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "american-setting",
+      "alienation",
+      "paranoia",
+      "capitalism",
+      "dense-prose"
+    ]
+  },
+  "1481": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 3,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 8,
+      "fabulism": 2,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 6
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "american-setting",
+      "alienation",
+      "paranoia",
+      "capitalism",
+      "dense-prose"
+    ]
+  },
+  "1482": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 3,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 8,
+      "fabulism": 2,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 6
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "american-setting",
+      "alienation",
+      "paranoia",
+      "capitalism",
+      "dense-prose"
+    ]
+  },
+  "1483": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 3,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 8,
+      "fabulism": 2,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 6
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "american-setting",
+      "alienation",
+      "paranoia",
+      "capitalism",
+      "dense-prose"
+    ]
+  },
+  "1484": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "british-setting",
+      "domestic",
+      "moral-dilemma"
+    ]
+  },
+  "1485": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "british-setting",
+      "domestic",
+      "moral-dilemma"
+    ]
+  },
+  "1486": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 2,
+      "intensity": 7,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "british-setting",
+      "child-protagonist",
+      "domestic",
+      "transgressive",
+      "gothic-atmosphere",
+      "novella-length"
+    ]
+  },
+  "1487": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "british-setting",
+      "domestic",
+      "moral-dilemma"
+    ]
+  },
+  "1488": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 4,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "british-setting",
+      "near-future",
+      "AI",
+      "love-triangle",
+      "moral-dilemma",
+      "1980s-setting"
+    ]
+  },
+  "1489": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 2,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 5,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "british-setting",
+      "male-protagonist",
+      "unreliable-narrator",
+      "shakespeare",
+      "novella-length",
+      "witty-prose"
+    ]
+  },
+  "1490": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "british-setting",
+      "domestic",
+      "moral-dilemma"
+    ]
+  },
+  "1491": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "british-setting",
+      "domestic",
+      "moral-dilemma"
+    ]
+  },
+  "1492": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "british-setting",
+      "domestic",
+      "moral-dilemma"
+    ]
+  },
+  "1560": {
+    "vibes": {
+      "prose_craft": 6,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 4,
+      "pace": 5,
+      "moral_complexity": 5,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "autofiction",
+      "male-protagonist",
+      "american-setting",
+      "beat-generation",
+      "road-trip",
+      "friendship"
+    ]
+  },
+  "1561": {
+    "vibes": {
+      "prose_craft": 6,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 4,
+      "pace": 5,
+      "moral_complexity": 5,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 4,
+      "difficulty": 6,
+      "craft": 7,
+      "style": 6
+    },
+    "tags": [
+      "autofiction",
+      "male-protagonist",
+      "stream-of-consciousness",
+      "beat-generation",
+      "experimental-form",
+      "dense-prose",
+      "road-trip"
+    ]
+  },
+  "1562": {
+    "vibes": {
+      "prose_craft": 6,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 5,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "autofiction",
+      "male-protagonist",
+      "beat-generation",
+      "sexuality",
+      "urban",
+      "novella-length"
+    ]
+  },
   "1572": {
     "vibes": {
       "prose_craft": 7,
@@ -3719,6 +6221,772 @@
       "ensemble-cast"
     ]
   },
+  "1595": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 5,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 7,
+      "fabulism": 2,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 4,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "Indigenous-protagonist",
+      "american-setting",
+      "north-dakota-setting",
+      "multigenerational",
+      "family-saga",
+      "community"
+    ]
+  },
+  "1596": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 5,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 7,
+      "fabulism": 2,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 4,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "Indigenous-protagonist",
+      "american-setting",
+      "north-dakota-setting",
+      "multigenerational",
+      "family-saga",
+      "community"
+    ]
+  },
+  "1597": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 5,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 7,
+      "fabulism": 2,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 4,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "Indigenous-protagonist",
+      "american-setting",
+      "north-dakota-setting",
+      "multigenerational",
+      "family-saga",
+      "community"
+    ]
+  },
+  "1598": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 5,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 7,
+      "fabulism": 2,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 4,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "Indigenous-protagonist",
+      "american-setting",
+      "north-dakota-setting",
+      "multigenerational",
+      "family-saga",
+      "community"
+    ]
+  },
+  "1599": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 5,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 7,
+      "fabulism": 2,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 4,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "Indigenous-protagonist",
+      "american-setting",
+      "north-dakota-setting",
+      "multigenerational",
+      "family-saga",
+      "community"
+    ]
+  },
+  "1600": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 5,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 7,
+      "fabulism": 2,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 4,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "Indigenous-protagonist",
+      "american-setting",
+      "north-dakota-setting",
+      "multigenerational",
+      "family-saga",
+      "community"
+    ]
+  },
+  "1621": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 8,
+      "warmth": 4,
+      "intensity": 3,
+      "pace": 2,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 9,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "female-protagonist",
+      "new-york-setting",
+      "19th-century",
+      "class",
+      "marriage",
+      "domestic",
+      "restrained-prose"
+    ]
+  },
+  "1622": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 8,
+      "warmth": 4,
+      "intensity": 3,
+      "pace": 2,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 9,
+      "tone": 3,
+      "difficulty": 7
+    },
+    "tags": [
+      "literary-fiction",
+      "dense-prose",
+      "psychological",
+      "class",
+      "19th-century"
+    ]
+  },
+  "1623": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 8,
+      "warmth": 4,
+      "intensity": 3,
+      "pace": 2,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 9,
+      "tone": 3,
+      "difficulty": 7
+    },
+    "tags": [
+      "literary-fiction",
+      "dense-prose",
+      "psychological",
+      "class",
+      "19th-century"
+    ]
+  },
+  "1624": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 8,
+      "warmth": 4,
+      "intensity": 3,
+      "pace": 2,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 9,
+      "tone": 3,
+      "difficulty": 7
+    },
+    "tags": [
+      "literary-fiction",
+      "dense-prose",
+      "psychological",
+      "class",
+      "19th-century"
+    ]
+  },
+  "1625": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 8,
+      "warmth": 4,
+      "intensity": 3,
+      "pace": 2,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 9,
+      "tone": 3,
+      "difficulty": 7
+    },
+    "tags": [
+      "literary-fiction",
+      "dense-prose",
+      "psychological",
+      "class",
+      "19th-century"
+    ]
+  },
+  "1626": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 8,
+      "warmth": 4,
+      "intensity": 3,
+      "pace": 2,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 9,
+      "tone": 3,
+      "difficulty": 7
+    },
+    "tags": [
+      "literary-fiction",
+      "dense-prose",
+      "psychological",
+      "class",
+      "19th-century"
+    ]
+  },
+  "1627": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 8,
+      "warmth": 4,
+      "intensity": 3,
+      "pace": 2,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 9,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "female-protagonist",
+      "american-protagonist",
+      "italian-setting",
+      "19th-century",
+      "class",
+      "romance-subplot",
+      "novella-length"
+    ]
+  },
+  "1635": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 8,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 3,
+      "moral_complexity": 8,
+      "fabulism": 2,
+      "emotional_register": 3,
+      "interiority": 6,
+      "tone": 3,
+      "difficulty": 7
+    },
+    "tags": [
+      "literary-fiction",
+      "19th-century",
+      "american-setting",
+      "male-protagonist",
+      "dense-prose"
+    ]
+  },
+  "1636": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 8,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 3,
+      "moral_complexity": 8,
+      "fabulism": 2,
+      "emotional_register": 3,
+      "interiority": 6,
+      "tone": 5,
+      "difficulty": 8
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "river-setting",
+      "satirical",
+      "picaresque",
+      "identity",
+      "con-artist",
+      "dense-prose"
+    ]
+  },
+  "1641": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 4,
+      "warmth": 3,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 9,
+      "fabulism": 3,
+      "emotional_register": 2,
+      "interiority": 8,
+      "tone": 4,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "female-protagonist",
+      "metafiction",
+      "academia",
+      "philosophical",
+      "animal-rights",
+      "vignettes",
+      "restrained-prose"
+    ]
+  },
+  "1642": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 4,
+      "warmth": 3,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 9,
+      "fabulism": 3,
+      "emotional_register": 2,
+      "interiority": 8,
+      "tone": 2,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "female-protagonist",
+      "retelling",
+      "metafiction",
+      "island-setting",
+      "robinson-crusoe",
+      "restrained-prose"
+    ]
+  },
+  "1643": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 4,
+      "warmth": 3,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 9,
+      "fabulism": 5,
+      "emotional_register": 2,
+      "interiority": 8,
+      "tone": 2,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "translated-from-allegory",
+      "male-protagonist",
+      "immigration",
+      "philosophical",
+      "jesus-allegory",
+      "restrained-prose"
+    ]
+  },
+  "1644": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 4,
+      "warmth": 3,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 9,
+      "fabulism": 2,
+      "emotional_register": 2,
+      "interiority": 8,
+      "tone": 2,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "south-african-setting",
+      "male-protagonist",
+      "restrained-prose",
+      "moral-dilemma"
+    ]
+  },
+  "1663": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 4,
+      "warmth": 7,
+      "intensity": 3,
+      "pace": 3,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 3
+    },
+    "tags": [
+      "literary-fiction",
+      "new-england-setting",
+      "female-protagonist",
+      "domestic",
+      "small-town",
+      "restrained-prose",
+      "quiet-drama"
+    ]
+  },
+  "1664": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 4,
+      "warmth": 7,
+      "intensity": 3,
+      "pace": 3,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 3
+    },
+    "tags": [
+      "literary-fiction",
+      "new-england-setting",
+      "female-protagonist",
+      "domestic",
+      "small-town",
+      "restrained-prose",
+      "quiet-drama"
+    ]
+  },
+  "1665": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 4,
+      "warmth": 7,
+      "intensity": 3,
+      "pace": 3,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 3
+    },
+    "tags": [
+      "literary-fiction",
+      "new-england-setting",
+      "female-protagonist",
+      "domestic",
+      "small-town",
+      "restrained-prose",
+      "quiet-drama"
+    ]
+  },
+  "1670": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 4,
+      "warmth": 6,
+      "intensity": 4,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 5,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "american-setting",
+      "california-setting",
+      "working-class"
+    ]
+  },
+  "1671": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 4,
+      "warmth": 6,
+      "intensity": 4,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 5,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "american-setting",
+      "california-setting",
+      "working-class"
+    ]
+  },
+  "1672": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 4,
+      "warmth": 6,
+      "intensity": 4,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 5,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "mexican-setting",
+      "poverty",
+      "pearl",
+      "moral-dilemma",
+      "novella-length",
+      "parable"
+    ]
+  },
+  "1673": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 4,
+      "warmth": 6,
+      "intensity": 4,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 0,
+      "emotional_register": 4,
+      "interiority": 5,
+      "tone": 5,
+      "difficulty": 4
+    },
+    "tags": [
+      "memoir",
+      "male-protagonist",
+      "american-setting",
+      "road-trip",
+      "dog-companion",
+      "rural",
+      "travel",
+      "witty-prose"
+    ]
+  },
+  "1676": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 8,
+      "warmth": 4,
+      "intensity": 8,
+      "pace": 6,
+      "moral_complexity": 9,
+      "fabulism": 2,
+      "emotional_register": 2,
+      "interiority": 7,
+      "tone": 2,
+      "difficulty": 8
+    },
+    "tags": [
+      "literary-fiction",
+      "southern-gothic",
+      "male-protagonist",
+      "violence",
+      "sexual-violence",
+      "transgressive",
+      "noir"
+    ]
+  },
+  "1677": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 8,
+      "warmth": 4,
+      "intensity": 6,
+      "pace": 3,
+      "moral_complexity": 9,
+      "fabulism": 2,
+      "emotional_register": 2,
+      "interiority": 7,
+      "tone": 2,
+      "difficulty": 8
+    },
+    "tags": [
+      "literary-fiction",
+      "southern-gothic",
+      "vignettes",
+      "race",
+      "family-saga",
+      "rural",
+      "multigenerational"
+    ]
+  },
+  "1678": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 8,
+      "warmth": 4,
+      "intensity": 6,
+      "pace": 3,
+      "moral_complexity": 9,
+      "fabulism": 2,
+      "emotional_register": 2,
+      "interiority": 7,
+      "tone": 2,
+      "difficulty": 8
+    },
+    "tags": [
+      "literary-fiction",
+      "southern-gothic",
+      "american-setting",
+      "mississippi-setting",
+      "race",
+      "family-saga",
+      "dense-prose"
+    ]
+  },
+  "1709": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 3,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "canadian-setting",
+      "female-protagonist",
+      "feminist"
+    ]
+  },
+  "1710": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 3,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "canadian-setting",
+      "female-protagonist",
+      "feminist"
+    ]
+  },
+  "1711": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 3,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "canadian-setting",
+      "female-protagonist",
+      "feminist"
+    ]
+  },
+  "1712": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 3,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "canadian-setting",
+      "female-protagonist",
+      "feminist"
+    ]
+  },
   "1998": {
     "vibes": {
       "prose_craft": 9,
@@ -3742,6 +7010,607 @@
       "19th-century",
       "coming-of-age",
       "satirical"
+    ]
+  },
+  "2184": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 6,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "priest-protagonist",
+      "mexican-setting",
+      "faith-and-doubt",
+      "persecution",
+      "alcoholism",
+      "moral-dilemma"
+    ]
+  },
+  "2185": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 6,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "african-setting",
+      "colonial-era",
+      "faith-and-doubt",
+      "marriage",
+      "guilt",
+      "moral-dilemma"
+    ]
+  },
+  "2186": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 5,
+      "pace": 6,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "london-setting",
+      "faith-and-doubt",
+      "adultery",
+      "romance-subplot",
+      "grief",
+      "moral-dilemma"
+    ]
+  },
+  "2187": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "vietnamese-setting",
+      "espionage",
+      "colonial-era",
+      "political-intrigue",
+      "moral-dilemma",
+      "war"
+    ]
+  },
+  "2188": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 7,
+      "pace": 7,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-thriller",
+      "male-protagonist",
+      "british-setting",
+      "gangster",
+      "catholic",
+      "violence",
+      "moral-dilemma"
+    ]
+  },
+  "2189": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 7,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-thriller",
+      "male-protagonist",
+      "viennese-setting",
+      "espionage",
+      "post-war-setting",
+      "noir",
+      "novella-length"
+    ]
+  },
+  "2190": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 7,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 6,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-thriller",
+      "male-protagonist",
+      "cuban-setting",
+      "espionage",
+      "satirical",
+      "cold-war-era",
+      "witty-prose"
+    ]
+  },
+  "2191": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 6,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "faith-and-doubt",
+      "moral-dilemma",
+      "political-intrigue"
+    ]
+  },
+  "2192": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 6,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "faith-and-doubt",
+      "moral-dilemma",
+      "political-intrigue"
+    ]
+  },
+  "2193": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 6,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "faith-and-doubt",
+      "moral-dilemma",
+      "political-intrigue"
+    ]
+  },
+  "2194": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 5,
+      "warmth": 6,
+      "intensity": 5,
+      "pace": 6,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 6,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "road-trip",
+      "comedy",
+      "elderly-protagonist",
+      "witty-prose"
+    ]
+  },
+  "2203": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 5,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "pennsylvania-setting",
+      "suburban",
+      "marriage",
+      "infidelity",
+      "running",
+      "working-class",
+      "domestic",
+      "alienation"
+    ]
+  },
+  "2204": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 5,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "pennsylvania-setting",
+      "1960s-setting",
+      "race",
+      "domestic",
+      "political-intrigue",
+      "vietnam-era"
+    ]
+  },
+  "2205": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 5,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "american-setting",
+      "suburban",
+      "marriage",
+      "domestic"
+    ]
+  },
+  "2206": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 5,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "american-setting",
+      "suburban",
+      "marriage",
+      "domestic"
+    ]
+  },
+  "2207": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 5,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "american-setting",
+      "suburban",
+      "marriage",
+      "domestic"
+    ]
+  },
+  "2208": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 5,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 7,
+      "fabulism": 4,
+      "emotional_register": 4,
+      "interiority": 7,
+      "tone": 5,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "female-protagonist",
+      "new-england-setting",
+      "witches",
+      "suburban",
+      "satirical"
+    ]
+  },
+  "2209": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 5,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "american-setting",
+      "suburban",
+      "marriage",
+      "domestic"
+    ]
+  },
+  "2210": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 5,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "american-setting",
+      "suburban",
+      "marriage",
+      "domestic"
+    ]
+  },
+  "2211": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 8,
+      "fabulism": 2,
+      "emotional_register": 4,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 5,
+      "craft": 8
+    },
+    "tags": [
+      "literary-fiction",
+      "british-setting",
+      "male-protagonist",
+      "first-person",
+      "ocean-setting",
+      "obsession",
+      "jealousy",
+      "domestic",
+      "philosophical",
+      "gothic-atmosphere"
+    ]
+  },
+  "2212": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 4,
+      "pace": 5,
+      "moral_complexity": 8,
+      "fabulism": 2,
+      "emotional_register": 4,
+      "interiority": 7,
+      "tone": 5,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "british-setting",
+      "male-protagonist",
+      "first-person",
+      "london-setting",
+      "picaresque",
+      "philosophical",
+      "existential",
+      "witty-prose"
+    ]
+  },
+  "2213": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 8,
+      "fabulism": 2,
+      "emotional_register": 4,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 5,
+      "craft": 8
+    },
+    "tags": [
+      "literary-fiction",
+      "british-setting",
+      "male-protagonist",
+      "first-person",
+      "writer-protagonist",
+      "obsession",
+      "philosophical",
+      "metafiction",
+      "dense-prose"
+    ]
+  },
+  "2214": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 8,
+      "fabulism": 2,
+      "emotional_register": 4,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "british-setting",
+      "philosophical",
+      "domestic",
+      "ensemble-cast",
+      "moral-dilemma"
+    ]
+  },
+  "2215": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 8,
+      "fabulism": 2,
+      "emotional_register": 4,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "british-setting",
+      "philosophical",
+      "domestic",
+      "ensemble-cast",
+      "moral-dilemma"
+    ]
+  },
+  "2216": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 8,
+      "fabulism": 2,
+      "emotional_register": 4,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "british-setting",
+      "philosophical",
+      "domestic",
+      "ensemble-cast",
+      "moral-dilemma"
     ]
   },
   "2217": {
@@ -3793,6 +7662,209 @@
       "kafka-esque",
       "alienation",
       "absurdist"
+    ]
+  },
+  "2312": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 2,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 5,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "sparse-prose"
+    ]
+  },
+  "2313": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 2,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 5,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "sparse-prose"
+    ]
+  },
+  "2314": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 3,
+      "pace": 4,
+      "moral_complexity": 6,
+      "fabulism": 5,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "translated-from",
+      "japanese-setting",
+      "male-protagonist",
+      "alienation",
+      "loneliness",
+      "surreal",
+      "dreamlike"
+    ]
+  },
+  "2315": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 3,
+      "pace": 4,
+      "moral_complexity": 6,
+      "fabulism": 5,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "translated-from",
+      "japanese-setting",
+      "male-protagonist",
+      "alienation",
+      "loneliness",
+      "surreal",
+      "dreamlike"
+    ]
+  },
+  "2316": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 3,
+      "pace": 4,
+      "moral_complexity": 6,
+      "fabulism": 5,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "translated-from",
+      "japanese-setting",
+      "male-protagonist",
+      "alienation",
+      "loneliness",
+      "surreal",
+      "dreamlike"
+    ]
+  },
+  "2317": {
+    "vibes": {
+      "prose_craft": 10,
+      "prose_style": 8,
+      "warmth": 5,
+      "intensity": 6,
+      "pace": 3,
+      "moral_complexity": 9,
+      "fabulism": 4,
+      "emotional_register": 3,
+      "interiority": 8,
+      "tone": 2,
+      "difficulty": 7
+    },
+    "tags": [
+      "literary-fiction",
+      "Black-protagonist",
+      "american-setting",
+      "race",
+      "lyrical-prose"
+    ]
+  },
+  "2318": {
+    "vibes": {
+      "prose_craft": 10,
+      "prose_style": 8,
+      "warmth": 5,
+      "intensity": 6,
+      "pace": 3,
+      "moral_complexity": 9,
+      "fabulism": 4,
+      "emotional_register": 3,
+      "interiority": 8,
+      "tone": 2,
+      "difficulty": 7
+    },
+    "tags": [
+      "literary-fiction",
+      "Black-protagonist",
+      "american-setting",
+      "race",
+      "lyrical-prose"
+    ]
+  },
+  "2319": {
+    "vibes": {
+      "prose_craft": 10,
+      "prose_style": 8,
+      "warmth": 5,
+      "intensity": 6,
+      "pace": 3,
+      "moral_complexity": 9,
+      "fabulism": 4,
+      "emotional_register": 3,
+      "interiority": 8,
+      "tone": 2,
+      "difficulty": 7
+    },
+    "tags": [
+      "literary-fiction",
+      "Black-protagonist",
+      "american-setting",
+      "race",
+      "lyrical-prose"
+    ]
+  },
+  "2320": {
+    "vibes": {
+      "prose_craft": 10,
+      "prose_style": 8,
+      "warmth": 5,
+      "intensity": 6,
+      "pace": 3,
+      "moral_complexity": 9,
+      "fabulism": 4,
+      "emotional_register": 3,
+      "interiority": 8,
+      "tone": 2,
+      "difficulty": 7
+    },
+    "tags": [
+      "literary-fiction",
+      "Black-protagonist",
+      "american-setting",
+      "race",
+      "lyrical-prose"
     ]
   },
   "2559": {
@@ -4063,6 +8135,29 @@
       "class"
     ]
   },
+  "3235": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 5,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "american-setting",
+      "suburban",
+      "marriage",
+      "domestic"
+    ]
+  },
   "3365": {
     "vibes": {
       "prose_craft": 9,
@@ -4090,6 +8185,121 @@
       "writer-protagonist"
     ]
   },
+  "3401": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 6,
+      "warmth": 7,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 5,
+      "interiority": 6,
+      "tone": 5,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "american-setting",
+      "new-england-setting",
+      "family",
+      "coming-of-age",
+      "bildungsroman"
+    ]
+  },
+  "3402": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 6,
+      "warmth": 7,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 5,
+      "interiority": 6,
+      "tone": 5,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "american-setting",
+      "new-england-setting",
+      "family",
+      "coming-of-age",
+      "bildungsroman"
+    ]
+  },
+  "3403": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 6,
+      "warmth": 7,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 5,
+      "interiority": 6,
+      "tone": 5,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "american-setting",
+      "new-england-setting",
+      "family",
+      "coming-of-age",
+      "bildungsroman"
+    ]
+  },
+  "3404": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 6,
+      "warmth": 7,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 5,
+      "interiority": 6,
+      "tone": 5,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "american-setting",
+      "new-england-setting",
+      "family",
+      "coming-of-age",
+      "bildungsroman"
+    ]
+  },
+  "3405": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 6,
+      "warmth": 7,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 5,
+      "interiority": 6,
+      "tone": 5,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "american-setting",
+      "new-england-setting",
+      "family",
+      "coming-of-age",
+      "bildungsroman"
+    ]
+  },
   "3407": {
     "vibes": {
       "prose_craft": 6,
@@ -4114,6 +8324,1232 @@
       "aliens",
       "witty-prose",
       "male-protagonist"
+    ]
+  },
+  "3427": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 6,
+      "pace": 7,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-thriller",
+      "male-protagonist",
+      "london-setting",
+      "ww2-era",
+      "espionage",
+      "paranoia",
+      "atmospheric"
+    ]
+  },
+  "3428": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 6,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "faith-and-doubt",
+      "moral-dilemma",
+      "political-intrigue"
+    ]
+  },
+  "3429": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 6,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "faith-and-doubt",
+      "moral-dilemma",
+      "political-intrigue"
+    ]
+  },
+  "3430": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 6,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "faith-and-doubt",
+      "moral-dilemma",
+      "political-intrigue"
+    ]
+  },
+  "3431": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 6,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "faith-and-doubt",
+      "moral-dilemma",
+      "political-intrigue"
+    ]
+  },
+  "3432": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 6,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "faith-and-doubt",
+      "moral-dilemma",
+      "political-intrigue"
+    ]
+  },
+  "3433": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 6,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "faith-and-doubt",
+      "moral-dilemma",
+      "political-intrigue"
+    ]
+  },
+  "3434": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 6,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "faith-and-doubt",
+      "moral-dilemma",
+      "political-intrigue"
+    ]
+  },
+  "3435": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 6,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "faith-and-doubt",
+      "moral-dilemma",
+      "political-intrigue"
+    ]
+  },
+  "3436": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 6,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "faith-and-doubt",
+      "moral-dilemma",
+      "political-intrigue"
+    ]
+  },
+  "3437": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 6,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "faith-and-doubt",
+      "moral-dilemma",
+      "political-intrigue"
+    ]
+  },
+  "3438": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 6,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "faith-and-doubt",
+      "moral-dilemma",
+      "political-intrigue"
+    ]
+  },
+  "3439": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 7,
+      "warmth": 8,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 5,
+      "tone": 7,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "british-setting",
+      "victorian-setting",
+      "christmas",
+      "redemption",
+      "ghosts",
+      "novella-length",
+      "warm"
+    ]
+  },
+  "3440": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 7,
+      "warmth": 6,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 5,
+      "tone": 5,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "british-setting",
+      "victorian-setting",
+      "social-panorama",
+      "class",
+      "ensemble-cast"
+    ]
+  },
+  "3441": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 7,
+      "warmth": 6,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 5,
+      "tone": 5,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "british-setting",
+      "victorian-setting",
+      "social-panorama",
+      "class",
+      "ensemble-cast"
+    ]
+  },
+  "3442": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 7,
+      "warmth": 6,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 5,
+      "tone": 5,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "british-setting",
+      "victorian-setting",
+      "social-panorama",
+      "class",
+      "ensemble-cast"
+    ]
+  },
+  "3443": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 7,
+      "warmth": 6,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 5,
+      "tone": 5,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "british-setting",
+      "victorian-setting",
+      "social-panorama",
+      "class",
+      "ensemble-cast"
+    ]
+  },
+  "3444": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 7,
+      "warmth": 6,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 5,
+      "tone": 5,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "british-setting",
+      "victorian-setting",
+      "social-panorama",
+      "class",
+      "ensemble-cast"
+    ]
+  },
+  "3445": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 7,
+      "warmth": 6,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 5,
+      "tone": 5,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "british-setting",
+      "victorian-setting",
+      "social-panorama",
+      "class",
+      "ensemble-cast"
+    ]
+  },
+  "3446": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 7,
+      "warmth": 6,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 5,
+      "tone": 5,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "british-setting",
+      "victorian-setting",
+      "social-panorama",
+      "class",
+      "ensemble-cast"
+    ]
+  },
+  "3447": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 7,
+      "warmth": 6,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 5,
+      "tone": 5,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "british-setting",
+      "victorian-setting",
+      "social-panorama",
+      "class",
+      "ensemble-cast"
+    ]
+  },
+  "3448": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 7,
+      "warmth": 6,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 5,
+      "tone": 5,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "british-setting",
+      "victorian-setting",
+      "industrial-setting",
+      "class",
+      "labor",
+      "social-realism"
+    ]
+  },
+  "3449": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 8,
+      "warmth": 4,
+      "intensity": 6,
+      "pace": 3,
+      "moral_complexity": 9,
+      "fabulism": 2,
+      "emotional_register": 2,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 8
+    },
+    "tags": [
+      "literary-fiction",
+      "southern-gothic",
+      "male-protagonist",
+      "rural",
+      "picaresque",
+      "class",
+      "working-class"
+    ]
+  },
+  "3450": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 8,
+      "warmth": 4,
+      "intensity": 6,
+      "pace": 3,
+      "moral_complexity": 9,
+      "fabulism": 2,
+      "emotional_register": 2,
+      "interiority": 7,
+      "tone": 2,
+      "difficulty": 8
+    },
+    "tags": [
+      "literary-fiction",
+      "southern-gothic",
+      "american-setting",
+      "mississippi-setting",
+      "race",
+      "family-saga",
+      "dense-prose"
+    ]
+  },
+  "3451": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 8,
+      "warmth": 4,
+      "intensity": 6,
+      "pace": 3,
+      "moral_complexity": 9,
+      "fabulism": 2,
+      "emotional_register": 2,
+      "interiority": 7,
+      "tone": 2,
+      "difficulty": 8
+    },
+    "tags": [
+      "literary-fiction",
+      "southern-gothic",
+      "american-setting",
+      "mississippi-setting",
+      "race",
+      "family-saga",
+      "dense-prose"
+    ]
+  },
+  "3452": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 8,
+      "warmth": 4,
+      "intensity": 6,
+      "pace": 3,
+      "moral_complexity": 9,
+      "fabulism": 2,
+      "emotional_register": 2,
+      "interiority": 7,
+      "tone": 2,
+      "difficulty": 8
+    },
+    "tags": [
+      "literary-fiction",
+      "southern-gothic",
+      "american-setting",
+      "mississippi-setting",
+      "race",
+      "family-saga",
+      "dense-prose"
+    ]
+  },
+  "3453": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 8,
+      "warmth": 4,
+      "intensity": 6,
+      "pace": 3,
+      "moral_complexity": 9,
+      "fabulism": 2,
+      "emotional_register": 2,
+      "interiority": 7,
+      "tone": 2,
+      "difficulty": 8
+    },
+    "tags": [
+      "literary-fiction",
+      "southern-gothic",
+      "american-setting",
+      "mississippi-setting",
+      "race",
+      "family-saga",
+      "dense-prose"
+    ]
+  },
+  "3454": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 3,
+      "pace": 4,
+      "moral_complexity": 6,
+      "fabulism": 5,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "translated-from",
+      "japanese-setting",
+      "male-protagonist",
+      "alienation",
+      "loneliness",
+      "surreal",
+      "dreamlike"
+    ]
+  },
+  "3455": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 3,
+      "pace": 4,
+      "moral_complexity": 6,
+      "fabulism": 5,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "translated-from",
+      "japanese-setting",
+      "male-protagonist",
+      "alienation",
+      "loneliness",
+      "surreal",
+      "dreamlike"
+    ]
+  },
+  "3456": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 3,
+      "pace": 4,
+      "moral_complexity": 6,
+      "fabulism": 5,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "translated-from",
+      "japanese-setting",
+      "male-protagonist",
+      "alienation",
+      "loneliness",
+      "surreal",
+      "dreamlike"
+    ]
+  },
+  "3457": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 6,
+      "intensity": 3,
+      "pace": 4,
+      "moral_complexity": 6,
+      "fabulism": 0,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 5,
+      "difficulty": 4
+    },
+    "tags": [
+      "memoir",
+      "translated-from",
+      "japanese-setting",
+      "male-protagonist",
+      "running",
+      "discipline",
+      "personal-essay"
+    ]
+  },
+  "3458": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 3,
+      "pace": 4,
+      "moral_complexity": 6,
+      "fabulism": 5,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "translated-from",
+      "japanese-setting",
+      "male-protagonist",
+      "alienation",
+      "loneliness",
+      "surreal",
+      "dreamlike"
+    ]
+  },
+  "3464": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 4,
+      "warmth": 5,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 9,
+      "fabulism": 2,
+      "emotional_register": 2,
+      "interiority": 8,
+      "tone": 2,
+      "difficulty": 5
+    },
+    "tags": [
+      "autofiction",
+      "south-african-setting",
+      "male-protagonist",
+      "child-protagonist",
+      "coming-of-age",
+      "apartheid-era",
+      "restrained-prose"
+    ]
+  },
+  "3465": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 4,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 9,
+      "fabulism": 2,
+      "emotional_register": 2,
+      "interiority": 8,
+      "tone": 2,
+      "difficulty": 5
+    },
+    "tags": [
+      "autofiction",
+      "south-african-setting",
+      "male-protagonist",
+      "london-setting",
+      "coming-of-age",
+      "writer-protagonist",
+      "restrained-prose"
+    ]
+  },
+  "3466": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 4,
+      "warmth": 3,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 9,
+      "fabulism": 2,
+      "emotional_register": 2,
+      "interiority": 8,
+      "tone": 2,
+      "difficulty": 5
+    },
+    "tags": [
+      "autofiction",
+      "south-african-setting",
+      "male-protagonist",
+      "metafiction",
+      "multi-pov",
+      "interviews",
+      "restrained-prose",
+      "aging"
+    ]
+  },
+  "3467": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 4,
+      "warmth": 3,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 9,
+      "fabulism": 2,
+      "emotional_register": 2,
+      "interiority": 8,
+      "tone": 2,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "south-african-setting",
+      "male-protagonist",
+      "restrained-prose",
+      "moral-dilemma"
+    ]
+  },
+  "3468": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 4,
+      "warmth": 3,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 9,
+      "fabulism": 2,
+      "emotional_register": 2,
+      "interiority": 8,
+      "tone": 2,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "south-african-setting",
+      "male-protagonist",
+      "restrained-prose",
+      "moral-dilemma"
+    ]
+  },
+  "3469": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 4,
+      "warmth": 3,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 9,
+      "fabulism": 2,
+      "emotional_register": 2,
+      "interiority": 8,
+      "tone": 2,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "south-african-setting",
+      "male-protagonist",
+      "restrained-prose",
+      "moral-dilemma"
+    ]
+  },
+  "3479": {
+    "vibes": {
+      "prose_craft": 10,
+      "prose_style": 8,
+      "warmth": 5,
+      "intensity": 6,
+      "pace": 3,
+      "moral_complexity": 9,
+      "fabulism": 4,
+      "emotional_register": 3,
+      "interiority": 8,
+      "tone": 2,
+      "difficulty": 7
+    },
+    "tags": [
+      "literary-fiction",
+      "Black-protagonist",
+      "american-setting",
+      "race",
+      "lyrical-prose"
+    ]
+  },
+  "3480": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 2,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 5,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "sparse-prose"
+    ]
+  },
+  "3481": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 2,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 5,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "sparse-prose"
+    ]
+  },
+  "3482": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 2,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 5,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "sparse-prose"
+    ]
+  },
+  "3491": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 4,
+      "intensity": 4,
+      "pace": 3,
+      "moral_complexity": 8,
+      "fabulism": 2,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 6
+    },
+    "tags": [
+      "literary-fiction",
+      "female-protagonist",
+      "body",
+      "domestic",
+      "novella-length",
+      "restrained-prose"
+    ]
+  },
+  "3492": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 3,
+      "intensity": 4,
+      "pace": 3,
+      "moral_complexity": 8,
+      "fabulism": 2,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 6
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "desert-setting",
+      "aging",
+      "mortality",
+      "novella-length",
+      "restrained-prose"
+    ]
+  },
+  "3493": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 3,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 8,
+      "fabulism": 2,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 6
+    },
+    "tags": [
+      "literary-fiction",
+      "ensemble-cast",
+      "near-future",
+      "technology-failure",
+      "novella-length",
+      "restrained-prose",
+      "contemporary-setting"
+    ]
+  },
+  "3497": {
+    "vibes": {
+      "prose_craft": 6,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 4,
+      "pace": 5,
+      "moral_complexity": 5,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 4,
+      "difficulty": 4,
+      "craft": 7,
+      "style": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "new-england-setting",
+      "family",
+      "coming-of-age",
+      "working-class",
+      "bildungsroman"
+    ]
+  },
+  "3498": {
+    "vibes": {
+      "prose_craft": 6,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 4,
+      "pace": 5,
+      "moral_complexity": 5,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "autofiction",
+      "male-protagonist",
+      "american-setting",
+      "beat-generation",
+      "road-trip",
+      "friendship"
+    ]
+  },
+  "3499": {
+    "vibes": {
+      "prose_craft": 6,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 4,
+      "pace": 5,
+      "moral_complexity": 5,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "autofiction",
+      "male-protagonist",
+      "american-setting",
+      "beat-generation",
+      "road-trip",
+      "friendship"
+    ]
+  },
+  "3500": {
+    "vibes": {
+      "prose_craft": 6,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 4,
+      "pace": 5,
+      "moral_complexity": 5,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "autofiction",
+      "male-protagonist",
+      "american-setting",
+      "beat-generation",
+      "road-trip",
+      "friendship"
+    ]
+  },
+  "3513": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 5,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 7,
+      "fabulism": 2,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 4,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "Indigenous-protagonist",
+      "american-setting",
+      "north-dakota-setting",
+      "multigenerational",
+      "family-saga",
+      "community"
+    ]
+  },
+  "3514": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 5,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 7,
+      "fabulism": 2,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 4,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "Indigenous-protagonist",
+      "american-setting",
+      "north-dakota-setting",
+      "multigenerational",
+      "family-saga",
+      "community"
+    ]
+  },
+  "3515": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 5,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 7,
+      "fabulism": 2,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 4,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "Indigenous-protagonist",
+      "american-setting",
+      "north-dakota-setting",
+      "multigenerational",
+      "family-saga",
+      "community"
+    ]
+  },
+  "3516": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 5,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 7,
+      "fabulism": 2,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 4,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "Indigenous-protagonist",
+      "american-setting",
+      "north-dakota-setting",
+      "multigenerational",
+      "family-saga",
+      "community"
     ]
   },
   "3609": {
@@ -4168,6 +9604,94 @@
       "novella-length"
     ]
   },
+  "3637": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 8,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 3,
+      "moral_complexity": 8,
+      "fabulism": 2,
+      "emotional_register": 3,
+      "interiority": 6,
+      "tone": 3,
+      "difficulty": 7
+    },
+    "tags": [
+      "literary-fiction",
+      "19th-century",
+      "american-setting",
+      "male-protagonist",
+      "dense-prose"
+    ]
+  },
+  "3638": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 8,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 3,
+      "moral_complexity": 8,
+      "fabulism": 2,
+      "emotional_register": 3,
+      "interiority": 6,
+      "tone": 3,
+      "difficulty": 7
+    },
+    "tags": [
+      "literary-fiction",
+      "19th-century",
+      "american-setting",
+      "male-protagonist",
+      "dense-prose"
+    ]
+  },
+  "3698": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 8,
+      "warmth": 4,
+      "intensity": 3,
+      "pace": 2,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 9,
+      "tone": 3,
+      "difficulty": 7
+    },
+    "tags": [
+      "literary-fiction",
+      "dense-prose",
+      "psychological",
+      "class",
+      "19th-century"
+    ]
+  },
+  "3699": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 8,
+      "warmth": 4,
+      "intensity": 3,
+      "pace": 2,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 9,
+      "tone": 3,
+      "difficulty": 7
+    },
+    "tags": [
+      "literary-fiction",
+      "dense-prose",
+      "psychological",
+      "class",
+      "19th-century"
+    ]
+  },
   "3739": {
     "vibes": {
       "prose_craft": 8,
@@ -4196,6 +9720,161 @@
       "regional-literature"
     ]
   },
+  "4113": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 3,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "canadian-setting",
+      "female-protagonist",
+      "feminist"
+    ]
+  },
+  "4114": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 3,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "canadian-setting",
+      "female-protagonist",
+      "feminist"
+    ]
+  },
+  "4115": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 3,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "canadian-setting",
+      "female-protagonist",
+      "feminist"
+    ]
+  },
+  "4116": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 3,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "canadian-setting",
+      "female-protagonist",
+      "feminist"
+    ]
+  },
+  "4117": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 5,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 5,
+      "difficulty": 4
+    },
+    "tags": [
+      "mythology-retelling",
+      "female-protagonist",
+      "feminist",
+      "novella-length",
+      "satirical",
+      "odyssey"
+    ]
+  },
+  "4138": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 4,
+      "warmth": 7,
+      "intensity": 3,
+      "pace": 3,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 3
+    },
+    "tags": [
+      "literary-fiction",
+      "new-england-setting",
+      "female-protagonist",
+      "domestic",
+      "small-town",
+      "restrained-prose",
+      "quiet-drama"
+    ]
+  },
+  "4139": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 4,
+      "warmth": 7,
+      "intensity": 3,
+      "pace": 3,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 3
+    },
+    "tags": [
+      "literary-fiction",
+      "new-england-setting",
+      "female-protagonist",
+      "domestic",
+      "small-town",
+      "restrained-prose",
+      "quiet-drama"
+    ]
+  },
   "4346": {
     "vibes": {
       "prose_craft": 4,
@@ -4216,6 +9895,214 @@
       "secondary-world",
       "female-protagonist",
       "novella-length"
+    ]
+  },
+  "4841": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 7,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 6
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "Jewish-protagonist",
+      "american-setting",
+      "identity",
+      "dense-prose"
+    ]
+  },
+  "4842": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 7,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 6
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "Jewish-protagonist",
+      "american-setting",
+      "identity",
+      "dense-prose"
+    ]
+  },
+  "4843": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 4,
+      "warmth": 6,
+      "intensity": 4,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 5,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "american-setting",
+      "california-setting",
+      "working-class"
+    ]
+  },
+  "4844": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 4,
+      "warmth": 6,
+      "intensity": 4,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 5,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "american-setting",
+      "california-setting",
+      "working-class"
+    ]
+  },
+  "4845": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 4,
+      "warmth": 6,
+      "intensity": 4,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 5,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "american-setting",
+      "california-setting",
+      "working-class"
+    ]
+  },
+  "4846": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 3,
+      "pace": 4,
+      "moral_complexity": 6,
+      "fabulism": 5,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "translated-from",
+      "japanese-setting",
+      "male-protagonist",
+      "alienation",
+      "loneliness",
+      "surreal",
+      "dreamlike"
+    ]
+  },
+  "4847": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 3,
+      "pace": 4,
+      "moral_complexity": 6,
+      "fabulism": 5,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "translated-from",
+      "japanese-setting",
+      "male-protagonist",
+      "alienation",
+      "loneliness",
+      "surreal",
+      "dreamlike"
+    ]
+  },
+  "4848": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 6,
+      "fabulism": 0,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "narrative-nonfiction",
+      "translated-from",
+      "japanese-setting",
+      "terrorism",
+      "cult-horror",
+      "ensemble-cast",
+      "deeply-researched"
+    ]
+  },
+  "4849": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 3,
+      "pace": 4,
+      "moral_complexity": 6,
+      "fabulism": 5,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "translated-from",
+      "japanese-setting",
+      "male-protagonist",
+      "alienation",
+      "loneliness",
+      "surreal",
+      "dreamlike"
     ]
   },
   "5969": {
@@ -4271,6 +10158,1706 @@
       "philosophical-sf",
       "outsider-protagonist",
       "bleak"
+    ]
+  },
+  "7220": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 7,
+      "warmth": 3,
+      "intensity": 7,
+      "pace": 4,
+      "moral_complexity": 9,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 2,
+      "difficulty": 6
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "african-setting",
+      "colonialism",
+      "river-setting",
+      "moral-dilemma",
+      "frame-story",
+      "dense-prose",
+      "novella-length"
+    ]
+  },
+  "7221": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 7,
+      "warmth": 3,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 9,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 2,
+      "difficulty": 6
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "ocean-setting",
+      "guilt",
+      "identity",
+      "moral-dilemma",
+      "dense-prose",
+      "frame-story"
+    ]
+  },
+  "7222": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 7,
+      "warmth": 3,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 9,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 2,
+      "difficulty": 7
+    },
+    "tags": [
+      "literary-fiction",
+      "ensemble-cast",
+      "south-american-setting",
+      "political-intrigue",
+      "colonialism",
+      "revolution",
+      "silver-mine",
+      "doorstopper",
+      "dense-prose"
+    ]
+  },
+  "7223": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 7,
+      "warmth": 3,
+      "intensity": 6,
+      "pace": 5,
+      "moral_complexity": 9,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 2,
+      "difficulty": 6
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "london-setting",
+      "espionage",
+      "anarchism",
+      "terrorism",
+      "domestic",
+      "political-intrigue"
+    ]
+  },
+  "7224": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 7,
+      "warmth": 3,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 9,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 2,
+      "difficulty": 6
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "ocean-setting",
+      "colonialism",
+      "moral-dilemma",
+      "dense-prose"
+    ]
+  },
+  "7421": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 5,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 7,
+      "fabulism": 2,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 4,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "Indigenous-protagonist",
+      "american-setting",
+      "north-dakota-setting",
+      "multigenerational",
+      "family-saga",
+      "community"
+    ]
+  },
+  "7901": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 4,
+      "warmth": 7,
+      "intensity": 3,
+      "pace": 3,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 3
+    },
+    "tags": [
+      "literary-fiction",
+      "new-england-setting",
+      "female-protagonist",
+      "domestic",
+      "small-town",
+      "restrained-prose",
+      "quiet-drama"
+    ]
+  },
+  "7959": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 8,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "vignettes",
+      "canadian-setting",
+      "female-protagonist",
+      "domestic",
+      "rural",
+      "memory",
+      "restrained-prose",
+      "marriage"
+    ]
+  },
+  "7960": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 8,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "vignettes",
+      "canadian-setting",
+      "female-protagonist",
+      "domestic",
+      "rural",
+      "memory",
+      "restrained-prose",
+      "marriage"
+    ]
+  },
+  "7961": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 8,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "vignettes",
+      "canadian-setting",
+      "female-protagonist",
+      "domestic",
+      "rural",
+      "memory",
+      "restrained-prose",
+      "marriage"
+    ]
+  },
+  "7962": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 8,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "vignettes",
+      "canadian-setting",
+      "female-protagonist",
+      "domestic",
+      "rural",
+      "memory",
+      "restrained-prose",
+      "marriage"
+    ]
+  },
+  "7963": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 8,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "canadian-setting",
+      "female-protagonist",
+      "coming-of-age",
+      "rural",
+      "domestic",
+      "bildungsroman",
+      "restrained-prose"
+    ]
+  },
+  "7964": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 8,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "vignettes",
+      "canadian-setting",
+      "female-protagonist",
+      "domestic",
+      "rural",
+      "memory",
+      "restrained-prose",
+      "marriage"
+    ]
+  },
+  "7965": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 8,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "vignettes",
+      "canadian-setting",
+      "female-protagonist",
+      "domestic",
+      "rural",
+      "memory",
+      "restrained-prose",
+      "marriage"
+    ]
+  },
+  "8761": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 4,
+      "warmth": 3,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 9,
+      "fabulism": 2,
+      "emotional_register": 2,
+      "interiority": 8,
+      "tone": 2,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "south-african-setting",
+      "male-protagonist",
+      "restrained-prose",
+      "moral-dilemma"
+    ]
+  },
+  "8872": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "british-setting",
+      "domestic",
+      "moral-dilemma"
+    ]
+  },
+  "8873": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "british-setting",
+      "domestic",
+      "moral-dilemma"
+    ]
+  },
+  "8879": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 2,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 5,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "vignettes",
+      "male-protagonist",
+      "coming-of-age",
+      "midwestern-setting",
+      "war",
+      "sparse-prose",
+      "nick-adams"
+    ]
+  },
+  "8892": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 4,
+      "warmth": 7,
+      "intensity": 3,
+      "pace": 3,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 3
+    },
+    "tags": [
+      "literary-fiction",
+      "new-england-setting",
+      "female-protagonist",
+      "domestic",
+      "small-town",
+      "restrained-prose",
+      "quiet-drama"
+    ]
+  },
+  "9100": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 5,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "american-setting",
+      "suburban",
+      "marriage",
+      "domestic"
+    ]
+  },
+  "9105": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 7,
+      "warmth": 6,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 5,
+      "tone": 5,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "british-setting",
+      "victorian-setting",
+      "social-panorama",
+      "class",
+      "ensemble-cast"
+    ]
+  },
+  "9966": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 7,
+      "warmth": 3,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 9,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 2,
+      "difficulty": 6
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "ocean-setting",
+      "colonialism",
+      "moral-dilemma",
+      "dense-prose"
+    ]
+  },
+  "9967": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 7,
+      "warmth": 3,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 9,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 2,
+      "difficulty": 6
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "ocean-setting",
+      "colonialism",
+      "moral-dilemma",
+      "dense-prose"
+    ]
+  },
+  "9968": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 7,
+      "warmth": 3,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 9,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 2,
+      "difficulty": 6
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "ocean-setting",
+      "colonialism",
+      "moral-dilemma",
+      "dense-prose"
+    ]
+  },
+  "9994": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 3,
+      "pace": 4,
+      "moral_complexity": 6,
+      "fabulism": 5,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "vignettes",
+      "translated-from",
+      "japanese-setting",
+      "surreal",
+      "loneliness",
+      "dreamlike",
+      "alienation"
+    ]
+  },
+  "9995": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 3,
+      "pace": 4,
+      "moral_complexity": 6,
+      "fabulism": 5,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "vignettes",
+      "translated-from",
+      "japanese-setting",
+      "surreal",
+      "loneliness",
+      "dreamlike"
+    ]
+  },
+  "9998": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 2,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 5,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "sparse-prose"
+    ]
+  },
+  "10111": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "british-setting",
+      "domestic",
+      "moral-dilemma"
+    ]
+  },
+  "10112": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "british-setting",
+      "domestic",
+      "moral-dilemma"
+    ]
+  },
+  "10113": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 2,
+      "intensity": 7,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "vignettes",
+      "british-setting",
+      "transgressive",
+      "sexuality",
+      "domestic",
+      "uneasy",
+      "short-chapters"
+    ]
+  },
+  "10114": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "british-setting",
+      "domestic",
+      "moral-dilemma"
+    ]
+  },
+  "10130": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 8,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 3,
+      "moral_complexity": 8,
+      "fabulism": 2,
+      "emotional_register": 3,
+      "interiority": 6,
+      "tone": 3,
+      "difficulty": 7
+    },
+    "tags": [
+      "literary-fiction",
+      "19th-century",
+      "american-setting",
+      "male-protagonist",
+      "dense-prose"
+    ]
+  },
+  "10131": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 8,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 3,
+      "moral_complexity": 8,
+      "fabulism": 2,
+      "emotional_register": 3,
+      "interiority": 6,
+      "tone": 3,
+      "difficulty": 7
+    },
+    "tags": [
+      "literary-fiction",
+      "19th-century",
+      "american-setting",
+      "male-protagonist",
+      "dense-prose"
+    ]
+  },
+  "10132": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 8,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 3,
+      "moral_complexity": 8,
+      "fabulism": 2,
+      "emotional_register": 3,
+      "interiority": 6,
+      "tone": 3,
+      "difficulty": 9
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "identity",
+      "obsession",
+      "dense-prose",
+      "doorstopper",
+      "experimental-form"
+    ]
+  },
+  "10133": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 8,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 3,
+      "moral_complexity": 8,
+      "fabulism": 2,
+      "emotional_register": 3,
+      "interiority": 6,
+      "tone": 3,
+      "difficulty": 7
+    },
+    "tags": [
+      "literary-fiction",
+      "19th-century",
+      "american-setting",
+      "male-protagonist",
+      "dense-prose"
+    ]
+  },
+  "10156": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 7,
+      "warmth": 3,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 9,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 2,
+      "difficulty": 6
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "ocean-setting",
+      "colonialism",
+      "moral-dilemma",
+      "dense-prose"
+    ]
+  },
+  "10157": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 7,
+      "warmth": 3,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 9,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 2,
+      "difficulty": 6
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "ocean-setting",
+      "colonialism",
+      "moral-dilemma",
+      "dense-prose"
+    ]
+  },
+  "10158": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 7,
+      "warmth": 3,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 9,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 2,
+      "difficulty": 6
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "ocean-setting",
+      "colonialism",
+      "moral-dilemma",
+      "dense-prose"
+    ]
+  },
+  "10159": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 8,
+      "warmth": 4,
+      "intensity": 3,
+      "pace": 2,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 9,
+      "tone": 3,
+      "difficulty": 7
+    },
+    "tags": [
+      "literary-fiction",
+      "dense-prose",
+      "psychological",
+      "class",
+      "19th-century"
+    ]
+  },
+  "10188": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 6,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "faith-and-doubt",
+      "moral-dilemma",
+      "political-intrigue"
+    ]
+  },
+  "10204": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 8,
+      "warmth": 4,
+      "intensity": 6,
+      "pace": 3,
+      "moral_complexity": 9,
+      "fabulism": 2,
+      "emotional_register": 2,
+      "interiority": 7,
+      "tone": 2,
+      "difficulty": 8
+    },
+    "tags": [
+      "literary-fiction",
+      "southern-gothic",
+      "american-setting",
+      "mississippi-setting",
+      "race",
+      "family-saga",
+      "dense-prose"
+    ]
+  },
+  "10205": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 8,
+      "warmth": 4,
+      "intensity": 6,
+      "pace": 3,
+      "moral_complexity": 9,
+      "fabulism": 2,
+      "emotional_register": 2,
+      "interiority": 7,
+      "tone": 2,
+      "difficulty": 8
+    },
+    "tags": [
+      "literary-fiction",
+      "southern-gothic",
+      "american-setting",
+      "mississippi-setting",
+      "race",
+      "family-saga",
+      "dense-prose"
+    ]
+  },
+  "10206": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 8,
+      "warmth": 4,
+      "intensity": 6,
+      "pace": 3,
+      "moral_complexity": 9,
+      "fabulism": 2,
+      "emotional_register": 2,
+      "interiority": 7,
+      "tone": 2,
+      "difficulty": 8
+    },
+    "tags": [
+      "literary-fiction",
+      "southern-gothic",
+      "american-setting",
+      "mississippi-setting",
+      "race",
+      "family-saga",
+      "dense-prose"
+    ]
+  },
+  "10207": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 8,
+      "warmth": 4,
+      "intensity": 6,
+      "pace": 3,
+      "moral_complexity": 9,
+      "fabulism": 2,
+      "emotional_register": 2,
+      "interiority": 7,
+      "tone": 2,
+      "difficulty": 8
+    },
+    "tags": [
+      "literary-fiction",
+      "southern-gothic",
+      "american-setting",
+      "mississippi-setting",
+      "race",
+      "family-saga",
+      "dense-prose"
+    ]
+  },
+  "10208": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 8,
+      "warmth": 4,
+      "intensity": 6,
+      "pace": 3,
+      "moral_complexity": 9,
+      "fabulism": 2,
+      "emotional_register": 2,
+      "interiority": 7,
+      "tone": 2,
+      "difficulty": 8
+    },
+    "tags": [
+      "literary-fiction",
+      "southern-gothic",
+      "american-setting",
+      "mississippi-setting",
+      "race",
+      "family-saga",
+      "dense-prose"
+    ]
+  },
+  "10209": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 2,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 5,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "sparse-prose"
+    ]
+  },
+  "10210": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 2,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 5,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "sparse-prose"
+    ]
+  },
+  "10211": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 2,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 5,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "sparse-prose"
+    ]
+  },
+  "10212": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 4,
+      "warmth": 6,
+      "intensity": 4,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 5,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "american-setting",
+      "california-setting",
+      "working-class"
+    ]
+  },
+  "10213": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 4,
+      "warmth": 6,
+      "intensity": 4,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 5,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "american-setting",
+      "california-setting",
+      "working-class"
+    ]
+  },
+  "10214": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 4,
+      "warmth": 6,
+      "intensity": 4,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 5,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "american-setting",
+      "california-setting",
+      "working-class"
+    ]
+  },
+  "10215": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 4,
+      "warmth": 6,
+      "intensity": 4,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 5,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "american-setting",
+      "california-setting",
+      "working-class"
+    ]
+  },
+  "10216": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 4,
+      "warmth": 6,
+      "intensity": 4,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 5,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "american-setting",
+      "california-setting",
+      "working-class"
+    ]
+  },
+  "10217": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 4,
+      "warmth": 6,
+      "intensity": 4,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 5,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "american-setting",
+      "california-setting",
+      "working-class"
+    ]
+  },
+  "10218": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 4,
+      "warmth": 6,
+      "intensity": 4,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 5,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "american-setting",
+      "california-setting",
+      "working-class"
+    ]
+  },
+  "10221": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 5,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "american-setting",
+      "suburban",
+      "marriage",
+      "domestic"
+    ]
+  },
+  "10222": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 5,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "male-protagonist",
+      "american-setting",
+      "suburban",
+      "marriage",
+      "domestic"
+    ]
+  },
+  "10294": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 8,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "vignettes",
+      "canadian-setting",
+      "female-protagonist",
+      "domestic",
+      "rural",
+      "memory",
+      "restrained-prose",
+      "marriage"
+    ]
+  },
+  "10295": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 8,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "vignettes",
+      "canadian-setting",
+      "female-protagonist",
+      "domestic",
+      "rural",
+      "memory",
+      "restrained-prose",
+      "marriage"
+    ]
+  },
+  "10296": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 8,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "vignettes",
+      "canadian-setting",
+      "female-protagonist",
+      "domestic",
+      "rural",
+      "memory",
+      "restrained-prose",
+      "marriage"
+    ]
+  },
+  "10297": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 8,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "vignettes",
+      "canadian-setting",
+      "female-protagonist",
+      "domestic",
+      "rural",
+      "memory",
+      "restrained-prose",
+      "marriage"
+    ]
+  },
+  "10298": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 8,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "vignettes",
+      "canadian-setting",
+      "female-protagonist",
+      "domestic",
+      "rural",
+      "memory",
+      "restrained-prose",
+      "marriage"
+    ]
+  },
+  "10299": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 8,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "vignettes",
+      "canadian-setting",
+      "female-protagonist",
+      "domestic",
+      "rural",
+      "memory",
+      "restrained-prose",
+      "marriage"
+    ]
+  },
+  "10300": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 3,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "canadian-setting",
+      "female-protagonist",
+      "feminist"
+    ]
+  },
+  "10301": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 3,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "canadian-setting",
+      "female-protagonist",
+      "feminist"
+    ]
+  },
+  "10302": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 3,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "canadian-setting",
+      "female-protagonist",
+      "feminist"
+    ]
+  },
+  "10303": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 3,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-fiction",
+      "canadian-setting",
+      "female-protagonist",
+      "feminist"
+    ]
+  },
+  "10304": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 8,
+      "fabulism": 2,
+      "emotional_register": 4,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "british-setting",
+      "philosophical",
+      "domestic",
+      "ensemble-cast",
+      "moral-dilemma"
+    ]
+  },
+  "10305": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 8,
+      "fabulism": 2,
+      "emotional_register": 4,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "british-setting",
+      "philosophical",
+      "domestic",
+      "ensemble-cast",
+      "moral-dilemma"
+    ]
+  },
+  "10306": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 8,
+      "fabulism": 2,
+      "emotional_register": 4,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "british-setting",
+      "philosophical",
+      "domestic",
+      "ensemble-cast",
+      "moral-dilemma"
+    ]
+  },
+  "10307": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 8,
+      "fabulism": 2,
+      "emotional_register": 4,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "british-setting",
+      "philosophical",
+      "domestic",
+      "ensemble-cast",
+      "moral-dilemma"
+    ]
+  },
+  "10308": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 8,
+      "fabulism": 2,
+      "emotional_register": 4,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "british-setting",
+      "philosophical",
+      "domestic",
+      "ensemble-cast",
+      "moral-dilemma"
+    ]
+  },
+  "10309": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 8,
+      "fabulism": 2,
+      "emotional_register": 4,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "british-setting",
+      "philosophical",
+      "domestic",
+      "ensemble-cast",
+      "moral-dilemma"
+    ]
+  },
+  "10310": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 8,
+      "fabulism": 2,
+      "emotional_register": 4,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-fiction",
+      "british-setting",
+      "philosophical",
+      "domestic",
+      "ensemble-cast",
+      "moral-dilemma"
     ]
   },
   "10584": {
