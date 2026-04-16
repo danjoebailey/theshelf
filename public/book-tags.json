@@ -20124,6 +20124,31 @@
       "literary-sf"
     ]
   },
+  "12545": {
+    "vibes": {
+      "prose_craft": 6,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 3,
+      "pace": 4,
+      "moral_complexity": 6,
+      "fabulism": 5,
+      "emotional_register": 5,
+      "interiority": 5,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "historical-fantasy",
+      "french-setting",
+      "female-protagonist",
+      "court-intrigue",
+      "17th-century",
+      "versailles-setting",
+      "sea-creature",
+      "romance-subplot"
+    ]
+  },
   "12547": {
     "vibes": {
       "prose_craft": 6,
@@ -20810,6 +20835,33 @@
       "philosophical-sf",
       "literary-sf",
       "transformation"
+    ]
+  },
+  "12610": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 7,
+      "intensity": 3,
+      "pace": 3,
+      "moral_complexity": 5,
+      "fabulism": 1,
+      "emotional_register": 5,
+      "interiority": 6,
+      "tone": 4,
+      "difficulty": 3
+    },
+    "tags": [
+      "historical-fiction",
+      "american-setting",
+      "western-setting",
+      "female-protagonist",
+      "horse-culture",
+      "ww1-era",
+      "rural",
+      "community",
+      "quiet-drama",
+      "pastoral"
     ]
   },
   "12636": {
@@ -25398,6 +25450,52 @@
       "cold-case"
     ]
   },
+  "12826": {
+    "vibes": {
+      "prose_craft": 6,
+      "prose_style": 4,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 6,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 5,
+      "tone": 3,
+      "difficulty": 3
+    },
+    "tags": [
+      "police-procedural",
+      "translated-from",
+      "swedish-setting",
+      "female-protagonist",
+      "series-detective",
+      "urban",
+      "social-realism"
+    ]
+  },
+  "12827": {
+    "vibes": {
+      "prose_craft": 6,
+      "prose_style": 4,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 5,
+      "tone": 3,
+      "difficulty": 3
+    },
+    "tags": [
+      "police-procedural",
+      "translated-from",
+      "swedish-setting",
+      "female-protagonist",
+      "series-detective"
+    ]
+  },
   "12828": {
     "vibes": {
       "prose_craft": 5,
@@ -25988,6 +26086,33 @@
       "sexuality",
       "identity",
       "linguistic-play"
+    ]
+  },
+  "12886": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 8,
+      "fabulism": 0,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "historical-fiction",
+      "translated-from",
+      "spanish-setting",
+      "male-protagonist",
+      "civil-war",
+      "metafiction",
+      "autofiction",
+      "soldier-protagonist",
+      "mercy",
+      "deeply-researched"
     ]
   },
   "12887": {
@@ -27735,6 +27860,32 @@
       "post-war-setting",
       "political-intrigue",
       "disillusionment"
+    ]
+  },
+  "12959": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 6,
+      "warmth": 5,
+      "intensity": 2,
+      "pace": 3,
+      "moral_complexity": 5,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-memoir",
+      "translated-from",
+      "eastern-european-setting",
+      "male-protagonist",
+      "road-trip",
+      "meditative",
+      "landscape",
+      "lyrical-prose",
+      "philosophical"
     ]
   },
   "12961": {
@@ -31196,6 +31347,33 @@
       "lyrical-prose"
     ]
   },
+  "13104": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 6,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 6,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "historical-fiction",
+      "translated-from",
+      "italian-setting",
+      "male-protagonist",
+      "ww2-era",
+      "resistance",
+      "partisan",
+      "coming-of-age",
+      "war",
+      "violence"
+    ]
+  },
   "13105": {
     "vibes": {
       "prose_craft": 7,
@@ -31300,6 +31478,31 @@
       "madness"
     ]
   },
+  "13109": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 3,
+      "pace": 3,
+      "moral_complexity": 6,
+      "fabulism": 0,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "narrative-nonfiction",
+      "translated-from",
+      "sicilian-setting",
+      "personal-essay",
+      "working-class",
+      "poverty",
+      "community",
+      "southern-italy"
+    ]
+  },
   "13110": {
     "vibes": {
       "prose_craft": 8,
@@ -31377,6 +31580,32 @@
       "meditative"
     ]
   },
+  "13113": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 7,
+      "pace": 6,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 6,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "historical-fiction",
+      "translated-from",
+      "dutch-setting",
+      "male-protagonist",
+      "ww2-era",
+      "child-protagonist",
+      "bombing",
+      "coming-of-age",
+      "war-trauma"
+    ]
+  },
   "13114": {
     "vibes": {
       "prose_craft": 8,
@@ -31429,6 +31658,33 @@
       "identity",
       "moral-dilemma",
       "novella-length"
+    ]
+  },
+  "13116": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 5,
+      "warmth": 3,
+      "intensity": 6,
+      "pace": 5,
+      "moral_complexity": 9,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 6
+    },
+    "tags": [
+      "historical-fiction",
+      "translated-from",
+      "dutch-setting",
+      "male-protagonist",
+      "ww2-era",
+      "identity",
+      "resistance",
+      "unreliable-narrator",
+      "moral-dilemma",
+      "spy"
     ]
   },
   "13117": {
@@ -31534,6 +31790,33 @@
       "water-setting"
     ]
   },
+  "13121": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 6,
+      "warmth": 5,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 6,
+      "fabulism": 2,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "historical-fiction",
+      "translated-from",
+      "dutch-setting",
+      "french-setting",
+      "medieval-setting",
+      "male-protagonist",
+      "political-intrigue",
+      "war",
+      "burgundian",
+      "doorstopper"
+    ]
+  },
   "13122": {
     "vibes": {
       "prose_craft": 8,
@@ -31584,6 +31867,33 @@
       "marriage",
       "class",
       "dense-prose",
+      "doorstopper"
+    ]
+  },
+  "13124": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 6
+    },
+    "tags": [
+      "historical-fiction",
+      "translated-from",
+      "flemish-setting",
+      "male-protagonist",
+      "child-protagonist",
+      "coming-of-age",
+      "ww2-era",
+      "collaboration",
+      "family",
       "doorstopper"
     ]
   },
@@ -31689,6 +31999,32 @@
       "medical",
       "gothic-atmosphere",
       "feminist"
+    ]
+  },
+  "13130": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 4,
+      "intensity": 6,
+      "pace": 4,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 2,
+      "interiority": 8,
+      "tone": 2,
+      "difficulty": 6
+    },
+    "tags": [
+      "historical-fiction",
+      "scottish-setting",
+      "male-protagonist",
+      "ww2-era",
+      "soldier-protagonist",
+      "war-trauma",
+      "memory",
+      "fragmented-prose",
+      "lyrical-prose"
     ]
   },
   "13131": {
@@ -31977,6 +32313,111 @@
       "absurdist"
     ]
   },
+  "13148": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 8,
+      "fabulism": 2,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "historical-fiction",
+      "translated-from",
+      "danish-setting",
+      "male-protagonist",
+      "18th-century",
+      "medical",
+      "court-intrigue",
+      "madness",
+      "power",
+      "biographical-fiction"
+    ]
+  },
+  "13149": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "historical-fiction",
+      "translated-from",
+      "french-setting",
+      "female-protagonist",
+      "medical",
+      "biographical-fiction",
+      "science",
+      "disability"
+    ]
+  },
+  "13150": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 6,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "historical-fiction",
+      "translated-from",
+      "swedish-setting",
+      "american-setting",
+      "ensemble-cast",
+      "immigration",
+      "19th-century",
+      "rural",
+      "family",
+      "working-class"
+    ]
+  },
+  "13151": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 6,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "historical-fiction",
+      "translated-from",
+      "american-setting",
+      "immigration",
+      "19th-century",
+      "rural",
+      "family",
+      "working-class",
+      "homesteading"
+    ]
+  },
   "13152": {
     "vibes": {
       "prose_craft": 7,
@@ -32001,6 +32442,108 @@
       "coming-of-age",
       "working-class",
       "jante-law"
+    ]
+  },
+  "13153": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 5,
+      "warmth": 3,
+      "intensity": 7,
+      "pace": 6,
+      "moral_complexity": 9,
+      "fabulism": 0,
+      "emotional_register": 2,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "narrative-nonfiction",
+      "translated-from",
+      "french-setting",
+      "male-protagonist",
+      "true-crime",
+      "identity",
+      "fraud",
+      "family",
+      "deeply-researched"
+    ]
+  },
+  "13154": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 6,
+      "moral_complexity": 8,
+      "fabulism": 0,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 4,
+      "difficulty": 5
+    },
+    "tags": [
+      "biography",
+      "translated-from",
+      "russian-setting",
+      "male-protagonist",
+      "political-intrigue",
+      "adventure",
+      "20th-century",
+      "picaresque"
+    ]
+  },
+  "13155": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 5,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 7,
+      "fabulism": 0,
+      "emotional_register": 4,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 5
+    },
+    "tags": [
+      "narrative-nonfiction",
+      "translated-from",
+      "religious",
+      "faith-and-doubt",
+      "biblical",
+      "autofiction",
+      "personal-essay",
+      "christian-origins"
+    ]
+  },
+  "13156": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 5,
+      "warmth": 7,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 6,
+      "fabulism": 0,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "narrative-nonfiction",
+      "translated-from",
+      "autofiction",
+      "illness",
+      "grief",
+      "family",
+      "domestic",
+      "personal-essay",
+      "empathy"
     ]
   },
   "13157": {
@@ -32055,6 +32598,33 @@
       "surreal"
     ]
   },
+  "13160": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 7,
+      "pace": 6,
+      "moral_complexity": 8,
+      "fabulism": 0,
+      "emotional_register": 3,
+      "interiority": 6,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "historical-fiction",
+      "translated-from",
+      "ww2-era",
+      "czech-setting",
+      "assassination",
+      "metafiction",
+      "resistance",
+      "heydrich",
+      "deeply-researched",
+      "dual-timeline"
+    ]
+  },
   "13161": {
     "vibes": {
       "prose_craft": 7,
@@ -32080,6 +32650,31 @@
       "witty-prose",
       "mystery",
       "contemporary-setting"
+    ]
+  },
+  "13162": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 4,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 4,
+      "emotional_register": 4,
+      "interiority": 5,
+      "tone": 5,
+      "difficulty": 4
+    },
+    "tags": [
+      "alternate-history-sf",
+      "translated-from",
+      "colonial-era",
+      "multi-pov",
+      "satirical",
+      "american-setting",
+      "european-setting",
+      "revisionist"
     ]
   },
   "13163": {
@@ -32131,6 +32726,83 @@
       "missing-person",
       "contemporary-setting",
       "violence"
+    ]
+  },
+  "13166": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "historical-fiction",
+      "translated-from",
+      "moroccan-setting",
+      "female-protagonist",
+      "marriage",
+      "colonial-era",
+      "post-war-setting",
+      "domestic",
+      "feminism",
+      "cultural-clash"
+    ]
+  },
+  "13167": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 3,
+      "intensity": 4,
+      "pace": 5,
+      "moral_complexity": 6,
+      "fabulism": 0,
+      "emotional_register": 3,
+      "interiority": 5,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "biography",
+      "translated-from",
+      "global-setting",
+      "male-protagonist",
+      "medical",
+      "colonial-era",
+      "adventure",
+      "20th-century"
+    ]
+  },
+  "13168": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 3,
+      "intensity": 4,
+      "pace": 5,
+      "moral_complexity": 6,
+      "fabulism": 0,
+      "emotional_register": 3,
+      "interiority": 5,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "biography",
+      "translated-from",
+      "mexican-setting",
+      "male-protagonist",
+      "revolutionary",
+      "20th-century",
+      "political-intrigue",
+      "adventure"
     ]
   },
   "13169": {
@@ -32215,6 +32887,57 @@
       "novella-length"
     ]
   },
+  "13174": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 3,
+      "intensity": 5,
+      "pace": 6,
+      "moral_complexity": 8,
+      "fabulism": 0,
+      "emotional_register": 3,
+      "interiority": 5,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "narrative-nonfiction",
+      "translated-from",
+      "ww2-era",
+      "german-setting",
+      "political-intrigue",
+      "novella-length",
+      "deeply-researched",
+      "power",
+      "complicity"
+    ]
+  },
+  "13175": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 6,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 6,
+      "moral_complexity": 7,
+      "fabulism": 0,
+      "emotional_register": 3,
+      "interiority": 5,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "narrative-nonfiction",
+      "translated-from",
+      "german-setting",
+      "16th-century",
+      "rebellion",
+      "class",
+      "religious",
+      "novella-length"
+    ]
+  },
   "13176": {
     "vibes": {
       "prose_craft": 7,
@@ -32241,6 +32964,33 @@
       "poverty",
       "class",
       "sexuality"
+    ]
+  },
+  "13177": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 4,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 0,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "autofiction",
+      "translated-from",
+      "french-setting",
+      "male-protagonist",
+      "father-son",
+      "working-class",
+      "class",
+      "rural",
+      "violence",
+      "novella-length"
     ]
   },
   "13178": {
@@ -32423,6 +33173,34 @@
       "provincial"
     ]
   },
+  "13186": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 7,
+      "warmth": 5,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 7,
+      "fabulism": 0,
+      "emotional_register": 4,
+      "interiority": 8,
+      "tone": 4,
+      "difficulty": 7
+    },
+    "tags": [
+      "literary-memoir",
+      "translated-from",
+      "russian-setting",
+      "male-protagonist",
+      "exile",
+      "political-intrigue",
+      "19th-century",
+      "revolutionary",
+      "doorstopper",
+      "dense-prose",
+      "philosophical"
+    ]
+  },
   "13187": {
     "vibes": {
       "prose_craft": 7,
@@ -32602,6 +33380,59 @@
       "contemporary-setting"
     ]
   },
+  "13195": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 3,
+      "pace": 5,
+      "moral_complexity": 6,
+      "fabulism": 2,
+      "emotional_register": 5,
+      "interiority": 6,
+      "tone": 6,
+      "difficulty": 4
+    },
+    "tags": [
+      "historical-fiction",
+      "translated-from",
+      "german-setting",
+      "dual-pov",
+      "science",
+      "mathematics",
+      "exploration",
+      "19th-century",
+      "witty-prose",
+      "biographical-fiction"
+    ]
+  },
+  "13196": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 3,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 5,
+      "difficulty": 5
+    },
+    "tags": [
+      "historical-fiction",
+      "translated-from",
+      "german-setting",
+      "male-protagonist",
+      "trickster",
+      "30-years-war",
+      "picaresque",
+      "17th-century",
+      "war"
+    ]
+  },
   "13197": {
     "vibes": {
       "prose_craft": 6,
@@ -32625,6 +33456,33 @@
       "family",
       "secrets",
       "contemporary-setting"
+    ]
+  },
+  "13199": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 6,
+      "intensity": 1,
+      "pace": 3,
+      "moral_complexity": 4,
+      "fabulism": 1,
+      "emotional_register": 5,
+      "interiority": 7,
+      "tone": 6,
+      "difficulty": 4
+    },
+    "tags": [
+      "essay-collection",
+      "translated-from",
+      "japanese-setting",
+      "female-protagonist",
+      "court-life",
+      "domestic",
+      "witty-prose",
+      "10th-century",
+      "diary-form",
+      "observations"
     ]
   },
   "13200": {
@@ -32677,6 +33535,61 @@
       "edo-period",
       "picaresque",
       "social-realism"
+    ]
+  },
+  "13202": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 1,
+      "pace": 2,
+      "moral_complexity": 5,
+      "fabulism": 1,
+      "emotional_register": 5,
+      "interiority": 8,
+      "tone": 5,
+      "difficulty": 4
+    },
+    "tags": [
+      "essay-collection",
+      "translated-from",
+      "japanese-setting",
+      "male-protagonist",
+      "philosophical",
+      "meditative",
+      "14th-century",
+      "zen",
+      "observations",
+      "mortality"
+    ]
+  },
+  "13203": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 6,
+      "warmth": 5,
+      "intensity": 7,
+      "pace": 6,
+      "moral_complexity": 7,
+      "fabulism": 3,
+      "emotional_register": 4,
+      "interiority": 4,
+      "tone": 4,
+      "difficulty": 6
+    },
+    "tags": [
+      "historical-fiction",
+      "translated-from",
+      "chinese-setting",
+      "ensemble-cast",
+      "multi-pov",
+      "war",
+      "political-intrigue",
+      "dynastic",
+      "doorstopper",
+      "classical",
+      "brotherhood"
     ]
   },
   "13204": {
@@ -32912,6 +33825,58 @@
       "marriage"
     ]
   },
+  "13225": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 6,
+      "warmth": 4,
+      "intensity": 6,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 5,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "historical-fiction",
+      "american-setting",
+      "california-setting",
+      "ensemble-cast",
+      "capitalism",
+      "labor",
+      "farming",
+      "railroad",
+      "class",
+      "naturalism"
+    ]
+  },
+  "13227": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "historical-fiction",
+      "american-setting",
+      "virginia-setting",
+      "female-protagonist",
+      "family-saga",
+      "working-class",
+      "depression-era",
+      "resilience"
+    ]
+  },
   "13235": {
     "vibes": {
       "prose_craft": 8,
@@ -33142,6 +34107,58 @@
       "racism"
     ]
   },
+  "13250": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 2,
+      "interiority": 7,
+      "tone": 2,
+      "difficulty": 5
+    },
+    "tags": [
+      "historical-fiction",
+      "multi-pov",
+      "Black-protagonist",
+      "slavery",
+      "atlantic-setting",
+      "multi-century",
+      "epistolary",
+      "race",
+      "exile",
+      "lyrical-prose"
+    ]
+  },
+  "13251": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 3,
+      "intensity": 6,
+      "pace": 4,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 2,
+      "interiority": 7,
+      "tone": 2,
+      "difficulty": 5
+    },
+    "tags": [
+      "historical-fiction",
+      "caribbean-setting",
+      "Black-protagonist",
+      "slavery",
+      "colonial-era",
+      "race",
+      "oppression",
+      "first-person"
+    ]
+  },
   "13252": {
     "vibes": {
       "prose_craft": 7,
@@ -33269,6 +34286,31 @@
       "novella-length"
     ]
   },
+  "13258": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 8,
+      "fabulism": 0,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "narrative-nonfiction",
+      "australian-setting",
+      "feminism",
+      "sexual-harassment",
+      "academia",
+      "moral-dilemma",
+      "autofiction",
+      "controversial"
+    ]
+  },
   "13259": {
     "vibes": {
       "prose_craft": 8,
@@ -33315,6 +34357,32 @@
       "friendship",
       "class",
       "20th-century"
+    ]
+  },
+  "13262": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 6,
+      "warmth": 5,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 7,
+      "fabulism": 2,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 4,
+      "difficulty": 5
+    },
+    "tags": [
+      "historical-fiction",
+      "australian-setting",
+      "Indigenous-protagonist",
+      "colonial-era",
+      "19th-century",
+      "community",
+      "resistance",
+      "cultural-clash",
+      "lyrical-prose"
     ]
   },
   "13267": {
@@ -33416,6 +34484,110 @@
       "literature-as-salvation"
     ]
   },
+  "13275": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "historical-fiction",
+      "canadian-setting",
+      "multi-pov",
+      "english-french-conflict",
+      "ensemble-cast",
+      "20th-century",
+      "community",
+      "identity",
+      "bilingual"
+    ]
+  },
+  "13277": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 7,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 2,
+      "interiority": 7,
+      "tone": 2,
+      "difficulty": 4
+    },
+    "tags": [
+      "historical-fiction",
+      "canadian-setting",
+      "male-protagonist",
+      "ww1-era",
+      "soldier-protagonist",
+      "war-trauma",
+      "battlefield",
+      "violence",
+      "memory"
+    ]
+  },
+  "13278": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 6,
+      "warmth": 3,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 7,
+      "fabulism": 2,
+      "emotional_register": 3,
+      "interiority": 6,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "historical-fiction",
+      "canadian-setting",
+      "male-protagonist",
+      "ww2-era",
+      "writer-protagonist",
+      "fascism",
+      "european-setting",
+      "unreliable-narrator",
+      "metafiction"
+    ]
+  },
+  "13280": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 6,
+      "warmth": 5,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 6,
+      "fabulism": 3,
+      "emotional_register": 4,
+      "interiority": 5,
+      "tone": 4,
+      "difficulty": 5
+    },
+    "tags": [
+      "historical-fiction",
+      "canadian-setting",
+      "newfoundland-setting",
+      "multigenerational",
+      "community",
+      "magical-realism",
+      "rural",
+      "family-saga",
+      "oral-tradition"
+    ]
+  },
   "13281": {
     "vibes": {
       "prose_craft": 7,
@@ -33493,6 +34665,32 @@
       "class",
       "interracial",
       "political-intrigue"
+    ]
+  },
+  "13284": {
+    "vibes": {
+      "prose_craft": 6,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 6,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 5,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "historical-fiction",
+      "Black-protagonist",
+      "female-protagonist",
+      "slavery",
+      "civil-war",
+      "american-setting",
+      "multigenerational",
+      "community",
+      "survival"
     ]
   },
   "13285": {
@@ -33625,6 +34823,59 @@
       "intimate"
     ]
   },
+  "13291": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 6,
+      "pace": 4,
+      "moral_complexity": 8,
+      "fabulism": 2,
+      "emotional_register": 3,
+      "interiority": 6,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "historical-fiction",
+      "translated-from",
+      "ukrainian-setting",
+      "dual-timeline",
+      "multi-pov",
+      "ww2-era",
+      "political-intrigue",
+      "ensemble-cast",
+      "secrets",
+      "doorstopper"
+    ]
+  },
+  "13294": {
+    "vibes": {
+      "prose_craft": 6,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 6,
+      "fabulism": 2,
+      "emotional_register": 3,
+      "interiority": 6,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "historical-fiction",
+      "translated-from",
+      "ukrainian-setting",
+      "female-protagonist",
+      "soviet-era",
+      "rural",
+      "community",
+      "suffering",
+      "lyrical-prose"
+    ]
+  },
   "13295": {
     "vibes": {
       "prose_craft": 6,
@@ -33648,6 +34899,31 @@
       "immigration",
       "ensemble-cast",
       "contemporary-setting"
+    ]
+  },
+  "13296": {
+    "vibes": {
+      "prose_craft": 6,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 6,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "historical-fiction",
+      "nigerian-setting",
+      "female-protagonist",
+      "queer-protagonist",
+      "coming-of-age",
+      "biafran-war",
+      "forbidden-love",
+      "identity"
     ]
   },
   "13298": {
@@ -33750,6 +35026,82 @@
       "lyrical-prose"
     ]
   },
+  "13303": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 6,
+      "warmth": 3,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 7,
+      "fabulism": 2,
+      "emotional_register": 2,
+      "interiority": 6,
+      "tone": 2,
+      "difficulty": 5
+    },
+    "tags": [
+      "historical-fiction",
+      "translated-from",
+      "african-setting",
+      "ensemble-cast",
+      "slavery",
+      "pre-colonial",
+      "community",
+      "family-saga",
+      "violence"
+    ]
+  },
+  "13305": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 6,
+      "warmth": 4,
+      "intensity": 6,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 2,
+      "emotional_register": 3,
+      "interiority": 5,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "historical-fiction",
+      "ethiopian-setting",
+      "female-protagonist",
+      "ww2-era",
+      "war",
+      "resistance",
+      "ensemble-cast",
+      "multi-pov"
+    ]
+  },
+  "13306": {
+    "vibes": {
+      "prose_craft": 6,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 6,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 6,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "historical-fiction",
+      "ethiopian-setting",
+      "ensemble-cast",
+      "revolution",
+      "political-intrigue",
+      "family",
+      "violence",
+      "20th-century"
+    ]
+  },
   "13307": {
     "vibes": {
       "prose_craft": 8,
@@ -33776,6 +35128,33 @@
       "restrained-prose"
     ]
   },
+  "13310": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "historical-fiction",
+      "french-setting",
+      "female-protagonist",
+      "16th-century",
+      "identity",
+      "marriage",
+      "moral-dilemma",
+      "rural",
+      "restrained-prose",
+      "novella-length"
+    ]
+  },
   "13312": {
     "vibes": {
       "prose_craft": 7,
@@ -33800,6 +35179,32 @@
       "whimsical",
       "faith-and-doubt",
       "novella-length"
+    ]
+  },
+  "13313": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 4,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 5
+    },
+    "tags": [
+      "historical-fiction",
+      "british-setting",
+      "french-setting",
+      "female-protagonist",
+      "queer-protagonist",
+      "1848-revolution",
+      "class",
+      "witty-prose",
+      "feminist"
     ]
   },
   "13314": {
@@ -33902,6 +35307,31 @@
       "divorce",
       "intimate",
       "restrained-prose"
+    ]
+  },
+  "13319": {
+    "vibes": {
+      "prose_craft": 9,
+      "prose_style": 6,
+      "warmth": 4,
+      "intensity": 2,
+      "pace": 3,
+      "moral_complexity": 7,
+      "fabulism": 0,
+      "emotional_register": 3,
+      "interiority": 8,
+      "tone": 3,
+      "difficulty": 6
+    },
+    "tags": [
+      "essay-collection",
+      "literary-criticism",
+      "feminist",
+      "female-protagonist",
+      "writer-protagonist",
+      "19th-century",
+      "restrained-prose",
+      "biographical"
     ]
   },
   "13320": {
@@ -34359,6 +35789,84 @@
       "animal-protagonist"
     ]
   },
+  "13341": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 4,
+      "intensity": 4,
+      "pace": 3,
+      "moral_complexity": 6,
+      "fabulism": 5,
+      "emotional_register": 4,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 5
+    },
+    "tags": [
+      "historical-fiction",
+      "translated-from",
+      "icelandic-setting",
+      "male-protagonist",
+      "17th-century",
+      "naturalist",
+      "fabulism",
+      "lyrical-prose",
+      "island-setting"
+    ]
+  },
+  "13342": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 5,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 7,
+      "fabulism": 2,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "historical-fiction",
+      "translated-from",
+      "icelandic-setting",
+      "male-protagonist",
+      "coming-of-age",
+      "fishing-community",
+      "early-20th-century",
+      "lyrical-prose",
+      "friendship",
+      "grief"
+    ]
+  },
+  "13343": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 5,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 7,
+      "fabulism": 2,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "historical-fiction",
+      "translated-from",
+      "icelandic-setting",
+      "ensemble-cast",
+      "arctic-setting",
+      "survival",
+      "early-20th-century",
+      "lyrical-prose"
+    ]
+  },
   "13344": {
     "vibes": {
       "prose_craft": 6,
@@ -34406,6 +35914,113 @@
       "mental-illness",
       "coming-of-age",
       "contemporary-setting"
+    ]
+  },
+  "13347": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 3,
+      "intensity": 7,
+      "pace": 5,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 2,
+      "interiority": 7,
+      "tone": 2,
+      "difficulty": 5
+    },
+    "tags": [
+      "historical-fiction",
+      "translated-from",
+      "estonian-setting",
+      "female-protagonist",
+      "dual-timeline",
+      "ww2-era",
+      "soviet-occupation",
+      "sexual-violence",
+      "resistance",
+      "domestic"
+    ]
+  },
+  "13348": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 3,
+      "intensity": 6,
+      "pace": 5,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 6,
+      "tone": 2,
+      "difficulty": 5
+    },
+    "tags": [
+      "historical-fiction",
+      "translated-from",
+      "estonian-setting",
+      "multi-pov",
+      "ww2-era",
+      "soviet-occupation",
+      "collaboration",
+      "identity",
+      "dual-timeline"
+    ]
+  },
+  "13349": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 7,
+      "pace": 6,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 5,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "historical-fiction",
+      "translated-from",
+      "finnish-setting",
+      "ensemble-cast",
+      "ww2-era",
+      "war",
+      "soldier-protagonist",
+      "military",
+      "working-class",
+      "brotherhood"
+    ]
+  },
+  "13350": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 5,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "historical-fiction",
+      "translated-from",
+      "finnish-setting",
+      "ensemble-cast",
+      "multigenerational",
+      "rural",
+      "working-class",
+      "community",
+      "political-intrigue",
+      "20th-century"
     ]
   },
   "13351": {
@@ -34457,6 +36072,31 @@
       "community",
       "eccentric-protagonist",
       "picaresque"
+    ]
+  },
+  "13353": {
+    "vibes": {
+      "prose_craft": 6,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 6,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "historical-fiction",
+      "translated-from",
+      "finnish-setting",
+      "dual-timeline",
+      "interwar-setting",
+      "contemporary-setting",
+      "ensemble-cast",
+      "political-intrigue"
     ]
   },
   "13355": {
@@ -34534,6 +36174,138 @@
       "urban",
       "ensemble-cast",
       "experimental-form"
+    ]
+  },
+  "13359": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 6,
+      "pace": 4,
+      "moral_complexity": 8,
+      "fabulism": 1,
+      "emotional_register": 2,
+      "interiority": 7,
+      "tone": 2,
+      "difficulty": 5
+    },
+    "tags": [
+      "historical-fiction",
+      "translated-from",
+      "czech-setting",
+      "male-protagonist",
+      "Jewish-protagonist",
+      "Holocaust",
+      "isolation",
+      "survival",
+      "urban",
+      "restrained-prose"
+    ]
+  },
+  "13360": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 5,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "historical-fiction",
+      "translated-from",
+      "czech-setting",
+      "ensemble-cast",
+      "Holocaust",
+      "satirical",
+      "music",
+      "resistance"
+    ]
+  },
+  "13362": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 6,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "historical-fiction",
+      "translated-from",
+      "bulgarian-setting",
+      "Jewish-protagonist",
+      "multigenerational",
+      "20th-century",
+      "survival",
+      "identity",
+      "picaresque"
+    ]
+  },
+  "13363": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 4,
+      "interiority": 5,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "historical-fiction",
+      "translated-from",
+      "chinese-setting",
+      "Jewish-protagonist",
+      "ww2-era",
+      "refugee-protagonist",
+      "shanghai-setting",
+      "ensemble-cast"
+    ]
+  },
+  "13364": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 6,
+      "warmth": 5,
+      "intensity": 6,
+      "pace": 5,
+      "moral_complexity": 8,
+      "fabulism": 2,
+      "emotional_register": 3,
+      "interiority": 6,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "historical-fiction",
+      "translated-from",
+      "georgian-setting",
+      "russian-setting",
+      "multigenerational",
+      "family-saga",
+      "20th-century",
+      "doorstopper",
+      "ensemble-cast",
+      "political-intrigue",
+      "war",
+      "chocolate"
     ]
   },
   "13365": {
@@ -34742,6 +36514,59 @@
       "vignettes"
     ]
   },
+  "13380": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 4,
+      "pace": 4,
+      "moral_complexity": 6,
+      "fabulism": 2,
+      "emotional_register": 4,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "biographical-fiction",
+      "translated-from",
+      "mexican-setting",
+      "female-protagonist",
+      "artist-protagonist",
+      "surrealism",
+      "european-setting",
+      "20th-century",
+      "marriage"
+    ]
+  },
+  "13381": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 6,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 7,
+      "fabulism": 2,
+      "emotional_register": 3,
+      "interiority": 6,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "historical-fiction",
+      "translated-from",
+      "mexican-setting",
+      "Indigenous-protagonist",
+      "ensemble-cast",
+      "oppression",
+      "class",
+      "colonial-era",
+      "community",
+      "lyrical-prose"
+    ]
+  },
   "13391": {
     "vibes": {
       "prose_craft": 7,
@@ -34792,6 +36617,54 @@
       "male-protagonist",
       "contemporary-setting",
       "thriller"
+    ]
+  },
+  "13395": {
+    "vibes": {
+      "prose_craft": 6,
+      "prose_style": 4,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 6,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 5,
+      "tone": 4,
+      "difficulty": 3
+    },
+    "tags": [
+      "police-procedural",
+      "translated-from",
+      "greek-setting",
+      "male-protagonist",
+      "series-detective",
+      "urban",
+      "social-realism",
+      "corruption"
+    ]
+  },
+  "13396": {
+    "vibes": {
+      "prose_craft": 6,
+      "prose_style": 4,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 6,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 5,
+      "tone": 4,
+      "difficulty": 3
+    },
+    "tags": [
+      "police-procedural",
+      "translated-from",
+      "greek-setting",
+      "male-protagonist",
+      "series-detective",
+      "political-intrigue"
     ]
   },
   "13397": {
@@ -34868,6 +36741,81 @@
       "diary-form",
       "swiss-setting",
       "domestic"
+    ]
+  },
+  "13400": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 5,
+      "warmth": 3,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 9,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-mystery",
+      "translated-from",
+      "swiss-setting",
+      "male-protagonist",
+      "police-procedural",
+      "child-murder",
+      "obsession",
+      "philosophical",
+      "anti-detective",
+      "novella-length"
+    ]
+  },
+  "13401": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 3,
+      "intensity": 4,
+      "pace": 6,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 6,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-mystery",
+      "translated-from",
+      "swiss-setting",
+      "male-protagonist",
+      "series-detective",
+      "political-intrigue",
+      "novella-length"
+    ]
+  },
+  "13402": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 3,
+      "intensity": 4,
+      "pace": 6,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 6,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "literary-mystery",
+      "translated-from",
+      "swiss-setting",
+      "male-protagonist",
+      "hospital-setting",
+      "conspiracy",
+      "novella-length"
     ]
   },
   "13403": {
@@ -35029,6 +36977,33 @@
       "bleak"
     ]
   },
+  "13419": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 6,
+      "warmth": 5,
+      "intensity": 3,
+      "pace": 4,
+      "moral_complexity": 6,
+      "fabulism": 2,
+      "emotional_register": 4,
+      "interiority": 7,
+      "tone": 4,
+      "difficulty": 4
+    },
+    "tags": [
+      "historical-fiction",
+      "parisian-setting",
+      "male-protagonist",
+      "queer-protagonist",
+      "asian-protagonist",
+      "food-writing",
+      "1920s-setting",
+      "colonial-era",
+      "domestic",
+      "intimate"
+    ]
+  },
   "13421": {
     "vibes": {
       "prose_craft": 7,
@@ -35053,6 +37028,33 @@
       "race",
       "dystopian",
       "urban"
+    ]
+  },
+  "13422": {
+    "vibes": {
+      "prose_craft": 8,
+      "prose_style": 6,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 3,
+      "moral_complexity": 8,
+      "fabulism": 2,
+      "emotional_register": 3,
+      "interiority": 6,
+      "tone": 3,
+      "difficulty": 6
+    },
+    "tags": [
+      "historical-fiction",
+      "san-francisco-setting",
+      "multi-pov",
+      "ensemble-cast",
+      "asian-protagonist",
+      "civil-rights",
+      "doorstopper",
+      "multi-generational",
+      "experimental-form",
+      "community"
     ]
   },
   "13423": {
@@ -35311,6 +37313,33 @@
       "contemporary-setting"
     ]
   },
+  "13439": {
+    "vibes": {
+      "prose_craft": 6,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 4
+    },
+    "tags": [
+      "historical-fiction",
+      "translated-from",
+      "iranian-setting",
+      "female-protagonist",
+      "domestic",
+      "marriage",
+      "multigenerational",
+      "family-saga",
+      "20th-century",
+      "political-intrigue"
+    ]
+  },
   "13440": {
     "vibes": {
       "prose_craft": 6,
@@ -35360,6 +37389,156 @@
       "domestic",
       "multigenerational",
       "immigrant-community"
+    ]
+  },
+  "13444": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 6,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 3,
+      "moral_complexity": 7,
+      "fabulism": 3,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 6
+    },
+    "tags": [
+      "historical-fiction",
+      "translated-from",
+      "iranian-setting",
+      "female-protagonist",
+      "multigenerational",
+      "family-saga",
+      "political-intrigue",
+      "mystical",
+      "doorstopper",
+      "20th-century"
+    ]
+  },
+  "13449": {
+    "vibes": {
+      "prose_craft": 7,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 5,
+      "pace": 4,
+      "moral_complexity": 7,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 7,
+      "tone": 3,
+      "difficulty": 5
+    },
+    "tags": [
+      "literary-memoir",
+      "translated-from",
+      "ukrainian-setting",
+      "german-setting",
+      "Jewish-protagonist",
+      "Holocaust",
+      "multigenerational",
+      "memory",
+      "identity",
+      "fragmentary-prose"
+    ]
+  },
+  "13461": {
+    "vibes": {
+      "prose_craft": 6,
+      "prose_style": 4,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 6,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 5,
+      "tone": 3,
+      "difficulty": 3
+    },
+    "tags": [
+      "police-procedural",
+      "translated-from",
+      "israeli-setting",
+      "male-protagonist",
+      "series-detective",
+      "missing-person",
+      "urban"
+    ]
+  },
+  "13463": {
+    "vibes": {
+      "prose_craft": 6,
+      "prose_style": 5,
+      "warmth": 5,
+      "intensity": 5,
+      "pace": 5,
+      "moral_complexity": 6,
+      "fabulism": 2,
+      "emotional_register": 4,
+      "interiority": 5,
+      "tone": 5,
+      "difficulty": 4
+    },
+    "tags": [
+      "historical-fiction",
+      "translated-from",
+      "israeli-setting",
+      "ensemble-cast",
+      "pre-state",
+      "british-mandate",
+      "romance-subplot",
+      "identity",
+      "multi-pov"
+    ]
+  },
+  "13471": {
+    "vibes": {
+      "prose_craft": 6,
+      "prose_style": 4,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 6,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 5,
+      "tone": 4,
+      "difficulty": 3
+    },
+    "tags": [
+      "police-procedural",
+      "translated-from",
+      "spanish-setting",
+      "female-protagonist",
+      "series-detective",
+      "ensemble-cast",
+      "social-realism"
+    ]
+  },
+  "13472": {
+    "vibes": {
+      "prose_craft": 6,
+      "prose_style": 4,
+      "warmth": 4,
+      "intensity": 5,
+      "pace": 6,
+      "moral_complexity": 6,
+      "fabulism": 1,
+      "emotional_register": 3,
+      "interiority": 5,
+      "tone": 4,
+      "difficulty": 3
+    },
+    "tags": [
+      "police-procedural",
+      "translated-from",
+      "spanish-setting",
+      "female-protagonist",
+      "series-detective"
     ]
   },
   "13487": {
