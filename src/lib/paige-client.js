@@ -1,7 +1,9 @@
 import { buildUserProfile, scoreBook, getBucket, GENRE_BUCKETS } from "./recommender.js";
 
 let recLibrary = null;
+let primaryCatalog = null;
 let tagData = null;
+let tagByNorm = null; // normalized title+author → tagEntry lookup
 let loadPromise = null;
 
 async function ensureLoaded() {
@@ -9,10 +11,22 @@ async function ensureLoaded() {
   if (loadPromise) return loadPromise;
   loadPromise = Promise.all([
     fetch("/rec-library.json").then(r => r.json()),
+    fetch("/book-data.json").then(r => r.json()),
     fetch("/book-tags.json").then(r => r.json()),
-  ]).then(([rec, tags]) => {
+  ]).then(([rec, primary, tags]) => {
     recLibrary = rec;
+    primaryCatalog = primary;
     tagData = tags;
+    // Build a title+author → {id, tagEntry} lookup for profile matching
+    tagByNorm = {};
+    const allBooks = [...primary, ...rec];
+    for (const book of allBooks) {
+      const te = tags[String(book.id)];
+      if (te) {
+        const key = normalize(book.title) + "|" + normalize(book.author);
+        tagByNorm[key] = { id: book.id, genre: book.genre, ...te };
+      }
+    }
   });
   return loadPromise;
 }
@@ -102,17 +116,25 @@ function generateReason(mode, book, tagEntry, score) {
 export async function generatePaigeRecs(userBooks, mode, exclude = [], genre = null) {
   await ensureLoaded();
 
-  const ratedBooks = userBooks
-    .filter(b => (b.shelf || "Read") === "Read")
-    .map(b => {
-      const recMatch = recLibrary.find(r => normalize(r.title) === normalize(b.title) && normalize(r.author) === normalize(b.author));
-      return recMatch || b;
-    });
+  // Build profile using title+author matching instead of ID matching
+  // This handles shelf books that don't have our catalog IDs
+  const readBooks = userBooks.filter(b => (b.shelf || "Read") === "Read");
+  const profileTagData = {};
+  const profileBooks = [];
+  for (const book of readBooks) {
+    const key = normalize(book.title) + "|" + normalize(book.author);
+    const match = tagByNorm[key];
+    if (match) {
+      const fakeId = match.id || key;
+      profileTagData[String(fakeId)] = { vibes: match.vibes, tags: match.tags };
+      profileBooks.push({ ...book, id: fakeId, genre: match.genre || book.genre });
+    }
+  }
 
-  const profile = buildUserProfile(ratedBooks, tagData);
+  const profile = buildUserProfile(profileBooks, profileTagData);
 
   const excludeSet = new Set(exclude.map(t => normalize(t)));
-  const readSet = new Set(ratedBooks.map(b => normalize(b.title)));
+  const readSet = new Set(readBooks.map(b => normalize(b.title)));
 
   let candidates = recLibrary.filter(book => {
     if (readSet.has(normalize(book.title))) return false;
