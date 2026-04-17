@@ -97,17 +97,17 @@ function generateReason(mode, book, tagEntry, score) {
 
   switch (mode) {
     case "popular":
-      return `Top-tier ${book.genre.toLowerCase()} with ${craftDesc}. Score: ${(score * 100).toFixed(0)}% match.`;
+      return `Acclaimed ${book.genre.toLowerCase()} with ${craftDesc}. ${(score * 100).toFixed(0)}% match.`;
     case "trending":
-      return `Recent release (${book.publicationDate?.slice(0, 4)}) with ${craftDesc}. Score: ${(score * 100).toFixed(0)}% match.`;
+      return `Published ${book.publicationDate?.slice(0, 4) || "recently"} — ${craftDesc}. ${(score * 100).toFixed(0)}% match.`;
     case "hidden_gems":
-      return `Under-the-radar ${book.genre.toLowerCase()} with ${craftDesc}. Score: ${(score * 100).toFixed(0)}% match.`;
+      return `Under-the-radar ${book.genre.toLowerCase()} with ${craftDesc}. ${(score * 100).toFixed(0)}% match.`;
     case "comfort_read":
-      return `Warm, ${paceDesc ? paceDesc + ", " : ""}satisfying read. Score: ${(score * 100).toFixed(0)}% match.`;
+      return `Warm, ${paceDesc ? paceDesc + ", " : ""}satisfying read. ${(score * 100).toFixed(0)}% match.`;
     case "challenge_me":
-      return `${v.difficulty >= 8 ? "Demanding" : "Ambitious"} ${book.genre.toLowerCase()} with ${craftDesc}. Score: ${(score * 100).toFixed(0)}% match.`;
+      return `${v.difficulty >= 8 ? "Demanding" : "Ambitious"} ${book.genre.toLowerCase()} with ${craftDesc}. ${(score * 100).toFixed(0)}% match.`;
     case "new_to_me":
-      return `Something different — ${book.genre.toLowerCase()} you haven't explored much. Score: ${(score * 100).toFixed(0)}% match.`;
+      return `${book.genre} you haven't explored much — ${craftDesc}. ${(score * 100).toFixed(0)}% match.`;
     default:
       return `${(score * 100).toFixed(0)}% match based on your reading profile.`;
   }

@@ -2548,12 +2548,12 @@ function RecCard({ rec, coverUrl, ownedBook, onAddDirect, onEdit, onAddBook, ind
 }
 
 const PAIGE_MODES = [
-  { key:"popular",      label:"Popular",      desc:"Widely loved, broadly acclaimed" },
-  { key:"trending",     label:"Trending",     desc:"What book communities are talking about now" },
-  { key:"hidden_gems",  label:"Hidden Gems",  desc:"Overlooked, deserves more readers" },
-  { key:"comfort_read", label:"Comfort Read", desc:"Easy, warm, satisfying" },
-  { key:"challenge_me", label:"Challenge Me", desc:"Push beyond your usual range" },
-  { key:"new_to_me",    label:"New To Me",    desc:"Genres and styles you haven't tried" },
+  { key:"popular",      label:"Acclaimed",     desc:"Award winners, cultural touchstones, canonical works" },
+  { key:"trending",     label:"New Releases",  desc:"Recently published, matched to your taste" },
+  { key:"hidden_gems",  label:"Hidden Gems",   desc:"Under-the-radar books that deserve more readers" },
+  { key:"comfort_read", label:"Comfort Read",  desc:"Warm, easy, satisfying" },
+  { key:"challenge_me", label:"Challenge Me",  desc:"Demanding prose, complex ideas, push your range" },
+  { key:"new_to_me",    label:"Branch Out",    desc:"Genres and styles missing from your shelf" },
 ];
 
 function PaigeTab({ books, userId, onAddDirect, onEdit, onAddBook }) {
