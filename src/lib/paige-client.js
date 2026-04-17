@@ -41,7 +41,7 @@ function modeFilter(mode, book, tagEntry, userProfile) {
 
   switch (mode) {
     case "popular":
-      return book.tier === "S";
+      return book.tier === "S" || book.tier === 1 || book.tier === "1";
 
     case "trending": {
       const year = parseInt(book.publicationDate?.slice(0, 4));
