@@ -68,48 +68,96 @@ function modeFilter(mode, book, tagEntry, userProfile) {
   }
 }
 
-function modeScore(mode, baseScore, tagEntry) {
+function mismatchPenalty(bookVibes, profileVibes, allKeys) {
+  // Penalize books that are 3+ points away on ANY vibe dimension
+  // This prevents a warm/gentle book from scoring 90%+ for a grim/intense reader
+  let penalty = 0;
+  for (const key of allKeys) {
+    const bv = bookVibes[key];
+    const pv = profileVibes[key];
+    if (bv == null || pv == null) continue;
+    const diff = Math.abs(bv - pv);
+    if (diff >= 4) penalty += 0.04; // harsh penalty for 4+ point gap
+    else if (diff >= 3) penalty += 0.02; // moderate penalty for 3 point gap
+  }
+  return penalty;
+}
+
+function modeScore(mode, baseScore, tagEntry, userProfile) {
   if (!tagEntry) return baseScore;
   const v = tagEntry.vibes;
 
+  // Apply mismatch penalty — big vibe gaps should hurt the score
+  const allVibeKeys = ["prose_craft", "prose_style", "warmth", "intensity", "pace", "moral_complexity", "fabulism", "emotional_register", "interiority", "tone", "difficulty"];
+  const combinedProfile = { ...userProfile.globalVibes };
+  const bucket = getBucket(tagEntry.tags?.find(t => GENRE_BUCKETS[t]) || "Fiction");
+  const bp = userProfile.bucketProfiles[bucket];
+  if (bp) Object.assign(combinedProfile, bp.vibes);
+  const penalty = mismatchPenalty(v, combinedProfile, allVibeKeys);
+  let adjusted = baseScore - penalty;
+
   switch (mode) {
     case "comfort_read":
-      return baseScore + (v.warmth / 100) + (v.tone / 100) + (v.emotional_register / 100) - (v.difficulty / 100);
-
+      adjusted += (v.warmth / 100) + (v.tone / 100) + (v.emotional_register / 100) - (v.difficulty / 100);
+      break;
     case "challenge_me":
-      return baseScore + (v.difficulty / 100) + (v.prose_craft / 100);
-
+      adjusted += (v.difficulty / 100) + (v.prose_craft / 100);
+      break;
     case "new_to_me":
-      return baseScore + 0.05;
-
-    default:
-      return baseScore;
+      adjusted += 0.05;
+      break;
   }
+
+  return adjusted;
 }
 
-function generateReason(mode, book, tagEntry, score) {
+function describeVibe(val, low, mid, high) {
+  if (val >= 8) return high;
+  if (val <= 3) return low;
+  return mid;
+}
+
+function generateReason(mode, book, tagEntry, score, userProfile) {
   const v = tagEntry?.vibes;
   if (!v) return "Matches your reading profile.";
 
-  const craftDesc = v.prose_craft >= 8 ? "exceptional prose" : v.prose_craft >= 6 ? "solid prose" : "accessible writing";
-  const paceDesc = v.pace >= 7 ? "fast-paced" : v.pace <= 3 ? "meditative" : "";
-  const toneDesc = v.tone >= 7 ? "playful and witty" : v.tone <= 3 ? "serious and intense" : "";
+  // Build a reason from the STRONGEST matching vibes, not just craft
+  const traits = [];
+  if (v.prose_craft >= 8) traits.push("exceptional prose");
+  else if (v.prose_craft >= 6) traits.push("solid craft");
+  if (v.intensity >= 7) traits.push("visceral and intense");
+  else if (v.intensity <= 3) traits.push("gentle");
+  if (v.warmth >= 8) traits.push("warm and human");
+  else if (v.warmth <= 2) traits.push("cold and unflinching");
+  if (v.moral_complexity >= 8) traits.push("morally complex");
+  if (v.tone >= 7) traits.push("playful");
+  else if (v.tone <= 2) traits.push("serious");
+  if (v.difficulty >= 8) traits.push("demanding");
+  else if (v.difficulty <= 2) traits.push("accessible");
+  if (v.pace >= 8) traits.push("propulsive");
+  else if (v.pace <= 2) traits.push("meditative");
+  if (v.interiority >= 8) traits.push("deeply psychological");
+  if (v.emotional_register <= 2) traits.push("bleak");
+  else if (v.emotional_register >= 8) traits.push("joyful");
+
+  const traitStr = traits.slice(0, 3).join(", ");
+  const pct = `${(score * 100).toFixed(0)}%`;
 
   switch (mode) {
     case "popular":
-      return `Acclaimed ${book.genre.toLowerCase()} with ${craftDesc}. ${(score * 100).toFixed(0)}% match.`;
+      return `${traitStr || book.genre}. ${pct} match.`;
     case "trending":
-      return `Published ${book.publicationDate?.slice(0, 4) || "recently"} — ${craftDesc}. ${(score * 100).toFixed(0)}% match.`;
+      return `Published ${book.publicationDate?.slice(0, 4) || "recently"} — ${traitStr || book.genre.toLowerCase()}. ${pct} match.`;
     case "hidden_gems":
-      return `Under-the-radar ${book.genre.toLowerCase()} with ${craftDesc}. ${(score * 100).toFixed(0)}% match.`;
+      return `Under-the-radar — ${traitStr || book.genre.toLowerCase()}. ${pct} match.`;
     case "comfort_read":
-      return `Warm, ${paceDesc ? paceDesc + ", " : ""}satisfying read. ${(score * 100).toFixed(0)}% match.`;
+      return `${traitStr || "Warm and satisfying"}. ${pct} match.`;
     case "challenge_me":
-      return `${v.difficulty >= 8 ? "Demanding" : "Ambitious"} ${book.genre.toLowerCase()} with ${craftDesc}. ${(score * 100).toFixed(0)}% match.`;
+      return `${traitStr || "Ambitious and demanding"}. ${pct} match.`;
     case "new_to_me":
-      return `${book.genre} you haven't explored much — ${craftDesc}. ${(score * 100).toFixed(0)}% match.`;
+      return `${book.genre} — ${traitStr || "something different"}. ${pct} match.`;
     default:
-      return `${(score * 100).toFixed(0)}% match based on your reading profile.`;
+      return `${traitStr || book.genre}. ${pct} match.`;
   }
 }
 
@@ -157,7 +205,7 @@ export async function generatePaigeRecs(userBooks, mode, exclude = [], genre = n
     if (!te) return null;
     const base = scoreBook(book, te, profile);
     if (base == null) return null;
-    const final = modeScore(mode, base, te);
+    const final = modeScore(mode, base, te, profile);
     return { book, score: final, tagEntry: te };
   }).filter(Boolean);
 
@@ -172,7 +220,7 @@ export async function generatePaigeRecs(userBooks, mode, exclude = [], genre = n
     genre: book.genre,
     publishYear: parseInt(book.publicationDate?.slice(0, 4)) || null,
     pages: book.pageCount || null,
-    reason: generateReason(mode, book, tagEntry, score),
+    reason: generateReason(mode, book, tagEntry, score, profile),
     score,
   }));
 
@@ -182,7 +230,7 @@ export async function generatePaigeRecs(userBooks, mode, exclude = [], genre = n
     genre: book.genre,
     publishYear: parseInt(book.publicationDate?.slice(0, 4)) || null,
     pages: book.pageCount || null,
-    reason: generateReason(mode, book, tagEntry, score),
+    reason: generateReason(mode, book, tagEntry, score, profile),
     score,
   }));
 
