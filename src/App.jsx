@@ -2327,6 +2327,7 @@ function BookCoverThumb({ book: b }) {
 function RecCard({ rec, coverUrl, ownedBook, onAddDirect, onEdit, onAddBook, index, userId, libraryProfile }) {
   const [expanded, setExpanded] = useState(false);
   const [dropOpen, setDropOpen] = useState(false);
+  const touchMoved = useRef(false);
   const [prose, setProse] = useState(null);
   const [proseLoading, setProseLoading] = useState(false);
   const [showProse, setShowProse] = useState(false);
@@ -2417,7 +2418,12 @@ function RecCard({ rec, coverUrl, ownedBook, onAddDirect, onEdit, onAddBook, ind
       boxShadow: "0 2px 8px rgba(0,0,0,0.15)", animation: `fadeUp 0.25s ease ${index * 0.06}s both`, position: "relative",
     }}>
       {/* Main card area — tap to expand */}
-      <div {...tc(() => setExpanded(e => !e))} style={{ padding: "14px 16px", cursor: "pointer" }}>
+      <div
+        onTouchStart={() => { touchMoved.current = false; }}
+        onTouchMove={() => { touchMoved.current = true; }}
+        onTouchEnd={e => { if (!touchMoved.current) { e.preventDefault(); setExpanded(x => !x); } }}
+        onClick={() => setExpanded(e => !e)}
+        style={{ padding: "14px 16px", cursor: "pointer" }}>
         <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
           <div style={{ height: 72, width: 48, borderRadius: 4, flexShrink: 0, position: "relative", background: GENRE_COLORS[rec.genre] || GENRE_COLORS["Other"], boxShadow: "1px 1px 6px rgba(0,0,0,0.2)" }}>
             {coverUrl && <img src={coverUrl} alt={rec.title} style={{ position:"absolute", inset:0, height:72, width:48, objectFit:"cover", borderRadius:4, boxShadow:"1px 1px 6px rgba(0,0,0,0.3)" }} onError={e => { e.target.style.display = "none"; }} />}
