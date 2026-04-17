@@ -136,7 +136,12 @@ export async function generatePaigeRecs(userBooks, mode, exclude = [], genre = n
   const excludeSet = new Set(exclude.map(t => normalize(t)));
   const readSet = new Set(readBooks.map(b => normalize(b.title)));
 
-  let candidates = recLibrary.filter(book => {
+  // hidden_gems + new_to_me: rec library only (books user probably doesn't know)
+  // all other modes: score ALL tagged books from both catalogs
+  const recOnly = mode === "hidden_gems" || mode === "new_to_me";
+  const pool = recOnly ? recLibrary : [...primaryCatalog, ...recLibrary];
+
+  let candidates = pool.filter(book => {
     if (readSet.has(normalize(book.title))) return false;
     if (excludeSet.has(normalize(book.title))) return false;
     if (genre && book.genre !== genre) return false;
