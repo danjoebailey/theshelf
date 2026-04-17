@@ -2448,9 +2448,7 @@ function RecCard({ rec, coverUrl, ownedBook, onAddDirect, onEdit, onAddBook, ind
                     </div>
                   )}
                 </div>
-                <svg width="10" height="6" viewBox="0 0 10 6" fill="none" style={{ transition:"transform 0.2s", transform: expanded ? "rotate(180deg)" : "rotate(0deg)" }}>
-                  <path d="M1 1l4 4 4-4" stroke={WOOD.textDim} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
+                <button {...tc(()=>{ ownedBook && onEdit ? onEdit(ownedBook) : onAddBook && onAddBook({ title:rec.title, author:rec.author, genre:rec.genre, coverUrl, pages:rec.pages||0 }); }, true)} onClick={e => e.stopPropagation()} onTouchEnd={e => e.stopPropagation()} style={{ background:"transparent", border:"none", cursor:"pointer", padding:"2px 4px 0", color:"rgba(120,70,20,0.6)", fontSize:16, lineHeight:1, flexShrink:0 }}>↗</button>
               </div>
             </div>
             <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: WOOD.textDim, fontStyle: "italic", marginBottom: 3 }}>{rec.author}</p>
@@ -2491,9 +2489,6 @@ function RecCard({ rec, coverUrl, ownedBook, onAddDirect, onEdit, onAddBook, ind
                 Ask Obi
               </button>
             )}
-            <button {...tc(()=>{ ownedBook && onEdit ? onEdit(ownedBook) : onAddBook && onAddBook({ title:rec.title, author:rec.author, genre:rec.genre, coverUrl, pages:rec.pages||0 }); }, true)} style={{ display:"flex", alignItems:"center", gap:5, background:"rgba(138,90,40,0.12)", borderRadius:20, padding:"5px 12px", border:"1px solid rgba(138,90,40,0.25)", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, color:WOOD.textDim }}>
-              ↗ Details
-            </button>
           </div>
           {showDescription && (
             <div style={{ animation:"fadeIn 0.18s ease" }}>
