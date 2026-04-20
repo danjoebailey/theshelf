@@ -2438,7 +2438,7 @@ function RecCard({ rec, coverUrl, ownedBook, onAddDirect, onEdit, onAddBook, ind
                   style={{ background:"transparent", border:"none", cursor:"pointer", padding:"2px 4px 0", color:"rgba(120,70,20,0.6)", fontSize:16, lineHeight:1, flexShrink:0 }}>↗</button>
               </div>
               <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: WOOD.textDim, fontStyle: "italic", marginBottom: 4 }}>{rec.author}</p>
-              {rec.genre && <span style={{ background: "rgba(138,90,40,0.55)", color: "rgba(255,255,255,0.9)", border: "1px solid rgba(138,90,40,0.4)", borderRadius: 20, padding: "2px 8px", fontSize: 8, fontFamily: "'DM Sans',sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", display: "inline-block" }}>{rec.genre}</span>}
+              {rec.genre && <span style={{ background: GENRE_COLORS[rec.genre] || GENRE_COLORS["Other"], color: "#fff", borderRadius: 20, padding: "2px 8px", fontSize: 8, fontFamily: "'DM Sans',sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", display: "inline-block" }}>{rec.genre}</span>}
             </div>
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:6 }}>
               {(rec.publishYear || rec.pages > 0) ? (
@@ -2730,9 +2730,9 @@ function PaigeTab({ books, userId, onAddDirect, onEdit, onAddBook }) {
               <button onClick={() => setGenreDropOpen(o => !o)} style={{
                 padding:"6px 14px", borderRadius:20, fontSize:12, fontFamily:"'DM Sans',sans-serif", fontWeight:600,
                 cursor:"pointer", transition:"all 0.15s", border:"1px solid", display:"flex", alignItems:"center", gap:4,
-                background: filterGenre ? WOOD.amber : "rgba(138,90,40,0.1)",
-                color: filterGenre ? "#1a0900" : "rgba(255,235,195,0.7)",
-                borderColor: filterGenre ? WOOD.amber : "rgba(138,90,40,0.3)",
+                background: filterGenre ? "rgba(138,90,40,0.55)" : "rgba(138,90,40,0.18)",
+                color: filterGenre ? "rgba(255,255,255,0.9)" : WOOD.amber,
+                borderColor: filterGenre ? "rgba(138,90,40,0.4)" : "rgba(138,90,40,0.3)",
               }}>{filterGenre || "Genre"}<span style={{ fontSize:10, opacity:0.6, transition:"transform 0.2s", transform: genreDropOpen ? "rotate(180deg)" : "rotate(0deg)" }}>▾</span></button>
               {genreDropOpen && <div style={{ position:"absolute", top:"100%", left:0, marginTop:4, background:"rgba(40,24,12,0.97)", border:"1px solid rgba(138,90,40,0.3)", borderRadius:10, padding:"6px 0", zIndex:50, minWidth:160, maxHeight:260, overflowY:"auto", boxShadow:"0 4px 16px rgba(0,0,0,0.4)" }}>
                 <button onClick={() => { setFilterGenre(null); setGenreDropOpen(false); }} style={{ display:"block", width:"100%", padding:"8px 16px", background: !filterGenre ? "rgba(138,90,40,0.1)" : "transparent", border:"none", textAlign:"left", fontSize:12, fontFamily:"'DM Sans',sans-serif", fontWeight: !filterGenre ? 600 : 400, color: !filterGenre ? WOOD.amber : "rgba(255,235,195,0.7)", cursor:"pointer" }}>All genres</button>
