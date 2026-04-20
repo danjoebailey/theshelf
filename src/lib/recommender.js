@@ -83,10 +83,27 @@ const CRAFT_BUCKETS = {
 const UNIVERSAL_AXES = new Set(["prose", "characters", "plot", "pacing", "ideas", "resonance", "ending", "voice"]);
 
 const CRAFT_MIN_BOOKS_PER_AXIS = 3;          // below this, axis is dropped for that bucket
-const CRAFT_SHRINKAGE_K = 3;                  // α = n / (n + k) for weight transfer
+const CRAFT_SHRINKAGE_K = 5;                  // α = n / (n + k) for weight transfer
 const CRAFT_HARD_FILTER_MIN_N = 5;            // need this many observations to trust a hard filter
 const CRAFT_HARD_FILTER_WEIGHT = 0.15;        // only filter on axes with at least this weight
 const CRAFT_MIN_SD = 1.0;                     // floor SDs here so tight-consistency axes don't over-penalize
+
+// Per-bucket universal/pack weight split. Pack axes (worldBuilding, magicSystem,
+// chemistry, stakes, etc.) get less budget in buckets where execution detail is
+// the main contract (literary), more where genre contract dominates (romance).
+// Without budget enforcement, universal axes swamp pack axes just by having
+// more of them — so fantasy's worldBuilding signal gets lost.
+const CRAFT_BUDGET = {
+  literary:    { universal: 1.0,  pack: 0.0  },
+  historical:  { universal: 0.8,  pack: 0.2  },
+  fantasy:     { universal: 0.65, pack: 0.35 },
+  sf:          { universal: 0.7,  pack: 0.3  },
+  horror:      { universal: 0.7,  pack: 0.3  },
+  mystery:     { universal: 0.65, pack: 0.35 },
+  thriller:    { universal: 0.65, pack: 0.35 },
+  romance:     { universal: 0.55, pack: 0.45 },
+  nonfiction:  { universal: 0.7,  pack: 0.3  },
+};
 
 function getCraftBucket(genre) {
   return CRAFT_BUCKETS[genre] || "literary";
@@ -189,6 +206,28 @@ function buildCraftProfile(ratedBooks, tagData) {
         weight = bucketWeight; // pack axes have no global anchor
       }
       buckets[bucket][axis] = { mean, sd, weight, n };
+    }
+
+    // Enforce per-bucket universal/pack budget. Without this, the 8 universal
+    // axes drown out the 2 pack axes in fantasy (worldBuilding, magicSystem)
+    // just by count. Scale each group so sums match the bucket's budget.
+    const budget = CRAFT_BUDGET[bucket] || { universal: 1.0, pack: 0.0 };
+    let uniSum = 0, packSum = 0;
+    for (const [axis, stats] of Object.entries(buckets[bucket])) {
+      if (stats.weight <= 0) continue;
+      if (UNIVERSAL_AXES.has(axis)) uniSum += stats.weight;
+      else packSum += stats.weight;
+    }
+    // If pack axes exist, split the budget as specified. If no pack axes for
+    // this bucket, give universal the full 100%.
+    const effectiveUni = packSum > 0 ? budget.universal : 1.0;
+    const effectivePack = packSum > 0 ? budget.pack : 0;
+    for (const [axis, stats] of Object.entries(buckets[bucket])) {
+      if (UNIVERSAL_AXES.has(axis) && uniSum > 0) {
+        stats.weight = stats.weight * (effectiveUni / uniSum);
+      } else if (!UNIVERSAL_AXES.has(axis) && packSum > 0) {
+        stats.weight = stats.weight * (effectivePack / packSum);
+      }
     }
   }
 
