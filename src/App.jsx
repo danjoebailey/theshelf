@@ -2438,7 +2438,7 @@ function RecCard({ rec, coverUrl, ownedBook, onAddDirect, onEdit, onAddBook, ind
                   style={{ background:"transparent", border:"none", cursor:"pointer", padding:"2px 4px 0", color:"rgba(120,70,20,0.6)", fontSize:16, lineHeight:1, flexShrink:0 }}>↗</button>
               </div>
               <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: WOOD.textDim, fontStyle: "italic", marginBottom: 4 }}>{rec.author}</p>
-              {rec.genre && <span style={{ background: "rgba(138,90,40,0.18)", color: WOOD.amber, border: "1px solid rgba(138,90,40,0.35)", borderRadius: 20, padding: "2px 8px", fontSize: 8, fontFamily: "'DM Sans',sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", display: "inline-block" }}>{rec.genre}</span>}
+              {rec.genre && <span style={{ background: "rgba(138,90,40,0.55)", color: "rgba(255,255,255,0.9)", border: "1px solid rgba(138,90,40,0.4)", borderRadius: 20, padding: "2px 8px", fontSize: 8, fontFamily: "'DM Sans',sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", display: "inline-block" }}>{rec.genre}</span>}
             </div>
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:6 }}>
               {(rec.publishYear || rec.pages > 0) ? (
