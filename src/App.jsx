@@ -2424,19 +2424,21 @@ function RecCard({ rec, coverUrl, ownedBook, onAddDirect, onEdit, onAddBook, ind
         onTouchEnd={e => { if (!touchMoved.current) { e.preventDefault(); setExpanded(x => !x); } }}
         onClick={() => setExpanded(e => !e)}
         style={{ padding: "14px 16px", cursor: "pointer" }}>
-        <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+        <div style={{ display: "flex", gap: 12, alignItems: "stretch" }}>
           <div style={{ height: 72, width: 48, borderRadius: 4, flexShrink: 0, position: "relative", background: GENRE_COLORS[rec.genre] || GENRE_COLORS["Other"], boxShadow: "1px 1px 6px rgba(0,0,0,0.2)" }}>
             {coverUrl && <img src={coverUrl} alt={rec.title} style={{ position:"absolute", inset:0, height:72, width:48, objectFit:"cover", borderRadius:4, boxShadow:"1px 1px 6px rgba(0,0,0,0.3)" }} onError={e => { e.target.style.display = "none"; }} />}
           </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", marginBottom:3 }}>
-              <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 17, color: WOOD.text, lineHeight: 1.2, flex:1, paddingRight:6 }}>{rec.title}</p>
-              <button
-                onTouchEnd={e => { e.stopPropagation(); e.preventDefault(); ownedBook && onEdit ? onEdit(ownedBook) : onAddBook && onAddBook({ title:rec.title, author:rec.author, genre:rec.genre, coverUrl, pages:rec.pages||0 }); }}
-                onClick={e => { e.stopPropagation(); ownedBook && onEdit ? onEdit(ownedBook) : onAddBook && onAddBook({ title:rec.title, author:rec.author, genre:rec.genre, coverUrl, pages:rec.pages||0 }); }}
-                style={{ background:"transparent", border:"none", cursor:"pointer", padding:"2px 4px 0", color:"rgba(120,70,20,0.6)", fontSize:16, lineHeight:1, flexShrink:0 }}>↗</button>
+          <div style={{ flex: 1, minWidth: 0, display:"flex", flexDirection:"column", justifyContent:"space-between" }}>
+            <div>
+              <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", marginBottom:3 }}>
+                <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 17, color: WOOD.text, lineHeight: 1.2, flex:1, paddingRight:6 }}>{rec.title}</p>
+                <button
+                  onTouchEnd={e => { e.stopPropagation(); e.preventDefault(); ownedBook && onEdit ? onEdit(ownedBook) : onAddBook && onAddBook({ title:rec.title, author:rec.author, genre:rec.genre, coverUrl, pages:rec.pages||0 }); }}
+                  onClick={e => { e.stopPropagation(); ownedBook && onEdit ? onEdit(ownedBook) : onAddBook && onAddBook({ title:rec.title, author:rec.author, genre:rec.genre, coverUrl, pages:rec.pages||0 }); }}
+                  style={{ background:"transparent", border:"none", cursor:"pointer", padding:"2px 4px 0", color:"rgba(120,70,20,0.6)", fontSize:16, lineHeight:1, flexShrink:0 }}>↗</button>
+              </div>
+              <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: WOOD.textDim, fontStyle: "italic" }}>{rec.author}</p>
             </div>
-            <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: WOOD.textDim, fontStyle: "italic", marginBottom: 3 }}>{rec.author}</p>
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", gap:6 }}>
               {(rec.publishYear || rec.pages > 0) ? (
                 <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, color: WOOD.textFaint }}>
