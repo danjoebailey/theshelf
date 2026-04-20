@@ -144,6 +144,8 @@ function generateReason(mode, book, tagEntry, score, userProfile) {
   const pct = `${(score * 100).toFixed(0)}%`;
 
   switch (mode) {
+    case "all":
+      return `${traitStr || book.genre}. ${pct} match.`;
     case "popular":
       return `${traitStr || book.genre}. ${pct} match.`;
     case "trending":

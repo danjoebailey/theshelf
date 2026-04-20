@@ -2552,6 +2552,7 @@ function RecCard({ rec, coverUrl, ownedBook, onAddDirect, onEdit, onAddBook, ind
 }
 
 const PAIGE_MODES = [
+  { key:"all",          label:"All",           desc:"Pure match — no lens" },
   { key:"popular",      label:"Acclaimed",     desc:"Award winners, cultural touchstones, canonical works" },
   { key:"trending",     label:"New Releases",  desc:"Recently published, matched to your taste" },
   { key:"hidden_gems",  label:"Hidden Gems",   desc:"Under-the-radar books that deserve more readers" },
