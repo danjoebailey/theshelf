@@ -94,21 +94,12 @@ function modeScore(mode, baseScore, tagEntry, userProfile) {
   const bp = userProfile.bucketProfiles[bucket];
   if (bp) Object.assign(combinedProfile, bp.vibes);
   const penalty = mismatchPenalty(v, combinedProfile, allVibeKeys);
-  let adjusted = baseScore - penalty;
 
-  switch (mode) {
-    case "comfort_read":
-      adjusted += (v.warmth / 100) + (v.tone / 100) + (v.emotional_register / 100) - (v.difficulty / 100);
-      break;
-    case "challenge_me":
-      adjusted += (v.difficulty / 100) + (v.prose_craft / 100);
-      break;
-    case "new_to_me":
-      adjusted += 0.05;
-      break;
-  }
-
-  return adjusted;
+  // Mode filters already narrow the pool (comfort_read requires warm/gentle,
+  // challenge_me requires hard/crafted). The ranking should still reflect
+  // actual fit — a "comfort" book that doesn't match this reader's profile
+  // shouldn't score 104%. No additive bonus by mode.
+  return baseScore - penalty;
 }
 
 function describeVibe(val, low, mid, high) {
@@ -141,7 +132,9 @@ function generateReason(mode, book, tagEntry, score, userProfile) {
   else if (v.emotional_register >= 8) traits.push("joyful");
 
   const traitStr = traits.slice(0, 3).join(", ");
-  const pct = `${(score * 100).toFixed(0)}%`;
+  // Display is clamped at 100% — the raw composite can exceed 1.0 for
+  // exceptional fits, but anything over "100% match" reads as broken.
+  const pct = `${Math.min(100, Math.round(score * 100))}%`;
 
   switch (mode) {
     case "all":
