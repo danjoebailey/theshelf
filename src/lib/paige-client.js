@@ -197,6 +197,9 @@ export async function generatePaigeRecs(userBooks, mode, exclude = [], genre = n
     if (excludeSet.has(normalize(book.title))) return false;
     if (genre && book.genre !== genre) return false;
     const te = tagData[String(book.id)];
+    // Require craft scores — excludes children's/MG/travel-writing backlog
+    // that was deliberately left unscored. Adult reader recs shouldn't surface those.
+    if (!te?.scores) return false;
     return modeFilter(mode, book, te, profile);
   });
 
