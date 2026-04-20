@@ -2728,12 +2728,13 @@ function PaigeTab({ books, userId, onAddDirect, onEdit, onAddBook }) {
           <div style={{ display:"flex", alignItems:"center", gap:7, margin:"0 18px 14px", flexWrap:"wrap" }}>
             <div style={{ position:"relative" }}>
               <button onClick={() => setGenreDropOpen(o => !o)} style={{
-                padding:"6px 14px", borderRadius:20, fontSize:12, fontFamily:"'DM Sans',sans-serif", fontWeight:600,
-                cursor:"pointer", transition:"all 0.15s", border:"1px solid", display:"flex", alignItems:"center", gap:4,
-                background: filterGenre ? WOOD.amber : WOOD.shelf,
-                color: filterGenre ? "#1a0900" : "rgba(255,255,255,0.95)",
-                borderColor: filterGenre ? WOOD.amber : WOOD.grain1,
-              }}>{filterGenre || "Genre"}<span style={{ fontSize:10, opacity:0.6, transition:"transform 0.2s", transform: genreDropOpen ? "rotate(180deg)" : "rotate(0deg)" }}>▾</span></button>
+                padding:"5px 12px", borderRadius:20, fontSize:12, fontFamily:"'DM Sans',sans-serif", fontWeight:500,
+                cursor:"pointer", transition:"all 0.15s", display:"flex", alignItems:"center", gap:5,
+                background: filterGenre ? WOOD.amber : "rgba(15,8,2,0.55)",
+                color: filterGenre ? "#1a0900" : "#fff",
+                border: `1px solid ${filterGenre ? WOOD.amber : "rgba(120,70,20,0.3)"}`,
+                backdropFilter: "blur(4px)",
+              }}>{filterGenre || "Genre"}<span style={{ fontSize:10, color: filterGenre ? "rgba(26,9,0,0.5)" : "rgba(255,255,255,0.5)", display:"inline-block", transition:"transform 0.2s", transform: genreDropOpen ? "rotate(180deg)" : "rotate(0deg)" }}>▾</span></button>
               {genreDropOpen && <div style={{ position:"absolute", top:"100%", left:0, marginTop:4, background:"rgba(40,24,12,0.97)", border:"1px solid rgba(138,90,40,0.3)", borderRadius:10, padding:"6px 0", zIndex:50, minWidth:160, maxHeight:260, overflowY:"auto", boxShadow:"0 4px 16px rgba(0,0,0,0.4)" }}>
                 <button onClick={() => { setFilterGenre(null); setGenreDropOpen(false); }} style={{ display:"block", width:"100%", padding:"8px 16px", background: !filterGenre ? "rgba(138,90,40,0.1)" : "transparent", border:"none", textAlign:"left", fontSize:12, fontFamily:"'DM Sans',sans-serif", fontWeight: !filterGenre ? 600 : 400, color: !filterGenre ? WOOD.amber : "rgba(255,235,195,0.7)", cursor:"pointer" }}>All genres</button>
                 {["Fiction","Non-Fiction","Fantasy","Sci-Fi","Mystery","Thriller","Horror","Romance","Biography","History","Historical Fiction","Young Adult","Self-Help","Graphic Novel"].map(g => (
