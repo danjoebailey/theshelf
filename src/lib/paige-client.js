@@ -164,6 +164,7 @@ export async function generatePaigeRecs(userBooks, mode, exclude = [], genre = n
   const readBooks = userBooks.filter(b => (b.shelf || "Read") === "Read");
   const profileTagData = {};
   const profileBooks = [];
+  const unmatchedByGenre = {};
   for (const book of readBooks) {
     const key = normalize(book.title) + "|" + normalize(book.author);
     const match = tagByNorm[key];
@@ -171,8 +172,18 @@ export async function generatePaigeRecs(userBooks, mode, exclude = [], genre = n
       const fakeId = match.id || key;
       profileTagData[String(fakeId)] = { vibes: match.vibes, tags: match.tags, scores: match.scores };
       profileBooks.push({ ...book, id: fakeId, genre: match.genre || book.genre });
+    } else {
+      const g = book.genre || "Unknown";
+      if (!unmatchedByGenre[g]) unmatchedByGenre[g] = [];
+      unmatchedByGenre[g].push(`${book.title} — ${book.author}`);
     }
   }
+  console.group(`[Paige join diag] mode=${mode}`);
+  console.log(`matched=${profileBooks.length}/${readBooks.length} read books`);
+  for (const [g, list] of Object.entries(unmatchedByGenre)) {
+    console.log(`unmatched ${g} (${list.length}):`, list);
+  }
+  console.groupEnd();
 
   const profile = buildUserProfile(profileBooks, profileTagData);
 
