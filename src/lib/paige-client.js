@@ -169,7 +169,7 @@ export async function generatePaigeRecs(userBooks, mode, exclude = [], genre = n
     const match = tagByNorm[key];
     if (match) {
       const fakeId = match.id || key;
-      profileTagData[String(fakeId)] = { vibes: match.vibes, tags: match.tags };
+      profileTagData[String(fakeId)] = { vibes: match.vibes, tags: match.tags, scores: match.scores };
       profileBooks.push({ ...book, id: fakeId, genre: match.genre || book.genre });
     }
   }
