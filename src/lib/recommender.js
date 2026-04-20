@@ -218,10 +218,14 @@ function buildCraftProfile(ratedBooks, tagData) {
       if (UNIVERSAL_AXES.has(axis)) uniSum += stats.weight;
       else packSum += stats.weight;
     }
-    // If pack axes exist, split the budget as specified. If no pack axes for
-    // this bucket, give universal the full 100%.
-    const effectiveUni = packSum > 0 ? budget.universal : 1.0;
-    const effectivePack = packSum > 0 ? budget.pack : 0;
+    // Split the budget between universal and pack. If one group has no weight
+    // (e.g., no correlation with ratings for pack axes), the other gets the
+    // full 1.0 rather than leaving budget unused.
+    let effectiveUni, effectivePack;
+    if (uniSum > 0 && packSum > 0)     { effectiveUni = budget.universal; effectivePack = budget.pack; }
+    else if (uniSum > 0)               { effectiveUni = 1.0;              effectivePack = 0; }
+    else if (packSum > 0)              { effectiveUni = 0;                effectivePack = 1.0; }
+    else                               { effectiveUni = 0;                effectivePack = 0; }
     for (const [axis, stats] of Object.entries(buckets[bucket])) {
       if (UNIVERSAL_AXES.has(axis) && uniSum > 0) {
         stats.weight = stats.weight * (effectiveUni / uniSum);
