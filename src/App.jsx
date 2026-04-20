@@ -2344,8 +2344,8 @@ function RecCard({ rec, coverUrl, ownedBook, onAddDirect, onEdit, onAddBook, ind
   const SHELF_META = {
     "Read":     { bg:"rgba(60,120,80,0.55)",  color:"rgba(255,255,255,0.9)", border:"rgba(60,120,80,0.4)"  },
     "Reading":  { bg:"rgba(210,100,30,0.55)", color:"rgba(255,255,255,0.9)", border:"rgba(210,100,30,0.4)" },
-    "The List": { bg:"rgba(138,90,40,0.5)",   color:"rgba(255,255,255,0.9)", border:"rgba(138,90,40,0.4)" },
-    "Curious":  { bg:"rgba(200,144,90,0.15)", color:WOOD.amber,              border:"rgba(200,144,90,0.3)" },
+    "The List": { bg:"rgba(80,120,180,0.7)",  color:"rgba(255,255,255,0.9)", border:"rgba(80,120,180,0.5)" },
+    "Curious":  { bg:"rgba(180,155,80,0.7)",  color:"rgba(255,255,255,0.9)", border:"rgba(180,155,80,0.5)" },
     "DNF":      { bg:"rgba(160,50,50,0.55)",  color:"rgba(255,255,255,0.9)", border:"rgba(160,50,50,0.4)" },
   };
   const dropLabel = ownedBook ? (ownedBook.shelf || "Read") : "+ Add";
