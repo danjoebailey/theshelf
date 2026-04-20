@@ -1,4 +1,4 @@
-import { buildUserProfile, scoreBook, getBucket, GENRE_BUCKETS } from "./recommender.js";
+import { buildUserProfile, scoreBook, getBucket, GENRE_BUCKETS, craftHardFilter } from "./recommender.js";
 
 let recLibrary = null;
 let primaryCatalog = null;
@@ -200,6 +200,9 @@ export async function generatePaigeRecs(userBooks, mode, exclude = [], genre = n
     // Require craft scores — excludes children's/MG/travel-writing backlog
     // that was deliberately left unscored. Adult reader recs shouldn't surface those.
     if (!te?.scores) return false;
+    // Craft hard filter: z < -2 on a high-weight axis for this bucket → candidate
+    // fails the reader's standards badly enough to exclude, not merely penalize.
+    if (craftHardFilter(book, te, profile.craftProfile)) return false;
     return modeFilter(mode, book, te, profile);
   });
 
