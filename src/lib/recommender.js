@@ -83,7 +83,7 @@ const CRAFT_BUCKETS = {
 const UNIVERSAL_AXES = new Set(["prose", "characters", "plot", "pacing", "ideas", "resonance", "ending", "voice"]);
 
 const CRAFT_MIN_BOOKS_PER_AXIS = 3;          // below this, axis is dropped for that bucket
-const CRAFT_SHRINKAGE_K = 5;                  // α = n / (n + k) for weight transfer
+const CRAFT_SHRINKAGE_K = 3;                  // α = n / (n + k) for weight transfer
 const CRAFT_HARD_FILTER_MIN_N = 5;            // need this many observations to trust a hard filter
 const CRAFT_HARD_FILTER_WEIGHT = 0.15;        // only filter on axes with at least this weight
 const CRAFT_MIN_SD = 1.0;                     // floor SDs here so tight-consistency axes don't over-penalize
