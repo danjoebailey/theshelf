@@ -176,10 +176,23 @@ export async function generatePaigeRecs(userBooks, mode, exclude = [], genre = n
 
   const profile = buildUserProfile(profileBooks, profileTagData);
 
-  // Diagnostic: dump craft profile per bucket so you can see what weights are
-  // being applied. Remove this log once satisfied the craft layer is behaving.
+  // Diagnostic: dump per-bucket book counts + craft weights to see why a bucket
+  // might be empty (sparse history) vs. present (enough rated books in bucket).
+  const bucketBookCounts = {};
+  for (const b of profileBooks) {
+    const g = b.genre || "Fiction";
+    const bkt = ({
+      "Fiction": "literary", "Historical Fiction": "historical", "Biography": "literary",
+      "Fantasy": "fantasy", "Sci-Fi": "sf", "Horror": "horror", "Graphic Novel": "literary",
+      "Mystery": "mystery", "Thriller": "thriller", "Romance": "romance",
+      "Young Adult": "romance", "Non-Fiction": "nonfiction", "History": "nonfiction",
+      "Self-Help": "nonfiction",
+    })[g] || "literary";
+    bucketBookCounts[bkt] = (bucketBookCounts[bkt] || 0) + 1;
+  }
+  console.group(`[Paige craft profile] mode=${mode}`);
+  console.log("books per bucket (profile):", bucketBookCounts);
   if (profile.craftProfile) {
-    console.group(`[Paige craft profile] mode=${mode}`);
     for (const [bucket, axes] of Object.entries(profile.craftProfile.buckets)) {
       let uniSum = 0, packSum = 0;
       const UNI = new Set(["prose","characters","plot","pacing","ideas","resonance","ending","voice"]);
@@ -189,13 +202,14 @@ export async function generatePaigeRecs(userBooks, mode, exclude = [], genre = n
         if (isUni) uniSum += stats.weight; else packSum += stats.weight;
         rows.push({ axis, type: isUni ? "uni" : "pack", weight: +stats.weight.toFixed(3), mean: +stats.mean.toFixed(2), sd: +stats.sd.toFixed(2), n: stats.n });
       }
-      console.log(`${bucket}  uniSum=${uniSum.toFixed(3)} packSum=${packSum.toFixed(3)}`);
-      console.table(rows);
+      const axisCount = Object.keys(axes).length;
+      console.log(`${bucket}  books=${bucketBookCounts[bucket] || 0}  axes=${axisCount}  uniSum=${uniSum.toFixed(3)} packSum=${packSum.toFixed(3)}`);
+      if (axisCount > 0) console.table(rows);
     }
-    console.groupEnd();
   } else {
-    console.log(`[Paige craft profile] none — need ≥3 rated books with craft scores`);
+    console.log(`no craftProfile — need ≥3 rated books with craft scores`);
   }
+  console.groupEnd();
 
   const excludeSet = new Set(exclude.map(t => normalize(t)));
   const readSet = new Set(readBooks.map(b => normalize(b.title)));
