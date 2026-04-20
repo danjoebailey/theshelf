@@ -2445,7 +2445,7 @@ function RecCard({ rec, coverUrl, ownedBook, onAddDirect, onEdit, onAddBook, ind
                 <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, color: WOOD.textFaint }}>
                   {rec.publishYear ? `${rec.publishYear}` : ""}
                   {rec.publishYear && rec.pages > 0 ? " · " : ""}
-                  {rec.pages > 0 ? `${rec.pages.toLocaleString()}p` : ""}
+                  {rec.pages > 0 ? `${rec.pages.toLocaleString()} pages` : ""}
                 </span>
               ) : <span />}
               <div style={{ display:"flex", alignItems:"center", gap:6, flexShrink:0 }}>
