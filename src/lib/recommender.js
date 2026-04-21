@@ -142,8 +142,10 @@ const CRAFT_BUCKETS = {
 // Voice was dropped per spec (2026-04-17): "too collinear with Prose in
 // practice. Prose rubric reframed as 'effectiveness of sentences in
 // delivering this author's register' — absorbs what Voice would've caught."
-// Voice scores still exist in book-tags.json but aren't read by scoring.
+// Voice scores still exist in book-tags.json but aren't read by scoring
+// (CRAFT_IGNORED_AXES filters them out of collection).
 const UNIVERSAL_AXES = new Set(["prose", "characters", "plot", "pacing", "ideas", "resonance", "ending"]);
+const CRAFT_IGNORED_AXES = new Set(["voice"]);
 
 const CRAFT_MIN_BOOKS_PER_AXIS = 3;          // below this, axis is dropped for that bucket
 const CRAFT_MIN_BOOKS_PER_BUCKET = 5;         // below this, bucket falls back to global (universal) / neutral (pack)
@@ -157,6 +159,7 @@ const CRAFT_PRIOR_SD = 1.5;                   // "consistently tight" threshold 
 const CRAFT_PRIOR_WEIGHT = 0.15;              // weight to inject for pack axes Pearson zeroed out but variance says user requires
 const CRAFT_NEUTRAL_MEAN = 7;                 // fallback mean for sparse-bucket pack axes (spec)
 const CRAFT_NEUTRAL_SD = 2;                   // fallback SD for sparse-bucket pack axes (spec)
+const CRAFT_REGRESSION_MIN_N = 70;            // use partial regression for weight inference at ≥ this bucket size
 const RECENCY_LAMBDA = 0.15;                  // exp(-λ × years_since_read): 5y→0.47, 10y→0.22, 15y→0.11, 20y→0.05
 const NOW_MS = Date.now();
 
@@ -269,6 +272,88 @@ function meanAndSD(values, weights) {
   return { mean, sd: Math.max(Math.sqrt(variance), CRAFT_MIN_SD), n };
 }
 
+// Gauss-Jordan with partial pivoting. Solves Ax = b for small dense systems
+// (we have ≤7 universal axes). Returns null if A is singular/near-singular.
+function solveLinear(A, b) {
+  const n = A.length;
+  const M = A.map(row => [...row]);
+  const v = [...b];
+  for (let i = 0; i < n; i++) {
+    let maxRow = i;
+    for (let k = i + 1; k < n; k++) {
+      if (Math.abs(M[k][i]) > Math.abs(M[maxRow][i])) maxRow = k;
+    }
+    if (maxRow !== i) {
+      [M[i], M[maxRow]] = [M[maxRow], M[i]];
+      [v[i], v[maxRow]] = [v[maxRow], v[i]];
+    }
+    if (Math.abs(M[i][i]) < 1e-8) return null;
+    for (let k = i + 1; k < n; k++) {
+      const f = M[k][i] / M[i][i];
+      for (let j = i; j < n; j++) M[k][j] -= f * M[i][j];
+      v[k] -= f * v[i];
+    }
+  }
+  const x = Array(n).fill(0);
+  for (let i = n - 1; i >= 0; i--) {
+    let s = v[i];
+    for (let j = i + 1; j < n; j++) s -= M[i][j] * x[j];
+    x[i] = s / M[i][i];
+  }
+  return x;
+}
+
+// Weighted OLS: β = (X^T W X)^(-1) X^T W y. On standardized X, coefficients
+// are comparable across axes and represent each axis's *unique* contribution
+// to rating after partialing out the others. This is what decorrelates
+// prose/ideas/resonance and stops Pearson from over-crediting a single
+// winner among collinear axes.
+function weightedOLS(X, y, weights) {
+  const m = X.length;
+  if (m === 0) return null;
+  const n = X[0].length;
+  const XtWX = Array.from({ length: n }, () => Array(n).fill(0));
+  const XtWy = Array(n).fill(0);
+  for (let i = 0; i < m; i++) {
+    const w = weights ? weights[i] : 1;
+    for (let j = 0; j < n; j++) {
+      for (let k = 0; k <= j; k++) XtWX[j][k] += w * X[i][j] * X[i][k];
+      XtWy[j] += w * X[i][j] * y[i];
+    }
+  }
+  for (let j = 0; j < n; j++) for (let k = j + 1; k < n; k++) XtWX[j][k] = XtWX[k][j];
+  return solveLinear(XtWX, XtWy);
+}
+
+// Partial regression for weight inference in large buckets. Returns
+// {axis: weight} with non-negative standardized coefficients. Books missing
+// any universal axis score are excluded (list-wise deletion).
+function inferWeightsByRegression(books, universalAxisList) {
+  const ready = books.filter(b => universalAxisList.every(a => b.scores[a] != null));
+  if (ready.length < CRAFT_REGRESSION_MIN_N) return null;
+  const m = ready.length, n = universalAxisList.length;
+  const Xraw = ready.map(b => universalAxisList.map(a => b.scores[a]));
+  const y = ready.map(b => b.zRating);
+  const w = ready.map(b => b.weight);
+  // Standardize X columns using weighted mean/SD so coefficients are comparable.
+  const W = w.reduce((a, b) => a + b, 0);
+  if (W === 0) return null;
+  const means = Array(n).fill(0);
+  for (let i = 0; i < m; i++) for (let j = 0; j < n; j++) means[j] += w[i] * Xraw[i][j];
+  for (let j = 0; j < n; j++) means[j] /= W;
+  const sds = Array(n).fill(0);
+  for (let i = 0; i < m; i++) for (let j = 0; j < n; j++) sds[j] += w[i] * (Xraw[i][j] - means[j]) ** 2;
+  for (let j = 0; j < n; j++) sds[j] = Math.max(Math.sqrt(sds[j] / W), 0.5);
+  const Xstd = Xraw.map(row => row.map((v, j) => (v - means[j]) / sds[j]));
+  const beta = weightedOLS(Xstd, y, w);
+  if (!beta) return null;
+  const result = {};
+  for (let j = 0; j < n; j++) {
+    result[universalAxisList[j]] = Math.max(0, beta[j]);
+  }
+  return result;
+}
+
 function pearsonCorrelation(xs, ys, weights) {
   const n = xs.length;
   if (n < 3) return 0;
@@ -326,6 +411,7 @@ function buildCraftProfile(ratedBooks, tagData) {
   //     uniform authors don't over-anchor the profile)
   const authorDamp = computeAuthorDampening(ratedBooks);
   const perBucketAxis = {};
+  const perBucketBooks = {};  // {bucket: [{scores: {axis: val}, zRating, weight}]} for regression
   const globalPerAxis = {};
 
   for (const book of ratedBooks) {
@@ -340,8 +426,19 @@ function buildCraftProfile(ratedBooks, tagData) {
     const bucket = getCraftBucket(book.genre);
     if (!perBucketAxis[bucket]) perBucketAxis[bucket] = {};
 
+    // Per-book record for regression. Only universal axes needed — partial
+    // regression deconflicts universal-axis collinearity; pack axes are
+    // bucket-local and keep Pearson.
+    if (!perBucketBooks[bucket]) perBucketBooks[bucket] = [];
+    const bookScores = {};
+    for (const axis of UNIVERSAL_AXES) {
+      if (typeof td.scores[axis] === "number") bookScores[axis] = td.scores[axis];
+    }
+    perBucketBooks[bucket].push({ scores: bookScores, zRating: zr, weight: rw });
+
     for (const [axis, score] of Object.entries(td.scores)) {
       if (typeof score !== "number") continue;
+      if (CRAFT_IGNORED_AXES.has(axis)) continue;
       if (!perBucketAxis[bucket][axis]) {
         perBucketAxis[bucket][axis] = { scores: [], zRatings: [], pearsonWeights: [], profileWeights: [] };
       }
@@ -392,6 +489,15 @@ function buildCraftProfile(ratedBooks, tagData) {
       continue;
     }
 
+    // If bucket has enough observations, run partial regression on universal
+    // axes jointly. Standardized β coefficients replace the per-axis Pearson
+    // correlations — this is what prevents Pearson from picking one axis
+    // (magicSystem) as the single winner among collinear signals (prose,
+    // ideas, resonance, voice all co-vary in catalog scores).
+    const regressionWeights = bucketBookCount >= CRAFT_REGRESSION_MIN_N
+      ? inferWeightsByRegression(perBucketBooks[bucket] || [], [...UNIVERSAL_AXES])
+      : null;
+
     for (const [axis, data] of Object.entries(axes)) {
       // Axis-level sparse fallback (axis has too few observations in an
       // otherwise-populated bucket). Universal axes fall back to global;
@@ -413,7 +519,10 @@ function buildCraftProfile(ratedBooks, tagData) {
       if (UNIVERSAL_AXES.has(axis)) {
         const globalW = globalWeights[axis] || 0;
         const alpha = data.scores.length / (data.scores.length + CRAFT_SHRINKAGE_K);
-        weight = alpha * bucketWeight + (1 - alpha) * globalW;
+        // Prefer regression coefficient when available (large bucket);
+        // fall back to Pearson for smaller buckets.
+        const bucketSignal = regressionWeights?.[axis] ?? bucketWeight;
+        weight = alpha * bucketSignal + (1 - alpha) * globalW;
       } else {
         // Pack axes: Pearson on low-variance data yields ~0 even when the user
         // clearly requires the axis (every fantasy they read has worldBuilding
@@ -471,6 +580,7 @@ function scoreCraft(candidate, tagEntry, craftProfile) {
 
   for (const [axis, score] of Object.entries(tagEntry.scores)) {
     if (typeof score !== "number") continue;
+    if (CRAFT_IGNORED_AXES.has(axis)) continue;
     const stats = bucketStats[axis];
     if (!stats || stats.weight <= 0) continue;
     const z = (score - stats.mean) / stats.sd;
@@ -500,6 +610,7 @@ function craftHardFilter(candidate, tagEntry, craftProfile) {
 
   for (const [axis, score] of Object.entries(tagEntry.scores)) {
     if (typeof score !== "number") continue;
+    if (CRAFT_IGNORED_AXES.has(axis)) continue;
     const stats = bucketStats[axis];
     if (!stats) continue;
     if (stats.n < CRAFT_HARD_FILTER_MIN_N) continue;
