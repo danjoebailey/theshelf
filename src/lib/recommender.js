@@ -184,6 +184,43 @@ function profileWeight(book) {
   return ratingWeight(book) * recencyWeight(book);
 }
 
+// Author-cluster dampening. A user who rated 10 Sanderson books all 5★ is
+// giving us *one* signal ("I like this author") replicated 10 times, not 10
+// independent signals. Without dampening, that author's taste dominates the
+// profile. Spec: only dampen when within-author variance is low — mixed
+// within-author ratings still represent rich signal and keep full weight.
+//
+// Uniform-rated author (rating SD ≤ 0.5, n ≥ 3) gets per-book weight scaled
+// so total author contribution ≈ sqrt(n/3) × a single book's weight. 10
+// books becomes effectively ~1.8 books of signal instead of 10.
+const AUTHOR_DAMPEN_MIN_BOOKS = 3;
+const AUTHOR_DAMPEN_SD_THRESHOLD = 0.5;
+
+function authorNormKey(author) {
+  return (author || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function computeAuthorDampening(ratedBooks) {
+  const byAuthor = {};
+  for (const b of ratedBooks) {
+    if (b.rating == null || b.rating <= 0) continue;
+    const k = authorNormKey(b.author);
+    if (!k) continue;
+    (byAuthor[k] ||= []).push(b.rating);
+  }
+  const damp = {};
+  for (const [k, ratings] of Object.entries(byAuthor)) {
+    if (ratings.length < AUTHOR_DAMPEN_MIN_BOOKS) { damp[k] = 1; continue; }
+    const mean = ratings.reduce((a, b) => a + b, 0) / ratings.length;
+    const variance = ratings.reduce((a, r) => a + (r - mean) ** 2, 0) / ratings.length;
+    const sd = Math.sqrt(variance);
+    if (sd > AUTHOR_DAMPEN_SD_THRESHOLD) { damp[k] = 1; continue; }  // varied ratings = rich signal, keep full
+    // Uniform author — scale individual contributions so total ≈ sqrt(n/3) books
+    damp[k] = Math.sqrt(AUTHOR_DAMPEN_MIN_BOOKS / ratings.length);
+  }
+  return damp;
+}
+
 // Per-bucket universal/pack weight split. Pack axes (worldBuilding, magicSystem,
 // chemistry, stakes, etc.) get less budget in buckets where execution detail is
 // the main contract (literary), more where genre contract dominates (romance).
@@ -273,11 +310,13 @@ function buildCraftProfile(ratedBooks, tagData) {
   const normRating = r => (r - rMean) / rSD;
 
   // Collect observations. Two parallel tracks with different weighting:
-  //   pearsonWeights = recencyWeight only (Pearson needs the full rating
-  //     variance — if we also rating-weight, we'd be double-dipping since
-  //     rating IS already the y-variable in the correlation)
-  //   profileWeights = ratingWeight × recencyWeight (for mean/SD — top picks
-  //     define your taste center, mid-tier reads barely shift it)
+  //   pearsonWeights = recencyWeight × authorDampening (Pearson needs the
+  //     full rating variance, but still benefits from dampening redundant
+  //     uniformly-rated authors)
+  //   profileWeights = ratingWeight × recencyWeight × authorDampening (for
+  //     mean/SD — top picks define center, mid-tier fades, prolific-
+  //     uniform authors don't over-anchor the profile)
+  const authorDamp = computeAuthorDampening(ratedBooks);
   const perBucketAxis = {};
   const globalPerAxis = {};
 
@@ -286,8 +325,9 @@ function buildCraftProfile(ratedBooks, tagData) {
     const zr = normRating(book.rating);
     const td = tagData[String(book.id)];
     if (!td?.scores) continue;
-    const rw = recencyWeight(book);
-    const pw = profileWeight(book);
+    const ad = authorDamp[authorNormKey(book.author)] || 1;
+    const rw = recencyWeight(book) * ad;
+    const pw = profileWeight(book) * ad;
 
     const bucket = getCraftBucket(book.genre);
     if (!perBucketAxis[bucket]) perBucketAxis[bucket] = {};
@@ -434,20 +474,21 @@ function craftHardFilter(candidate, tagEntry, craftProfile) {
 // =====================================================================
 
 export function buildUserProfile(ratedBooks, tagData) {
-  // Rating-weighted (and recency-weighted) aggregation. Every rated book
-  // contributes in proportion to (rating-3)² × exp(-λ × years): 5★ recent = 4,
-  // 4★ recent = 1, 3★ = 0, old reads decay. Top picks define your taste
-  // center, mid-tier reads barely shift it, 1-3★ contribute nothing.
-  const globalAxis = {};         // {axis: {vals, weights}}
-  const bucketAxis = {};         // {bucket: {axis: {vals, weights}}}
+  // Rating-weighted (and recency- and author-weighted) aggregation. Every
+  // rated book contributes profileWeight × authorDampening: top picks define
+  // the center, mid-tier fades, 3★↓ drops, and uniformly-rated prolific
+  // authors don't flood the profile with correlated signal.
+  const authorDamp = computeAuthorDampening(ratedBooks);
+  const globalAxis = {};
+  const bucketAxis = {};
   const bucketBookCounts = {};
 
   for (const book of ratedBooks) {
     const bookId = String(book.id);
     const td = tagData[bookId];
     if (!td) continue;
-    const w = profileWeight(book);
-    if (w === 0) continue;  // 3★ or below — no signal
+    const w = profileWeight(book) * (authorDamp[authorNormKey(book.author)] || 1);
+    if (w === 0) continue;
 
     for (const key of GLOBAL_VIBES) {
       if (td.vibes?.[key] != null) {
