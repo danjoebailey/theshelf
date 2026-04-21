@@ -138,9 +138,15 @@ const CRAFT_BUCKETS = {
 
 // Universal axes get cross-bucket weight transfer via Bayesian shrinkage.
 // Pack axes (worldBuilding, chemistry, etc.) stay bucket-local.
-const UNIVERSAL_AXES = new Set(["prose", "characters", "plot", "pacing", "ideas", "resonance", "ending", "voice"]);
+//
+// Voice was dropped per spec (2026-04-17): "too collinear with Prose in
+// practice. Prose rubric reframed as 'effectiveness of sentences in
+// delivering this author's register' — absorbs what Voice would've caught."
+// Voice scores still exist in book-tags.json but aren't read by scoring.
+const UNIVERSAL_AXES = new Set(["prose", "characters", "plot", "pacing", "ideas", "resonance", "ending"]);
 
 const CRAFT_MIN_BOOKS_PER_AXIS = 3;          // below this, axis is dropped for that bucket
+const CRAFT_MIN_BOOKS_PER_BUCKET = 5;         // below this, bucket falls back to global (universal) / neutral (pack)
 const CRAFT_SHRINKAGE_K = 5;                  // α = n / (n + k) for weight transfer
 const CRAFT_HARD_FILTER_MIN_N = 5;            // need this many observations to trust a hard filter
 const CRAFT_HARD_FILTER_WEIGHT = 0.15;        // only filter on axes with at least this weight
@@ -149,6 +155,8 @@ const CRAFT_HIGH_RATING_THRESHOLD = 4;        // means/SDs computed only from bo
 const CRAFT_PRIOR_MEAN = 7;                   // "consistently high" threshold for implicit-requirement prior
 const CRAFT_PRIOR_SD = 1.5;                   // "consistently tight" threshold for implicit-requirement prior
 const CRAFT_PRIOR_WEIGHT = 0.15;              // weight to inject for pack axes Pearson zeroed out but variance says user requires
+const CRAFT_NEUTRAL_MEAN = 7;                 // fallback mean for sparse-bucket pack axes (spec)
+const CRAFT_NEUTRAL_SD = 2;                   // fallback SD for sparse-bucket pack axes (spec)
 const RECENCY_LAMBDA = 0.15;                  // exp(-λ × years_since_read): 5y→0.47, 10y→0.22, 15y→0.11, 20y→0.05
 const NOW_MS = Date.now();
 
@@ -343,26 +351,59 @@ function buildCraftProfile(ratedBooks, tagData) {
       perBucketAxis[bucket][axis].profileWeights.push(pw);
 
       if (UNIVERSAL_AXES.has(axis)) {
-        if (!globalPerAxis[axis]) globalPerAxis[axis] = { scores: [], zRatings: [], pearsonWeights: [] };
+        if (!globalPerAxis[axis]) globalPerAxis[axis] = { scores: [], zRatings: [], pearsonWeights: [], profileWeights: [] };
         globalPerAxis[axis].scores.push(score);
         globalPerAxis[axis].zRatings.push(zr);
         globalPerAxis[axis].pearsonWeights.push(rw);
+        globalPerAxis[axis].profileWeights.push(pw);
       }
     }
   }
 
-  // Global weights for universal axes (anchor for bucket-level shrinkage)
+  // Global stats for universal axes. Used as: (a) anchor for bucket-level
+  // Bayesian shrinkage on weights, and (b) fallback for sparse buckets where
+  // per-bucket means/SDs would just be noise.
   const globalWeights = {};
+  const globalStats = {};
   for (const [axis, data] of Object.entries(globalPerAxis)) {
     globalWeights[axis] = pearsonCorrelation(data.scores, data.zRatings, data.pearsonWeights);
+    const { mean, sd } = meanAndSD(data.scores, data.profileWeights);
+    globalStats[axis] = { mean, sd, weight: globalWeights[axis] };
   }
 
   // Per-bucket profile: means, SDs, weights (shrunk toward global for universal axes)
   const buckets = {};
   for (const [bucket, axes] of Object.entries(perBucketAxis)) {
     buckets[bucket] = {};
+
+    // Bucket-level sparse fallback (spec: "Below ~5 rated books in a bucket,
+    // SD is noise. Fall back to global user mean/SD for universal axes,
+    // neutral (mean=7, SD=2) for bucket-specific axes."). Use max observed
+    // count across axes as proxy for bucket book count.
+    const bucketBookCount = Math.max(0, ...Object.values(axes).map(d => d.scores.length));
+    if (bucketBookCount < CRAFT_MIN_BOOKS_PER_BUCKET) {
+      for (const [axis, gs] of Object.entries(globalStats)) {
+        if (gs.mean != null) {
+          buckets[bucket][axis] = { mean: gs.mean, sd: gs.sd, weight: gs.weight, n: 0, fallback: "global" };
+        }
+      }
+      // Don't synthesize pack axes here — we'd be guessing which apply. They'll
+      // populate naturally once the user rates enough in this bucket.
+      continue;
+    }
+
     for (const [axis, data] of Object.entries(axes)) {
-      if (data.scores.length < CRAFT_MIN_BOOKS_PER_AXIS) continue;
+      // Axis-level sparse fallback (axis has too few observations in an
+      // otherwise-populated bucket). Universal axes fall back to global;
+      // pack axes use neutral (mean=7, SD=2).
+      if (data.scores.length < CRAFT_MIN_BOOKS_PER_AXIS) {
+        if (UNIVERSAL_AXES.has(axis) && globalStats[axis]?.mean != null) {
+          buckets[bucket][axis] = { mean: globalStats[axis].mean, sd: globalStats[axis].sd, weight: globalStats[axis].weight, n: data.scores.length, fallback: "global" };
+        } else {
+          buckets[bucket][axis] = { mean: CRAFT_NEUTRAL_MEAN, sd: CRAFT_NEUTRAL_SD, weight: 0, n: data.scores.length, fallback: "neutral" };
+        }
+        continue;
+      }
       // Means/SDs use the full rating-weighted contribution — top picks
       // dominate, 1-3★ reads contribute nothing. Pearson keeps the unweighted
       // (well, recency-only) path because it needs rating variance as signal.
