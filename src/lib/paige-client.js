@@ -23,8 +23,7 @@ async function ensureLoaded() {
     for (const book of allBooks) {
       const te = tags[String(book.id)];
       if (te) {
-        const key = normalize(book.title) + "|" + normalize(book.author);
-        tagByNorm[key] = { id: book.id, genre: book.genre, ...te };
+        tagByNorm[joinKey(book.title, book.author)] = { id: book.id, genre: book.genre, ...te };
       }
     }
   });
@@ -33,6 +32,18 @@ async function ensureLoaded() {
 
 function normalize(s) {
   return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+// Shelf titles often carry series annotations "(Hyperion Cantos, #2)" and
+// authors carry "Jr." or "& Translator Name". The catalog stores clean titles
+// and primary authors, so strip those variants before keying — applied to both
+// sides so behavior is symmetric even if catalog data drifts later.
+function joinKey(title, author) {
+  const t = (title || "").replace(/\s*\([^)]*\)\s*/g, " ");
+  const a = (author || "")
+    .replace(/\s*&.*$/, "")                      // drop co-authors/translators
+    .replace(/,?\s*(Jr\.?|Sr\.?|III|IV|II)\s*$/i, ""); // drop generational suffixes
+  return normalize(t) + "|" + normalize(a);
 }
 
 function modeFilter(mode, book, tagEntry, userProfile) {
@@ -166,7 +177,7 @@ export async function generatePaigeRecs(userBooks, mode, exclude = [], genre = n
   const profileBooks = [];
   const unmatchedByGenre = {};
   for (const book of readBooks) {
-    const key = normalize(book.title) + "|" + normalize(book.author);
+    const key = joinKey(book.title, book.author);
     const match = tagByNorm[key];
     if (match) {
       const fakeId = match.id || key;
