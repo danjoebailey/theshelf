@@ -47,6 +47,7 @@ function matchNormalize(s) {
   return s.normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
+    .replace(/\bcolour\b/g, "color")         // British → American for the one case that matters
     .replace(/aa/g, "a")
     .replace(/oe/g, "o")
     .replace(/ae/g, "a")
@@ -55,9 +56,20 @@ function matchNormalize(s) {
     .replace(/[^a-z0-9]/g, "");
 }
 
-// Clean a title for keying: strip "(series, #N)" annotations.
+// Clean a title for keying: strip "(series, #N)" annotations and trailing
+// "and/& Other Stories" suffixes that mark anthology editions of books the
+// catalog stores under a shorter title.
 function cleanTitle(title) {
-  return (title || "").replace(/\s*\([^)]*\)\s*/g, " ").trim();
+  return (title || "")
+    .replace(/\s*\([^)]*\)\s*/g, " ")
+    .replace(/[,:]?\s*(and|&)\s+other\s+(stories|tales|poems)\s*$/i, "")
+    .trim();
+}
+
+// Strip leading article ("The ", "A ", "An ") so shelf "The Adventures of
+// Huckleberry Finn" matches catalog "Adventures of Huckleberry Finn".
+function stripLeadingArticle(title) {
+  return (title || "").replace(/^(the|an?)\s+/i, "").trim();
 }
 
 // Clean an author for keying: drop co-authors/translators, generational
@@ -70,25 +82,39 @@ function cleanAuthor(author) {
     .trim();
 }
 
-function joinKey(title, author) {
-  return matchNormalize(cleanTitle(title)) + "|" + matchNormalize(cleanAuthor(author));
-}
-
-// A catalog title like "The Wheel of Time: New Spring" should also match a
-// shelf entry with just "New Spring". Return both the full title and each
-// colon-split suffix as candidate keys.
+// A single book can present several title forms on either side of the join.
+// Registering catalog books under every plausible key, and looking shelf books
+// up under the same set, catches mismatches without extra lookups.
 function joinKeyVariants(title, author) {
   const t = cleanTitle(title);
   const a = cleanAuthor(author);
   const na = matchNormalize(a);
   const keys = new Set();
   keys.add(matchNormalize(t) + "|" + na);
+
+  // Colon splits: "Palm Sunday: an Autobiographical Collage" ↔ "Palm Sunday"
+  //              "The Wheel of Time: New Spring" ↔ "New Spring"
   const colonIdx = t.indexOf(":");
   if (colonIdx > 0) {
-    const suffix = t.slice(colonIdx + 1).trim();
-    if (suffix.length >= 3) keys.add(matchNormalize(suffix) + "|" + na);
+    const before = t.slice(0, colonIdx).trim();
+    const after = t.slice(colonIdx + 1).trim();
+    if (before.length >= 3) keys.add(matchNormalize(before) + "|" + na);
+    if (after.length >= 3) keys.add(matchNormalize(after) + "|" + na);
   }
+
+  // "The Adventures of Huckleberry Finn" ↔ "Adventures of Huckleberry Finn"
+  const stripped = stripLeadingArticle(t);
+  if (stripped !== t && stripped.length >= 3) {
+    keys.add(matchNormalize(stripped) + "|" + na);
+  }
+
   return keys;
+}
+
+function joinKey(title, author) {
+  // When looking up a single key (for the unmatched-diagnostic log), use the
+  // canonical form. Matching itself iterates variants.
+  return matchNormalize(cleanTitle(title)) + "|" + matchNormalize(cleanAuthor(author));
 }
 
 function modeFilter(mode, book, tagEntry, userProfile) {
@@ -222,10 +248,12 @@ export async function generatePaigeRecs(userBooks, mode, exclude = [], genre = n
   const profileBooks = [];
   const unmatchedByGenre = {};
   for (const book of readBooks) {
-    const key = joinKey(book.title, book.author);
-    const match = tagByNorm[key];
+    let match = null;
+    for (const key of joinKeyVariants(book.title, book.author)) {
+      if (tagByNorm[key]) { match = tagByNorm[key]; break; }
+    }
     if (match) {
-      const fakeId = match.id || key;
+      const fakeId = match.id || joinKey(book.title, book.author);
       profileTagData[String(fakeId)] = { vibes: match.vibes, tags: match.tags, scores: match.scores };
       profileBooks.push({ ...book, id: fakeId, genre: match.genre || book.genre });
     } else {
