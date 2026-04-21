@@ -116,3 +116,22 @@ if (gotm && tags[String(gotm.id)]) {
   const gotmScore = scoreBook(gotm, tags[String(gotm.id)], profile);
   console.log(`  paigeScore = ${gotmScore?.toFixed(3)}`);
 }
+
+console.log("\n=== The Golden Compass (id=454) — the book currently ranking 2nd ===");
+const gc = all.find(b => b.id === 454);
+if (gc && tags["454"]) {
+  const gcScore = scoreBook(gc, tags["454"], profile);
+  console.log("  scores:", JSON.stringify(tags["454"].scores));
+  console.log("  vibes: ", JSON.stringify(tags["454"].vibes));
+  console.log(`  paigeScore = ${gcScore?.toFixed(3)}`);
+
+  // Per-axis vibe breakdown
+  console.log("\n  Vibe breakdown (per-bucket z-scores vs speculative profile):");
+  const bp = profile.bucketProfiles.speculative;
+  for (const k of ["pace","moral_complexity","fabulism","emotional_register","interiority","tone","difficulty"]) {
+    const s = bp.vibeStats?.[k];
+    if (!s) continue;
+    const z = (tags["454"].vibes[k] - s.mean) / s.sd;
+    console.log(`    ${k.padEnd(20)} book=${tags["454"].vibes[k]}  mean=${s.mean.toFixed(2)}  sd=${s.sd.toFixed(2)}  z=${z.toFixed(2)}`);
+  }
+}
