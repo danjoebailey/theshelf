@@ -17,13 +17,18 @@ async function ensureLoaded() {
     recLibrary = rec;
     primaryCatalog = primary;
     tagData = tags;
-    // Build a title+author → {id, tagEntry} lookup for profile matching
+    // Build a title+author → {id, tagEntry} lookup for profile matching.
+    // Each catalog book registers under every joinKey variant it could present
+    // as (e.g., a subtitled title also registers under its suffix) so shelf
+    // entries can match regardless of which form they stored.
     tagByNorm = {};
     const allBooks = [...primary, ...rec];
     for (const book of allBooks) {
       const te = tags[String(book.id)];
-      if (te) {
-        tagByNorm[joinKey(book.title, book.author)] = { id: book.id, genre: book.genre, ...te };
+      if (!te) continue;
+      const entry = { id: book.id, genre: book.genre, ...te };
+      for (const key of joinKeyVariants(book.title, book.author)) {
+        if (!tagByNorm[key]) tagByNorm[key] = entry;
       }
     }
   });
@@ -34,16 +39,56 @@ function normalize(s) {
   return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "");
 }
 
-// Shelf titles often carry series annotations "(Hyperion Cantos, #2)" and
-// authors carry "Jr." or "& Translator Name". The catalog stores clean titles
-// and primary authors, so strip those variants before keying — applied to both
-// sides so behavior is symmetric even if catalog data drifts later.
+// Match-normalization collapses common Scandinavian/German digraphs so names
+// like "Knausgaard" (aa) and "Knausgård" (å → a after diacritic strip) produce
+// the same key. Title+author is specific enough that the rare digraph collision
+// is preferable to dropping dozens of real matches.
+function matchNormalize(s) {
+  return s.normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/aa/g, "a")
+    .replace(/oe/g, "o")
+    .replace(/ae/g, "a")
+    .replace(/ue/g, "u")
+    .replace(/ss/g, "s")
+    .replace(/[^a-z0-9]/g, "");
+}
+
+// Clean a title for keying: strip "(series, #N)" annotations.
+function cleanTitle(title) {
+  return (title || "").replace(/\s*\([^)]*\)\s*/g, " ").trim();
+}
+
+// Clean an author for keying: drop co-authors/translators, generational
+// suffixes, and middle initials ("Barbara W. Tuchman" → "Barbara Tuchman").
+function cleanAuthor(author) {
+  return (author || "")
+    .replace(/\s*&.*$/, "")
+    .replace(/,?\s*(Jr\.?|Sr\.?|III|IV|II)\s*$/i, "")
+    .replace(/\s+[A-Z]\.\s+/g, " ")
+    .trim();
+}
+
 function joinKey(title, author) {
-  const t = (title || "").replace(/\s*\([^)]*\)\s*/g, " ");
-  const a = (author || "")
-    .replace(/\s*&.*$/, "")                      // drop co-authors/translators
-    .replace(/,?\s*(Jr\.?|Sr\.?|III|IV|II)\s*$/i, ""); // drop generational suffixes
-  return normalize(t) + "|" + normalize(a);
+  return matchNormalize(cleanTitle(title)) + "|" + matchNormalize(cleanAuthor(author));
+}
+
+// A catalog title like "The Wheel of Time: New Spring" should also match a
+// shelf entry with just "New Spring". Return both the full title and each
+// colon-split suffix as candidate keys.
+function joinKeyVariants(title, author) {
+  const t = cleanTitle(title);
+  const a = cleanAuthor(author);
+  const na = matchNormalize(a);
+  const keys = new Set();
+  keys.add(matchNormalize(t) + "|" + na);
+  const colonIdx = t.indexOf(":");
+  if (colonIdx > 0) {
+    const suffix = t.slice(colonIdx + 1).trim();
+    if (suffix.length >= 3) keys.add(matchNormalize(suffix) + "|" + na);
+  }
+  return keys;
 }
 
 function modeFilter(mode, book, tagEntry, userProfile) {
