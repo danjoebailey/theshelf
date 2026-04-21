@@ -1,4 +1,4 @@
-import { buildUserProfile, scoreBook, getBucket, GENRE_BUCKETS, craftHardFilter } from "./recommender.js";
+import { buildUserProfile, scoreBook, getBucket, craftHardFilter } from "./recommender.js";
 
 let recLibrary = null;
 let primaryCatalog = null;
@@ -150,38 +150,12 @@ function modeFilter(mode, book, tagEntry, userProfile) {
   }
 }
 
-function mismatchPenalty(bookVibes, profileVibes, allKeys) {
-  // Penalize books that are 3+ points away on ANY vibe dimension
-  // This prevents a warm/gentle book from scoring 90%+ for a grim/intense reader
-  let penalty = 0;
-  for (const key of allKeys) {
-    const bv = bookVibes[key];
-    const pv = profileVibes[key];
-    if (bv == null || pv == null) continue;
-    const diff = Math.abs(bv - pv);
-    if (diff >= 4) penalty += 0.04; // harsh penalty for 4+ point gap
-    else if (diff >= 3) penalty += 0.02; // moderate penalty for 3 point gap
-  }
-  return penalty;
-}
-
 function modeScore(mode, baseScore, tagEntry, userProfile) {
-  if (!tagEntry) return baseScore;
-  const v = tagEntry.vibes;
-
-  // Apply mismatch penalty — big vibe gaps should hurt the score
-  const allVibeKeys = ["prose_craft", "prose_style", "warmth", "intensity", "pace", "moral_complexity", "fabulism", "emotional_register", "interiority", "tone", "difficulty"];
-  const combinedProfile = { ...userProfile.globalVibes };
-  const bucket = getBucket(tagEntry.tags?.find(t => GENRE_BUCKETS[t]) || "Fiction");
-  const bp = userProfile.bucketProfiles[bucket];
-  if (bp) Object.assign(combinedProfile, bp.vibes);
-  const penalty = mismatchPenalty(v, combinedProfile, allVibeKeys);
-
   // Mode filters already narrow the pool (comfort_read requires warm/gentle,
-  // challenge_me requires hard/crafted). The ranking should still reflect
-  // actual fit — a "comfort" book that doesn't match this reader's profile
-  // shouldn't score 104%. No additive bonus by mode.
-  return baseScore - penalty;
+  // challenge_me requires hard/crafted). scoreBook's z-scored vibe match
+  // already penalizes taste mismatches against per-bucket SDs, so the old
+  // flat 0.02/0.04 mismatchPenalty is redundant and has been removed.
+  return baseScore;
 }
 
 function describeVibe(val, low, mid, high) {

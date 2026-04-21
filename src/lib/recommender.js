@@ -29,6 +29,8 @@ function getBucket(genre) {
   return GENRE_BUCKETS[genre] || "literary";
 }
 
+// Legacy uniform-Euclidean vibe match — retained only for the cold-start path
+// where we lack bucket-level SDs. Primary scoring uses vibeMatchZ below.
 function vibeDistance(bookVibes, profileVibes, keys) {
   let sumSqDiff = 0;
   let count = 0;
@@ -42,6 +44,37 @@ function vibeDistance(bookVibes, profileVibes, keys) {
   if (count === 0) return 0;
   const maxDist = count * 100;
   return 1 - sumSqDiff / maxDist;
+}
+
+// Symmetric z-score vibe penalty. Any deviation from the user's preferred
+// range costs, with bigger gaps on tight-SD axes costing more. This is the
+// vibe-layer equivalent of the craftPenalty z-model — axes where the reader's
+// taste is narrow (low SD) punish deviation automatically.
+function vibePenalty(absZ) {
+  if (absZ < 0.5) return 0;
+  if (absZ < 1.5) return 0.05 * (absZ - 0.5);          // 0 → 0.05 linear
+  if (absZ < 2.5) return 0.05 + 0.10 * (absZ - 1.5);   // 0.05 → 0.15 linear
+  return 0.15;
+}
+
+// vibeStats is { axis: { mean, sd } }. Returns a 0-1 match score.
+function vibeMatchZ(bookVibes, vibeStats, keys) {
+  if (!vibeStats) return 0.5;
+  let totalPenalty = 0;
+  let count = 0;
+  for (const key of keys) {
+    const bv = bookVibes[key];
+    const stats = vibeStats[key];
+    if (bv == null || !stats || stats.sd == null) continue;
+    const z = (bv - stats.mean) / stats.sd;
+    totalPenalty += vibePenalty(Math.abs(z));
+    count++;
+  }
+  if (count === 0) return 0.5;
+  // Floor at 0.1 so no single bad vibe crater-walks the score below what a
+  // craft-strong but tonally-wrong book still deserves structurally — but
+  // low enough that tone/difficulty mismatches actually sink a candidate.
+  return Math.max(0.1, 1 - totalPenalty);
 }
 
 function tagOverlap(bookTags, profileTagWeights) {
@@ -87,6 +120,10 @@ const CRAFT_SHRINKAGE_K = 5;                  // α = n / (n + k) for weight tra
 const CRAFT_HARD_FILTER_MIN_N = 5;            // need this many observations to trust a hard filter
 const CRAFT_HARD_FILTER_WEIGHT = 0.15;        // only filter on axes with at least this weight
 const CRAFT_MIN_SD = 1.0;                     // floor SDs here so tight-consistency axes don't over-penalize
+const CRAFT_HIGH_RATING_THRESHOLD = 4;        // means/SDs computed only from books ≥ this rating (spec: 4-5★)
+const CRAFT_PRIOR_MEAN = 7;                   // "consistently high" threshold for implicit-requirement prior
+const CRAFT_PRIOR_SD = 1.5;                   // "consistently tight" threshold for implicit-requirement prior
+const CRAFT_PRIOR_WEIGHT = 0.15;              // weight to inject for pack axes Pearson zeroed out but variance says user requires
 
 // Per-bucket universal/pack weight split. Pack axes (worldBuilding, magicSystem,
 // chemistry, stakes, etc.) get less budget in buckets where execution detail is
@@ -156,24 +193,31 @@ function buildCraftProfile(ratedBooks, tagData) {
   const rSD = Math.sqrt(ratings.reduce((a, b) => a + (b - rMean) ** 2, 0) / ratings.length) || 1;
   const normRating = r => (r - rMean) / rSD;
 
-  // Collect observations by (bucket, axis) and globally for universal axes
-  const perBucketAxis = {};    // {bucket: {axis: {scores: [], zRatings: []}}}
-  const globalPerAxis = {};    // {axis: {scores: [], zRatings: []}} — universal axes only
+  // Collect observations. `scores`/`zRatings` span all rated books and drive
+  // Pearson weight inference (which needs rating variance). `highRatedScores`
+  // is a subset of 4-5★ reads used to compute means/SDs — per spec, the
+  // profile is "what you accept," not "what you've read."
+  const perBucketAxis = {};    // {bucket: {axis: {scores, zRatings, highRatedScores}}}
+  const globalPerAxis = {};    // {axis: {scores, zRatings}} — universal axes only
 
   for (const book of ratedBooks) {
     if (book.rating == null || book.rating <= 0) continue;
     const zr = normRating(book.rating);
     const td = tagData[String(book.id)];
     if (!td?.scores) continue;
+    const isHigh = book.rating >= CRAFT_HIGH_RATING_THRESHOLD;
 
     const bucket = getCraftBucket(book.genre);
     if (!perBucketAxis[bucket]) perBucketAxis[bucket] = {};
 
     for (const [axis, score] of Object.entries(td.scores)) {
       if (typeof score !== "number") continue;
-      if (!perBucketAxis[bucket][axis]) perBucketAxis[bucket][axis] = { scores: [], zRatings: [] };
+      if (!perBucketAxis[bucket][axis]) {
+        perBucketAxis[bucket][axis] = { scores: [], zRatings: [], highRatedScores: [] };
+      }
       perBucketAxis[bucket][axis].scores.push(score);
       perBucketAxis[bucket][axis].zRatings.push(zr);
+      if (isHigh) perBucketAxis[bucket][axis].highRatedScores.push(score);
 
       if (UNIVERSAL_AXES.has(axis)) {
         if (!globalPerAxis[axis]) globalPerAxis[axis] = { scores: [], zRatings: [] };
@@ -195,17 +239,28 @@ function buildCraftProfile(ratedBooks, tagData) {
     buckets[bucket] = {};
     for (const [axis, data] of Object.entries(axes)) {
       if (data.scores.length < CRAFT_MIN_BOOKS_PER_AXIS) continue;
-      const { mean, sd, n } = meanAndSD(data.scores);
+      // Means/SDs from 4-5★ subset; fall back to all-rated if subset is too small.
+      const meanSource = data.highRatedScores.length >= CRAFT_MIN_BOOKS_PER_AXIS
+        ? data.highRatedScores
+        : data.scores;
+      const { mean, sd, n: meanN } = meanAndSD(meanSource);
       const bucketWeight = pearsonCorrelation(data.scores, data.zRatings);
       let weight;
       if (UNIVERSAL_AXES.has(axis)) {
         const globalW = globalWeights[axis] || 0;
-        const alpha = n / (n + CRAFT_SHRINKAGE_K);
+        const alpha = data.scores.length / (data.scores.length + CRAFT_SHRINKAGE_K);
         weight = alpha * bucketWeight + (1 - alpha) * globalW;
       } else {
-        weight = bucketWeight; // pack axes have no global anchor
+        // Pack axes: Pearson on low-variance data yields ~0 even when the user
+        // clearly requires the axis (every fantasy they read has worldBuilding
+        // ≥ 8). If the means say "consistently high" and SDs say "consistently
+        // tight," inject a prior weight so the axis still matters in scoring.
+        weight = bucketWeight;
+        if (weight === 0 && mean >= CRAFT_PRIOR_MEAN && sd <= CRAFT_PRIOR_SD) {
+          weight = CRAFT_PRIOR_WEIGHT;
+        }
       }
-      buckets[bucket][axis] = { mean, sd, weight, n };
+      buckets[bucket][axis] = { mean, sd, weight, n: data.scores.length, meanN };
     }
 
     // Enforce per-bucket universal/pack budget. Without this, the 8 universal
@@ -258,9 +313,11 @@ function scoreCraft(candidate, tagEntry, craftProfile) {
   }
 
   if (totalWeight === 0) return 1;
-  // Normalize so craftMatch sits around 1.0 regardless of how many axes contribute
-  const craftMatch = 1 + weightedSum / totalWeight;
-  return Math.max(0.5, craftMatch);
+  // Normalize so craftMatch sits around 1.0 regardless of how many axes contribute.
+  // No floor clamp — let the multiplicative composite actually veto. Asymmetric
+  // craftPenalty caps at -0.4 per axis, so a uniformly-weighted pool of
+  // catastrophic axes produces craftMatch = 0.6, which is the natural floor.
+  return 1 + weightedSum / totalWeight;
 }
 
 function craftHardFilter(candidate, tagEntry, craftProfile) {
@@ -287,15 +344,13 @@ function craftHardFilter(candidate, tagEntry, craftProfile) {
 // =====================================================================
 
 export function buildUserProfile(ratedBooks, tagData) {
-  const globalVibeSum = {};
-  const globalVibeCount = {};
-  for (const key of GLOBAL_VIBES) {
-    globalVibeSum[key] = 0;
-    globalVibeCount[key] = 0;
-  }
-
-  const bucketVibeSum = {};
-  const bucketVibeCount = {};
+  // Collect per-axis value arrays. High-rated subset powers mean/SD so the
+  // profile reflects "what you accept" not "what you've read." All rated
+  // contribute to bookCount + tag weights.
+  const globalAxisValues = {};         // {axis: number[]}
+  const globalAxisValuesHigh = {};     // {axis: number[]} — 4-5★ only
+  const bucketAxisValues = {};         // {bucket: {axis: number[]}}
+  const bucketAxisValuesHigh = {};     // {bucket: {axis: number[]} — 4-5★ only
   const bucketTagCounts = {};
   const bucketBookCounts = {};
 
@@ -303,30 +358,28 @@ export function buildUserProfile(ratedBooks, tagData) {
     const bookId = String(book.id);
     const td = tagData[bookId];
     if (!td) continue;
+    const isHigh = (book.rating || 0) >= CRAFT_HIGH_RATING_THRESHOLD;
 
     for (const key of GLOBAL_VIBES) {
-      if (td.vibes[key] != null) {
-        globalVibeSum[key] += td.vibes[key];
-        globalVibeCount[key]++;
+      if (td.vibes?.[key] != null) {
+        (globalAxisValues[key] ||= []).push(td.vibes[key]);
+        if (isHigh) (globalAxisValuesHigh[key] ||= []).push(td.vibes[key]);
       }
     }
 
     const bucket = getBucket(book.genre);
-    if (!bucketVibeSum[bucket]) {
-      bucketVibeSum[bucket] = {};
-      bucketVibeCount[bucket] = {};
+    bucketBookCounts[bucket] = (bucketBookCounts[bucket] || 0) + 1;
+    if (!bucketAxisValues[bucket]) {
+      bucketAxisValues[bucket] = {};
+      bucketAxisValuesHigh[bucket] = {};
       bucketTagCounts[bucket] = {};
-      bucketBookCounts[bucket] = 0;
     }
-    bucketBookCounts[bucket]++;
-
     for (const key of GENRE_VIBES) {
-      if (td.vibes[key] != null) {
-        bucketVibeSum[bucket][key] = (bucketVibeSum[bucket][key] || 0) + td.vibes[key];
-        bucketVibeCount[bucket][key] = (bucketVibeCount[bucket][key] || 0) + 1;
+      if (td.vibes?.[key] != null) {
+        (bucketAxisValues[bucket][key] ||= []).push(td.vibes[key]);
+        if (isHigh) (bucketAxisValuesHigh[bucket][key] ||= []).push(td.vibes[key]);
       }
     }
-
     if (td.tags) {
       for (const tag of td.tags) {
         bucketTagCounts[bucket][tag] = (bucketTagCounts[bucket][tag] || 0) + 1;
@@ -334,23 +387,35 @@ export function buildUserProfile(ratedBooks, tagData) {
     }
   }
 
+  // Helper: prefer high-rated subset for mean/SD, fall back to all when sparse.
+  function statsOf(allVals, highVals) {
+    const source = (highVals && highVals.length >= 3) ? highVals : (allVals || []);
+    if (source.length === 0) return { mean: 5, sd: 2.5 };
+    const mean = source.reduce((a, b) => a + b, 0) / source.length;
+    const variance = source.reduce((a, v) => a + (v - mean) ** 2, 0) / source.length;
+    return { mean, sd: Math.max(Math.sqrt(variance), 0.8) };  // SD floor so a perfectly-flat axis doesn't produce infinite z
+  }
+
   const globalVibes = {};
+  const globalVibeStats = {};
   for (const key of GLOBAL_VIBES) {
-    globalVibes[key] = globalVibeCount[key] > 0
-      ? globalVibeSum[key] / globalVibeCount[key]
-      : 5;
+    const s = statsOf(globalAxisValues[key], globalAxisValuesHigh[key]);
+    globalVibes[key] = s.mean;   // legacy consumers still read mean-only
+    globalVibeStats[key] = s;
   }
 
   const bucketProfiles = {};
-  for (const [bucket, sums] of Object.entries(bucketVibeSum)) {
+  for (const bucket of Object.keys(bucketAxisValues)) {
     const vibes = {};
+    const vibeStats = {};
     for (const key of GENRE_VIBES) {
-      vibes[key] = bucketVibeCount[bucket][key] > 0
-        ? sums[key] / bucketVibeCount[bucket][key]
-        : 5;
+      const s = statsOf(bucketAxisValues[bucket][key], bucketAxisValuesHigh[bucket][key]);
+      vibes[key] = s.mean;
+      vibeStats[key] = s;
     }
     bucketProfiles[bucket] = {
       vibes,
+      vibeStats,
       tagWeights: bucketTagCounts[bucket] || {},
       bookCount: bucketBookCounts[bucket] || 0,
     };
@@ -358,20 +423,23 @@ export function buildUserProfile(ratedBooks, tagData) {
 
   const craftProfile = buildCraftProfile(ratedBooks, tagData);
 
-  return { globalVibes, bucketProfiles, craftProfile };
+  return { globalVibes, globalVibeStats, bucketProfiles, craftProfile };
 }
 
 export function scoreBook(candidate, tagEntry, userProfile) {
   if (!tagEntry) return null;
 
-  const globalMatch = vibeDistance(tagEntry.vibes, userProfile.globalVibes, GLOBAL_VIBES);
+  // z-score vibe match: axes where the user's taste is tight (low SD) punish
+  // deviation hard; axes where they're flexible (high SD) absorb it. Replaces
+  // the uniform Euclidean match that couldn't tell difficulty from fabulism.
+  const globalMatch = vibeMatchZ(tagEntry.vibes, userProfile.globalVibeStats, GLOBAL_VIBES);
 
   const bucket = getBucket(candidate.genre);
   const bucketProfile = userProfile.bucketProfiles[bucket];
 
   let genreMatch;
   if (bucketProfile && bucketProfile.bookCount >= MIN_BOOKS_PER_BUCKET) {
-    genreMatch = vibeDistance(tagEntry.vibes, bucketProfile.vibes, GENRE_VIBES);
+    genreMatch = vibeMatchZ(tagEntry.vibes, bucketProfile.vibeStats, GENRE_VIBES);
   } else {
     genreMatch = 0.5;
   }
