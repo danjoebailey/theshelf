@@ -186,7 +186,11 @@ const CRAFT_PRIOR_SD = 1.5;                   // "consistently tight" threshold 
 const CRAFT_PRIOR_WEIGHT = 0.15;              // weight to inject for pack axes Pearson zeroed out but variance says user requires
 const CRAFT_NEUTRAL_MEAN = 7;                 // fallback mean for sparse-bucket pack axes (spec)
 const CRAFT_NEUTRAL_SD = 2;                   // fallback SD for sparse-bucket pack axes (spec)
-const CRAFT_REGRESSION_MIN_N = 70;            // use partial regression for weight inference at ≥ this bucket size
+const CRAFT_REGRESSION_MIN_N = 40;            // use partial regression for weight inference at ≥ this bucket size
+// (spec suggested 70 = 10× feature count, but that excluded the user's 52-book
+// fantasy bucket — leaving Pearson to pick a single winner among correlated
+// axes. 40 catches fantasy while staying above the "too noisy" threshold for
+// ~7 universal axes.)
 const RECENCY_LAMBDA = 0.15;                  // exp(-λ × years_since_read): 5y→0.47, 10y→0.22, 15y→0.11, 20y→0.05
 const NOW_MS = Date.now();
 
@@ -453,13 +457,15 @@ function buildCraftProfile(ratedBooks, tagData) {
     const bucket = getCraftBucket(book.genre);
     if (!perBucketAxis[bucket]) perBucketAxis[bucket] = {};
 
-    // Per-book record for regression. Only universal axes needed — partial
-    // regression deconflicts universal-axis collinearity; pack axes are
-    // bucket-local and keep Pearson.
+    // Per-book record for regression. Include ALL non-ignored axes (universal
+    // AND pack) so regression coefficients reflect the full joint contribution
+    // of every axis — prose, worldBuilding, magicSystem, characters all share
+    // credit instead of Pearson picking one winner among correlated axes.
     if (!perBucketBooks[bucket]) perBucketBooks[bucket] = [];
     const bookScores = {};
-    for (const axis of UNIVERSAL_AXES) {
-      if (typeof td.scores[axis] === "number") bookScores[axis] = td.scores[axis];
+    for (const [axis, val] of Object.entries(td.scores)) {
+      if (CRAFT_IGNORED_AXES.has(axis)) continue;
+      if (typeof val === "number") bookScores[axis] = val;
     }
     perBucketBooks[bucket].push({ scores: bookScores, zRating: zr, weight: rw });
 
@@ -516,13 +522,16 @@ function buildCraftProfile(ratedBooks, tagData) {
       continue;
     }
 
-    // If bucket has enough observations, run partial regression on universal
-    // axes jointly. Standardized β coefficients replace the per-axis Pearson
-    // correlations — this is what prevents Pearson from picking one axis
-    // (magicSystem) as the single winner among collinear signals (prose,
-    // ideas, resonance, voice all co-vary in catalog scores).
-    const regressionWeights = bucketBookCount >= CRAFT_REGRESSION_MIN_N
-      ? inferWeightsByRegression(perBucketBooks[bucket] || [], [...UNIVERSAL_AXES])
+    // If bucket has enough observations, run partial regression on all
+    // available axes jointly (universal + pack). Standardized β coefficients
+    // replace the per-axis Pearson correlations — this is what prevents
+    // Pearson from picking one axis as the single winner among collinear
+    // signals. Pack axes get to share credit with universal ones.
+    const eligibleAxes = Object.entries(axes)
+      .filter(([_, d]) => d.scores.length >= CRAFT_MIN_BOOKS_PER_AXIS)
+      .map(([axis]) => axis);
+    const regressionWeights = bucketBookCount >= CRAFT_REGRESSION_MIN_N && eligibleAxes.length >= 2
+      ? inferWeightsByRegression(perBucketBooks[bucket] || [], eligibleAxes)
       : null;
 
     for (const [axis, data] of Object.entries(axes)) {
@@ -551,11 +560,10 @@ function buildCraftProfile(ratedBooks, tagData) {
         const bucketSignal = regressionWeights?.[axis] ?? bucketWeight;
         weight = alpha * bucketSignal + (1 - alpha) * globalW;
       } else {
-        // Pack axes: Pearson on low-variance data yields ~0 even when the user
-        // clearly requires the axis (every fantasy they read has worldBuilding
-        // ≥ 8). If the means say "consistently high" and SDs say "consistently
-        // tight," inject a prior weight so the axis still matters in scoring.
-        weight = bucketWeight;
+        // Pack axes: prefer regression coefficient (shares credit properly with
+        // universal axes). Fall back to Pearson, then to prior when neither
+        // signal exists but the data says the user requires the axis.
+        weight = regressionWeights?.[axis] ?? bucketWeight;
         if (weight === 0 && mean >= CRAFT_PRIOR_MEAN && sd <= CRAFT_PRIOR_SD) {
           weight = CRAFT_PRIOR_WEIGHT;
           buckets[bucket][axis] = { mean, sd, weight, n: data.scores.length, meanN, priorOnly: true };
