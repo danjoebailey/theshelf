@@ -238,7 +238,7 @@ function generateReason(mode, book, tagEntry, score, userProfile) {
   }
 }
 
-export async function generatePaigeRecs(userBooks, mode, exclude = [], genre = null) {
+export async function generatePaigeRecs(userBooks, mode, exclude = [], genre = null, authorLimit = 2) {
   await ensureLoaded();
 
   // Build profile using title+author matching instead of ID matching
@@ -342,8 +342,20 @@ export async function generatePaigeRecs(userBooks, mode, exclude = [], genre = n
 
   scored.sort((a, b) => b.score - a.score);
 
-  const top = scored.slice(0, 10);
-  const reservePool = scored.slice(10, 20);
+  // Cap how many times a single author can appear in the final list. Prevents
+  // a reader's top-fit author from eating the whole screen. authorLimit=0
+  // disables the cap.
+  const capped = authorLimit > 0 ? (() => {
+    const counts = {};
+    return scored.filter(({ book }) => {
+      const a = book.author || "";
+      counts[a] = (counts[a] || 0) + 1;
+      return counts[a] <= authorLimit;
+    });
+  })() : scored;
+
+  const top = capped.slice(0, 10);
+  const reservePool = capped.slice(10, 20);
 
   const recommendations = top.map(({ book, score, tagEntry }) => ({
     title: book.title,
