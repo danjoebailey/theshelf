@@ -1,0 +1,44 @@
+Loaded 10069 books from catalog
+Auditing books [0..10069) = 10069 books, concurrency=3
+Matcher: subtitle/paren/other-stories variants, retry on empty, 500-book cooldowns
+
+  checked 300, flagged so far: 1    checked 600, flagged so far: 3    checked 900, flagged so far: 3    checked 1200, flagged so far: 3    checked 1500, flagged so far: 4    checked 1800, flagged so far: 6    checked 2100, flagged so far: 7    checked 2400, flagged so far: 9    checked 2700, flagged so far: 9    checked 3000, flagged so far: 12    checked 3300, flagged so far: 12    checked 3600, flagged so far: 23    checked 3900, flagged so far: 26    checked 4200, flagged so far: 27    checked 4500, flagged so far: 29    checked 4800, flagged so far: 33    checked 5100, flagged so far: 41    checked 5400, flagged so far: 43    checked 5700, flagged so far: 47    checked 6000, flagged so far: 49    checked 6300, flagged so far: 58    checked 6600, flagged so far: 65    checked 6900, flagged so far: 74    checked 7200, flagged so far: 76    checked 7500, flagged so far: 82    checked 7800, flagged so far: 87    checked 8100, flagged so far: 97    checked 8400, flagged so far: 111    checked 8700, flagged so far: 114    checked 9000, flagged so far: 114    checked 9300, flagged so far: 115    checked 9600, flagged so far: 126    checked 9900, flagged so far: 133    checked 10071, flagged so far: 136  
+
+Done in 3933s
+Total checked: 10069
+Verified: 9933
+Flagged: 136 (1.4%)
+
+Flagged entries written to C:\Users\danjo\Documents\theshelf\audit-flagged.json
+
+First 30 flagged:
+  "The Sparrow" — Alan Hollinghurst
+  "The Temple of the Golden Pavilion" — Yukio Mishima
+  "The Sea of Fertility" — Yukio Mishima
+  "For We Are Many" — Dennis E. Taylor
+  "HMS Surprise" — Patrick O'Brian
+  "Just Above My Head" — James Baldwin
+  "The Book of Sand" — Jorge Luis Borges
+  "The Rule of Three" — Ashley Elston
+  "Cocaine Nights" — J.G. Ballard
+  "Women as Lovers" — Elfriede Jelinek
+  "Act of Passion" — Georges Simenon
+  "The Flamethrowers" — Roberto Arlt
+  "The Rock of Tanios" — Amin Maalouf
+  "The Makioka Sisters" — Jun'ichirō Tanizaki
+  "Some Prefer Nettles" — Jun'ichirō Tanizaki
+  "The Key" — Jun'ichirō Tanizaki
+  "Fever Dream" — Samanta Schweblin
+  "The Museum of Unconditional Surrender" — Dubravka Ugrešić
+  "W, or the Memory of Childhood" — Georges Perec
+  "A Void" — Georges Perec
+  "The Truce" — Primo Levi
+  "The Periodic Table" — Primo Levi
+  "If Not Now, When?" — Primo Levi
+  "A Universal History of Infamy" — Jorge Luis Borges
+  "The Diary of a Mad Old Man" — Jun'ichirō Tanizaki
+  "Whispers Under Ground" — Ben Aaronovitch
+  "The Discomfort of Evening" — Marieke Lucas Rijneveld
+  "The Battle of the Bulge" — Antony Beevor
+  "If You Would Have Told Me" — Abby Jimenez
+  "A Trivial Pursuit" — Louise Penny

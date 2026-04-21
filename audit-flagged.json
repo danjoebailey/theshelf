@@ -1,0 +1,2486 @@
+[
+  {
+    "title": "The Sparrow",
+    "author": "Alan Hollinghurst",
+    "publicationDate": "2004",
+    "genre": "Fiction",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "error"
+      },
+      {
+        "source": "itunes",
+        "reason": "empty"
+      }
+    ]
+  },
+  {
+    "title": "The Temple of the Golden Pavilion",
+    "author": "Yukio Mishima",
+    "publicationDate": "1956",
+    "genre": "Fiction",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "no-match"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "The Sea of Fertility",
+    "author": "Yukio Mishima",
+    "publicationDate": "1965",
+    "genre": "Fiction",
+    "series": {
+      "name": "The Sea of Fertility",
+      "order": 1,
+      "total": 4
+    },
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "no-match"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "For We Are Many",
+    "author": "Dennis E. Taylor",
+    "publicationDate": "2017",
+    "genre": "Sci-Fi",
+    "series": {
+      "name": "Bobiverse",
+      "order": 2,
+      "total": 4
+    },
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "error"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "HMS Surprise",
+    "author": "Patrick O'Brian",
+    "publicationDate": "1973",
+    "genre": "Historical Fiction",
+    "series": {
+      "name": "Aubrey-Maturin",
+      "order": 3,
+      "total": 20
+    },
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "no-match"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "Just Above My Head",
+    "author": "James Baldwin",
+    "publicationDate": "1979",
+    "genre": "Fiction",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "error"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "The Book of Sand",
+    "author": "Jorge Luis Borges",
+    "publicationDate": "1975",
+    "genre": "Fiction",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "The Rule of Three",
+    "author": "Ashley Elston",
+    "publicationDate": "2024",
+    "genre": "Thriller",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "Cocaine Nights",
+    "author": "J.G. Ballard",
+    "publicationDate": "1996",
+    "genre": "Fiction",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "Women as Lovers",
+    "author": "Elfriede Jelinek",
+    "publicationDate": "1975",
+    "genre": "Fiction",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "Act of Passion",
+    "author": "Georges Simenon",
+    "publicationDate": "1947",
+    "genre": "Fiction",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "The Flamethrowers",
+    "author": "Roberto Arlt",
+    "publicationDate": "1931",
+    "genre": "Fiction",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "empty"
+      }
+    ]
+  },
+  {
+    "title": "The Rock of Tanios",
+    "author": "Amin Maalouf",
+    "publicationDate": "1993",
+    "genre": "Historical Fiction",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "The Makioka Sisters",
+    "author": "Jun'ichirō Tanizaki",
+    "publicationDate": "1948",
+    "genre": "Fiction",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "Some Prefer Nettles",
+    "author": "Jun'ichirō Tanizaki",
+    "publicationDate": "1929",
+    "genre": "Fiction",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "no-match"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "The Key",
+    "author": "Jun'ichirō Tanizaki",
+    "publicationDate": "1956",
+    "genre": "Fiction",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "Fever Dream",
+    "author": "Samanta Schweblin",
+    "publicationDate": "2014",
+    "genre": "Fiction",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "The Museum of Unconditional Surrender",
+    "author": "Dubravka Ugrešić",
+    "publicationDate": "1997",
+    "genre": "Fiction",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "empty"
+      }
+    ]
+  },
+  {
+    "title": "W, or the Memory of Childhood",
+    "author": "Georges Perec",
+    "publicationDate": "1975",
+    "genre": "Fiction",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "A Void",
+    "author": "Georges Perec",
+    "publicationDate": "1969",
+    "genre": "Fiction",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "The Truce",
+    "author": "Primo Levi",
+    "publicationDate": "1963",
+    "genre": "Non-Fiction",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "The Periodic Table",
+    "author": "Primo Levi",
+    "publicationDate": "1975",
+    "genre": "Non-Fiction",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "If Not Now, When?",
+    "author": "Primo Levi",
+    "publicationDate": "1982",
+    "genre": "Historical Fiction",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "A Universal History of Infamy",
+    "author": "Jorge Luis Borges",
+    "publicationDate": "1935",
+    "genre": "Fiction",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "The Diary of a Mad Old Man",
+    "author": "Jun'ichirō Tanizaki",
+    "publicationDate": "1961",
+    "genre": "Fiction",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "Whispers Under Ground",
+    "author": "Ben Aaronovitch",
+    "publicationDate": "2012",
+    "genre": "Fantasy",
+    "series": {
+      "name": "Rivers of London",
+      "order": 3,
+      "total": 9
+    },
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "The Discomfort of Evening",
+    "author": "Marieke Lucas Rijneveld",
+    "publicationDate": "2018",
+    "genre": "Fiction",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "The Battle of the Bulge",
+    "author": "Antony Beevor",
+    "publicationDate": "2015",
+    "genre": "Non-Fiction",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "If You Would Have Told Me",
+    "author": "Abby Jimenez",
+    "publicationDate": "2024",
+    "genre": "Romance",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "A Trivial Pursuit",
+    "author": "Louise Penny",
+    "publicationDate": "2023",
+    "genre": "Mystery",
+    "series": {
+      "name": "Chief Inspector Gamache",
+      "order": 19,
+      "total": 19
+    },
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "Points and Lines",
+    "author": "Seicho Matsumoto",
+    "publicationDate": "1958",
+    "genre": "Mystery",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "no-match"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "Let Me In",
+    "author": "Karin Slaughter",
+    "publicationDate": "2024",
+    "genre": "Thriller",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "Blue Bamboo",
+    "author": "Osamu Dazai",
+    "publicationDate": "1948",
+    "genre": "Fiction",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "no-match"
+      },
+      {
+        "source": "itunes",
+        "reason": "empty"
+      }
+    ]
+  },
+  {
+    "title": "A Short History of Decay",
+    "author": "Emil Cioran",
+    "publicationDate": "1949",
+    "genre": "Non-Fiction",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "On the Heights of Despair",
+    "author": "Emil Cioran",
+    "publicationDate": "1934",
+    "genre": "Non-Fiction",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "Win Her Back",
+    "author": "Lyssa Kay Adams",
+    "publicationDate": "2024",
+    "genre": "Romance",
+    "series": {
+      "name": "Bromance Book Club",
+      "order": 5,
+      "total": 5
+    },
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "Wild Eyes",
+    "author": "Colleen Hoover",
+    "publicationDate": "2025",
+    "genre": "Romance",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "The Women of Llanada Grande",
+    "author": "Julia Alvarez",
+    "publicationDate": "2024",
+    "genre": "Fiction",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "empty"
+      }
+    ]
+  },
+  {
+    "title": "Witness",
+    "author": "Jayne Anne Phillips",
+    "publicationDate": "2024",
+    "genre": "Historical Fiction",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "Until November",
+    "author": "Penelope Douglas",
+    "publicationDate": "2015",
+    "genre": "Romance",
+    "series": {
+      "name": "Fall Away",
+      "order": 2,
+      "total": 4
+    },
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "Served",
+    "author": "Julie James",
+    "publicationDate": "2010",
+    "genre": "Romance",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "Helena Hunting",
+    "author": "Helena Hunting",
+    "publicationDate": "2016",
+    "genre": "Romance",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "Gabriel's Redemption",
+    "author": "Daniel Silva",
+    "publicationDate": "2024",
+    "genre": "Thriller",
+    "series": {
+      "name": "Gabriel Allon",
+      "order": 22,
+      "total": 22
+    },
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "Catching the Light",
+    "author": "Susan Wiggs",
+    "publicationDate": "2024",
+    "genre": "Romance",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "Caledonia",
+    "author": "Diana Gabaldon",
+    "publicationDate": "2025",
+    "genre": "Historical Fiction",
+    "series": {
+      "name": "Outlander",
+      "order": 10,
+      "total": 10
+    },
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "empty"
+      }
+    ]
+  },
+  {
+    "title": "Toxic Influence",
+    "author": "Harlan Coben",
+    "publicationDate": "2025",
+    "genre": "Thriller",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "Worst Case Scenario",
+    "author": "Stuart Woods",
+    "publicationDate": "1999",
+    "genre": "Thriller",
+    "series": {
+      "name": "Stone Barrington",
+      "order": 5,
+      "total": 65
+    },
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "RoomMate",
+    "author": "Penelope Ward",
+    "publicationDate": "2017",
+    "genre": "Romance",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "Shadows of War",
+    "author": "Dale Brown",
+    "publicationDate": "2009",
+    "genre": "Thriller",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "The Line",
+    "author": "Chris Offutt",
+    "publicationDate": "2022",
+    "genre": "Fiction",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "The Bridge on the Drina",
+    "author": "Ivo Andrić",
+    "publicationDate": "1945",
+    "genre": "Historical Fiction",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "High Maintenance",
+    "author": "Rubem Fonseca",
+    "publicationDate": "1992",
+    "genre": "Fiction",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "empty"
+      }
+    ]
+  },
+  {
+    "title": "The Feather Pillow and Other Stories",
+    "author": "Silvina Ocampo",
+    "publicationDate": "1959",
+    "genre": "Fiction",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "empty"
+      }
+    ]
+  },
+  {
+    "title": "Sleepwalking Land",
+    "author": "Mia Couto",
+    "publicationDate": "1992",
+    "genre": "Fiction",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "empty"
+      }
+    ]
+  },
+  {
+    "title": "The Return of the Caravels",
+    "author": "António Lobo Antunes",
+    "publicationDate": "1988",
+    "genre": "Fiction",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "empty"
+      }
+    ]
+  },
+  {
+    "title": "The Inquisitors' Manual",
+    "author": "António Lobo Antunes",
+    "publicationDate": "1996",
+    "genre": "Fiction",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "empty"
+      }
+    ]
+  },
+  {
+    "title": "20th Century Boys, Vol. 1",
+    "author": "Naoki Urasawa",
+    "publicationDate": "2000",
+    "genre": "Graphic Novel",
+    "series": {
+      "name": "20th Century Boys",
+      "order": 1,
+      "total": 22
+    },
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "Her Royal Highness",
+    "author": "Rhys Bowen",
+    "publicationDate": "2000",
+    "genre": "Mystery",
+    "series": {
+      "name": "Royal Spyness",
+      "order": 1,
+      "total": 16
+    },
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "The Witch",
+    "author": "Camilla Läckberg",
+    "publicationDate": "2017",
+    "genre": "Mystery",
+    "series": {
+      "name": "Fjällbacka",
+      "order": 10,
+      "total": 10
+    },
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "Cat's Claw",
+    "author": "Faith Hunter",
+    "publicationDate": "2012",
+    "genre": "Fantasy",
+    "series": {
+      "name": "Jane Yellowrock",
+      "order": 4,
+      "total": 15
+    },
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "The Tilt",
+    "author": "Chris Hammer",
+    "publicationDate": "2022",
+    "genre": "Mystery",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "The All-Girl Filling Station's Last Reunion",
+    "author": "Adriana Trigiani",
+    "publicationDate": "2013",
+    "genre": "Fiction",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "T.J. Klune Under the Whispering Door",
+    "author": "TJ Klune",
+    "publicationDate": "2021",
+    "genre": "Fantasy",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "Lightbringer",
+    "author": "Anthony Ryan",
+    "publicationDate": "2022",
+    "genre": "Fantasy",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "empty"
+      }
+    ]
+  },
+  {
+    "title": "Warden",
+    "author": "Anthony Ryan",
+    "publicationDate": "2024",
+    "genre": "Fantasy",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "Knightmage",
+    "author": "Terry Mancour",
+    "publicationDate": "2015",
+    "genre": "Fantasy",
+    "series": {
+      "name": "Spellmonger",
+      "order": 4,
+      "total": 15
+    },
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "empty"
+      }
+    ]
+  },
+  {
+    "title": "Journeymage",
+    "author": "Terry Mancour",
+    "publicationDate": "2015",
+    "genre": "Fantasy",
+    "series": {
+      "name": "Spellmonger",
+      "order": 5,
+      "total": 15
+    },
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "empty"
+      }
+    ]
+  },
+  {
+    "title": "Conviction",
+    "author": "Aleatha Romig",
+    "publicationDate": "2013",
+    "genre": "Romance",
+    "series": {
+      "name": "Consequences",
+      "order": 3,
+      "total": 5
+    },
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "no-match"
+      },
+      {
+        "source": "itunes",
+        "reason": "empty"
+      }
+    ]
+  },
+  {
+    "title": "All These Bodies",
+    "author": "Rachel Hawkins",
+    "publicationDate": "2021",
+    "genre": "Young Adult",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "Everyone Is Watching",
+    "author": "Benjamin Stevenson",
+    "publicationDate": "2024",
+    "genre": "Mystery",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "If You Only Knew",
+    "author": "Corinne Michaels",
+    "publicationDate": "2017",
+    "genre": "Romance",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "Cedric Crossing",
+    "author": "Devney Perry",
+    "publicationDate": "2024",
+    "genre": "Romance",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "empty"
+      }
+    ]
+  },
+  {
+    "title": "Asleep",
+    "author": "Banana Yoshimoto",
+    "publicationDate": "1989",
+    "genre": "Fiction",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "no-match"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "The Plain in Flames",
+    "author": "Juan Rulfo",
+    "publicationDate": "1953",
+    "genre": "Fiction",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "empty"
+      }
+    ]
+  },
+  {
+    "title": "The World of Null-A",
+    "author": "A.E. van Vogt",
+    "publicationDate": "1948",
+    "genre": "Sci-Fi",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "Iron Heart",
+    "author": "Xiran Jay Zhao",
+    "publicationDate": "2023",
+    "genre": "Sci-Fi",
+    "series": {
+      "name": "Iron Widow",
+      "order": 2,
+      "total": 2
+    },
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "The Patriot",
+    "author": "James Shapiro",
+    "publicationDate": "2024",
+    "genre": "History",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "Superboom",
+    "author": "Edward Chancellor",
+    "publicationDate": "2025",
+    "genre": "Non-Fiction",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "empty"
+      }
+    ]
+  },
+  {
+    "title": "Set Boundaries, Find Peace",
+    "author": "Nedra Glennon Tawwab",
+    "publicationDate": "2021",
+    "genre": "Self-Help",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "Shadow State",
+    "author": "C.J. Box",
+    "publicationDate": "2024",
+    "genre": "Thriller",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "Display of Power",
+    "author": "Anna Pitoniak",
+    "publicationDate": "2025",
+    "genre": "Thriller",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "empty"
+      }
+    ]
+  },
+  {
+    "title": "The Night Island",
+    "author": "Lyndall Clipstone",
+    "publicationDate": "2025",
+    "genre": "Fantasy",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "empty"
+      }
+    ]
+  },
+  {
+    "title": "Last Exit Before Toll",
+    "author": "Max Gladstone",
+    "publicationDate": "2022",
+    "genre": "Fantasy",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "empty"
+      }
+    ]
+  },
+  {
+    "title": "If You Dare",
+    "author": "Jessica Martin",
+    "publicationDate": "2024",
+    "genre": "Romance",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "I'm Not Your Perfect Mexican Daughter",
+    "author": "Erika L. Sánchez",
+    "publicationDate": "2017",
+    "genre": "Young Adult",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "The Tempest War",
+    "author": "Thea Guanzon",
+    "publicationDate": "2024",
+    "genre": "Fantasy",
+    "series": {
+      "name": "The Hurricane Wars",
+      "order": 2,
+      "total": 2
+    },
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "The Soulmate",
+    "author": "Sally Thorne",
+    "publicationDate": "2023",
+    "genre": "Romance",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "Interlude: A Series of Unfortunate Events",
+    "author": "Beth Lewis",
+    "publicationDate": "2024",
+    "genre": "Thriller",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "The Peach Keeper",
+    "author": "Mary Kay Andrews",
+    "publicationDate": "2011",
+    "genre": "Fiction",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "empty"
+      }
+    ]
+  },
+  {
+    "title": "An Unfinished Murder",
+    "author": "Heather Gudenkauf",
+    "publicationDate": "2024",
+    "genre": "Thriller",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "The Party",
+    "author": "Jeneva Rose",
+    "publicationDate": "2024",
+    "genre": "Thriller",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "The Bookwoman of Troublesome Creek",
+    "author": "Kim Michele Richardson",
+    "publicationDate": "2019",
+    "genre": "Historical Fiction",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "empty"
+      }
+    ]
+  },
+  {
+    "title": "The Prospector",
+    "author": "J.M.G. Le Clézio",
+    "publicationDate": "1985",
+    "genre": "Fiction",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "empty"
+      }
+    ]
+  },
+  {
+    "title": "Magpie Lane",
+    "author": "Elizabeth Day",
+    "publicationDate": "2020",
+    "genre": "Thriller",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "Christine Falls",
+    "author": "Benjamin Black",
+    "publicationDate": "2006",
+    "genre": "Mystery",
+    "series": {
+      "name": "Quirke",
+      "order": 1,
+      "total": 7
+    },
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "no-match"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "The Silver Swan",
+    "author": "Benjamin Black",
+    "publicationDate": "2007",
+    "genre": "Mystery",
+    "series": {
+      "name": "Quirke",
+      "order": 2,
+      "total": 7
+    },
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "no-match"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "Hyena",
+    "author": "David Means",
+    "publicationDate": "2004",
+    "genre": "Fiction",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "The Queue",
+    "author": "Vladimir Sorokin",
+    "publicationDate": "1983",
+    "genre": "Fiction",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "Until November",
+    "author": "Åsa Larsson",
+    "publicationDate": "2013",
+    "genre": "Mystery",
+    "series": {
+      "name": "Rebecka Martinsson",
+      "order": 6,
+      "total": 6
+    },
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "The Veiled Threat",
+    "author": "Abir Mukherjee",
+    "publicationDate": "2021",
+    "genre": "Mystery",
+    "series": {
+      "name": "Sam Wyndham",
+      "order": 5,
+      "total": 5
+    },
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "empty"
+      }
+    ]
+  },
+  {
+    "title": "Verity and Vengeance",
+    "author": "Aleatha Romig",
+    "publicationDate": "2015",
+    "genre": "Romance",
+    "series": {
+      "name": "Consequences",
+      "order": 5,
+      "total": 5
+    },
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "empty"
+      }
+    ]
+  },
+  {
+    "title": "Paladin's Prayer",
+    "author": "T. Kingfisher",
+    "publicationDate": "2024",
+    "genre": "Fantasy",
+    "series": {
+      "name": "The Saint of Steel",
+      "order": 5,
+      "total": 5
+    },
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "Broken and Beloved",
+    "author": "Lyla Sage",
+    "publicationDate": "2025",
+    "genre": "Romance",
+    "series": {
+      "name": "Rebel Blue Ranch",
+      "order": 4,
+      "total": 4
+    },
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "The Playbook",
+    "author": "Liz Tomforde",
+    "publicationDate": "2024",
+    "genre": "Romance",
+    "series": {
+      "name": "Windy City",
+      "order": 4,
+      "total": 4
+    },
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "Be With Me",
+    "author": "Becka Mack",
+    "publicationDate": "2024",
+    "genre": "Romance",
+    "series": {
+      "name": "Playing for Keeps",
+      "order": 4,
+      "total": 4
+    },
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "The Queen of Bone and Ash",
+    "author": "Vaseem Khan",
+    "publicationDate": "2024",
+    "genre": "Mystery",
+    "series": {
+      "name": "Malabar House",
+      "order": 4,
+      "total": 4
+    },
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "empty"
+      }
+    ]
+  },
+  {
+    "title": "Dawnbringer",
+    "author": "Hannah Kaner",
+    "publicationDate": "2025",
+    "genre": "Fantasy",
+    "series": {
+      "name": "Fallen Gods",
+      "order": 3,
+      "total": 3
+    },
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "empty"
+      }
+    ]
+  },
+  {
+    "title": "Lavender and Lightning",
+    "author": "Brynne Weaver",
+    "publicationDate": "2025",
+    "genre": "Romance",
+    "series": {
+      "name": "The Ruinous Love Trilogy",
+      "order": 3,
+      "total": 3
+    },
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "empty"
+      }
+    ]
+  },
+  {
+    "title": "Sovereignty",
+    "author": "Tracy Deonn",
+    "publicationDate": "2024",
+    "genre": "Young Adult",
+    "series": {
+      "name": "The Legendborn Cycle",
+      "order": 3,
+      "total": 3
+    },
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "empty"
+      }
+    ]
+  },
+  {
+    "title": "βehemoth",
+    "author": "Peter Watts",
+    "publicationDate": "2004",
+    "genre": "Sci-Fi",
+    "series": {
+      "name": "Rifters",
+      "order": 3,
+      "total": 3
+    },
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "empty"
+      }
+    ]
+  },
+  {
+    "title": "Beautiful Chaos",
+    "author": "Jamie McGuire",
+    "publicationDate": "2017",
+    "genre": "Romance",
+    "series": {
+      "name": "Maddox Brothers",
+      "order": 5,
+      "total": 5
+    },
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "To Catch a Rogue",
+    "author": "Beverly Jenkins",
+    "publicationDate": "2021",
+    "genre": "Romance",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "The Valleys of the Assassins",
+    "author": "Freya Stark",
+    "publicationDate": "1934",
+    "genre": "Non-Fiction",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "A Summons to Memphis",
+    "author": "Peter Taylor",
+    "publicationDate": "1986",
+    "genre": "Fiction",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "A Vintage Affair",
+    "author": "Jane Green",
+    "publicationDate": "2009",
+    "genre": "Fiction",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "The Keeper",
+    "author": "Dervla McTiernan",
+    "publicationDate": "2023",
+    "genre": "Mystery",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "Malibu Burning",
+    "author": "Lee Child",
+    "publicationDate": "2025",
+    "genre": "Thriller",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "An Italian Girl in Brooklyn",
+    "author": "Santa Montefiore",
+    "publicationDate": "2023",
+    "genre": "Romance",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "Morning Comes Softly",
+    "author": "LaVyrle Spencer",
+    "publicationDate": "1992",
+    "genre": "Romance",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "empty"
+      }
+    ]
+  },
+  {
+    "title": "Glassworks",
+    "author": "Ali Smith",
+    "publicationDate": "2024",
+    "genre": "Fiction",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "empty"
+      }
+    ]
+  },
+  {
+    "title": "Come Together",
+    "author": "Lea Ypi",
+    "publicationDate": "2024",
+    "genre": "Fiction",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "Found",
+    "author": "R.F. Kuang",
+    "publicationDate": "2025",
+    "genre": "Fantasy",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "Karla's Choice",
+    "author": "John le Carré",
+    "publicationDate": "2024",
+    "genre": "Thriller",
+    "series": {
+      "name": "George Smiley",
+      "order": 9,
+      "total": 9
+    },
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "Wild Eye",
+    "author": "Panashe Chigumadzi",
+    "publicationDate": "2024",
+    "genre": "Fiction",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "empty"
+      }
+    ]
+  },
+  {
+    "title": "Map of Flames",
+    "author": "Ryan Graudin",
+    "publicationDate": "2024",
+    "genre": "Fantasy",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "The Bridge of Assassins",
+    "author": "Arturo Pérez-Reverte",
+    "publicationDate": "2011",
+    "genre": "Historical Fiction",
+    "series": {
+      "name": "Captain Alatriste",
+      "order": 7,
+      "total": 7
+    },
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "Ghost Followed Home",
+    "author": "Carolyn Hart",
+    "publicationDate": "2023",
+    "genre": "Mystery",
+    "series": {
+      "name": "Bailey Ruth",
+      "order": 9,
+      "total": 9
+    },
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "The Resurrectionists",
+    "author": "Michael Connelly",
+    "publicationDate": "2024",
+    "genre": "Thriller",
+    "series": {
+      "name": "Mickey Haller",
+      "order": 7,
+      "total": 7
+    },
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "empty"
+      }
+    ]
+  },
+  {
+    "title": "Stormweaver: Vol. II",
+    "author": "Bryce O'Connor",
+    "publicationDate": "2023",
+    "genre": "Fantasy",
+    "series": {
+      "name": "Warformed: Stormweaver",
+      "order": 2,
+      "total": 2
+    },
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "empty"
+      }
+    ]
+  },
+  {
+    "title": "O'Malley Christmas",
+    "author": "Dee Henderson",
+    "publicationDate": "2008",
+    "genre": "Romance",
+    "series": {
+      "name": "O'Malley",
+      "order": 7,
+      "total": 7
+    },
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "Red God",
+    "author": "Pierce Brown",
+    "publicationDate": "2025",
+    "genre": "Sci-Fi",
+    "series": {
+      "name": "Red Rising",
+      "order": 7,
+      "total": 7
+    },
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "Wild Heart",
+    "author": "Elsie Silver",
+    "publicationDate": "2025",
+    "genre": "Romance",
+    "series": {
+      "name": "Rose Hill",
+      "order": 3,
+      "total": 4
+    },
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "The Drowned and the Saved",
+    "author": "Primo Levi",
+    "publicationDate": "1986",
+    "genre": "Non-Fiction",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "The Atrocity Exhibition",
+    "author": "J.G. Ballard",
+    "publicationDate": "1970",
+    "genre": "Sci-Fi",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "Beggars and Choosers",
+    "author": "Nancy Kress",
+    "publicationDate": "1994",
+    "genre": "Sci-Fi",
+    "series": {
+      "name": "Sleepless",
+      "order": 2,
+      "total": 3
+    },
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  },
+  {
+    "title": "Sixth of the Dusk",
+    "author": "Brandon Sanderson",
+    "publicationDate": "2014",
+    "genre": "Fantasy",
+    "series": null,
+    "checks": [
+      {
+        "source": "openlibrary",
+        "reason": "empty"
+      },
+      {
+        "source": "itunes",
+        "reason": "no-match"
+      }
+    ]
+  }
+]

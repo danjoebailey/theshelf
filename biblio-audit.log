@@ -1,0 +1,33 @@
+Catalog has 10043 books across 2405 authors
+Filters: edition_count >= 15, English only, no ephemera, max 10 gaps/author
+
+  audited 150/2405 authors | 386 gaps found    audited 300/2405 authors | 707 gaps found    audited 450/2405 authors | 956 gaps found    audited 600/2405 authors | 1153 gaps found    audited 750/2405 authors | 1346 gaps found    audited 900/2405 authors | 1618 gaps found    audited 1050/2405 authors | 1785 gaps found    audited 1200/2405 authors | 1834 gaps found    audited 1350/2405 authors | 1913 gaps found    audited 1500/2405 authors | 2049 gaps found    audited 1650/2405 authors | 2314 gaps found    audited 1800/2405 authors | 2464 gaps found    audited 1950/2405 authors | 2494 gaps found    audited 2100/2405 authors | 2604 gaps found    audited 2250/2405 authors | 2745 gaps found    audited 2400/2405 authors | 2801 gaps found    audited 2405/2405 authors | 2802 gaps found  
+
+Done in 921s
+Authors audited: 1048
+Authors with gaps: 704
+Total potential additions: 2802
+
+Gaps written to C:\Users\danjo\Documents\theshelf\biblio-gaps.json
+
+Top 20 authors with most gaps:
+  Aldous Huxley — 7 in catalog, 10 suggested additions
+  Arthur C. Clarke — 15 in catalog, 10 suggested additions
+  Charles Darwin — 1 in catalog, 10 suggested additions
+  Charles Dickens — 16 in catalog, 10 suggested additions
+  Charlotte Brontë — 3 in catalog, 10 suggested additions
+  D.H. Lawrence — 5 in catalog, 10 suggested additions
+  Daphne du Maurier — 5 in catalog, 10 suggested additions
+  Diana Wynne Jones — 11 in catalog, 10 suggested additions
+  F. Scott Fitzgerald — 5 in catalog, 10 suggested additions
+  H.G. Wells — 8 in catalog, 10 suggested additions
+  Henry David Thoreau — 2 in catalog, 10 suggested additions
+  Isaac Asimov — 25 in catalog, 10 suggested additions
+  J.R.R. Tolkien — 5 in catalog, 10 suggested additions
+  James Baldwin — 10 in catalog, 10 suggested additions
+  John Irving — 15 in catalog, 10 suggested additions
+  John Steinbeck — 11 in catalog, 10 suggested additions
+  Mary Shelley — 2 in catalog, 10 suggested additions
+  Niccolò Machiavelli — 1 in catalog, 10 suggested additions
+  Oscar Wilde — 7 in catalog, 10 suggested additions
+  Philip Pullman — 5 in catalog, 10 suggested additions

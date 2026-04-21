@@ -1,0 +1,169 @@
+[
+  {
+    "title": "The Line of Beauty",
+    "author": "Alan Hollinghurst",
+    "catalog": {
+      "year": 1984,
+      "pages": 438,
+      "series": null
+    },
+    "openlibrary": {
+      "title": "The Line of Beauty",
+      "year": 2004,
+      "pages": 501
+    },
+    "issues": [
+      {
+        "field": "year",
+        "catalog": 1984,
+        "openlibrary_earliest": 2004,
+        "diff": -20,
+        "direction": "backward"
+      }
+    ]
+  },
+  {
+    "title": "Mistborn: The Final Empire",
+    "author": "Brandon Sanderson",
+    "catalog": {
+      "year": 2006,
+      "pages": 541,
+      "series": {
+        "name": "Mistborn",
+        "order": 1,
+        "total": 3
+      }
+    },
+    "openlibrary": {
+      "title": "Brandon Sanderson's Fantasy Firsts : (the Way of Kings, Mistborn: the Final Empire, Rithmatist, Alcatraz vs. the Evil Librarians)",
+      "year": 2017
+    },
+    "issues": [
+      {
+        "field": "year",
+        "catalog": 2006,
+        "openlibrary_earliest": 2017,
+        "diff": -11,
+        "direction": "backward"
+      }
+    ]
+  },
+  {
+    "title": "The Hitchhiker's Guide to the Galaxy",
+    "author": "Douglas Adams",
+    "catalog": {
+      "year": 1979,
+      "pages": 193,
+      "series": {
+        "name": "The Hitchhiker's Guide to the Galaxy",
+        "order": 1,
+        "total": 5
+      }
+    },
+    "openlibrary": {
+      "title": "The Ultimate Hitchhiker's Guide to the Galaxy",
+      "year": 2012,
+      "pages": 808
+    },
+    "issues": [
+      {
+        "field": "year",
+        "catalog": 1979,
+        "openlibrary_earliest": 2012,
+        "diff": -33,
+        "direction": "backward"
+      }
+    ]
+  },
+  {
+    "title": "The House of the Spirits",
+    "author": "Isabel Allende",
+    "catalog": {
+      "year": 1982,
+      "pages": 433,
+      "series": null
+    },
+    "openlibrary": {
+      "title": "The House of the Spirits",
+      "year": 2007,
+      "pages": 104
+    },
+    "issues": [
+      {
+        "field": "year",
+        "catalog": 1982,
+        "openlibrary_earliest": 2007,
+        "diff": -25,
+        "direction": "backward"
+      }
+    ]
+  },
+  {
+    "title": "Invisible Cities",
+    "author": "Italo Calvino",
+    "catalog": {
+      "year": 1972,
+      "pages": 165,
+      "series": null
+    },
+    "openlibrary": {
+      "title": "Invisible Cities",
+      "year": 2010,
+      "pages": 163
+    },
+    "issues": [
+      {
+        "field": "year",
+        "catalog": 1972,
+        "openlibrary_earliest": 2010,
+        "diff": -38,
+        "direction": "backward"
+      }
+    ]
+  },
+  {
+    "title": "Crash",
+    "author": "J.G. Ballard",
+    "catalog": {
+      "year": 1973,
+      "pages": 224,
+      "series": null
+    },
+    "openlibrary": {
+      "title": "Crash",
+      "year": 2004
+    },
+    "issues": [
+      {
+        "field": "year",
+        "catalog": 1973,
+        "openlibrary_earliest": 2004,
+        "diff": -31,
+        "direction": "backward"
+      }
+    ]
+  },
+  {
+    "title": "Persuasion",
+    "author": "Jane Austen",
+    "catalog": {
+      "year": 1817,
+      "pages": 249,
+      "series": null
+    },
+    "openlibrary": {
+      "title": "Persuasion",
+      "year": 1789,
+      "pages": 268
+    },
+    "issues": [
+      {
+        "field": "year",
+        "catalog": 1817,
+        "openlibrary_earliest": 1789,
+        "diff": 28,
+        "direction": "forward"
+      }
+    ]
+  }
+]
