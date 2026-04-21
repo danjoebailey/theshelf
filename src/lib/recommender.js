@@ -57,6 +57,31 @@ function vibePenalty(absZ) {
   return 0.15;
 }
 
+// Taste-defining axes: readers have absolute preferences here independent of
+// how their rating distribution happens to spread. A reader whose fantasy
+// difficulty mean is 6 but SD is 2 (because they read both Sanderson and
+// Wolfe) doesn't actually want Sanderson-level reads — their rating spread
+// reflects tolerance, not ideal. Raw-point gaps on these axes get an extra
+// penalty on top of the z-score math.
+const TASTE_DEFINING_AXES = new Set(["prose_craft", "warmth", "intensity", "difficulty"]);
+
+function absoluteTastePenalty(bookVibes, vibeStats, keys) {
+  let penalty = 0;
+  for (const key of keys) {
+    if (!TASTE_DEFINING_AXES.has(key)) continue;
+    const bv = bookVibes[key];
+    const stats = vibeStats[key];
+    if (bv == null || !stats) continue;
+    const diff = Math.abs(bv - stats.mean);
+    if (diff < 2) continue;
+    if (diff < 3) penalty += 0.05;
+    else if (diff < 4) penalty += 0.12;
+    else if (diff < 5) penalty += 0.20;
+    else penalty += 0.28;
+  }
+  return penalty;
+}
+
 // vibeStats is { axis: { mean, sd } }. Returns a 0-1 match score.
 function vibeMatchZ(bookVibes, vibeStats, keys) {
   if (!vibeStats) return 0.5;
@@ -71,6 +96,7 @@ function vibeMatchZ(bookVibes, vibeStats, keys) {
     count++;
   }
   if (count === 0) return 0.5;
+  totalPenalty += absoluteTastePenalty(bookVibes, vibeStats, keys);
   // Floor at 0.1 so no single bad vibe crater-walks the score below what a
   // craft-strong but tonally-wrong book still deserves structurally — but
   // low enough that tone/difficulty mismatches actually sink a candidate.
