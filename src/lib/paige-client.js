@@ -215,13 +215,17 @@ function generateReason(mode, book, tagEntry, score, userProfile) {
 export async function generatePaigeRecs(userBooks, mode, exclude = [], genre = null, authorLimit = 2) {
   await ensureLoaded();
 
-  // Build profile using title+author matching instead of ID matching
-  // This handles shelf books that don't have our catalog IDs
-  const readBooks = userBooks.filter(b => (b.shelf || "Read") === "Read");
+  // Build profile from Read + DNF shelves. DNFs contribute soft-negative vibe
+  // signal ("these vibes led me to stop") but are ignored by craft inference
+  // per spec ("DNF reasons too noisy" for craft signal).
+  const shelfBooks = userBooks.filter(b => {
+    const s = b.shelf || "Read";
+    return s === "Read" || s === "DNF";
+  });
   const profileTagData = {};
   const profileBooks = [];
   const unmatchedByGenre = {};
-  for (const book of readBooks) {
+  for (const book of shelfBooks) {
     let match = null;
     for (const key of joinKeyVariants(book.title, book.author)) {
       if (tagByNorm[key]) { match = tagByNorm[key]; break; }
@@ -229,13 +233,14 @@ export async function generatePaigeRecs(userBooks, mode, exclude = [], genre = n
     if (match) {
       const fakeId = match.id || joinKey(book.title, book.author);
       profileTagData[String(fakeId)] = { vibes: match.vibes, tags: match.tags, scores: match.scores };
-      profileBooks.push({ ...book, id: fakeId, genre: match.genre || book.genre });
+      profileBooks.push({ ...book, id: fakeId, genre: match.genre || book.genre, shelf: book.shelf || "Read" });
     } else {
       const g = book.genre || "Unknown";
       if (!unmatchedByGenre[g]) unmatchedByGenre[g] = [];
       unmatchedByGenre[g].push(`${book.title} — ${book.author}`);
     }
   }
+  const readBooks = shelfBooks.filter(b => (b.shelf || "Read") === "Read");
   console.group(`[Paige join diag] mode=${mode}`);
   console.log(`matched=${profileBooks.length}/${readBooks.length} read books`);
   for (const [g, list] of Object.entries(unmatchedByGenre)) {
@@ -300,7 +305,9 @@ export async function generatePaigeRecs(userBooks, mode, exclude = [], genre = n
   console.groupEnd();
 
   const excludeSet = new Set(exclude.map(t => normalize(t)));
-  const readSet = new Set(readBooks.map(b => normalize(b.title)));
+  // Exclude both Read and DNF books from candidate pool — we don't want to
+  // recommend books the user already finished or stopped reading.
+  const readSet = new Set(shelfBooks.map(b => normalize(b.title)));
 
   // Pool selection per mode:
   // acclaimed: primary only (canonical, well-known books)

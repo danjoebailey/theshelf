@@ -4,6 +4,14 @@
 
 // Voice is sourced from scores.voice (spec: kept as optional vibe after it
 // was dropped from universal craft axes mid-pilot). It's a global vibe.
+//
+// Spec (2026-04-17) called for dropping prose_craft and pace from vibes
+// ("absorbed into Prose and Pacing craft axes"). Not applied: the spec
+// change was predicated on a full rebuild with re-tagged books on the new
+// grid. Pre-rebuild, dropping those vibes *loses signal* because craft
+// Prose's Pearson weight can zero out on collinear data — so the prose
+// taste-gap that vibe layer's taste-penalty was catching would no longer
+// register anywhere. Keep the dupes until the rebuild happens.
 const GLOBAL_VIBES = ["prose_craft", "prose_style", "warmth", "intensity", "voice"];
 const GENRE_VIBES = ["pace", "moral_complexity", "fabulism", "emotional_register", "interiority", "tone", "difficulty"];
 
@@ -645,16 +653,22 @@ function craftHardFilter(candidate, tagEntry, craftProfile) {
 // =====================================================================
 
 export function buildUserProfile(ratedBooks, tagData) {
+  // Split Read vs DNF. DNFs contribute a soft-negative vibe profile only
+  // ("these vibes led me to stop") — excluded from rating/craft aggregation
+  // per spec: "DNF reasons too noisy" for craft signal.
+  const readOnly = ratedBooks.filter(b => (b.shelf || "Read") === "Read");
+  const dnfOnly = ratedBooks.filter(b => (b.shelf || "") === "DNF");
+
   // Rating-weighted (and recency- and author-weighted) aggregation. Every
   // rated book contributes profileWeight × authorDampening: top picks define
   // the center, mid-tier fades, 3★↓ drops, and uniformly-rated prolific
   // authors don't flood the profile with correlated signal.
-  const authorDamp = computeAuthorDampening(ratedBooks);
+  const authorDamp = computeAuthorDampening(readOnly);
   const globalAxis = {};
   const bucketAxis = {};
   const bucketBookCounts = {};
 
-  for (const book of ratedBooks) {
+  for (const book of readOnly) {
     const bookId = String(book.id);
     const td = tagData[bookId];
     if (!td) continue;
@@ -716,9 +730,59 @@ export function buildUserProfile(ratedBooks, tagData) {
     };
   }
 
-  const craftProfile = buildCraftProfile(ratedBooks, tagData);
+  // Craft profile uses Read-only per spec (DNF reasons too noisy for craft).
+  const craftProfile = buildCraftProfile(readOnly, tagData);
 
-  return { globalVibes, globalVibeStats, bucketProfiles, craftProfile };
+  // DNF vibe profile: the centroid of recently-DNF'd books in vibe space.
+  // Used as a soft-negative signal in scoreBook — candidates near this
+  // centroid lose a few points. Only means (no SD) because DNF samples are
+  // usually too few for stable variance estimates.
+  const dnfVibeProfile = computeDnfVibeProfile(dnfOnly, tagData);
+
+  return { globalVibes, globalVibeStats, bucketProfiles, craftProfile, dnfVibeProfile };
+}
+
+function computeDnfVibeProfile(dnfBooks, tagData) {
+  if (!dnfBooks.length) return null;
+  const allAxes = [...GLOBAL_VIBES, ...GENRE_VIBES];
+  const sum = {}, wSum = {};
+  for (const book of dnfBooks) {
+    const td = tagData[String(book.id)];
+    if (!td) continue;
+    const w = recencyWeight(book);  // no rating signal; decay by age only
+    if (w === 0) continue;
+    for (const axis of allAxes) {
+      const v = getVibeValue(td, axis);
+      if (v != null) {
+        sum[axis] = (sum[axis] || 0) + v * w;
+        wSum[axis] = (wSum[axis] || 0) + w;
+      }
+    }
+  }
+  const profile = {};
+  for (const axis of Object.keys(sum)) {
+    if (wSum[axis] > 0) profile[axis] = sum[axis] / wSum[axis];
+  }
+  return Object.keys(profile).length > 0 ? { vibes: profile, n: dnfBooks.length } : null;
+}
+
+// Candidates very close (in vibe space) to the user's DNF centroid get a
+// soft-negative penalty. Linear ramp: avg squared diff ≥ 16 → 0 penalty,
+// exact match → 0.15 penalty. Mild but present.
+function dnfSimilarityPenalty(candidateVibes, dnfVibeProfile) {
+  if (!dnfVibeProfile) return 0;
+  const dv = dnfVibeProfile.vibes;
+  let sumSqDiff = 0, n = 0;
+  for (const axis of Object.keys(dv)) {
+    const bv = candidateVibes[axis];
+    if (bv == null) continue;
+    sumSqDiff += (bv - dv[axis]) ** 2;
+    n++;
+  }
+  if (n === 0) return 0;
+  const avgSqDiff = sumSqDiff / n;
+  const closeness = Math.max(0, 1 - avgSqDiff / 16);
+  return closeness * 0.15;
 }
 
 export function scoreBook(candidate, tagEntry, userProfile) {
@@ -740,7 +804,9 @@ export function scoreBook(candidate, tagEntry, userProfile) {
     genreMatch = 0.5;
   }
 
-  const vibeMatch = WEIGHTS.global * globalMatch + WEIGHTS.genre * genreMatch;
+  let vibeMatch = WEIGHTS.global * globalMatch + WEIGHTS.genre * genreMatch;
+  // DNF penalty (soft-negative vibe signal — mood misfire, not craft signal).
+  vibeMatch = Math.max(0.1, vibeMatch - dnfSimilarityPenalty(candidateVibes, userProfile.dnfVibeProfile));
   const craftMatch = scoreCraft(candidate, tagEntry, userProfile.craftProfile);
 
   return vibeMatch * craftMatch;
