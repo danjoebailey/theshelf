@@ -164,6 +164,26 @@ function recencyWeight(book) {
   return Math.exp(-RECENCY_LAMBDA * yearsAgo);
 }
 
+// Rating-based contribution weight for profile aggregation. A 5★ book defines
+// a reader's taste center; a 4★ is "enjoyed but not definitive"; a 3★ is
+// meh; 1-2★ are anti-signal. Quadratic in the distance from 3 so top picks
+// dominate dramatically:   5★ → 4,  4★ → 1,  3★ → 0,  2★ → 1 (flipped neg
+// conceptually — but we keep all as positive contributions to means; true
+// anti-signal would need a different math path).
+function ratingWeight(book) {
+  const r = book.rating || 0;
+  if (r <= 0) return 0;
+  // 5★=4, 4★=1, 3★=0, 2★=0 (ignored, not opposite), 1★=0
+  const delta = Math.max(0, r - 3);
+  return delta * delta;
+}
+
+// Combined per-book contribution weight: rating dominance × recency decay.
+// A 5★ recent read is worth ~16× a 4★ recent read, ~50× a 4★ from 10y ago.
+function profileWeight(book) {
+  return ratingWeight(book) * recencyWeight(book);
+}
+
 // Per-bucket universal/pack weight split. Pack axes (worldBuilding, magicSystem,
 // chemistry, stakes, etc.) get less budget in buckets where execution detail is
 // the main contract (literary), more where genre contract dominates (romance).
@@ -252,11 +272,12 @@ function buildCraftProfile(ratedBooks, tagData) {
   const rSD = Math.sqrt(ratings.reduce((a, b) => a + (b - rMean) ** 2, 0) / ratings.length) || 1;
   const normRating = r => (r - rMean) / rSD;
 
-  // Collect observations with per-book recency weights. `scores`/`zRatings`
-  // span all rated books and drive Pearson weight inference (which needs
-  // rating variance). `highRatedScores` is a subset of 4-5★ reads used to
-  // compute means/SDs — per spec, the profile is "what you accept," not
-  // "what you've read." Recency weights dampen both so old ratings fade.
+  // Collect observations. Two parallel tracks with different weighting:
+  //   pearsonWeights = recencyWeight only (Pearson needs the full rating
+  //     variance — if we also rating-weight, we'd be double-dipping since
+  //     rating IS already the y-variable in the correlation)
+  //   profileWeights = ratingWeight × recencyWeight (for mean/SD — top picks
+  //     define your taste center, mid-tier reads barely shift it)
   const perBucketAxis = {};
   const globalPerAxis = {};
 
@@ -265,8 +286,8 @@ function buildCraftProfile(ratedBooks, tagData) {
     const zr = normRating(book.rating);
     const td = tagData[String(book.id)];
     if (!td?.scores) continue;
-    const isHigh = book.rating >= CRAFT_HIGH_RATING_THRESHOLD;
     const rw = recencyWeight(book);
+    const pw = profileWeight(book);
 
     const bucket = getCraftBucket(book.genre);
     if (!perBucketAxis[bucket]) perBucketAxis[bucket] = {};
@@ -274,21 +295,18 @@ function buildCraftProfile(ratedBooks, tagData) {
     for (const [axis, score] of Object.entries(td.scores)) {
       if (typeof score !== "number") continue;
       if (!perBucketAxis[bucket][axis]) {
-        perBucketAxis[bucket][axis] = { scores: [], zRatings: [], weights: [], highRatedScores: [], highRatedWeights: [] };
+        perBucketAxis[bucket][axis] = { scores: [], zRatings: [], pearsonWeights: [], profileWeights: [] };
       }
       perBucketAxis[bucket][axis].scores.push(score);
       perBucketAxis[bucket][axis].zRatings.push(zr);
-      perBucketAxis[bucket][axis].weights.push(rw);
-      if (isHigh) {
-        perBucketAxis[bucket][axis].highRatedScores.push(score);
-        perBucketAxis[bucket][axis].highRatedWeights.push(rw);
-      }
+      perBucketAxis[bucket][axis].pearsonWeights.push(rw);
+      perBucketAxis[bucket][axis].profileWeights.push(pw);
 
       if (UNIVERSAL_AXES.has(axis)) {
-        if (!globalPerAxis[axis]) globalPerAxis[axis] = { scores: [], zRatings: [], weights: [] };
+        if (!globalPerAxis[axis]) globalPerAxis[axis] = { scores: [], zRatings: [], pearsonWeights: [] };
         globalPerAxis[axis].scores.push(score);
         globalPerAxis[axis].zRatings.push(zr);
-        globalPerAxis[axis].weights.push(rw);
+        globalPerAxis[axis].pearsonWeights.push(rw);
       }
     }
   }
@@ -296,7 +314,7 @@ function buildCraftProfile(ratedBooks, tagData) {
   // Global weights for universal axes (anchor for bucket-level shrinkage)
   const globalWeights = {};
   for (const [axis, data] of Object.entries(globalPerAxis)) {
-    globalWeights[axis] = pearsonCorrelation(data.scores, data.zRatings, data.weights);
+    globalWeights[axis] = pearsonCorrelation(data.scores, data.zRatings, data.pearsonWeights);
   }
 
   // Per-bucket profile: means, SDs, weights (shrunk toward global for universal axes)
@@ -305,12 +323,11 @@ function buildCraftProfile(ratedBooks, tagData) {
     buckets[bucket] = {};
     for (const [axis, data] of Object.entries(axes)) {
       if (data.scores.length < CRAFT_MIN_BOOKS_PER_AXIS) continue;
-      // Means/SDs from 4-5★ subset; fall back to all-rated if subset is too small.
-      const useHigh = data.highRatedScores.length >= CRAFT_MIN_BOOKS_PER_AXIS;
-      const meanSource = useHigh ? data.highRatedScores : data.scores;
-      const meanWeights = useHigh ? data.highRatedWeights : data.weights;
-      const { mean, sd, n: meanN } = meanAndSD(meanSource, meanWeights);
-      const bucketWeight = pearsonCorrelation(data.scores, data.zRatings, data.weights);
+      // Means/SDs use the full rating-weighted contribution — top picks
+      // dominate, 1-3★ reads contribute nothing. Pearson keeps the unweighted
+      // (well, recency-only) path because it needs rating variance as signal.
+      const { mean, sd, n: meanN } = meanAndSD(data.scores, data.profileWeights);
+      const bucketWeight = pearsonCorrelation(data.scores, data.zRatings, data.pearsonWeights);
       let weight;
       if (UNIVERSAL_AXES.has(axis)) {
         const globalW = globalWeights[axis] || 0;
@@ -417,54 +434,42 @@ function craftHardFilter(candidate, tagEntry, craftProfile) {
 // =====================================================================
 
 export function buildUserProfile(ratedBooks, tagData) {
-  // Parallel arrays per axis: values + recency weights. Old reads contribute
-  // less to means/SDs, so 15-year-old childhood reads don't anchor the profile.
-  const globalAxis = {};          // {axis: {vals, weights}}
-  const globalAxisHigh = {};      // 4-5★ subset
-  const bucketAxis = {};          // {bucket: {axis: {vals, weights}}}
-  const bucketAxisHigh = {};      // 4-5★ subset
+  // Rating-weighted (and recency-weighted) aggregation. Every rated book
+  // contributes in proportion to (rating-3)² × exp(-λ × years): 5★ recent = 4,
+  // 4★ recent = 1, 3★ = 0, old reads decay. Top picks define your taste
+  // center, mid-tier reads barely shift it, 1-3★ contribute nothing.
+  const globalAxis = {};         // {axis: {vals, weights}}
+  const bucketAxis = {};         // {bucket: {axis: {vals, weights}}}
   const bucketBookCounts = {};
 
   for (const book of ratedBooks) {
     const bookId = String(book.id);
     const td = tagData[bookId];
     if (!td) continue;
-    const isHigh = (book.rating || 0) >= CRAFT_HIGH_RATING_THRESHOLD;
-    const rw = recencyWeight(book);
+    const w = profileWeight(book);
+    if (w === 0) continue;  // 3★ or below — no signal
 
     for (const key of GLOBAL_VIBES) {
       if (td.vibes?.[key] != null) {
         (globalAxis[key] ||= { vals: [], weights: [] });
         globalAxis[key].vals.push(td.vibes[key]);
-        globalAxis[key].weights.push(rw);
-        if (isHigh) {
-          (globalAxisHigh[key] ||= { vals: [], weights: [] });
-          globalAxisHigh[key].vals.push(td.vibes[key]);
-          globalAxisHigh[key].weights.push(rw);
-        }
+        globalAxis[key].weights.push(w);
       }
     }
 
     const bucket = getBucket(book.genre);
     bucketBookCounts[bucket] = (bucketBookCounts[bucket] || 0) + 1;
-    if (!bucketAxis[bucket]) { bucketAxis[bucket] = {}; bucketAxisHigh[bucket] = {}; }
+    if (!bucketAxis[bucket]) bucketAxis[bucket] = {};
     for (const key of GENRE_VIBES) {
       if (td.vibes?.[key] != null) {
         (bucketAxis[bucket][key] ||= { vals: [], weights: [] });
         bucketAxis[bucket][key].vals.push(td.vibes[key]);
-        bucketAxis[bucket][key].weights.push(rw);
-        if (isHigh) {
-          (bucketAxisHigh[bucket][key] ||= { vals: [], weights: [] });
-          bucketAxisHigh[bucket][key].vals.push(td.vibes[key]);
-          bucketAxisHigh[bucket][key].weights.push(rw);
-        }
+        bucketAxis[bucket][key].weights.push(w);
       }
     }
   }
 
-  // Weighted mean/SD with high-rated preference + recency decay.
-  function statsOf(all, high) {
-    const source = (high && high.vals.length >= 3) ? high : all;
+  function statsOf(source) {
     if (!source || source.vals.length === 0) return { mean: 5, sd: 2.5 };
     const W = source.weights.reduce((a, b) => a + b, 0);
     if (W === 0) return { mean: 5, sd: 2.5 };
@@ -476,7 +481,7 @@ export function buildUserProfile(ratedBooks, tagData) {
   const globalVibes = {};
   const globalVibeStats = {};
   for (const key of GLOBAL_VIBES) {
-    const s = statsOf(globalAxis[key], globalAxisHigh[key]);
+    const s = statsOf(globalAxis[key]);
     globalVibes[key] = s.mean;
     globalVibeStats[key] = s;
   }
@@ -486,7 +491,7 @@ export function buildUserProfile(ratedBooks, tagData) {
     const vibes = {};
     const vibeStats = {};
     for (const key of GENRE_VIBES) {
-      const s = statsOf(bucketAxis[bucket][key], bucketAxisHigh[bucket][key]);
+      const s = statsOf(bucketAxis[bucket][key]);
       vibes[key] = s.mean;
       vibeStats[key] = s;
     }
