@@ -2,8 +2,27 @@
 // VIBE LAYER — mood/feel matching
 // =====================================================================
 
-const GLOBAL_VIBES = ["prose_craft", "prose_style", "warmth", "intensity"];
+// Voice is sourced from scores.voice (spec: kept as optional vibe after it
+// was dropped from universal craft axes mid-pilot). It's a global vibe.
+const GLOBAL_VIBES = ["prose_craft", "prose_style", "warmth", "intensity", "voice"];
 const GENRE_VIBES = ["pace", "moral_complexity", "fabulism", "emotional_register", "interiority", "tone", "difficulty"];
+
+// Vibes normally live on td.vibes, but voice is stored on td.scores.voice.
+// This helper unifies the lookup so callers don't need to know.
+function getVibeValue(td, axis) {
+  if (!td) return null;
+  if (axis === "voice") return td.scores?.voice ?? null;
+  return td.vibes?.[axis] ?? null;
+}
+
+// Returns a plain vibes object that includes voice merged in from scores,
+// so callers scoring against the full vibe set don't miss it.
+function mergedVibes(td) {
+  if (!td) return {};
+  const out = { ...(td.vibes || {}) };
+  if (td.scores?.voice != null && out.voice == null) out.voice = td.scores.voice;
+  return out;
+}
 
 const GENRE_BUCKETS = {
   "Fiction": "literary",
@@ -643,9 +662,10 @@ export function buildUserProfile(ratedBooks, tagData) {
     if (w === 0) continue;
 
     for (const key of GLOBAL_VIBES) {
-      if (td.vibes?.[key] != null) {
+      const v = getVibeValue(td, key);
+      if (v != null) {
         (globalAxis[key] ||= { vals: [], weights: [] });
-        globalAxis[key].vals.push(td.vibes[key]);
+        globalAxis[key].vals.push(v);
         globalAxis[key].weights.push(w);
       }
     }
@@ -654,9 +674,10 @@ export function buildUserProfile(ratedBooks, tagData) {
     bucketBookCounts[bucket] = (bucketBookCounts[bucket] || 0) + 1;
     if (!bucketAxis[bucket]) bucketAxis[bucket] = {};
     for (const key of GENRE_VIBES) {
-      if (td.vibes?.[key] != null) {
+      const v = getVibeValue(td, key);
+      if (v != null) {
         (bucketAxis[bucket][key] ||= { vals: [], weights: [] });
-        bucketAxis[bucket][key].vals.push(td.vibes[key]);
+        bucketAxis[bucket][key].vals.push(v);
         bucketAxis[bucket][key].weights.push(w);
       }
     }
@@ -706,14 +727,15 @@ export function scoreBook(candidate, tagEntry, userProfile) {
   // z-score vibe match: axes where the user's taste is tight (low SD) punish
   // deviation hard; axes where they're flexible (high SD) absorb it. Replaces
   // the uniform Euclidean match that couldn't tell difficulty from fabulism.
-  const globalMatch = vibeMatchZ(tagEntry.vibes, userProfile.globalVibeStats, GLOBAL_VIBES);
+  const candidateVibes = mergedVibes(tagEntry);
+  const globalMatch = vibeMatchZ(candidateVibes, userProfile.globalVibeStats, GLOBAL_VIBES);
 
   const bucket = getBucket(candidate.genre);
   const bucketProfile = userProfile.bucketProfiles[bucket];
 
   let genreMatch;
   if (bucketProfile && bucketProfile.bookCount >= MIN_BOOKS_PER_BUCKET) {
-    genreMatch = vibeMatchZ(tagEntry.vibes, bucketProfile.vibeStats, GENRE_VIBES);
+    genreMatch = vibeMatchZ(candidateVibes, bucketProfile.vibeStats, GENRE_VIBES);
   } else {
     genreMatch = 0.5;
   }
