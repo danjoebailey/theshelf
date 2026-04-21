@@ -22,7 +22,13 @@ const GENRE_BUCKETS = {
   "Self-Help": "nonfiction",
 };
 
-const WEIGHTS = { global: 0.45, genre: 0.45, tag: 0.1 };
+// Global vibes (prose_craft, prose_style, warmth, intensity) carry cross-genre
+// taste signal — a literary reader's standards for prose and grit don't stop
+// at the fantasy aisle. Weighted higher than per-genre vibes so the user's
+// sharpest preferences dominate when a genre bucket's profile is diluted by
+// mixed reading (e.g., literary fantasy + YA fantasy both sitting in the
+// same fantasy bucket pushes genre means toward middle).
+const WEIGHTS = { global: 0.6, genre: 0.3, tag: 0.1 };
 const MIN_BOOKS_PER_BUCKET = 5;
 
 function getBucket(genre) {
