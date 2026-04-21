@@ -28,7 +28,11 @@ const GENRE_BUCKETS = {
 // sharpest preferences dominate when a genre bucket's profile is diluted by
 // mixed reading (e.g., literary fantasy + YA fantasy both sitting in the
 // same fantasy bucket pushes genre means toward middle).
-const WEIGHTS = { global: 0.6, genre: 0.3, tag: 0.1 };
+//
+// Tag overlap dropped — design spec flagged it as "filter tool, not ranking
+// driver." At 0.10 weight it was mostly tautological noise (any fantasy
+// candidate shares the 'fantasy' tag with the reader's fantasy reads).
+const WEIGHTS = { global: 0.67, genre: 0.33 };
 const MIN_BOOKS_PER_BUCKET = 5;
 
 function getBucket(genre) {
@@ -107,17 +111,6 @@ function vibeMatchZ(bookVibes, vibeStats, keys) {
   // craft-strong but tonally-wrong book still deserves structurally — but
   // low enough that tone/difficulty mismatches actually sink a candidate.
   return Math.max(0.1, 1 - totalPenalty);
-}
-
-function tagOverlap(bookTags, profileTagWeights) {
-  if (!bookTags || !bookTags.length || !profileTagWeights) return 0;
-  const totalWeight = Object.values(profileTagWeights).reduce((a, b) => a + b, 0);
-  if (totalWeight === 0) return 0;
-  let matchWeight = 0;
-  for (const tag of bookTags) {
-    if (profileTagWeights[tag]) matchWeight += profileTagWeights[tag];
-  }
-  return matchWeight / totalWeight;
 }
 
 // =====================================================================
@@ -384,13 +377,11 @@ function craftHardFilter(candidate, tagEntry, craftProfile) {
 
 export function buildUserProfile(ratedBooks, tagData) {
   // Collect per-axis value arrays. High-rated subset powers mean/SD so the
-  // profile reflects "what you accept" not "what you've read." All rated
-  // contribute to bookCount + tag weights.
+  // profile reflects "what you accept" not "what you've read."
   const globalAxisValues = {};         // {axis: number[]}
   const globalAxisValuesHigh = {};     // {axis: number[]} — 4-5★ only
   const bucketAxisValues = {};         // {bucket: {axis: number[]}}
   const bucketAxisValuesHigh = {};     // {bucket: {axis: number[]} — 4-5★ only
-  const bucketTagCounts = {};
   const bucketBookCounts = {};
 
   for (const book of ratedBooks) {
@@ -411,17 +402,11 @@ export function buildUserProfile(ratedBooks, tagData) {
     if (!bucketAxisValues[bucket]) {
       bucketAxisValues[bucket] = {};
       bucketAxisValuesHigh[bucket] = {};
-      bucketTagCounts[bucket] = {};
     }
     for (const key of GENRE_VIBES) {
       if (td.vibes?.[key] != null) {
         (bucketAxisValues[bucket][key] ||= []).push(td.vibes[key]);
         if (isHigh) (bucketAxisValuesHigh[bucket][key] ||= []).push(td.vibes[key]);
-      }
-    }
-    if (td.tags) {
-      for (const tag of td.tags) {
-        bucketTagCounts[bucket][tag] = (bucketTagCounts[bucket][tag] || 0) + 1;
       }
     }
   }
@@ -455,7 +440,6 @@ export function buildUserProfile(ratedBooks, tagData) {
     bucketProfiles[bucket] = {
       vibes,
       vibeStats,
-      tagWeights: bucketTagCounts[bucket] || {},
       bookCount: bucketBookCounts[bucket] || 0,
     };
   }
@@ -483,12 +467,7 @@ export function scoreBook(candidate, tagEntry, userProfile) {
     genreMatch = 0.5;
   }
 
-  let tagMatch = 0;
-  if (bucketProfile) {
-    tagMatch = tagOverlap(tagEntry.tags, bucketProfile.tagWeights);
-  }
-
-  const vibeMatch = WEIGHTS.global * globalMatch + WEIGHTS.genre * genreMatch + WEIGHTS.tag * tagMatch;
+  const vibeMatch = WEIGHTS.global * globalMatch + WEIGHTS.genre * genreMatch;
   const craftMatch = scoreCraft(candidate, tagEntry, userProfile.craftProfile);
 
   return vibeMatch * craftMatch;
