@@ -259,8 +259,27 @@ export async function generatePaigeRecs(userBooks, mode, exclude = [], genre = n
     })[g] || "literary";
     bucketBookCounts[bkt] = (bucketBookCounts[bkt] || 0) + 1;
   }
-  console.group(`[Paige craft profile] mode=${mode}`);
+  console.group(`[Paige profile] mode=${mode}`);
   console.log("books per bucket (profile):", bucketBookCounts);
+
+  // Vibe-profile snapshot (mean + SD per axis) so we can see what the z-score
+  // math is working from. Crucial for diagnosing "book X ranks too high" —
+  // the SD on taste-defining axes tells us if the profile is sharp or flabby.
+  if (profile.globalVibeStats) {
+    const gRows = Object.entries(profile.globalVibeStats).map(([axis, s]) => ({
+      axis, mean: +s.mean.toFixed(2), sd: +s.sd.toFixed(2),
+    }));
+    console.log("global vibes:");
+    console.table(gRows);
+  }
+  for (const [bucket, bp] of Object.entries(profile.bucketProfiles || {})) {
+    if (!bp.vibeStats) continue;
+    const rows = Object.entries(bp.vibeStats).map(([axis, s]) => ({
+      axis, mean: +s.mean.toFixed(2), sd: +s.sd.toFixed(2),
+    }));
+    console.log(`${bucket} vibes (n=${bp.bookCount}):`);
+    console.table(rows);
+  }
   if (profile.craftProfile) {
     for (const [bucket, axes] of Object.entries(profile.craftProfile.buckets)) {
       let uniSum = 0, packSum = 0;

@@ -284,6 +284,8 @@ function buildCraftProfile(ratedBooks, tagData) {
         weight = bucketWeight;
         if (weight === 0 && mean >= CRAFT_PRIOR_MEAN && sd <= CRAFT_PRIOR_SD) {
           weight = CRAFT_PRIOR_WEIGHT;
+          buckets[bucket][axis] = { mean, sd, weight, n: data.scores.length, meanN, priorOnly: true };
+          continue;
         }
       }
       buckets[bucket][axis] = { mean, sd, weight, n: data.scores.length, meanN };
@@ -334,7 +336,12 @@ function scoreCraft(candidate, tagEntry, craftProfile) {
     const stats = bucketStats[axis];
     if (!stats || stats.weight <= 0) continue;
     const z = (score - stats.mean) / stats.sd;
-    weightedSum += stats.weight * craftPenalty(z);
+    // Prior-injected axes represent "you've never read a weak one, so we
+    // assume you require a strong one" — use that weight only to penalize
+    // below-mean candidates, not to reward above-mean ones we can't verify
+    // the user actually values.
+    const effectiveZ = stats.priorOnly ? Math.min(z, 0) : z;
+    weightedSum += stats.weight * craftPenalty(effectiveZ);
     totalWeight += stats.weight;
   }
 
