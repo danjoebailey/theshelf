@@ -3971,9 +3971,11 @@ const SCORE_CATEGORIES = [
 
 // Display labels and ordering for the new craft-axis schema. Universal axes
 // first (every book has these), then genre-pack axes (only present per genre).
+// Voice is intentionally absent — it's been promoted to a vibe (renders in
+// the Tone & feel panel below) and shouldn't appear in scores too.
 const SCORE_AXIS_LABELS = {
   prose: "Prose", characters: "Characters", plot: "Plot", pacing: "Pacing",
-  ideas: "Ideas", resonance: "Resonance", ending: "Ending", voice: "Voice",
+  ideas: "Ideas", resonance: "Resonance", ending: "Ending",
   worldBuilding: "World-building", magicSystem: "Magic System",
   speculativeRigor: "Speculative Rigor", dread: "Dread", atmosphere: "Atmosphere",
   puzzle: "Puzzle", stakes: "Stakes", twists: "Twists",
@@ -3982,7 +3984,7 @@ const SCORE_AXIS_LABELS = {
   argument: "Argument", researchRigor: "Research Rigor", access: "Access",
 };
 const SCORE_AXIS_ORDER = [
-  "prose","characters","plot","pacing","ideas","resonance","ending","voice",
+  "prose","characters","plot","pacing","ideas","resonance","ending",
   "worldBuilding","magicSystem","speculativeRigor","dread","atmosphere",
   "puzzle","stakes","twists","chemistry","tension","heaPayoff",
   "periodAuthenticity","researchIntegration","argument","researchRigor","access",
