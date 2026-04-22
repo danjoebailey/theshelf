@@ -2549,16 +2549,6 @@ const QUALIFIER_SECTIONS = [
 
 function QualifierPanel({ qualifiers, setQualifiers, onClose }) {
   const ref = useRef(null);
-  // Anchor the panel to viewport coordinates based on the pill's rect at open
-  // time. Prevents the panel from shifting when the pill's text changes
-  // ("Qualifiers" → "Qualifiers (1)") makes the pill wider.
-  const [pos, setPos] = useState(null);
-  useEffect(() => {
-    const pill = document.querySelector('[data-qualifier-toggle="1"]');
-    if (!pill) return;
-    const r = pill.getBoundingClientRect();
-    setPos({ top: r.bottom + 4, right: Math.max(12, window.innerWidth - r.right) });
-  }, []);
   useEffect(() => {
     function handler(e) {
       if (!ref.current) return;
@@ -2583,10 +2573,10 @@ function QualifierPanel({ qualifiers, setQualifiers, onClose }) {
   function clearAll() { setQualifiers({}); }
 
   return (
-    // position:fixed + viewport-relative coordinates from pill.getBoundingClientRect.
-    // Survives the pill's width change when qualifiers become active ("Qualifiers"
-    // → "Qualifiers (1)") since we're no longer anchored to the pill itself.
-    <div ref={ref} style={{ position:"fixed", top: pos?.top ?? 0, right: pos?.right ?? 12, visibility: pos ? "visible" : "hidden", background:"rgba(40,24,12,0.97)", border:"1px solid rgba(138,90,40,0.3)", borderRadius:10, padding:"10px 0 6px", zIndex:50, width:320, maxWidth:"calc(100vw - 24px)", maxHeight:"min(520px, calc(100vh - 160px))", overflowY:"auto", overflowX:"hidden", overscrollBehavior:"contain", boxShadow:"0 8px 24px rgba(0,0,0,0.5)" }}>
+    // Anchored to the pill's right edge via right:0. The pill itself is
+    // width-stabilized (reserves count slot regardless of activeQualifierCount)
+    // so this anchor doesn't move when a qualifier becomes active.
+    <div ref={ref} style={{ position:"absolute", top:"100%", right:0, marginTop:4, background:"rgba(40,24,12,0.97)", border:"1px solid rgba(138,90,40,0.3)", borderRadius:10, padding:"10px 0 6px", zIndex:50, width:320, maxWidth:"calc(100vw - 32px)", maxHeight:"min(520px, calc(100vh - 160px))", overflowY:"auto", overflowX:"hidden", overscrollBehavior:"contain", boxShadow:"0 8px 24px rgba(0,0,0,0.5)" }}>
       {QUALIFIER_SECTIONS.map(section => (
         <div key={section.label} style={{ padding:"4px 14px 8px" }}>
           <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:10, color:"rgba(255,235,195,0.5)", textTransform:"uppercase", letterSpacing:"0.1em", margin:"6px 0" }}>{section.label}</p>
@@ -2836,12 +2826,17 @@ function PaigeTab({ books, userId, onAddDirect, onEdit, onAddBook }) {
             <div style={{ position:"relative" }}>
               <button data-qualifier-toggle="1" onClick={() => setQualifiersOpen(o => !o)} style={{
                 padding:"5px 12px", borderRadius:20, fontSize:12, fontFamily:"'DM Sans',sans-serif", fontWeight:500,
-                cursor:"pointer", transition:"all 0.15s", display:"flex", alignItems:"center", gap:5,
+                cursor:"pointer", transition:"background 0.15s, color 0.15s", display:"flex", alignItems:"center", gap:5,
                 background: activeQualifierCount > 0 ? WOOD.amber : "rgba(15,8,2,0.55)",
                 color: activeQualifierCount > 0 ? "#1a0900" : "#fff",
                 border: "1px solid rgba(120,70,20,0.3)",
                 backdropFilter: "blur(4px)",
-              }}>Qualifiers{activeQualifierCount > 0 ? ` (${activeQualifierCount})` : ""}<span style={{ fontSize:10, color: activeQualifierCount > 0 ? "rgba(26,9,0,0.5)" : "rgba(255,255,255,0.5)", display:"inline-block", transition:"transform 0.2s", transform: qualifiersOpen ? "rotate(180deg)" : "rotate(0deg)" }}>▾</span></button>
+              }}>
+                Qualifiers
+                {/* Fixed-width count slot so pill width stays stable as qualifiers activate/clear. */}
+                <span style={{ display:"inline-block", width:18, textAlign:"center", fontVariantNumeric:"tabular-nums" }}>{activeQualifierCount > 0 ? activeQualifierCount : ""}</span>
+                <span style={{ fontSize:10, color: activeQualifierCount > 0 ? "rgba(26,9,0,0.5)" : "rgba(255,255,255,0.5)", display:"inline-block", transition:"transform 0.2s", transform: qualifiersOpen ? "rotate(180deg)" : "rotate(0deg)" }}>▾</span>
+              </button>
               {qualifiersOpen && <QualifierPanel qualifiers={qualifiers} setQualifiers={setQualifiers} onClose={() => setQualifiersOpen(false)} />}
             </div>
             <button onClick={() => setHideOnShelf(h => !h)} style={{
