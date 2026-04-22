@@ -693,7 +693,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
                 ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:WOOD.textFaint, fontStyle:"italic" }}>Scoring…</p>
                 : scores ? (
                   <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-                    {[["Prose", scores.prose],["Plot", scores.plot],["Characters", scores.characters],["Pacing", scores.pacing],["World-building", scores.worldBuilding],["Dialogue", scores.dialogue],["Ending", scores.ending]].map(([label, val]) => val != null && (
+                    {scoreEntries(scores).map(([label, val]) => (
                       <div key={label} style={{ display:"flex", alignItems:"center", gap:10 }}>
                         <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:WOOD.textDim, width:96, flexShrink:0 }}>{label}</span>
                         <div style={{ flex:1, height:6, borderRadius:3, background:"rgba(138,90,40,0.15)", overflow:"hidden" }}>
@@ -898,7 +898,7 @@ function BookRowExpanded({ book, onEdit, onRemove, onAdd, onSaveProgress, onSave
             ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:13, color:WOOD.textFaint, fontStyle:"italic" }}>Scoring…</p>
             : scores ? (
               <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
-                {[["Prose", scores.prose],["Plot", scores.plot],["Characters", scores.characters],["Pacing", scores.pacing],["World-building", scores.worldBuilding],["Dialogue", scores.dialogue],["Ending", scores.ending]].map(([label, val]) => val != null && (
+                {scoreEntries(scores).map(([label, val]) => (
                   <div key={label} style={{ display:"flex", alignItems:"center", gap:8 }}>
                     <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, color:WOOD.textDim, width:88, flexShrink:0 }}>{label}</span>
                     <div style={{ flex:1, height:5, borderRadius:3, background:"rgba(138,90,40,0.15)", overflow:"hidden" }}>
@@ -2523,7 +2523,7 @@ function RecCard({ rec, coverUrl, ownedBook, onAddDirect, onEdit, onAddBook, ind
                 ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:13, color:WOOD.textFaint, fontStyle:"italic" }}>Scoring…</p>
                 : scores ? (
                   <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
-                    {[["Prose",scores.prose],["Plot",scores.plot],["Characters",scores.characters],["Pacing",scores.pacing],["World-building",scores.worldBuilding],["Dialogue",scores.dialogue],["Ending",scores.ending]].map(([label,val]) => val != null && (
+                    {scoreEntries(scores).map(([label,val]) => (
                       <div key={label} style={{ display:"flex", alignItems:"center", gap:8 }}>
                         <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, color:WOOD.textDim, width:88, flexShrink:0 }}>{label}</span>
                         <div style={{ flex:1, height:5, borderRadius:3, background:"rgba(138,90,40,0.15)", overflow:"hidden" }}>
@@ -3996,13 +3996,39 @@ const CLAUDE_AUTHORS = {
 const SCORE_CATEGORIES = [
   { key:"all",          label:"All" },
   { key:"prose",        label:"Prose" },
-  { key:"plot",         label:"Plot" },
   { key:"characters",   label:"Characters" },
+  { key:"plot",         label:"Plot" },
   { key:"pacing",       label:"Pacing" },
-  { key:"worldBuilding",label:"World" },
-  { key:"dialogue",     label:"Dialogue" },
+  { key:"ideas",        label:"Ideas" },
+  { key:"resonance",    label:"Resonance" },
   { key:"ending",       label:"Ending" },
+  { key:"worldBuilding",label:"World" },
 ];
+
+// Display labels and ordering for the new craft-axis schema. Universal axes
+// first (every book has these), then genre-pack axes (only present per genre).
+const SCORE_AXIS_LABELS = {
+  prose: "Prose", characters: "Characters", plot: "Plot", pacing: "Pacing",
+  ideas: "Ideas", resonance: "Resonance", ending: "Ending", voice: "Voice",
+  worldBuilding: "World-building", magicSystem: "Magic System",
+  speculativeRigor: "Speculative Rigor", dread: "Dread", atmosphere: "Atmosphere",
+  puzzle: "Puzzle", stakes: "Stakes", twists: "Twists",
+  chemistry: "Chemistry", tension: "Tension", heaPayoff: "HEA Payoff",
+  periodAuthenticity: "Period Authenticity", researchIntegration: "Research Integration",
+  argument: "Argument", researchRigor: "Research Rigor", access: "Access",
+};
+const SCORE_AXIS_ORDER = [
+  "prose","characters","plot","pacing","ideas","resonance","ending","voice",
+  "worldBuilding","magicSystem","speculativeRigor","dread","atmosphere",
+  "puzzle","stakes","twists","chemistry","tension","heaPayoff",
+  "periodAuthenticity","researchIntegration","argument","researchRigor","access",
+];
+function scoreEntries(scores) {
+  if (!scores) return [];
+  return SCORE_AXIS_ORDER
+    .filter(k => scores[k] != null && SCORE_AXIS_LABELS[k])
+    .map(k => [SCORE_AXIS_LABELS[k], scores[k]]);
+}
 
 function EntityDropdown({ value, onChange }) {
   const [open, setOpen] = useState(false);
@@ -5976,7 +6002,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
                     ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:CR.textFaint, fontStyle:"italic" }}>Scoring…</p>
                     : scores
                       ? <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-                          {[["Prose",scores.prose],["Plot",scores.plot],["Characters",scores.characters],["Pacing",scores.pacing],["World-building",scores.worldBuilding],["Dialogue",scores.dialogue],["Ending",scores.ending]].map(([label,val]) => val != null && (
+                          {scoreEntries(scores).map(([label,val]) => (
                             <div key={label} style={{ display:"flex", alignItems:"center", gap:10 }}>
                               <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:CR.textDim, width:96, flexShrink:0 }}>{label}</span>
                               <div style={{ flex:1, height:6, borderRadius:3, background:CR.border, overflow:"hidden" }}>
