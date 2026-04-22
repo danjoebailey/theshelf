@@ -2550,7 +2550,16 @@ const QUALIFIER_SECTIONS = [
 function QualifierPanel({ qualifiers, setQualifiers, onClose }) {
   const ref = useRef(null);
   useEffect(() => {
-    function handler(e) { if (ref.current && !ref.current.contains(e.target)) onClose(); }
+    function handler(e) {
+      if (!ref.current) return;
+      if (ref.current.contains(e.target)) return;
+      // Clicks landing on the pill that toggles this panel shouldn't close it
+      // here — let the pill's own onClick toggle run the close. Without this
+      // skip, closing the panel by tapping the pill would run both handlers
+      // (close from outside-click, then re-open from pill onClick).
+      if (e.target.closest('[data-qualifier-toggle="1"]')) return;
+      onClose();
+    }
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, [onClose]);
@@ -2564,7 +2573,10 @@ function QualifierPanel({ qualifiers, setQualifiers, onClose }) {
   function clearAll() { setQualifiers({}); }
 
   return (
-    <div ref={ref} style={{ position:"absolute", top:"100%", left:0, marginTop:4, background:"rgba(40,24,12,0.97)", border:"1px solid rgba(138,90,40,0.3)", borderRadius:10, padding:"10px 0 6px", zIndex:50, minWidth:320, maxWidth:360, maxHeight:520, overflowY:"auto", boxShadow:"0 8px 24px rgba(0,0,0,0.5)" }}>
+    // right:0 anchors the panel to the right edge of the pill so it extends
+    // leftward — avoids overflowing off the right edge of mobile screens.
+    // maxWidth caps at viewport width minus gutter so it can never run off.
+    <div ref={ref} style={{ position:"absolute", top:"100%", right:0, marginTop:4, background:"rgba(40,24,12,0.97)", border:"1px solid rgba(138,90,40,0.3)", borderRadius:10, padding:"10px 0 6px", zIndex:50, width:320, maxWidth:"calc(100vw - 32px)", maxHeight:"min(520px, calc(100vh - 160px))", overflowY:"auto", boxShadow:"0 8px 24px rgba(0,0,0,0.5)" }}>
       {QUALIFIER_SECTIONS.map(section => (
         <div key={section.label} style={{ padding:"4px 14px 8px" }}>
           <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:10, color:"rgba(255,235,195,0.5)", textTransform:"uppercase", letterSpacing:"0.1em", margin:"6px 0" }}>{section.label}</p>
@@ -2812,7 +2824,7 @@ function PaigeTab({ books, userId, onAddDirect, onEdit, onAddBook }) {
               </div>}
             </div>
             <div style={{ position:"relative" }}>
-              <button onClick={() => setQualifiersOpen(o => !o)} style={{
+              <button data-qualifier-toggle="1" onClick={() => setQualifiersOpen(o => !o)} style={{
                 padding:"5px 12px", borderRadius:20, fontSize:12, fontFamily:"'DM Sans',sans-serif", fontWeight:500,
                 cursor:"pointer", transition:"all 0.15s", display:"flex", alignItems:"center", gap:5,
                 background: activeQualifierCount > 0 ? WOOD.amber : "rgba(15,8,2,0.55)",
