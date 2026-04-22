@@ -2590,10 +2590,16 @@ function QualifierPanel({ qualifiers, setQualifiers, onClose }) {
                   {/* Track and fill align with the input range area (padded 8px each side) */}
                   <div style={{ position:"absolute", top:"50%", left:8, right:8, height:3, transform:"translateY(-50%)", background:"rgba(138,90,40,0.25)", borderRadius:2, pointerEvents:"none" }} />
                   <div style={{ position:"absolute", top:"50%", left:`calc(8px + (100% - 16px) * ${r.min/10})`, right:`calc(8px + (100% - 16px) * ${(10-r.max)/10})`, height:3, transform:"translateY(-50%)", background: active ? WOOD.amber : "rgba(138,90,40,0.55)", borderRadius:2, pointerEvents:"none" }} />
+                  {/* Dynamic z-index so the thumb with room to move stays grabbable.
+                      When both thumbs sit at the same value, prioritize whichever one
+                      can move in either direction (min if near the top, max if near
+                      the bottom). */}
                   <input type="range" min={0} max={10} step={1} value={r.min}
+                    style={{ zIndex: r.min >= r.max && r.min >= 5 ? 3 : 1 }}
                     onChange={e => { const v = Math.min(parseInt(e.target.value) || 0, r.max); setRange(axis.key, { min: v, max: r.max }); }}
                   />
                   <input type="range" min={0} max={10} step={1} value={r.max}
+                    style={{ zIndex: r.min >= r.max && r.min >= 5 ? 1 : 2 }}
                     onChange={e => { const v = Math.max(parseInt(e.target.value) || 10, r.min); setRange(axis.key, { min: r.min, max: v }); }}
                   />
                 </div>
