@@ -3,10 +3,18 @@
 // call. Same matcher as paige-client (parens stripped, diacritics collapsed,
 // subtitle splits, leading articles tolerated). Falls back to Claude only for
 // books we don't have tagged.
+//
+// Catalog files are bundled into the function via vercel.json's includeFiles.
+// Read once at cold start and held in module scope; subsequent invocations on
+// the same warm instance are pure lookups.
 import { readFileSync } from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
 
-let catalogPromise = null;
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+let tagByNorm = null;
 
 function normalize(s) {
   return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -61,36 +69,39 @@ function joinKeyVariants(title, author) {
   return keys;
 }
 
-function getBaseUrl() {
-  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
-  if (process.env.NEXT_PUBLIC_BASE_URL) return process.env.NEXT_PUBLIC_BASE_URL;
-  return "http://localhost:3000";
-}
-
-async function loadCatalog() {
-  if (!catalogPromise) {
-    catalogPromise = (async () => {
-      const base = getBaseUrl();
-      const [primary, rec, tags] = await Promise.all([
-        fetch(`${base}/book-data.json`).then(r => r.json()),
-        fetch(`${base}/rec-library.json`).then(r => r.json()),
-        fetch(`${base}/book-tags.json`).then(r => r.json()),
-      ]);
-      const tagByNorm = {};
-      for (const book of [...primary, ...rec]) {
-        const te = tags[String(book.id)];
-        if (!te?.scores) continue;
-        for (const key of joinKeyVariants(book.title, book.author)) {
-          if (!tagByNorm[key]) tagByNorm[key] = { scores: te.scores, vibes: te.vibes || null, genre: book.genre };
-        }
-      }
-      return tagByNorm;
-    })().catch(err => {
-      catalogPromise = null;  // allow retry on next request
-      throw err;
-    });
+function loadCatalog() {
+  if (tagByNorm) return tagByNorm;
+  // Resolve relative to this function's location. Vercel includes these files
+  // alongside the function bundle per vercel.json's includeFiles glob.
+  const candidates = [
+    path.join(__dirname, "..", "public"),
+    path.join(process.cwd(), "public"),
+  ];
+  let primary, rec, tags, loadedFrom;
+  for (const dir of candidates) {
+    try {
+      primary = JSON.parse(readFileSync(path.join(dir, "book-data.json"), "utf8"));
+      rec = JSON.parse(readFileSync(path.join(dir, "rec-library.json"), "utf8"));
+      tags = JSON.parse(readFileSync(path.join(dir, "book-tags.json"), "utf8"));
+      loadedFrom = dir;
+      break;
+    } catch {}
   }
-  return catalogPromise;
+  if (!primary) {
+    console.warn("[book-scores] catalog files not found in any candidate path");
+    return null;
+  }
+  const map = {};
+  for (const book of [...primary, ...rec]) {
+    const te = tags[String(book.id)];
+    if (!te?.scores) continue;
+    for (const key of joinKeyVariants(book.title, book.author)) {
+      if (!map[key]) map[key] = { scores: te.scores, vibes: te.vibes || null, genre: book.genre };
+    }
+  }
+  console.log(`[book-scores] catalog loaded from ${loadedFrom}: ${Object.keys(map).length} keys covering ${primary.length + rec.length} books`);
+  tagByNorm = map;
+  return tagByNorm;
 }
 
 // LLM fallback for books not in the catalog. Asks for the new-schema scores
@@ -147,18 +158,16 @@ export default async function handler(req, res) {
   if (!title || !author) return res.status(400).json({ error: "Missing title or author" });
 
   // Lookup-first
-  try {
-    const tagByNorm = await loadCatalog();
+  const catalog = loadCatalog();
+  if (catalog) {
     for (const key of joinKeyVariants(title, author)) {
-      if (tagByNorm[key]) {
+      if (catalog[key]) {
         // Flat score fields for backwards-compat with the old display shape.
         // Vibes travel in a separate _vibes field so the UI can render them
         // independently without breaking score rendering.
-        return res.json({ ...tagByNorm[key].scores, _vibes: tagByNorm[key].vibes, _source: "catalog" });
+        return res.json({ ...catalog[key].scores, _vibes: catalog[key].vibes, _source: "catalog" });
       }
     }
-  } catch (e) {
-    console.warn("[book-scores] catalog load failed, falling through to LLM:", e.message);
   }
 
   // LLM fallback — scores only; vibes not inferred on the fly to keep costs low.

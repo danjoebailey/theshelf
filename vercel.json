@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/book-scores.js": {
+      "includeFiles": "public/{book-data,rec-library,book-tags}.json"
+    }
+  }
+}
