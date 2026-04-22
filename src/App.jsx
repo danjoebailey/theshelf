@@ -2549,6 +2549,16 @@ const QUALIFIER_SECTIONS = [
 
 function QualifierPanel({ qualifiers, setQualifiers, onClose }) {
   const ref = useRef(null);
+  // Anchor the panel to viewport coordinates based on the pill's rect at open
+  // time. Prevents the panel from shifting when the pill's text changes
+  // ("Qualifiers" → "Qualifiers (1)") makes the pill wider.
+  const [pos, setPos] = useState(null);
+  useEffect(() => {
+    const pill = document.querySelector('[data-qualifier-toggle="1"]');
+    if (!pill) return;
+    const r = pill.getBoundingClientRect();
+    setPos({ top: r.bottom + 4, right: Math.max(12, window.innerWidth - r.right) });
+  }, []);
   useEffect(() => {
     function handler(e) {
       if (!ref.current) return;
@@ -2573,12 +2583,10 @@ function QualifierPanel({ qualifiers, setQualifiers, onClose }) {
   function clearAll() { setQualifiers({}); }
 
   return (
-    // right:0 anchors the panel to the right edge of the pill so it extends
-    // leftward — avoids overflowing off the right edge of mobile screens.
-    // maxWidth caps at viewport width minus gutter so it can never run off.
-    // overflowX:hidden + overscrollBehavior contain prevents browsers from
-    // scrolling the panel (or an ancestor) when a slider thumb hits an edge.
-    <div ref={ref} style={{ position:"absolute", top:"100%", right:0, marginTop:4, background:"rgba(40,24,12,0.97)", border:"1px solid rgba(138,90,40,0.3)", borderRadius:10, padding:"10px 0 6px", zIndex:50, width:320, maxWidth:"calc(100vw - 32px)", maxHeight:"min(520px, calc(100vh - 160px))", overflowY:"auto", overflowX:"hidden", overscrollBehavior:"contain", boxShadow:"0 8px 24px rgba(0,0,0,0.5)" }}>
+    // position:fixed + viewport-relative coordinates from pill.getBoundingClientRect.
+    // Survives the pill's width change when qualifiers become active ("Qualifiers"
+    // → "Qualifiers (1)") since we're no longer anchored to the pill itself.
+    <div ref={ref} style={{ position:"fixed", top: pos?.top ?? 0, right: pos?.right ?? 12, visibility: pos ? "visible" : "hidden", background:"rgba(40,24,12,0.97)", border:"1px solid rgba(138,90,40,0.3)", borderRadius:10, padding:"10px 0 6px", zIndex:50, width:320, maxWidth:"calc(100vw - 24px)", maxHeight:"min(520px, calc(100vh - 160px))", overflowY:"auto", overflowX:"hidden", overscrollBehavior:"contain", boxShadow:"0 8px 24px rgba(0,0,0,0.5)" }}>
       {QUALIFIER_SECTIONS.map(section => (
         <div key={section.label} style={{ padding:"4px 14px 8px" }}>
           <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:10, color:"rgba(255,235,195,0.5)", textTransform:"uppercase", letterSpacing:"0.1em", margin:"6px 0" }}>{section.label}</p>
