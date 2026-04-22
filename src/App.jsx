@@ -479,7 +479,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
   async function fetchScores() {
     if (showScores) { setShowScores(false); return; }
     setShowProse(false); setShowDescription(false);
-    if (scores) { setShowScores(true); return; }
+    if (scores && !isStaleScores(scores)) { setShowScores(true); return; }
     setScoresLoading(true); setShowScores(true);
     try {
       const res = await fetch("/api/book-scores", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ title:book.title, author:book.author, genre:book.genre }) });
@@ -811,7 +811,7 @@ function BookRowExpanded({ book, onEdit, onRemove, onAdd, onSaveProgress, onSave
   async function fetchScores() {
     if (showScores) { setShowScores(false); return; }
     setShowProse(false); setShowDescription(false);
-    if (scores) { setShowScores(true); return; }
+    if (scores && !isStaleScores(scores)) { setShowScores(true); return; }
     setScoresLoading(true); setShowScores(true);
     try {
       const res = await fetch("/api/book-scores", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ title:book.title, author:book.author, genre:book.genre }) });
@@ -2356,7 +2356,7 @@ function RecCard({ rec, coverUrl, ownedBook, onAddDirect, onEdit, onAddBook, ind
   async function fetchScores() {
     if (showScores) { setShowScores(false); return; }
     setShowDescription(false); setShowProse(false); setShowObi(false); setShowScores(true);
-    if (scores) { return; }
+    if (scores && !isStaleScores(scores)) { return; }
     setScoresLoading(true);
     try {
       const res = await fetch("/api/book-scores", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ title:rec.title, author:rec.author, genre:rec.genre }) });
@@ -3992,6 +3992,14 @@ function scoreEntries(scores) {
   return SCORE_AXIS_ORDER
     .filter(k => scores[k] != null && SCORE_AXIS_LABELS[k])
     .map(k => [SCORE_AXIS_LABELS[k], scores[k]]);
+}
+
+// Old-schema scores from the prior endpoint had `dialogue` and lacked
+// `ideas`/`resonance`/`_vibes`. Treat as stale and refetch so the new
+// endpoint can populate the full new schema + vibes.
+function isStaleScores(scores) {
+  if (!scores) return false;
+  return scores.dialogue != null || (scores._vibes == null && scores.ideas == null);
 }
 
 // Curated vibe display set: directional axes only (no quality overlap with
@@ -5819,7 +5827,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
   async function fetchScores() {
     if (detailPanel === "scores") { setDetailPanel(null); return; }
     setDetailPanel("scores");
-    if (scores) return;
+    if (scores && !isStaleScores(scores)) return;
     setScoresLoading(true);
     try {
       const res = await fetch("/api/book-scores", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ title:book.title, author:book.author, genre:book.genre }) });
