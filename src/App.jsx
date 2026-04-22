@@ -2584,21 +2584,20 @@ function QualifierPanel({ qualifiers, setQualifiers, onClose }) {
             const r = qualifiers[axis.key] || { min: 0, max: 10 };
             const active = r.min > 0 || r.max < 10;
             return (
-              <div key={axis.key} style={{ display:"flex", alignItems:"center", gap:6, padding:"4px 0", fontFamily:"'DM Sans',sans-serif", fontSize:11 }}>
-                <span style={{ width:90, color:"rgba(255,235,195,0.85)", fontSize:11, flexShrink:0 }}>{axis.label}</span>
-                <input type="number" min={0} max={r.max} step={1} value={r.min}
-                  onChange={e => { const v = Math.max(0, Math.min(r.max, parseInt(e.target.value) || 0)); setRange(axis.key, { min: v, max: r.max }); }}
-                  style={{ width:34, padding:"3px 4px", borderRadius:4, border:"1px solid rgba(138,90,40,0.3)", background:"rgba(15,8,2,0.4)", color:"#fff", fontSize:11, textAlign:"center", fontFamily:"inherit" }}
-                />
-                <span style={{ color:"rgba(255,235,195,0.4)", fontSize:10 }}>to</span>
-                <input type="number" min={r.min} max={10} step={1} value={r.max}
-                  onChange={e => { const v = Math.max(r.min, Math.min(10, parseInt(e.target.value) || 10)); setRange(axis.key, { min: r.min, max: v }); }}
-                  style={{ width:34, padding:"3px 4px", borderRadius:4, border:"1px solid rgba(138,90,40,0.3)", background:"rgba(15,8,2,0.4)", color:"#fff", fontSize:11, textAlign:"center", fontFamily:"inherit" }}
-                />
-                <div style={{ flex:1, height:4, background:"rgba(138,90,40,0.2)", borderRadius:2, position:"relative", minWidth:40 }}>
-                  <div style={{ position:"absolute", left:`${r.min*10}%`, right:`${(10-r.max)*10}%`, top:0, bottom:0, borderRadius:2, background: active ? WOOD.amber : "rgba(138,90,40,0.5)" }} />
+              <div key={axis.key} style={{ display:"flex", alignItems:"center", gap:8, padding:"6px 0", fontFamily:"'DM Sans',sans-serif", fontSize:11 }}>
+                <span style={{ width:86, color:"rgba(255,235,195,0.85)", fontSize:11, flexShrink:0 }}>{axis.label}</span>
+                <div className="q-range">
+                  <div style={{ position:"absolute", top:"50%", left:0, right:0, height:3, transform:"translateY(-50%)", background:"rgba(138,90,40,0.25)", borderRadius:2, pointerEvents:"none" }} />
+                  <div style={{ position:"absolute", top:"50%", left:`${r.min*10}%`, right:`${(10-r.max)*10}%`, height:3, transform:"translateY(-50%)", background: active ? WOOD.amber : "rgba(138,90,40,0.55)", borderRadius:2, pointerEvents:"none" }} />
+                  <input type="range" min={0} max={10} step={1} value={r.min}
+                    onChange={e => { const v = Math.min(parseInt(e.target.value) || 0, r.max); setRange(axis.key, { min: v, max: r.max }); }}
+                  />
+                  <input type="range" min={0} max={10} step={1} value={r.max}
+                    onChange={e => { const v = Math.max(parseInt(e.target.value) || 10, r.min); setRange(axis.key, { min: r.min, max: v }); }}
+                  />
                 </div>
-                <button onClick={() => setRange(axis.key, null)} disabled={!active} style={{ background:"none", border:"none", cursor: active ? "pointer" : "default", color: active ? "rgba(255,235,195,0.5)" : "rgba(255,235,195,0.15)", fontSize:12, padding:"2px 4px", lineHeight:1 }} title="Clear">×</button>
+                <span style={{ width:34, textAlign:"right", color: active ? WOOD.amber : "rgba(255,235,195,0.4)", fontSize:10, fontWeight: active ? 600 : 400, flexShrink:0, fontVariantNumeric:"tabular-nums" }}>{r.min}–{r.max}</span>
+                <button onClick={() => setRange(axis.key, null)} disabled={!active} style={{ background:"none", border:"none", cursor: active ? "pointer" : "default", color: active ? "rgba(255,235,195,0.5)" : "rgba(255,235,195,0.15)", fontSize:13, padding:"2px 4px", lineHeight:1, flexShrink:0 }} title="Clear">×</button>
               </div>
             );
           })}
@@ -7467,6 +7466,29 @@ export default function App() {
         input[type=number] { -moz-appearance:textfield; }
         input[type=number]::-webkit-inner-spin-button { display:none; }
         option { background:#3a2010; color:#f5e6d0; }
+
+        /* Dual-handle range slider used in the Paige qualifier panel.
+           Two overlaid range inputs share a visible track + fill div; only the
+           thumbs receive pointer events so users can grab either handle. */
+        .q-range { position:relative; height:20px; flex:1; min-width:80px; }
+        .q-range input[type="range"] {
+          position:absolute; top:0; left:0; width:100%; height:20px;
+          margin:0; background:transparent; -webkit-appearance:none; appearance:none;
+          pointer-events:none;
+        }
+        .q-range input[type="range"]::-webkit-slider-runnable-track { background:transparent; height:20px; }
+        .q-range input[type="range"]::-moz-range-track { background:transparent; height:20px; }
+        .q-range input[type="range"]::-webkit-slider-thumb {
+          -webkit-appearance:none; width:14px; height:14px; border-radius:50%;
+          background:#fff; border:2px solid rgba(160,100,40,0.8); cursor:pointer;
+          pointer-events:auto; margin-top:-7px; position:relative; z-index:2;
+          box-shadow:0 1px 3px rgba(0,0,0,0.4);
+        }
+        .q-range input[type="range"]::-moz-range-thumb {
+          width:14px; height:14px; border-radius:50%;
+          background:#fff; border:2px solid rgba(160,100,40,0.8); cursor:pointer;
+          pointer-events:auto;
+        }
       `}</style>
         {/* wood background */}
         <WoodBg />
