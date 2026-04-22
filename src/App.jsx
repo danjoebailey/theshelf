@@ -2576,7 +2576,9 @@ function QualifierPanel({ qualifiers, setQualifiers, onClose }) {
     // right:0 anchors the panel to the right edge of the pill so it extends
     // leftward — avoids overflowing off the right edge of mobile screens.
     // maxWidth caps at viewport width minus gutter so it can never run off.
-    <div ref={ref} style={{ position:"absolute", top:"100%", right:0, marginTop:4, background:"rgba(40,24,12,0.97)", border:"1px solid rgba(138,90,40,0.3)", borderRadius:10, padding:"10px 0 6px", zIndex:50, width:320, maxWidth:"calc(100vw - 32px)", maxHeight:"min(520px, calc(100vh - 160px))", overflowY:"auto", boxShadow:"0 8px 24px rgba(0,0,0,0.5)" }}>
+    // overflowX:hidden + overscrollBehavior contain prevents browsers from
+    // scrolling the panel (or an ancestor) when a slider thumb hits an edge.
+    <div ref={ref} style={{ position:"absolute", top:"100%", right:0, marginTop:4, background:"rgba(40,24,12,0.97)", border:"1px solid rgba(138,90,40,0.3)", borderRadius:10, padding:"10px 0 6px", zIndex:50, width:320, maxWidth:"calc(100vw - 32px)", maxHeight:"min(520px, calc(100vh - 160px))", overflowY:"auto", overflowX:"hidden", overscrollBehavior:"contain", boxShadow:"0 8px 24px rgba(0,0,0,0.5)" }}>
       {QUALIFIER_SECTIONS.map(section => (
         <div key={section.label} style={{ padding:"4px 14px 8px" }}>
           <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:10, color:"rgba(255,235,195,0.5)", textTransform:"uppercase", letterSpacing:"0.1em", margin:"6px 0" }}>{section.label}</p>
@@ -2587,8 +2589,9 @@ function QualifierPanel({ qualifiers, setQualifiers, onClose }) {
               <div key={axis.key} style={{ display:"flex", alignItems:"center", gap:8, padding:"6px 0", fontFamily:"'DM Sans',sans-serif", fontSize:11 }}>
                 <span style={{ width:86, color:"rgba(255,235,195,0.85)", fontSize:11, flexShrink:0 }}>{axis.label}</span>
                 <div className="q-range">
-                  <div style={{ position:"absolute", top:"50%", left:0, right:0, height:3, transform:"translateY(-50%)", background:"rgba(138,90,40,0.25)", borderRadius:2, pointerEvents:"none" }} />
-                  <div style={{ position:"absolute", top:"50%", left:`${r.min*10}%`, right:`${(10-r.max)*10}%`, height:3, transform:"translateY(-50%)", background: active ? WOOD.amber : "rgba(138,90,40,0.55)", borderRadius:2, pointerEvents:"none" }} />
+                  {/* Track and fill align with the input range area (padded 8px each side) */}
+                  <div style={{ position:"absolute", top:"50%", left:8, right:8, height:3, transform:"translateY(-50%)", background:"rgba(138,90,40,0.25)", borderRadius:2, pointerEvents:"none" }} />
+                  <div style={{ position:"absolute", top:"50%", left:`calc(8px + (100% - 16px) * ${r.min/10})`, right:`calc(8px + (100% - 16px) * ${(10-r.max)/10})`, height:3, transform:"translateY(-50%)", background: active ? WOOD.amber : "rgba(138,90,40,0.55)", borderRadius:2, pointerEvents:"none" }} />
                   <input type="range" min={0} max={10} step={1} value={r.min}
                     onChange={e => { const v = Math.min(parseInt(e.target.value) || 0, r.max); setRange(axis.key, { min: v, max: r.max }); }}
                   />
@@ -7471,10 +7474,12 @@ export default function App() {
            Two overlaid range inputs share a visible track + fill div; only the
            thumbs receive pointer events so users can grab either handle.
            touch-action:none prevents the browser from hijacking drag gestures
-           to scroll the page — otherwise the panel appears to jump on mobile. */
-        .q-range { position:relative; height:20px; flex:1; min-width:80px; touch-action:none; }
+           to scroll the page. 8px padding keeps thumbs at value 0 / 10 from
+           hugging the edge of the container (avoids the browser trying to
+           scroll a half-off-screen thumb into view on first tap). */
+        .q-range { position:relative; height:20px; flex:1; min-width:80px; touch-action:none; padding:0 8px; }
         .q-range input[type="range"] {
-          position:absolute; top:0; left:0; width:100%; height:20px;
+          position:absolute; top:0; left:8px; right:8px; width:calc(100% - 16px); height:20px;
           margin:0; background:transparent; -webkit-appearance:none; appearance:none;
           pointer-events:none; touch-action:none;
         }
