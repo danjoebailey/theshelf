@@ -630,10 +630,14 @@ function scoreCraft(candidate, tagEntry, craftProfile) {
 
   if (totalWeight === 0) return 1;
   // Normalize so craftMatch sits around 1.0 regardless of how many axes contribute.
-  // No floor clamp — let the multiplicative composite actually veto. Asymmetric
-  // craftPenalty caps at -0.4 per axis, so a uniformly-weighted pool of
-  // catastrophic axes produces craftMatch = 0.6, which is the natural floor.
-  return 1 + weightedSum / totalWeight;
+  // Cap at 1.0: "meeting expectations" is the ceiling — a candidate exceeding
+  // your bucket means on every axis shouldn't multiply vibeMatch back up past
+  // 1.0 just because all its craft scores happened to beat your polluted-bucket
+  // averages. The spec's "small bonus for exceeding" compounded across 9 axes
+  // into scores capped at 100% for clearly-mismatched books (HP, Golden Compass).
+  // No floor clamp — asymmetric craftPenalty caps at -0.4/axis so catastrophic
+  // craft still lands around 0.6, which is the natural floor.
+  return Math.min(1, 1 + weightedSum / totalWeight);
 }
 
 function craftHardFilter(candidate, tagEntry, craftProfile) {
