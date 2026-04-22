@@ -2517,6 +2517,89 @@ function RecCard({ rec, coverUrl, ownedBook, onAddDirect, onEdit, onAddBook, ind
   );
 }
 
+// Axes exposed to the per-query qualifier filter. Tone & feel maps to vibes,
+// Craft maps to score axes. Low/high hints help users read the slider.
+const QUALIFIER_SECTIONS = [
+  {
+    label: "Tone & feel",
+    axes: [
+      { key: "prose_style",  label: "Prose style",  low: "sparse",   high: "ornate" },
+      { key: "voice",        label: "Voice",        low: "generic",  high: "distinctive" },
+      { key: "intensity",    label: "Intensity",    low: "gentle",   high: "visceral" },
+      { key: "warmth",       label: "Warmth",       low: "cold",     high: "warm" },
+      { key: "tone",         label: "Tone",         low: "serious",  high: "playful" },
+      { key: "difficulty",   label: "Difficulty",   low: "easy",     high: "demanding" },
+    ],
+  },
+  {
+    label: "Craft",
+    axes: [
+      { key: "prose",         label: "Prose" },
+      { key: "characters",    label: "Characters" },
+      { key: "plot",          label: "Plot" },
+      { key: "pacing",        label: "Pacing" },
+      { key: "ideas",         label: "Ideas" },
+      { key: "resonance",     label: "Resonance" },
+      { key: "ending",        label: "Ending" },
+      { key: "worldBuilding", label: "World-building" },
+      { key: "magicSystem",   label: "Magic System" },
+    ],
+  },
+];
+
+function QualifierPanel({ qualifiers, setQualifiers, onClose }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    function handler(e) { if (ref.current && !ref.current.contains(e.target)) onClose(); }
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [onClose]);
+
+  function setRange(key, next) {
+    const clean = { ...qualifiers };
+    if (!next || (next.min <= 0 && next.max >= 10)) delete clean[key];
+    else clean[key] = next;
+    setQualifiers(clean);
+  }
+  function clearAll() { setQualifiers({}); }
+
+  return (
+    <div ref={ref} style={{ position:"absolute", top:"100%", left:0, marginTop:4, background:"rgba(40,24,12,0.97)", border:"1px solid rgba(138,90,40,0.3)", borderRadius:10, padding:"10px 0 6px", zIndex:50, minWidth:320, maxWidth:360, maxHeight:520, overflowY:"auto", boxShadow:"0 8px 24px rgba(0,0,0,0.5)" }}>
+      {QUALIFIER_SECTIONS.map(section => (
+        <div key={section.label} style={{ padding:"4px 14px 8px" }}>
+          <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:10, color:"rgba(255,235,195,0.5)", textTransform:"uppercase", letterSpacing:"0.1em", margin:"6px 0" }}>{section.label}</p>
+          {section.axes.map(axis => {
+            const r = qualifiers[axis.key] || { min: 0, max: 10 };
+            const active = r.min > 0 || r.max < 10;
+            return (
+              <div key={axis.key} style={{ display:"flex", alignItems:"center", gap:6, padding:"4px 0", fontFamily:"'DM Sans',sans-serif", fontSize:11 }}>
+                <span style={{ width:90, color:"rgba(255,235,195,0.85)", fontSize:11, flexShrink:0 }}>{axis.label}</span>
+                <input type="number" min={0} max={r.max} step={1} value={r.min}
+                  onChange={e => { const v = Math.max(0, Math.min(r.max, parseInt(e.target.value) || 0)); setRange(axis.key, { min: v, max: r.max }); }}
+                  style={{ width:34, padding:"3px 4px", borderRadius:4, border:"1px solid rgba(138,90,40,0.3)", background:"rgba(15,8,2,0.4)", color:"#fff", fontSize:11, textAlign:"center", fontFamily:"inherit" }}
+                />
+                <span style={{ color:"rgba(255,235,195,0.4)", fontSize:10 }}>to</span>
+                <input type="number" min={r.min} max={10} step={1} value={r.max}
+                  onChange={e => { const v = Math.max(r.min, Math.min(10, parseInt(e.target.value) || 10)); setRange(axis.key, { min: r.min, max: v }); }}
+                  style={{ width:34, padding:"3px 4px", borderRadius:4, border:"1px solid rgba(138,90,40,0.3)", background:"rgba(15,8,2,0.4)", color:"#fff", fontSize:11, textAlign:"center", fontFamily:"inherit" }}
+                />
+                <div style={{ flex:1, height:4, background:"rgba(138,90,40,0.2)", borderRadius:2, position:"relative", minWidth:40 }}>
+                  <div style={{ position:"absolute", left:`${r.min*10}%`, right:`${(10-r.max)*10}%`, top:0, bottom:0, borderRadius:2, background: active ? WOOD.amber : "rgba(138,90,40,0.5)" }} />
+                </div>
+                <button onClick={() => setRange(axis.key, null)} disabled={!active} style={{ background:"none", border:"none", cursor: active ? "pointer" : "default", color: active ? "rgba(255,235,195,0.5)" : "rgba(255,235,195,0.15)", fontSize:12, padding:"2px 4px", lineHeight:1 }} title="Clear">×</button>
+              </div>
+            );
+          })}
+        </div>
+      ))}
+      <div style={{ display:"flex", justifyContent:"space-between", gap:8, padding:"6px 14px 8px", borderTop:"1px solid rgba(138,90,40,0.2)", marginTop:4 }}>
+        <button onClick={clearAll} style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, background:"none", border:"none", color:"rgba(255,235,195,0.6)", cursor:"pointer", padding:"4px 0" }}>Clear all</button>
+        <button onClick={onClose} style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, background:WOOD.amber, color:"#1a0900", border:"none", borderRadius:6, padding:"5px 14px", cursor:"pointer", fontWeight:600 }}>Done</button>
+      </div>
+    </div>
+  );
+}
+
 const PAIGE_MODES = [
   { key:"all",          label:"All",           desc:"Pure match — no lens" },
   { key:"popular",      label:"Acclaimed",     desc:"Award winners, cultural touchstones, canonical works" },
@@ -2540,6 +2623,11 @@ function PaigeTab({ books, userId, onAddDirect, onEdit, onAddBook }) {
   const [hideOnShelf, setHideOnShelf] = useState(false);
   const [authorLimit, setAuthorLimit] = useState(2);
   const [authorLimitOpen, setAuthorLimitOpen] = useState(false);
+  // Per-query qualifiers: { axis: { min, max } } where 0..10. Only non-default
+  // ranges are passed to the scorer so the filter skips axes with no constraint.
+  const [qualifiers, setQualifiers] = useState({});
+  const [qualifiersOpen, setQualifiersOpen] = useState(false);
+  const activeQualifierCount = Object.values(qualifiers).filter(r => r && (r.min > 0 || r.max < 10)).length;
 
   const readBooks = books.filter(b => (b.shelf || "Read") === "Read");
   const profile = readBooks.map(b => ({ title: b.title, author: b.author, genre: b.genre, rating: b.rating || 0 }));
@@ -2605,7 +2693,7 @@ function PaigeTab({ books, userId, onAddDirect, onEdit, onAddBook }) {
     setReserve(prev => ({ ...prev, [mode]: [] }));
     setCovers(prev => ({ ...prev, [mode]: {} }));
     try {
-      const data = await generatePaigeRecs(books, mode, [], filterGenre || null, authorLimit);
+      const data = await generatePaigeRecs(books, mode, [], filterGenre || null, authorLimit, qualifiers);
       const readKeys = new Set(readBooks.map(b => normBookKey(b.title)));
       const results = (data.recommendations || []).filter(r => !readKeys.has(normBookKey(r.title)));
       const res2 = (data.reserve || []).filter(r => !readKeys.has(normBookKey(r.title)));
@@ -2640,7 +2728,7 @@ function PaigeTab({ books, userId, onAddDirect, onEdit, onAddBook }) {
     // Reserve exhausted — generate fresh
     const exclude = existing.map(r => r.title);
     try {
-      const data = await generatePaigeRecs(books, mode, exclude, filterGenre || null);
+      const data = await generatePaigeRecs(books, mode, exclude, filterGenre || null, authorLimit, qualifiers);
       const readKeys = new Set(readBooks.map(b => normBookKey(b.title)));
       const seenKeys = new Set(exclude.map(normBookKey));
       const newResults = (data.recommendations || []).filter(r => !readKeys.has(normBookKey(r.title)) && !seenKeys.has(normBookKey(r.title)));
@@ -2722,6 +2810,17 @@ function PaigeTab({ books, userId, onAddDirect, onEdit, onAddBook }) {
                   <button key={n} onClick={() => { setAuthorLimit(n); setAuthorLimitOpen(false); }} style={{ display:"block", width:"100%", padding:"8px 16px", background: authorLimit === n ? "rgba(138,90,40,0.1)" : "transparent", border:"none", textAlign:"left", fontSize:12, fontFamily:"'DM Sans',sans-serif", fontWeight: authorLimit === n ? 600 : 400, color: authorLimit === n ? WOOD.amber : "rgba(255,235,195,0.7)", cursor:"pointer" }}>{n === 0 ? "No limit" : `${n} book${n > 1 ? "s" : ""}`}</button>
                 ))}
               </div>}
+            </div>
+            <div style={{ position:"relative" }}>
+              <button onClick={() => setQualifiersOpen(o => !o)} style={{
+                padding:"5px 12px", borderRadius:20, fontSize:12, fontFamily:"'DM Sans',sans-serif", fontWeight:500,
+                cursor:"pointer", transition:"all 0.15s", display:"flex", alignItems:"center", gap:5,
+                background: activeQualifierCount > 0 ? WOOD.amber : "rgba(15,8,2,0.55)",
+                color: activeQualifierCount > 0 ? "#1a0900" : "#fff",
+                border: "1px solid rgba(120,70,20,0.3)",
+                backdropFilter: "blur(4px)",
+              }}>Qualifiers{activeQualifierCount > 0 ? ` (${activeQualifierCount})` : ""}<span style={{ fontSize:10, color: activeQualifierCount > 0 ? "rgba(26,9,0,0.5)" : "rgba(255,255,255,0.5)", display:"inline-block", transition:"transform 0.2s", transform: qualifiersOpen ? "rotate(180deg)" : "rotate(0deg)" }}>▾</span></button>
+              {qualifiersOpen && <QualifierPanel qualifiers={qualifiers} setQualifiers={setQualifiers} onClose={() => setQualifiersOpen(false)} />}
             </div>
             <button onClick={() => setHideOnShelf(h => !h)} style={{
               padding:"6px 14px", borderRadius:20, fontSize:12, fontFamily:"'DM Sans',sans-serif", fontWeight:600,

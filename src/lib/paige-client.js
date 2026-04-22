@@ -212,7 +212,29 @@ function generateReason(mode, book, tagEntry, score, userProfile) {
   }
 }
 
-export async function generatePaigeRecs(userBooks, mode, exclude = [], genre = null, authorLimit = 2) {
+// Qualifier shape: { axisName: { min, max }, ... }. Missing axes or {min:0,
+// max:10} = no filter. Used to hard-filter the candidate pool to books whose
+// vibes/scores land inside the user's stated ranges before ranking. Pure
+// filter layer — does not mutate the profile or change relative scoring.
+function passesQualifiers(tagEntry, qualifiers) {
+  if (!qualifiers) return true;
+  for (const [axis, range] of Object.entries(qualifiers)) {
+    if (!range) continue;
+    const { min = 0, max = 10 } = range;
+    if (min <= 0 && max >= 10) continue;  // default range, no filter
+    // Check vibes first (for prose_style/warmth/intensity/etc.), then scores
+    // (for prose/worldBuilding/etc.). Voice lives under scores even though
+    // it's a vibe — the getter prefers vibes then falls back to scores.
+    const v = tagEntry?.vibes?.[axis];
+    const s = tagEntry?.scores?.[axis];
+    const val = v != null ? v : s;
+    if (val == null) continue;  // axis not scored for this book → don't filter it out
+    if (val < min || val > max) return false;
+  }
+  return true;
+}
+
+export async function generatePaigeRecs(userBooks, mode, exclude = [], genre = null, authorLimit = 2, qualifiers = null) {
   await ensureLoaded();
 
   // Build profile from Read + DNF shelves. DNFs contribute soft-negative vibe
@@ -325,6 +347,9 @@ export async function generatePaigeRecs(userBooks, mode, exclude = [], genre = n
     // Require craft scores — excludes children's/MG/travel-writing backlog
     // that was deliberately left unscored. Adult reader recs shouldn't surface those.
     if (!te?.scores) return false;
+    // Per-query qualifier filter: user-set vibe/craft ranges exclude books
+    // outside the range before scoring runs. Pure filter, doesn't touch math.
+    if (!passesQualifiers(te, qualifiers)) return false;
     // Craft hard filter: z < -2 on a high-weight axis for this bucket → candidate
     // fails the reader's standards badly enough to exclude, not merely penalize.
     if (craftHardFilter(book, te, profile.craftProfile)) return false;
