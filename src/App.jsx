@@ -7469,12 +7469,14 @@ export default function App() {
 
         /* Dual-handle range slider used in the Paige qualifier panel.
            Two overlaid range inputs share a visible track + fill div; only the
-           thumbs receive pointer events so users can grab either handle. */
-        .q-range { position:relative; height:20px; flex:1; min-width:80px; }
+           thumbs receive pointer events so users can grab either handle.
+           touch-action:none prevents the browser from hijacking drag gestures
+           to scroll the page — otherwise the panel appears to jump on mobile. */
+        .q-range { position:relative; height:20px; flex:1; min-width:80px; touch-action:none; }
         .q-range input[type="range"] {
           position:absolute; top:0; left:0; width:100%; height:20px;
           margin:0; background:transparent; -webkit-appearance:none; appearance:none;
-          pointer-events:none;
+          pointer-events:none; touch-action:none;
         }
         .q-range input[type="range"]::-webkit-slider-runnable-track { background:transparent; height:20px; }
         .q-range input[type="range"]::-moz-range-track { background:transparent; height:20px; }
@@ -7482,12 +7484,12 @@ export default function App() {
           -webkit-appearance:none; width:14px; height:14px; border-radius:50%;
           background:#fff; border:2px solid rgba(160,100,40,0.8); cursor:pointer;
           pointer-events:auto; margin-top:-7px; position:relative; z-index:2;
-          box-shadow:0 1px 3px rgba(0,0,0,0.4);
+          box-shadow:0 1px 3px rgba(0,0,0,0.4); touch-action:none;
         }
         .q-range input[type="range"]::-moz-range-thumb {
           width:14px; height:14px; border-radius:50%;
           background:#fff; border:2px solid rgba(160,100,40,0.8); cursor:pointer;
-          pointer-events:auto;
+          pointer-events:auto; touch-action:none;
         }
       `}</style>
         {/* wood background */}
