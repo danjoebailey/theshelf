@@ -81,7 +81,7 @@ async function loadCatalog() {
         const te = tags[String(book.id)];
         if (!te?.scores) continue;
         for (const key of joinKeyVariants(book.title, book.author)) {
-          if (!tagByNorm[key]) tagByNorm[key] = { scores: te.scores, genre: book.genre };
+          if (!tagByNorm[key]) tagByNorm[key] = { scores: te.scores, vibes: te.vibes || null, genre: book.genre };
         }
       }
       return tagByNorm;
@@ -151,19 +151,22 @@ export default async function handler(req, res) {
     const tagByNorm = await loadCatalog();
     for (const key of joinKeyVariants(title, author)) {
       if (tagByNorm[key]) {
-        return res.json({ ...tagByNorm[key].scores, _source: "catalog" });
+        // Flat score fields for backwards-compat with the old display shape.
+        // Vibes travel in a separate _vibes field so the UI can render them
+        // independently without breaking score rendering.
+        return res.json({ ...tagByNorm[key].scores, _vibes: tagByNorm[key].vibes, _source: "catalog" });
       }
     }
   } catch (e) {
     console.warn("[book-scores] catalog load failed, falling through to LLM:", e.message);
   }
 
-  // LLM fallback
+  // LLM fallback — scores only; vibes not inferred on the fly to keep costs low.
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return res.status(500).json({ error: "API key not configured and book not in catalog" });
   try {
     const scores = await llmScore(apiKey, title, author, genre);
-    return res.json({ ...scores, _source: "llm" });
+    return res.json({ ...scores, _vibes: null, _source: "llm" });
   } catch (e) {
     return res.status(500).json({ error: e.message });
   }

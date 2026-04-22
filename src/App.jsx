@@ -691,19 +691,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
             <div style={{ marginBottom: 4, animation:"fadeIn 0.18s ease" }}>
               {scoresLoading
                 ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:WOOD.textFaint, fontStyle:"italic" }}>Scoring…</p>
-                : scores ? (
-                  <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
-                    {scoreEntries(scores).map(([label, val]) => (
-                      <div key={label} style={{ display:"flex", alignItems:"center", gap:10 }}>
-                        <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:WOOD.textDim, width:96, flexShrink:0 }}>{label}</span>
-                        <div style={{ flex:1, height:6, borderRadius:3, background:"rgba(138,90,40,0.15)", overflow:"hidden" }}>
-                          <div style={{ height:"100%", borderRadius:3, background:WOOD.amber, width:`${val*10}%`, transition:"width 0.4s ease" }} />
-                        </div>
-                        <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:700, color:WOOD.amber, width:20, textAlign:"right", flexShrink:0 }}>{val}</span>
-                      </div>
-                    ))}
-                  </div>
-                ) : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:WOOD.textFaint, fontStyle:"italic" }}>Unable to score.</p>
+                : <ScoresAndVibesPanel scores={scores} />
               }
             </div>
           )}
@@ -896,19 +884,7 @@ function BookRowExpanded({ book, onEdit, onRemove, onAdd, onSaveProgress, onSave
         <div style={{ marginBottom:4, animation:"fadeIn 0.18s ease" }}>
           {scoresLoading
             ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:13, color:WOOD.textFaint, fontStyle:"italic" }}>Scoring…</p>
-            : scores ? (
-              <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
-                {scoreEntries(scores).map(([label, val]) => (
-                  <div key={label} style={{ display:"flex", alignItems:"center", gap:8 }}>
-                    <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, color:WOOD.textDim, width:88, flexShrink:0 }}>{label}</span>
-                    <div style={{ flex:1, height:5, borderRadius:3, background:"rgba(138,90,40,0.15)", overflow:"hidden" }}>
-                      <div style={{ height:"100%", borderRadius:3, background:WOOD.amber, width:`${val*10}%`, transition:"width 0.4s ease" }} />
-                    </div>
-                    <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:700, color:WOOD.amber, width:18, textAlign:"right", flexShrink:0 }}>{val}</span>
-                  </div>
-                ))}
-              </div>
-            ) : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:13, color:WOOD.textFaint, fontStyle:"italic" }}>Unable to score.</p>
+            : <ScoresAndVibesPanel scores={scores} />
           }
         </div>
       )}
@@ -2521,19 +2497,7 @@ function RecCard({ rec, coverUrl, ownedBook, onAddDirect, onEdit, onAddBook, ind
               </div>
               {scoresLoading
                 ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:13, color:WOOD.textFaint, fontStyle:"italic" }}>Scoring…</p>
-                : scores ? (
-                  <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
-                    {scoreEntries(scores).map(([label,val]) => (
-                      <div key={label} style={{ display:"flex", alignItems:"center", gap:8 }}>
-                        <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, color:WOOD.textDim, width:88, flexShrink:0 }}>{label}</span>
-                        <div style={{ flex:1, height:5, borderRadius:3, background:"rgba(138,90,40,0.15)", overflow:"hidden" }}>
-                          <div style={{ height:"100%", borderRadius:3, background:WOOD.amber, width:`${val*10}%`, transition:"width 0.4s ease" }} />
-                        </div>
-                        <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:700, color:WOOD.amber, width:18, textAlign:"right", flexShrink:0 }}>{val}</span>
-                      </div>
-                    ))}
-                  </div>
-                ) : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:13, color:WOOD.textFaint, fontStyle:"italic" }}>Unable to score.</p>}
+                : <ScoresAndVibesPanel scores={scores} />}
             </div>
           )}
           {showObi && (
@@ -4028,6 +3992,76 @@ function scoreEntries(scores) {
   return SCORE_AXIS_ORDER
     .filter(k => scores[k] != null && SCORE_AXIS_LABELS[k])
     .map(k => [SCORE_AXIS_LABELS[k], scores[k]]);
+}
+
+// Curated vibe display set: directional axes only (no quality overlap with
+// craft scores). Order: prose qualities first, then sensory/feel, then taste.
+// Each entry is [key, label, lowEnd, highEnd].
+const VIBE_DISPLAY = [
+  ["prose_style",  "Prose style", "sparse",   "ornate"],
+  ["voice",        "Voice",       "generic",  "distinctive"],
+  ["intensity",    "Intensity",   "gentle",   "visceral"],
+  ["warmth",       "Warmth",      "cold",     "warm"],
+  ["tone",         "Tone",        "serious",  "playful"],
+  ["difficulty",   "Difficulty",  "easy",     "demanding"],
+];
+function vibeEntries(scoresPayload) {
+  // Vibes ride on _vibes per the book-scores response shape; voice falls back
+  // to scoresPayload.voice when present (legacy storage in scores object).
+  const v = scoresPayload?._vibes || {};
+  return VIBE_DISPLAY
+    .map(([key, label, low, high]) => {
+      const val = v[key] ?? (key === "voice" ? scoresPayload?.voice : null);
+      return val != null ? { label, val, low, high } : null;
+    })
+    .filter(Boolean);
+}
+
+// Renders the scores bars + tone/feel directional indicators in a single
+// panel. theme prop selects color palette (WOOD for dark contexts, CR for
+// light); defaults to WOOD.
+function ScoresAndVibesPanel({ scores, theme }) {
+  const t = theme || WOOD;
+  const trackBg = theme === CR ? CR.border : "rgba(138,90,40,0.15)";
+  const scoreRows = scoreEntries(scores);
+  const vibeRows = vibeEntries(scores);
+  if (!scoreRows.length && !vibeRows.length) {
+    return <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:t.textFaint, fontStyle:"italic" }}>Unable to score.</p>;
+  }
+  return (
+    <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+      {scoreRows.length > 0 && (
+        <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
+          {scoreRows.map(([label, val]) => (
+            <div key={label} style={{ display:"flex", alignItems:"center", gap:10 }}>
+              <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:t.textDim, width:96, flexShrink:0 }}>{label}</span>
+              <div style={{ flex:1, height:6, borderRadius:3, background:trackBg, overflow:"hidden" }}>
+                <div style={{ height:"100%", borderRadius:3, background:t.amber, width:`${val*10}%`, transition:"width 0.4s ease" }} />
+              </div>
+              <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:700, color:t.amber, width:20, textAlign:"right", flexShrink:0 }}>{val}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      {vibeRows.length > 0 && (
+        <div>
+          <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:10, color:t.textFaint, textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:6, marginTop:scoreRows.length ? 4 : 0 }}>Tone & feel</p>
+          <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+            {vibeRows.map(({ label, val, low, high }) => (
+              <div key={label} style={{ display:"flex", alignItems:"center", gap:8, fontSize:11, fontFamily:"'DM Sans',sans-serif" }}>
+                <span style={{ width:80, color:t.textDim, flexShrink:0 }}>{label}</span>
+                <span style={{ width:54, textAlign:"right", color:t.textFaint, fontSize:10, flexShrink:0 }}>{low}</span>
+                <div style={{ flex:1, height:4, background:trackBg, borderRadius:2, position:"relative" }}>
+                  <div style={{ position:"absolute", left:`${val*10}%`, top:"50%", transform:"translate(-50%,-50%)", width:8, height:8, borderRadius:"50%", background:t.amber, transition:"left 0.4s ease" }} />
+                </div>
+                <span style={{ width:54, color:t.textFaint, fontSize:10, flexShrink:0 }}>{high}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 function EntityDropdown({ value, onChange }) {
@@ -6000,19 +6034,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
                 <div style={{ animation:"fadeIn 0.18s ease" }}>
                   {scoresLoading
                     ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:CR.textFaint, fontStyle:"italic" }}>Scoring…</p>
-                    : scores
-                      ? <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-                          {scoreEntries(scores).map(([label,val]) => (
-                            <div key={label} style={{ display:"flex", alignItems:"center", gap:10 }}>
-                              <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:CR.textDim, width:96, flexShrink:0 }}>{label}</span>
-                              <div style={{ flex:1, height:6, borderRadius:3, background:CR.border, overflow:"hidden" }}>
-                                <div style={{ height:"100%", borderRadius:3, background:CR.amber, width:`${val*10}%`, transition:"width 0.4s ease" }}/>
-                              </div>
-                              <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:700, color:CR.amber, width:20, textAlign:"right", flexShrink:0 }}>{val}</span>
-                            </div>
-                          ))}
-                        </div>
-                      : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:CR.textFaint, fontStyle:"italic" }}>Unable to score.</p>}
+                    : <ScoresAndVibesPanel scores={scores} theme={CR} />}
                 </div>
               )}
               {detailPanel === "obi" && (
