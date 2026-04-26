@@ -234,6 +234,54 @@ function passesQualifiers(tagEntry, qualifiers) {
   return true;
 }
 
+// Catalog browse — no profile, no ranking. Pure filter + sort by tier/year.
+// Used by the Browse tab for discovery; users want to see "everything matching
+// these criteria" not "everything matching me".
+export async function browseCatalog(userBooks, { genre = null, qualifiers = null, sort = "tier", offset = 0, limit = 30 } = {}) {
+  await ensureLoaded();
+  const readSet = new Set((userBooks || []).map(b => normalize(b.title)));
+  const all = [...primaryCatalog, ...recLibrary];
+  const filtered = [];
+  for (const book of all) {
+    if (genre && book.genre !== genre) continue;
+    if (readSet.has(normalize(book.title))) continue;
+    const te = tagData[String(book.id)];
+    if (!te?.scores) continue;
+    if (!passesQualifiers(te, qualifiers)) continue;
+    filtered.push({ book, tagEntry: te });
+  }
+  // Sort: tier ascending (1 = top tier), then publication year descending.
+  filtered.sort((a, b) => {
+    if (sort === "year") {
+      const ya = parseInt(a.book.publicationDate?.slice(0, 4)) || 0;
+      const yb = parseInt(b.book.publicationDate?.slice(0, 4)) || 0;
+      return yb - ya;
+    }
+    // default: tier
+    const ta = parseInt(a.book.tier) || (a.book.tier === "S" ? 0 : 99);
+    const tb = parseInt(b.book.tier) || (b.book.tier === "S" ? 0 : 99);
+    if (ta !== tb) return ta - tb;
+    const ya = parseInt(a.book.publicationDate?.slice(0, 4)) || 0;
+    const yb = parseInt(b.book.publicationDate?.slice(0, 4)) || 0;
+    return yb - ya;
+  });
+  const page = filtered.slice(offset, offset + limit);
+  return {
+    items: page.map(({ book, tagEntry }) => ({
+      title: book.title,
+      author: book.author,
+      genre: book.genre,
+      publishYear: parseInt(book.publicationDate?.slice(0, 4)) || null,
+      pages: book.pageCount || null,
+      tier: book.tier,
+      scores: tagEntry.scores,
+      vibes: tagEntry.vibes,
+    })),
+    total: filtered.length,
+    hasMore: offset + limit < filtered.length,
+  };
+}
+
 export async function generatePaigeRecs(userBooks, mode, exclude = [], genre = null, authorLimit = 2, qualifiers = null) {
   await ensureLoaded();
 

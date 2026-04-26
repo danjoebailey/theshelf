@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { supabase } from "./supabase.js";
 import { track } from "@vercel/analytics";
-import { generatePaigeRecs } from "./lib/paige-client.js";
+import { generatePaigeRecs, browseCatalog } from "./lib/paige-client.js";
 
 const GENRES = ["Fiction","Non-Fiction","Fantasy","Sci-Fi","Mystery","Thriller","Horror","Romance","Biography","History","Historical Fiction","Young Adult","Self-Help","Graphic Novel","Other"];
 const GENRE_COLORS = {
@@ -3021,32 +3021,212 @@ function ReedTab({ books, userId, onEdit, onShelfChange, onSaveScores, onAuthor 
   );
 }
 
+// Browse — discovery without profile. Same qualifier panel as Paige, but
+// returns the full catalog filtered by qualifiers + genre, sorted by tier.
+function BrowseTab({ books, onEdit, onAddBook }) {
+  const [filterGenre, setFilterGenre] = useState(null);
+  const [genreDropOpen, setGenreDropOpen] = useState(false);
+  const [qualifiers, setQualifiers] = useState({});
+  const [qualifiersOpen, setQualifiersOpen] = useState(false);
+  const [items, setItems] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [covers, setCovers] = useState({});
+
+  const activeQualifierCount = Object.values(qualifiers).filter(r => r && (r.min > 0 || r.max < 10)).length;
+
+  async function loadPage(reset = true) {
+    setLoading(true);
+    try {
+      const offset = reset ? 0 : items.length;
+      const data = await browseCatalog(books, { genre: filterGenre, qualifiers, sort: "tier", offset, limit: 30 });
+      const next = reset ? data.items : [...items, ...data.items];
+      setItems(next);
+      setTotal(data.total);
+      setHasMore(data.hasMore);
+      // Fetch covers for the new items only
+      const covMap = { ...covers };
+      const need = data.items.filter(r => !covMap[r.title]);
+      const BATCH = 5;
+      for (let b = 0; b < need.length; b += BATCH) {
+        await Promise.all(need.slice(b, b + BATCH).map(async rec => {
+          const owned = books.find(bk => normBookKey(bk.title) === normBookKey(rec.title));
+          if (owned?.coverUrl) { covMap[rec.title] = owned.coverUrl; return; }
+          try {
+            const r = await fetch("/api/fetch-cover", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ title:rec.title, author:rec.author }) });
+            const d = await r.json();
+            if (d.coverUrl) covMap[rec.title] = d.coverUrl;
+          } catch {}
+        }));
+        setCovers({ ...covMap });
+      }
+    } catch (e) {
+      console.error("[browse]", e);
+    }
+    setLoading(false);
+  }
+
+  return (
+    <div style={{ padding:"0 0 100px" }}>
+      <div style={{ padding:"16px 18px 8px" }}>
+        <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:14, color:"rgba(255,255,255,0.6)", textAlign:"center" }}>Browse the full catalog by tone, craft, and genre.</p>
+      </div>
+
+      {/* Filter row — same controls as Paige */}
+      <div style={{ display:"flex", alignItems:"center", gap:7, margin:"0 18px 14px", flexWrap:"wrap" }}>
+        <div style={{ position:"relative" }}>
+          <button onClick={() => setGenreDropOpen(o => !o)} style={{
+            padding:"5px 12px", borderRadius:20, fontSize:12, fontFamily:"'DM Sans',sans-serif", fontWeight:500,
+            cursor:"pointer", transition:"all 0.15s", display:"flex", alignItems:"center", gap:5,
+            background: "rgba(15,8,2,0.55)", color:"#fff", border:"1px solid rgba(120,70,20,0.3)", backdropFilter:"blur(4px)",
+          }}>{filterGenre || "Genre"}<span style={{ fontSize:10, color:"rgba(255,255,255,0.5)", display:"inline-block", transition:"transform 0.2s", transform: genreDropOpen ? "rotate(180deg)" : "rotate(0deg)" }}>▾</span></button>
+          {genreDropOpen && <div style={{ position:"absolute", top:"100%", left:0, marginTop:4, background:"rgba(40,24,12,0.97)", border:"1px solid rgba(138,90,40,0.3)", borderRadius:10, padding:"6px 0", zIndex:50, minWidth:160, maxHeight:260, overflowY:"auto", boxShadow:"0 4px 16px rgba(0,0,0,0.4)" }}>
+            <button onClick={() => { setFilterGenre(null); setGenreDropOpen(false); }} style={{ display:"block", width:"100%", padding:"8px 16px", background: !filterGenre ? "rgba(138,90,40,0.1)" : "transparent", border:"none", textAlign:"left", fontSize:12, fontFamily:"'DM Sans',sans-serif", fontWeight: !filterGenre ? 600 : 400, color: !filterGenre ? WOOD.amber : "rgba(255,235,195,0.7)", cursor:"pointer" }}>All genres</button>
+            {["Fiction","Non-Fiction","Fantasy","Sci-Fi","Mystery","Thriller","Horror","Romance","Biography","History","Historical Fiction","Young Adult","Self-Help","Graphic Novel"].map(g => (
+              <button key={g} onClick={() => { setFilterGenre(g); setGenreDropOpen(false); }} style={{ display:"block", width:"100%", padding:"8px 16px", background: filterGenre === g ? "rgba(138,90,40,0.1)" : "transparent", border:"none", textAlign:"left", fontSize:12, fontFamily:"'DM Sans',sans-serif", fontWeight: filterGenre === g ? 600 : 400, color: filterGenre === g ? WOOD.amber : "rgba(255,235,195,0.7)", cursor:"pointer" }}>{g}</button>
+            ))}
+          </div>}
+        </div>
+        <div style={{ position:"relative" }}>
+          <button data-qualifier-toggle="1" onClick={() => setQualifiersOpen(o => !o)} style={{
+            padding:"5px 12px", borderRadius:20, fontSize:12, fontFamily:"'DM Sans',sans-serif", fontWeight:500,
+            cursor:"pointer", transition:"background 0.15s, color 0.15s", display:"flex", alignItems:"center", gap:5,
+            background: activeQualifierCount > 0 ? WOOD.amber : "rgba(15,8,2,0.55)",
+            color: activeQualifierCount > 0 ? "#1a0900" : "#fff",
+            border: "1px solid rgba(120,70,20,0.3)", backdropFilter:"blur(4px)",
+          }}>
+            Qualifiers
+            <span style={{ display:"inline-block", width:18, textAlign:"center", fontVariantNumeric:"tabular-nums" }}>{activeQualifierCount > 0 ? activeQualifierCount : ""}</span>
+            <span style={{ fontSize:10, color: activeQualifierCount > 0 ? "rgba(26,9,0,0.5)" : "rgba(255,255,255,0.5)", display:"inline-block", transition:"transform 0.2s", transform: qualifiersOpen ? "rotate(180deg)" : "rotate(0deg)" }}>▾</span>
+          </button>
+          {qualifiersOpen && <QualifierPanel qualifiers={qualifiers} setQualifiers={setQualifiers} onClose={() => setQualifiersOpen(false)} />}
+        </div>
+      </div>
+
+      {/* Browse button */}
+      <div style={{ padding:"0 18px 22px" }}>
+        <button onClick={() => loadPage(true)} disabled={loading} style={{
+          width:"100%", padding:"13px 0",
+          background: !loading ? `linear-gradient(135deg,${WOOD.amber},#c8883a)` : "rgba(138,90,40,0.15)",
+          border:"none", borderRadius:12, cursor: !loading ? "pointer" : "default",
+          fontFamily:"'DM Sans',sans-serif", fontSize:15, fontWeight:700,
+          color: !loading ? "#1a0900" : WOOD.textFaint,
+          display:"flex", alignItems:"center", justifyContent:"center", gap:8, transition:"all 0.2s",
+        }}>
+          {loading
+            ? <><span style={{ width:16, height:16, border:"2px solid rgba(26,9,0,0.3)", borderTopColor:"#1a0900", borderRadius:"50%", display:"inline-block", animation:"spin 0.7s linear infinite" }} />Loading…</>
+            : <>Browse the catalog</>
+          }
+        </button>
+      </div>
+
+      {/* Results */}
+      {items.length > 0 && (
+        <div style={{ padding:"0 18px" }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"baseline", marginBottom:14 }}>
+            <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, color:"rgba(255,255,255,0.55)", textTransform:"uppercase", letterSpacing:"0.1em" }}>Catalog · {total} results</p>
+          </div>
+          <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+            {items.map((rec, i) => {
+              const owned = books.find(b => normBookKey(b.title) === normBookKey(rec.title));
+              return <RecCard key={`${rec.title}-${i}`} rec={rec} coverUrl={covers[rec.title]} ownedBook={owned} onAddDirect={() => {}} onEdit={onEdit} onAddBook={onAddBook} index={i} />;
+            })}
+          </div>
+          {hasMore && (
+            <button onClick={() => loadPage(false)} disabled={loading} style={{
+              width:"100%", marginTop:14, padding:"11px 0",
+              background:"rgba(138,90,40,0.15)", border:"1px solid rgba(138,90,40,0.4)", borderRadius:10,
+              color: WOOD.amber, fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:600, cursor: loading ? "default" : "pointer",
+            }}>{loading ? "Loading…" : `Load more (${total - items.length} remaining)`}</button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function RecommendPage({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook, onShelfChange, onSaveScores }) {
   const [character, setCharacter] = useState("paige");
+  const scrollerRef = useRef(null);
+  const [showRightArrow, setShowRightArrow] = useState(true);
+  const [showLeftArrow, setShowLeftArrow] = useState(false);
+
+  const characters = [
+    { key:"paige",  label:"Paige Turner", img:"/page-turner.png" },
+    { key:"reiko",  label:"Reiko Mend",   img:"/reiko-mend.png" },
+    { key:"reed",   label:"Reed Morely",  img:"/reed-morely.png" },
+    { key:"browse", label:"Browse",       img:"/lore-wanderer.png" },
+  ];
+
+  function updateArrows() {
+    const el = scrollerRef.current;
+    if (!el) return;
+    setShowLeftArrow(el.scrollLeft > 8);
+    setShowRightArrow(el.scrollLeft + el.clientWidth < el.scrollWidth - 8);
+  }
+  useEffect(() => {
+    updateArrows();
+    const el = scrollerRef.current;
+    if (!el) return;
+    el.addEventListener("scroll", updateArrows);
+    window.addEventListener("resize", updateArrows);
+    return () => { el.removeEventListener("scroll", updateArrows); window.removeEventListener("resize", updateArrows); };
+  }, []);
+
+  function scrollBy(dir) {
+    scrollerRef.current?.scrollBy({ left: dir * 140, behavior: "smooth" });
+  }
+
   return (
     <div style={{ height:"100%", overflowY:"auto", overflowX:"hidden" }}>
-      {/* Character selector */}
-      <div style={{ display:"flex", justifyContent:"center", gap:32, padding:"8px 18px 0", borderBottom:"1px solid rgba(138,90,40,0.2)", background:WOOD.card }}>
-        {[{ key:"paige", label:"Paige Turner", img:"/page-turner.png" }, { key:"reiko", label:"Reiko Mend", img:"/reiko-mend.png" }, { key:"reed", label:"Reed Morely", img:"/reed-morely.png" }].map(c => (
-          <button key={c.key} {...tc(() => setCharacter(c.key))} style={{
-            display:"flex", flexDirection:"column", alignItems:"center", gap:4,
-            background:"transparent", border:"none", cursor:"pointer",
-            borderBottom: character===c.key ? `2px solid ${WOOD.amber}` : "2px solid transparent",
-            paddingBottom:4, transition:"all 0.15s",
-            opacity: character===c.key ? 1 : 0.45,
-            touchAction:"manipulation",
-          }}>
-            <img src={c.img} alt={c.label} style={{ width:100, height:100, objectFit:"contain" }} />
-            <span style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, fontWeight:400, color:WOOD.text }}>{c.label}</span>
-          </button>
-        ))}
+      {/* Character selector — horizontally scrollable; Browse hides off the
+          right edge by default so users discover it via the chevron arrow. */}
+      <div style={{ position:"relative", borderBottom:"1px solid rgba(138,90,40,0.2)", background:WOOD.card }}>
+        <div ref={scrollerRef} style={{
+          display:"flex", justifyContent:"flex-start", gap:32, padding:"8px 18px 0",
+          overflowX:"auto", scrollBehavior:"smooth", scrollbarWidth:"none",
+          msOverflowStyle:"none",
+        }}>
+          {characters.map(c => (
+            <button key={c.key} {...tc(() => setCharacter(c.key))} style={{
+              display:"flex", flexDirection:"column", alignItems:"center", gap:4,
+              background:"transparent", border:"none", cursor:"pointer",
+              borderBottom: character===c.key ? `2px solid ${WOOD.amber}` : "2px solid transparent",
+              paddingBottom:4, transition:"all 0.15s",
+              opacity: character===c.key ? 1 : 0.45,
+              touchAction:"manipulation", flexShrink:0,
+            }}>
+              <img src={c.img} alt={c.label} style={{ width:100, height:100, objectFit:"contain" }} />
+              <span style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, fontWeight:400, color:WOOD.text, whiteSpace:"nowrap" }}>{c.label}</span>
+            </button>
+          ))}
+        </div>
+        {showLeftArrow && (
+          <button onClick={() => scrollBy(-1)} aria-label="Previous" style={{
+            position:"absolute", left:4, top:"50%", transform:"translateY(-50%)",
+            width:30, height:48, borderRadius:8, background:"rgba(15,8,2,0.55)", backdropFilter:"blur(4px)",
+            border:"1px solid rgba(120,70,20,0.3)", color:"#fff", cursor:"pointer",
+            display:"flex", alignItems:"center", justifyContent:"center", fontSize:18, lineHeight:1, padding:0,
+          }}>‹</button>
+        )}
+        {showRightArrow && (
+          <button onClick={() => scrollBy(1)} aria-label="Next" style={{
+            position:"absolute", right:4, top:"50%", transform:"translateY(-50%)",
+            width:30, height:48, borderRadius:8, background:"rgba(15,8,2,0.55)", backdropFilter:"blur(4px)",
+            border:"1px solid rgba(120,70,20,0.3)", color:"#fff", cursor:"pointer",
+            display:"flex", alignItems:"center", justifyContent:"center", fontSize:18, lineHeight:1, padding:0,
+          }}>›</button>
+        )}
       </div>
       {/* Content */}
       {character === "paige"
         ? <PaigeTab books={books} userId={userId} onAddDirect={onAddDirect} onEdit={onEdit} onAddBook={onAddBook} />
         : character === "reiko"
         ? <ReikoTab books={books} userId={userId} onAddDirect={onAddDirect} onAuthor={onAuthor} onEdit={onEdit} onAddBook={onAddBook} />
-        : <ReedTab books={books} userId={userId} onEdit={onEdit} onShelfChange={onShelfChange} onSaveScores={onSaveScores} onAuthor={onAuthor} />
+        : character === "reed"
+        ? <ReedTab books={books} userId={userId} onEdit={onEdit} onShelfChange={onShelfChange} onSaveScores={onSaveScores} onAuthor={onAuthor} />
+        : <BrowseTab books={books} userId={userId} onEdit={onEdit} onAddBook={onAddBook} onAddDirect={onAddDirect} />
       }
     </div>
   );
