@@ -3035,7 +3035,7 @@ function ReedTab({ books, userId, onEdit, onShelfChange, onSaveScores, onAuthor 
 
 // Browse — discovery without profile. Same qualifier panel as Paige, but
 // returns the full catalog filtered by qualifiers + genre, sorted by tier.
-function BrowseTab({ books, onEdit, onAddBook }) {
+function BrowseTab({ books, userId, onEdit, onAddBook }) {
   const [filterGenre, setFilterGenre] = useState(null);
   const [genreDropOpen, setGenreDropOpen] = useState(false);
   const [qualifiers, setQualifiers] = useState({});
@@ -3142,7 +3142,7 @@ function BrowseTab({ books, onEdit, onAddBook }) {
           <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
             {items.map((rec, i) => {
               const owned = books.find(b => normBookKey(b.title) === normBookKey(rec.title));
-              return <RecCard key={`${rec.title}-${i}`} rec={rec} coverUrl={covers[rec.title]} ownedBook={owned} onAddDirect={() => {}} onEdit={onEdit} onAddBook={onAddBook} index={i} />;
+              return <RecCard key={`${rec.title}-${i}`} rec={rec} coverUrl={covers[rec.title]} ownedBook={owned} onAddDirect={() => {}} onEdit={onEdit} onAddBook={onAddBook} index={i} userId={userId} libraryProfile={books.filter(b => b.shelf === "Read" || b.shelf === "DNF")} />;
             })}
           </div>
           {hasMore && (
