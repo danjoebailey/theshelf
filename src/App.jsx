@@ -2401,8 +2401,8 @@ function RecCard({ rec, coverUrl, ownedBook, onAddDirect, onEdit, onAddBook, ind
         onClick={() => setExpanded(e => !e)}
         style={{ padding: "14px 16px", cursor: "pointer" }}>
         <div style={{ display: "flex", gap: 12, alignItems: "stretch" }}>
-          <div style={{ height: 72, width: 48, borderRadius: 4, flexShrink: 0, position: "relative", background: GENRE_COLORS[rec.genre] || GENRE_COLORS["Other"], boxShadow: "1px 1px 6px rgba(0,0,0,0.2)" }}>
-            {coverUrl && <img src={coverUrl} alt={rec.title} style={{ position:"absolute", inset:0, height:72, width:48, objectFit:"cover", borderRadius:4, boxShadow:"1px 1px 6px rgba(0,0,0,0.3)" }} onError={e => { e.target.style.display = "none"; }} />}
+          <div style={{ height: 80, width: 53, borderRadius: 4, flexShrink: 0, position: "relative", background: GENRE_COLORS[rec.genre] || GENRE_COLORS["Other"], boxShadow: "2px 2px 8px rgba(0,0,0,0.35)" }}>
+            {coverUrl && <img src={coverUrl} alt={rec.title} style={{ position:"absolute", inset:0, height:80, width:53, objectFit:"cover", borderRadius:4, boxShadow:"2px 2px 8px rgba(0,0,0,0.35)" }} onError={e => { e.target.style.display = "none"; }} />}
           </div>
           <div style={{ flex: 1, minWidth: 0, display:"flex", flexDirection:"column", justifyContent:"space-between" }}>
             <div>
