@@ -7569,8 +7569,9 @@ export default function App() {
         {/* tab bar */}
         <div style={{
           display:"flex",
-          background:"linear-gradient(180deg, #c89050 0%, #b07838 100%)",
-          borderTop:"1px solid rgba(200,150,70,0.4)",
+          background:"rgba(15,8,2,0.55)",
+          backdropFilter:"blur(6px)",
+          borderTop:"1px solid rgba(120,70,20,0.3)",
           paddingTop:2,
           paddingBottom:"calc(6px + env(safe-area-inset-bottom, 0px))",
           flexShrink:0,
