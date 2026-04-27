@@ -3141,6 +3141,258 @@ function ReedTab({ books, userId, onEdit, onShelfChange, onSaveScores, onAuthor 
   );
 }
 
+// Shelf Scan — point at any bookshelf, extract titles via Claude Vision,
+// then run Ask Obi against the user's profile to surface picks worth reading.
+const SCAN_COLS = 3;
+const SCAN_ROWS = 5;
+
+function loadImageEl(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = src;
+  });
+}
+
+function imgToB64(img, sx, sy, sw, sh, maxW) {
+  const scale = Math.min(1, maxW / sw);
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(sw * scale);
+  canvas.height = Math.round(sh * scale);
+  canvas.getContext("2d").drawImage(img, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
+  return canvas.toDataURL("image/jpeg", 0.75).split(",")[1];
+}
+
+function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
+  const [imageUrl, setImageUrl] = useState(null);
+  const [imageMeta, setImageMeta] = useState(null);
+  const [scanning, setScanning] = useState(false);
+  const [progress, setProgress] = useState({ step: "", pct: 0 });
+  const [scannedBooks, setScannedBooks] = useState([]);
+  const [obiPicks, setObiPicks] = useState(null);
+  const [obiLoading, setObiLoading] = useState(false);
+  const [obiSubstitutions, setObiSubstitutions] = useState([]);
+  const [error, setError] = useState(null);
+  const [covers, setCovers] = useState({});
+  const fileRef = useRef(null);
+  const obiProfileSnapshot = useContext(LibraryProfileContext);
+
+  function handleFile(file) {
+    if (!file?.type.startsWith("image/")) return;
+    const url = URL.createObjectURL(file);
+    setImageUrl(url);
+    setScannedBooks([]);
+    setObiPicks(null);
+    setObiSubstitutions([]);
+    setError(null);
+    loadImageEl(url).then(img =>
+      setImageMeta({ size: `${(file.size / 1024).toFixed(0)} KB`, dims: `${img.naturalWidth}×${img.naturalHeight}` })
+    );
+  }
+
+  async function scan() {
+    if (!imageUrl || scanning) return;
+    setScanning(true); setError(null);
+    setScannedBooks([]); setObiPicks(null); setObiSubstitutions([]);
+    try {
+      setProgress({ step: "Slicing image…", pct: 15 });
+      const img = await loadImageEl(imageUrl);
+      const W = img.naturalWidth, H = img.naturalHeight;
+      const colW = Math.floor(W / SCAN_COLS), rowH = Math.floor(H / SCAN_ROWS);
+      const overview = imgToB64(img, 0, 0, W, H, 400);
+      const crops = [];
+      for (let row = 0; row < SCAN_ROWS; row++) {
+        const y = row * rowH;
+        const h = row === SCAN_ROWS - 1 ? H - y : rowH;
+        for (let col = 0; col < SCAN_COLS; col++) {
+          const x = col * colW;
+          const w = col === SCAN_COLS - 1 ? W - x : colW;
+          crops.push({ row: row + 1, col: col + 1, data: imgToB64(img, x, y, w, h, 600) });
+        }
+      }
+      setProgress({ step: "Reading spines…", pct: 50 });
+      const res = await fetch("/api/scan-shelf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ overview, crops, rows: SCAN_ROWS, cols: SCAN_COLS }),
+      });
+      if (!res.ok) throw new Error(`Scan failed: ${res.status}`);
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      setScannedBooks(data.books || []);
+      setProgress({ step: "", pct: 100 });
+      // Fetch covers for whatever we matched in the catalog
+      const covMap = {};
+      const BATCH = 5;
+      for (let b = 0; b < (data.books || []).length; b += BATCH) {
+        await Promise.all((data.books || []).slice(b, b + BATCH).map(async rec => {
+          try {
+            const r = await fetch("/api/fetch-cover", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ title:rec.title, author:rec.author }) });
+            const d = await r.json();
+            if (d.coverUrl) covMap[rec.title] = d.coverUrl;
+          } catch {}
+        }));
+        setCovers({ ...covMap });
+      }
+    } catch (e) {
+      setError(e.message || "Scan failed.");
+    }
+    setScanning(false);
+  }
+
+  async function askObi() {
+    if (!scannedBooks.length || obiLoading) return;
+    setObiLoading(true);
+    try {
+      const fingerprint = scannedBooks.map(b => `${b.title}|${b.author || ""}`).join("\n");
+      let hash = 0;
+      for (let i = 0; i < fingerprint.length; i++) { hash = ((hash << 5) - hash) + fingerprint.charCodeAt(i); hash &= hash; }
+      const listFingerprint = `scan::${scannedBooks.length}::${Math.abs(hash).toString(36)}`;
+      const profileForObi = obiProfileSnapshot && obiProfileSnapshot.length > 0
+        ? obiProfileSnapshot
+        : books.filter(b => b.shelf === "Read" || b.shelf === "DNF");
+      const res = await fetch("/api/ask-obi", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mode: "bulk_filter",
+          books: scannedBooks.map(b => ({ title: b.title, author: b.author || "Unknown", genre: null })),
+          profile: profileForObi,
+          userId,
+          listFingerprint,
+        }),
+      });
+      const data = await res.json();
+      if (data.picks?.length) {
+        const resolved = await resolveSeriesPicks(data.picks, books);
+        const finalTitles = resolved.map(r => r.title);
+        const substitutions = resolved.filter(r => r.book).map(r => r.book);
+        setObiSubstitutions(substitutions);
+        setObiPicks(new Set(finalTitles.map(t => t.toLowerCase())));
+        // Fetch covers for substitutions if any
+        const covMap = { ...covers };
+        for (const rec of substitutions) {
+          try {
+            const r = await fetch("/api/fetch-cover", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ title:rec.title, author:rec.author }) });
+            const d = await r.json();
+            if (d.coverUrl) covMap[rec.title] = d.coverUrl;
+          } catch {}
+        }
+        setCovers(covMap);
+      }
+    } catch (e) {
+      console.error("[scan-obi]", e);
+    }
+    setObiLoading(false);
+  }
+
+  // Build display list — when Obi is active, narrow to picks + substitutions
+  const displayList = (() => {
+    if (!obiPicks) return scannedBooks;
+    const merged = [...scannedBooks, ...obiSubstitutions];
+    const seen = new Set();
+    return merged.filter(b => {
+      const k = b.title.toLowerCase();
+      if (seen.has(k) || !obiPicks.has(k)) return false;
+      seen.add(k);
+      return true;
+    });
+  })();
+
+  return (
+    <div style={{ padding:"0 0 100px" }}>
+      <div style={{ padding:"16px 18px 8px" }}>
+        <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:14, color:"rgba(255,255,255,0.6)", textAlign:"center" }}>Snap any shelf — get a list of what's on it, then ask Obi which ones to read.</p>
+      </div>
+
+      {/* Upload zone or preview */}
+      <div style={{ padding:"0 18px 18px" }}>
+        {!imageUrl ? (
+          <div onClick={() => fileRef.current?.click()} style={{
+            border:"2px dashed rgba(160,100,40,0.5)", borderRadius:12, padding:"36px 24px", textAlign:"center",
+            background:"rgba(15,8,2,0.35)", cursor:"pointer", transition:"all 0.15s",
+          }}>
+            <div style={{ fontSize:32, marginBottom:8 }}>📚</div>
+            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, color:"rgba(255,235,195,0.85)", marginBottom:4 }}>Tap to upload a shelf photo</p>
+            <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, color:"rgba(255,235,195,0.5)" }}>Works best with even lighting and a head-on angle</p>
+            <input ref={fileRef} type="file" accept="image/*" style={{ display:"none" }} onChange={e => handleFile(e.target.files[0])} />
+          </div>
+        ) : (
+          <div style={{ position:"relative", borderRadius:12, overflow:"hidden", border:"1px solid rgba(160,100,40,0.3)" }}>
+            <img src={imageUrl} alt="Shelf" style={{ width:"100%", display:"block", maxHeight:280, objectFit:"cover", objectPosition:"top" }} />
+            <div style={{ position:"absolute", bottom:0, left:0, right:0, padding:"12px", background:"linear-gradient(transparent,rgba(15,8,2,0.85))", display:"flex", justifyContent:"space-between", alignItems:"flex-end" }}>
+              <span style={{ color:"rgba(255,235,195,0.8)", fontSize:11, fontFamily:"'DM Sans',sans-serif" }}>{imageMeta?.dims} · {imageMeta?.size}</span>
+              <button onClick={() => { setImageUrl(null); setScannedBooks([]); setObiPicks(null); setObiSubstitutions([]); setError(null); }} style={{ background:"rgba(255,255,255,0.18)", border:"1px solid rgba(255,255,255,0.4)", color:"#fff", fontSize:11, padding:"4px 10px", borderRadius:6, cursor:"pointer", fontFamily:"'DM Sans',sans-serif" }}>Change</button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Scan button */}
+      {imageUrl && (
+        <div style={{ padding:"0 18px 22px" }}>
+          <button onClick={scan} disabled={scanning} style={{
+            width:"100%", padding:"13px 0",
+            background: scanning ? "rgba(138,90,40,0.15)" : `linear-gradient(135deg,${WOOD.amber},#c8883a)`,
+            border:"none", borderRadius:12, cursor: scanning ? "default" : "pointer",
+            fontFamily:"'DM Sans',sans-serif", fontSize:15, fontWeight:700,
+            color: scanning ? WOOD.textFaint : "#1a0900",
+            display:"flex", alignItems:"center", justifyContent:"center", gap:8,
+          }}>
+            {scanning
+              ? <><span style={{ width:16, height:16, border:"2px solid rgba(26,9,0,0.3)", borderTopColor:"#1a0900", borderRadius:"50%", display:"inline-block", animation:"spin 0.7s linear infinite" }} />Scanning…</>
+              : scannedBooks.length > 0 ? "Scan Again" : "Scan Shelf"}
+          </button>
+          {scanning && (
+            <div style={{ marginTop:12, padding:"10px 12px", background:"rgba(15,8,2,0.4)", borderRadius:8 }}>
+              <div style={{ fontSize:11, fontFamily:"'DM Sans',sans-serif", color:"rgba(255,235,195,0.6)", marginBottom:6 }}>{progress.step} · {progress.pct}%</div>
+              <div style={{ height:4, background:"rgba(138,90,40,0.2)", borderRadius:2, overflow:"hidden" }}>
+                <div style={{ height:"100%", width:`${progress.pct}%`, background:WOOD.amber, transition:"width 0.4s ease" }} />
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {error && (
+        <div style={{ margin:"0 18px 18px", padding:"12px 14px", background:"rgba(192,57,43,0.08)", border:"1px solid rgba(192,57,43,0.3)", borderRadius:10 }}>
+          <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:13, color:"#e08070" }}>{error}</p>
+        </div>
+      )}
+
+      {/* Results */}
+      {scannedBooks.length > 0 && (
+        <div style={{ padding:"0 18px" }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14, gap:8, flexWrap:"wrap" }}>
+            <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, color:"rgba(255,255,255,0.55)", textTransform:"uppercase", letterSpacing:"0.1em" }}>
+              {obiPicks ? `Obi-curated · ${displayList.length}` : `Found · ${scannedBooks.length} books`}
+            </p>
+            {obiPicks
+              ? <button onClick={() => { setObiPicks(null); setObiSubstitutions([]); }} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(255,235,195,0.7)", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, textDecoration:"underline" }}>Show full scan list</button>
+              : scannedBooks.length >= 3 && <button onClick={askObi} disabled={obiLoading} style={{ display:"flex", alignItems:"center", gap:5, background:"rgba(15,8,2,0.55)", color:"#fff", border:"1px solid rgba(120,70,20,0.3)", borderRadius:14, padding:"4px 10px", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, cursor: obiLoading ? "default" : "pointer", backdropFilter:"blur(4px)" }}>
+                  {obiLoading
+                    ? <><span style={{ width:10, height:10, border:"1.5px solid rgba(255,255,255,0.3)", borderTopColor:"#fff", borderRadius:"50%", display:"inline-block", animation:"spin 0.7s linear infinite" }} />Obi…</>
+                    : <>Ask Obi</>}
+                </button>
+            }
+          </div>
+          {obiPicks && displayList.length === 0 && (
+            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:"rgba(255,235,195,0.7)", fontStyle:"italic", padding:"20px 0" }}>Obi didn't flag any of these as strong fits for you.</p>
+          )}
+          <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+            {displayList.map((rec, i) => {
+              const owned = books.find(b => normBookKey(b.title) === normBookKey(rec.title));
+              const recForCard = { title: rec.title, author: rec.author || "Unknown", genre: rec.genre || "Fiction" };
+              return <RecCard key={`${rec.title}-${i}`} rec={recForCard} coverUrl={covers[rec.title]} ownedBook={owned} onAddDirect={onAddDirect} onEdit={onEdit} onAddBook={onAddBook} index={i} userId={userId} libraryProfile={books.filter(b => b.shelf === "Read" || b.shelf === "DNF")} />;
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Browse — discovery without profile. Same qualifier panel as Paige, but
 // returns the full catalog filtered by qualifiers + genre, sorted by tier.
 function BrowseTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
@@ -3423,6 +3675,7 @@ function RecommendPage({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook
     { key:"reiko",  label:"Reiko Mend",   img:"/reiko-mend.png" },
     { key:"reed",   label:"Reed Morely",  img:"/reed-morely.png" },
     { key:"browse", label:"Browse",       img:"/lore-wanderer.png" },
+    { key:"scan",   label:"Shelf Scan",   img:"/library-knight.png" },
   ];
 
   function updateArrows() {
@@ -3492,7 +3745,9 @@ function RecommendPage({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook
         ? <ReikoTab books={books} userId={userId} onAddDirect={onAddDirect} onAuthor={onAuthor} onEdit={onEdit} onAddBook={onAddBook} />
         : character === "reed"
         ? <ReedTab books={books} userId={userId} onEdit={onEdit} onShelfChange={onShelfChange} onSaveScores={onSaveScores} onAuthor={onAuthor} />
-        : <BrowseTab books={books} userId={userId} onEdit={onEdit} onAddBook={onAddBook} onAddDirect={onAddDirect} />
+        : character === "browse"
+        ? <BrowseTab books={books} userId={userId} onEdit={onEdit} onAddBook={onAddBook} onAddDirect={onAddDirect} />
+        : <ShelfScanTab books={books} userId={userId} onEdit={onEdit} onAddBook={onAddBook} onAddDirect={onAddDirect} />
       }
     </div>
   );
