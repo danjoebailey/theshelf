@@ -454,5 +454,11 @@ export async function generatePaigeRecs(userBooks, mode, exclude = [], genre = n
     score,
   }));
 
-  return { recommendations, reserve };
+  // True total of viable matches — books that passed all filters and scored
+  // above a reasonable quality cutoff (0.6 = "worth considering"). Reflects
+  // scope of the rec pool, not just the displayed top 10.
+  const MATCH_QUALITY_FLOOR = 0.6;
+  const totalMatches = capped.filter(({ score }) => score >= MATCH_QUALITY_FLOOR).length;
+
+  return { recommendations, reserve, totalMatches };
 }

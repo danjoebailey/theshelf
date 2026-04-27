@@ -2680,6 +2680,9 @@ function PaigeTab({ books, userId, onAddDirect, onEdit, onAddBook }) {
   const [obiPicks, setObiPicks] = useState(null);
   const [obiCurateLoading, setObiCurateLoading] = useState(false);
   const obiProfileSnapshot = useContext(LibraryProfileContext);
+  // Total viable matches per mode (books above the quality cutoff, not just
+  // the displayed top 10). Header shows "10 of N" so users see scope.
+  const [totalMatches, setTotalMatches] = useState({});
 
   const readBooks = books.filter(b => (b.shelf || "Read") === "Read");
   const profile = readBooks.map(b => ({ title: b.title, author: b.author, genre: b.genre, rating: b.rating || 0 }));
@@ -2790,6 +2793,7 @@ function PaigeTab({ books, userId, onAddDirect, onEdit, onAddBook }) {
     setCovers(prev => ({ ...prev, [mode]: {} }));
     try {
       const data = await generatePaigeRecs(books, mode, [], filterGenre || null, authorLimit, qualifiers);
+      if (typeof data.totalMatches === "number") setTotalMatches(prev => ({ ...prev, [mode]: data.totalMatches }));
       const readKeys = new Set(readBooks.map(b => normBookKey(b.title)));
       const results = (data.recommendations || []).filter(r => !readKeys.has(normBookKey(r.title)));
       const res2 = (data.reserve || []).filter(r => !readKeys.has(normBookKey(r.title)));
@@ -2973,9 +2977,12 @@ function PaigeTab({ books, userId, onAddDirect, onEdit, onAddBook }) {
             const filtered = obiPicks
               ? baseFiltered.filter(r => obiPicks.has(r.title.toLowerCase()))
               : baseFiltered;
+            const trueTotal = totalMatches[mode];
             const headerLabel = obiPicks
               ? `Obi-curated · ${filtered.length}`
-              : `Recommended for you · ${filtered.length}`;
+              : (typeof trueTotal === "number" && trueTotal > filtered.length)
+                ? `Recommended for you · ${filtered.length} of ${trueTotal}`
+                : `Recommended for you · ${filtered.length}`;
             return (
             <div style={{ padding:"0 18px" }}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12, gap:8, flexWrap:"wrap" }}>
