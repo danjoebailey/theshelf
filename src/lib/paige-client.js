@@ -234,6 +234,64 @@ function passesQualifiers(tagEntry, qualifiers) {
   return true;
 }
 
+// Series resolution for Obi's bulk picks. Two rules together:
+//   1. Dedup by series — if Obi picked multiple books from the same series,
+//      collapse to one entry per series.
+//   2. Substitute with first unread — if Obi picked book #5 of a series but
+//      the reader hasn't read books #1-4, swap to the earliest unread book
+//      so they get the entry point, not a mid-series pick.
+// Returns [{ title, book? }] in original order. `book` is the substituted
+// catalog entry when a swap happened — caller can add it to the display pool.
+export async function resolveSeriesPicks(pickTitles, userBooks) {
+  await ensureLoaded();
+  const userReadSet = new Set((userBooks || []).map(b => normalize(b.title)));
+  const allBooks = [...primaryCatalog, ...recLibrary];
+
+  // Series index: name → books sorted by order
+  const seriesByName = {};
+  for (const book of allBooks) {
+    if (!book.series?.name) continue;
+    (seriesByName[book.series.name.toLowerCase()] ||= []).push(book);
+  }
+  for (const arr of Object.values(seriesByName)) {
+    arr.sort((a, b) => (a.series.order || 0) - (b.series.order || 0));
+  }
+
+  const seenSeries = new Set();
+  const resolved = [];
+  for (const pickTitle of pickTitles) {
+    const normPick = normalize(pickTitle);
+    const book = allBooks.find(b => normalize(b.title) === normPick);
+    if (!book?.series?.name) {
+      resolved.push({ title: pickTitle, book: null });
+      continue;
+    }
+    const seriesKey = book.series.name.toLowerCase();
+    if (seenSeries.has(seriesKey)) continue;  // dedup — already added one from this series
+    seenSeries.add(seriesKey);
+    const seriesBooks = seriesByName[seriesKey];
+    const firstUnread = seriesBooks.find(b => !userReadSet.has(normalize(b.title)));
+    if (firstUnread && normalize(firstUnread.title) !== normPick) {
+      // Substitute with the entry point
+      resolved.push({
+        title: firstUnread.title,
+        book: {
+          title: firstUnread.title,
+          author: firstUnread.author,
+          genre: firstUnread.genre,
+          publishYear: parseInt(firstUnread.publicationDate?.slice(0, 4)) || null,
+          pages: firstUnread.pageCount || null,
+          reason: `First in ${firstUnread.series.name} — start here.`,
+          score: 0,
+        },
+      });
+    } else {
+      resolved.push({ title: pickTitle, book: null });
+    }
+  }
+  return resolved;
+}
+
 // Catalog browse — no profile, no ranking. Pure filter + sort by tier/year.
 // Used by the Browse tab for discovery; users want to see "everything matching
 // these criteria" not "everything matching me".

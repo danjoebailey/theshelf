@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect, createContext, useContext } from "react";
 import { supabase } from "./supabase.js";
 import { track } from "@vercel/analytics";
-import { generatePaigeRecs, browseCatalog } from "./lib/paige-client.js";
+import { generatePaigeRecs, browseCatalog, resolveSeriesPicks } from "./lib/paige-client.js";
 
 // Stable session-long Read+DNF snapshot, captured once on first non-empty
 // books load. Consumed by Obi-using components so the prompt's profile
@@ -2679,6 +2679,10 @@ function PaigeTab({ books, userId, onAddDirect, onEdit, onAddBook }) {
   // results display narrows to that set; null = inactive (show Paige's full list).
   const [obiPicks, setObiPicks] = useState(null);
   const [obiCurateLoading, setObiCurateLoading] = useState(false);
+  // Books substituted in by series resolution (e.g., Obi picked Stormlight #2,
+  // user hasn't read #1, so #1 gets surfaced instead). These augment the
+  // display source pool when obi is active.
+  const [obiSubstitutions, setObiSubstitutions] = useState([]);
   const obiProfileSnapshot = useContext(LibraryProfileContext);
   // Total viable matches per mode (books above the quality cutoff, not just
   // the displayed top 10). Header shows "10 of N" so users see scope.
@@ -2710,7 +2714,7 @@ function PaigeTab({ books, userId, onAddDirect, onEdit, onAddBook }) {
 
   // Reset Obi picks whenever the source list changes (new generation or mode
   // switch) — the curated subset is meaningless for a different list.
-  useEffect(() => { setObiPicks(null); }, [mode]);
+  useEffect(() => { setObiPicks(null); setObiSubstitutions([]); }, [mode]);
 
   async function curateWithObi() {
     const all = [...(recs[mode] || []), ...(reserve[mode] || [])].slice(0, 100);
@@ -2738,11 +2742,16 @@ function PaigeTab({ books, userId, onAddDirect, onEdit, onAddBook }) {
       });
       const data = await res.json();
       if (data.picks?.length) {
-        const pickSet = new Set(data.picks.map(t => t.toLowerCase()));
+        // Series resolution: dedup by series, swap mid-series picks for the
+        // first unread book so users get entry points, not book #5.
+        const resolved = await resolveSeriesPicks(data.picks, books);
+        const finalTitles = resolved.map(r => r.title);
+        const substitutions = resolved.filter(r => r.book).map(r => r.book);
+        setObiSubstitutions(substitutions);
+        const pickSet = new Set(finalTitles.map(t => t.toLowerCase()));
         setObiPicks(pickSet);
-        // If Obi promoted books from reserve into the curated set, fetch their
-        // covers so they render with art instead of placeholder gradients.
-        const promoted = (reserve[mode] || []).filter(r => pickSet.has(r.title.toLowerCase()));
+        // Fetch covers for promoted reserve books AND any new substitutions.
+        const promoted = [...(reserve[mode] || []), ...substitutions].filter(r => pickSet.has(r.title.toLowerCase()));
         if (promoted.length) await fetchCoversForRecs(promoted, mode);
       }
     } catch (e) {
@@ -2787,7 +2796,7 @@ function PaigeTab({ books, userId, onAddDirect, onEdit, onAddBook }) {
   async function generate() {
     if (!readBooks.length) return;
     setLoading(true); setError(null);
-    setObiPicks(null);  // new list invalidates Obi's previous curation
+    setObiPicks(null); setObiSubstitutions([]);  // new list invalidates Obi's previous curation
     setRecs(prev => ({ ...prev, [mode]: null }));
     setReserve(prev => ({ ...prev, [mode]: [] }));
     setCovers(prev => ({ ...prev, [mode]: {} }));
@@ -2962,11 +2971,12 @@ function PaigeTab({ books, userId, onAddDirect, onEdit, onAddBook }) {
 
           {/* Results */}
           {currentRecs && currentRecs.length > 0 && (() => {
-            // When Obi-curate is active, look across recs+reserve since Obi may
-            // have promoted reserve books into the picks. Otherwise just show
-            // currentRecs as before.
+            // When Obi-curate is active, look across recs+reserve+substitutions
+            // since Obi may have promoted reserve books into the picks AND
+            // series resolution may have substituted in entry-point books that
+            // weren't in Paige's display pool.
             const sourcePool = obiPicks
-              ? [...currentRecs, ...(reserve[mode] || [])]
+              ? [...currentRecs, ...(reserve[mode] || []), ...obiSubstitutions]
               : currentRecs;
             const deduped = [...new Map(sourcePool.map(r => [r.title.toLowerCase(), r])).values()];
             const baseFiltered = deduped.filter(r => {
