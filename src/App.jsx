@@ -3153,6 +3153,10 @@ function BrowseTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(false);
   const [covers, setCovers] = useState({});
+  // Tracks the sort mode of the currently displayed pool. Used so 'Ask Obi'
+  // pulls its 100-book pool with the same sort the user is viewing — tier
+  // for the default acclaimed list, random for a Randomize sample.
+  const [currentSort, setCurrentSort] = useState("tier");
   // Bulk Obi curation state — Obi narrows the browse pool to its top picks.
   const [obiPicks, setObiPicks] = useState(null);
   const [obiCurateLoading, setObiCurateLoading] = useState(false);
@@ -3170,7 +3174,7 @@ function BrowseTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
   // wouldn't make it above the fold under tier-sort.
   async function randomize() {
     setLoading(true);
-    setObiPicks(null); setObiSubstitutions([]);
+    setObiPicks(null); setObiSubstitutions([]); setCurrentSort("random");
     try {
       const data = await browseCatalog(books, { genre: filterGenre, qualifiers, sort: "random", offset: 0, limit: 30 });
       setItems(data.items);
@@ -3200,7 +3204,7 @@ function BrowseTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
 
   async function loadPage(reset = true) {
     setLoading(true);
-    if (reset) { setObiPicks(null); setObiSubstitutions([]); }
+    if (reset) { setObiPicks(null); setObiSubstitutions([]); setCurrentSort("tier"); }
     try {
       const offset = reset ? 0 : items.length;
       const data = await browseCatalog(books, { genre: filterGenre, qualifiers, sort: "tier", offset, limit: 30 });
@@ -3236,7 +3240,11 @@ function BrowseTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
   async function curateWithObi() {
     setObiCurateLoading(true);
     try {
-      const pool = await browseCatalog(books, { genre: filterGenre, qualifiers, sort: "tier", offset: 0, limit: 100 });
+      // Match Obi's pool to whatever sort the user is currently viewing —
+      // tier-sort gives Obi the acclaimed top 100; Randomize gives Obi a
+      // random sample so it can surface hidden-gem picks from across the
+      // long tail rather than always favoring tier-1.
+      const pool = await browseCatalog(books, { genre: filterGenre, qualifiers, sort: currentSort, offset: 0, limit: 100 });
       if (!pool.items?.length) { setObiCurateLoading(false); return; }
       const fingerprint = pool.items.map(b => `${b.title}|${b.author}`).join("\n");
       let hash = 0;
