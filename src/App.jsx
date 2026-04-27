@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect, createContext, useContext } from "react";
 import { supabase } from "./supabase.js";
 import { track } from "@vercel/analytics";
-import { generatePaigeRecs, browseCatalog, resolveSeriesPicks } from "./lib/paige-client.js";
+import { generatePaigeRecs, browseCatalog, resolveSeriesPicks, enrichScannedBooks } from "./lib/paige-client.js";
 
 // Stable session-long Read+DNF snapshot, captured once on first non-empty
 // books load. Consumed by Obi-using components so the prompt's profile
@@ -3220,7 +3220,10 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
       if (!res.ok) throw new Error(`Scan failed: ${res.status}`);
       const data = await res.json();
       if (data.error) throw new Error(data.error);
-      setScannedBooks(data.books || []);
+      // Enrich scanned books from our 10K-book catalog — fills in missing
+      // authors and genres for any title we already know.
+      const enriched = await enrichScannedBooks(data.books || []);
+      setScannedBooks(enriched);
       setProgress({ step: "", pct: 100 });
       // Fetch covers for whatever we matched in the catalog
       const covMap = {};

@@ -65,10 +65,10 @@ Return a single deduplicated JSON array of all books you can identify. No markdo
 
 Rules:
 - "shelf" = the row number (1–${rows || "?"}) the book appears in
-- Use null for author if unreadable
 - If a book appears in multiple crops, include it once
 - Skip completely illegible spines
-- Stacked/horizontal books count too`));
+- Stacked/horizontal books count too
+- AUTHOR FALLBACK: if you can read the title clearly but the author portion of the spine is unreadable or cropped, use your knowledge of well-known books to fill in the author (e.g., if you read "Blood Meridian" but can't see the author spine, write "Cormac McCarthy"). Only set author to null when you genuinely don't know who wrote it.`));
 
   try {
     const raw = await callClaudeVision(apiKey, content);

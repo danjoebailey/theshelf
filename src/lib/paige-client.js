@@ -234,6 +234,34 @@ function passesQualifiers(tagEntry, qualifiers) {
   return true;
 }
 
+// Catalog enrichment for shelf-scanned books. OCR sometimes captures the
+// title cleanly but misses the author (cropped spine, faded text, etc.).
+// For each scanned book, look up the title in our 10K-book catalog; if we
+// have a match, fill in author + genre from the catalog. Cheap, in-memory.
+export async function enrichScannedBooks(scannedBooks) {
+  await ensureLoaded();
+  const allBooks = [...primaryCatalog, ...recLibrary];
+  // Title-only index for quick lookup. Multiple books can share a title;
+  // we keep the first one (catalog ordering favors primary catalog first).
+  const byTitle = {};
+  for (const book of allBooks) {
+    const k = normalize(book.title);
+    if (!byTitle[k]) byTitle[k] = book;
+  }
+  return scannedBooks.map(scanned => {
+    const k = normalize(scanned.title);
+    const match = byTitle[k];
+    if (!match) return scanned;
+    return {
+      ...scanned,
+      // Only fill in author when scanned author is missing/unknown — don't
+      // overwrite a confident OCR read with the catalog's version.
+      author: (!scanned.author || /^unknown$/i.test(scanned.author)) ? match.author : scanned.author,
+      genre: scanned.genre || match.genre,
+    };
+  });
+}
+
 // Series resolution for Obi's bulk picks. Two rules together:
 //   1. Dedup by series — if Obi picked multiple books from the same series,
 //      collapse to one entry per series.
