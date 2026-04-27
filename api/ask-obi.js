@@ -73,6 +73,60 @@ export default async function handler(req, res) {
 
   const { mode = "verdict", userId } = req.body;
 
+  // ── Bulk filter mode: from a list of N candidates, which N' should this reader try? ──
+  // Used by Paige's "Obi-curate" button: reader gets a Paige-ranked list of
+  // 50-100 books, Obi applies qualitative judgment to filter down to a top-10
+  // slate. Single LLM call (~2-3¢) with cached profile prefix.
+  if (mode === "bulk_filter") {
+    const { books, profile, listFingerprint } = req.body;
+    if (!Array.isArray(books) || !books.length) return res.status(400).json({ error: "No books" });
+
+    const cacheKey = `bulk::${listFingerprint || ""}`;
+    if (listFingerprint) {
+      const cached = await getCached(userId, cacheKey);
+      if (cached) {
+        try { return res.json({ picks: JSON.parse(cached) }); } catch {}
+      }
+    }
+
+    // Without a meaningful profile, just pass through the original order.
+    if ((profile || []).length < 3) {
+      return res.json({ picks: books.slice(0, 10).map(b => b.title) });
+    }
+
+    const cachedProfile = `You are Obi, a sharp and candid literary companion. Use this reader's library to identify which books from a candidate list they'd most genuinely love.
+
+Reader's library:
+${buildProfileLines(profile)}`;
+
+    const bookList = books.map((b, i) => `${i + 1}. ${b.title} / ${b.author} / ${b.genre || "?"}`).join("\n");
+
+    const uncachedQuery = `
+
+Candidate list (Paige's algorithm ranked these by statistical fit, top to bottom):
+${bookList}
+
+Walk this list from top to bottom. Identify the 10 (or fewer if fewer truly fit) books you most strongly believe this reader would enjoy. Apply qualitative judgment about pacing, tone, emotional register, depth, and ideas — beyond just statistical fit. Be selective: if only 4 are strong fits, return 4.
+
+Return ONLY a JSON array of the integer 1-based indices you've selected, in original input order. No prose, no explanations.
+Example output: [1, 4, 7, 12, 18, 23, 29, 35, 42, 51]`;
+
+    try {
+      const response = await callClaude(apiKey, [
+        { type: "text", text: cachedProfile, cache_control: { type: "ephemeral" } },
+        { type: "text", text: uncachedQuery },
+      ]);
+      const match = response.match(/\[[\d,\s]+\]/);
+      if (!match) throw new Error(`No JSON array in Obi response: ${response.slice(0, 100)}`);
+      const indices = JSON.parse(match[0]);
+      const picks = indices.map(i => books[i - 1]?.title).filter(Boolean).slice(0, 10);
+      if (listFingerprint) await saveCache(userId, cacheKey, JSON.stringify(picks));
+      return res.json({ picks });
+    } catch (e) {
+      return res.status(500).json({ error: e.message || "Obi filter failed" });
+    }
+  }
+
   // ── Recommend mode: which book by this author should I read? ──
   if (mode === "recommend") {
     const { author, bibliography, profile } = req.body;

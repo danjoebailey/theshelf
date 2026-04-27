@@ -2675,6 +2675,11 @@ function PaigeTab({ books, userId, onAddDirect, onEdit, onAddBook }) {
   const [qualifiers, setQualifiers] = useState({});
   const [qualifiersOpen, setQualifiersOpen] = useState(false);
   const activeQualifierCount = Object.values(qualifiers).filter(r => r && (r.min > 0 || r.max < 10)).length;
+  // Bulk Obi filter: when active, pickedTitles holds Obi's curated picks (title set).
+  // results display narrows to that set; null = inactive (show Paige's full list).
+  const [obiPicks, setObiPicks] = useState(null);
+  const [obiCurateLoading, setObiCurateLoading] = useState(false);
+  const obiProfileSnapshot = useContext(LibraryProfileContext);
 
   const readBooks = books.filter(b => (b.shelf || "Read") === "Read");
   const profile = readBooks.map(b => ({ title: b.title, author: b.author, genre: b.genre, rating: b.rating || 0 }));
@@ -2699,6 +2704,42 @@ function PaigeTab({ books, userId, onAddDirect, onEdit, onAddBook }) {
         if (Object.keys(covMap).length) setCovers(covMap);
       });
   }, [userId]);
+
+  // Reset Obi picks whenever the source list changes (new generation or mode
+  // switch) — the curated subset is meaningless for a different list.
+  useEffect(() => { setObiPicks(null); }, [mode]);
+
+  async function curateWithObi() {
+    const all = [...(recs[mode] || []), ...(reserve[mode] || [])].slice(0, 100);
+    if (all.length === 0) return;
+    setObiCurateLoading(true);
+    // Cheap fingerprint: title list joined
+    const fingerprint = all.map(b => `${b.title}|${b.author}`).join("\n");
+    let hash = 0;
+    for (let i = 0; i < fingerprint.length; i++) {
+      hash = ((hash << 5) - hash) + fingerprint.charCodeAt(i);
+      hash &= hash;
+    }
+    const listFingerprint = `${mode}::${all.length}::${Math.abs(hash).toString(36)}`;
+    try {
+      const res = await fetch("/api/ask-obi", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mode: "bulk_filter",
+          books: all.map(b => ({ title: b.title, author: b.author, genre: b.genre })),
+          profile: obiProfileSnapshot && obiProfileSnapshot.length > 0 ? obiProfileSnapshot : profile,
+          userId,
+          listFingerprint,
+        }),
+      });
+      const data = await res.json();
+      if (data.picks?.length) setObiPicks(new Set(data.picks.map(t => t.toLowerCase())));
+    } catch (e) {
+      console.error("[curate]", e);
+    }
+    setObiCurateLoading(false);
+  }
 
   async function fetchCoversForRecs(results, currentMode) {
     const covMap = {};
@@ -2736,6 +2777,7 @@ function PaigeTab({ books, userId, onAddDirect, onEdit, onAddBook }) {
   async function generate() {
     if (!readBooks.length) return;
     setLoading(true); setError(null);
+    setObiPicks(null);  // new list invalidates Obi's previous curation
     setRecs(prev => ({ ...prev, [mode]: null }));
     setReserve(prev => ({ ...prev, [mode]: [] }));
     setCovers(prev => ({ ...prev, [mode]: {} }));
@@ -2910,14 +2952,33 @@ function PaigeTab({ books, userId, onAddDirect, onEdit, onAddBook }) {
           {/* Results */}
           {currentRecs && currentRecs.length > 0 && (() => {
             const deduped = [...new Map(currentRecs.map(r => [r.title.toLowerCase(), r])).values()];
-            const filtered = deduped.filter(r => {
+            const baseFiltered = deduped.filter(r => {
               if (filterGenre && r.genre !== filterGenre) return false;
               if (hideOnShelf && books.find(b => normBookKey(b.title) === normBookKey(r.title))) return false;
               return true;
             });
+            const filtered = obiPicks
+              ? baseFiltered.filter(r => obiPicks.has(r.title.toLowerCase()))
+              : baseFiltered;
+            const headerLabel = obiPicks
+              ? `Obi-curated · ${filtered.length}`
+              : `Recommended for you · ${filtered.length}`;
             return (
             <div style={{ padding:"0 18px" }}>
-              <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:10, fontWeight:700, color:"rgba(255,255,255,0.6)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:12 }}>Recommended for you · {filtered.length}</p>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12, gap:8, flexWrap:"wrap" }}>
+                <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:10, fontWeight:700, color:"rgba(255,255,255,0.6)", textTransform:"uppercase", letterSpacing:"0.1em" }}>{headerLabel}</p>
+                {obiPicks
+                  ? <button onClick={() => setObiPicks(null)} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(255,235,195,0.7)", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, textDecoration:"underline" }}>Show Paige's full list</button>
+                  : baseFiltered.length >= 10 && <button onClick={curateWithObi} disabled={obiCurateLoading} style={{ display:"flex", alignItems:"center", gap:5, background:"rgba(15,8,2,0.55)", color:"#fff", border:"1px solid rgba(120,70,20,0.3)", borderRadius:14, padding:"4px 10px", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, cursor: obiCurateLoading ? "default" : "pointer", backdropFilter:"blur(4px)" }}>
+                      {obiCurateLoading
+                        ? <><span style={{ width:10, height:10, border:"1.5px solid rgba(255,255,255,0.3)", borderTopColor:"#fff", borderRadius:"50%", display:"inline-block", animation:"spin 0.7s linear infinite" }} />Obi…</>
+                        : <>Have Obi pick</>}
+                    </button>
+                }
+              </div>
+              {obiPicks && filtered.length === 0 && (
+                <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:"rgba(255,235,195,0.7)", fontStyle:"italic", padding:"20px 0" }}>Obi didn't flag any of these as strong fits. Try widening your qualifiers or showing Paige's full list.</p>
+              )}
               <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
                 {filtered.map((rec, i) => (
                   <RecCard key={i} index={i} rec={rec} coverUrl={currentCovers[rec.title] || null} ownedBook={books.find(b => normBookKey(b.title) === normBookKey(rec.title))} onAddDirect={onAddDirect} onEdit={onEdit} onAddBook={onAddBook} userId={userId} libraryProfile={profile} />
