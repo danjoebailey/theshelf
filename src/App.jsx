@@ -3153,11 +3153,21 @@ function BrowseTab({ books, userId, onEdit, onAddBook }) {
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(false);
   const [covers, setCovers] = useState({});
+  // Bulk Obi curation state — Obi narrows the browse pool to its top picks.
+  const [obiPicks, setObiPicks] = useState(null);
+  const [obiCurateLoading, setObiCurateLoading] = useState(false);
+  const [obiSubstitutions, setObiSubstitutions] = useState([]);
+  const obiProfileSnapshot = useContext(LibraryProfileContext);
 
   const activeQualifierCount = Object.values(qualifiers).filter(r => r && (r.min > 0 || r.max < 10)).length;
 
+  // Reset Obi state whenever the filter set changes — the curated subset is
+  // meaningless against a different filter.
+  useEffect(() => { setObiPicks(null); setObiSubstitutions([]); }, [filterGenre, qualifiers]);
+
   async function loadPage(reset = true) {
     setLoading(true);
+    if (reset) { setObiPicks(null); setObiSubstitutions([]); }
     try {
       const offset = reset ? 0 : items.length;
       const data = await browseCatalog(books, { genre: filterGenre, qualifiers, sort: "tier", offset, limit: 30 });
@@ -3185,6 +3195,71 @@ function BrowseTab({ books, userId, onEdit, onAddBook }) {
       console.error("[browse]", e);
     }
     setLoading(false);
+  }
+
+  // Obi-curate: fetch up to 100 books from the catalog with current filters
+  // (regardless of how many are paginated visibly), send to bulk_filter, apply
+  // series resolution, narrow displayed results to the picks.
+  async function curateWithObi() {
+    setObiCurateLoading(true);
+    try {
+      const pool = await browseCatalog(books, { genre: filterGenre, qualifiers, sort: "tier", offset: 0, limit: 100 });
+      if (!pool.items?.length) { setObiCurateLoading(false); return; }
+      const fingerprint = pool.items.map(b => `${b.title}|${b.author}`).join("\n");
+      let hash = 0;
+      for (let i = 0; i < fingerprint.length; i++) {
+        hash = ((hash << 5) - hash) + fingerprint.charCodeAt(i);
+        hash &= hash;
+      }
+      const listFingerprint = `browse::${filterGenre || "all"}::${pool.items.length}::${Math.abs(hash).toString(36)}`;
+      const profileForObi = obiProfileSnapshot && obiProfileSnapshot.length > 0
+        ? obiProfileSnapshot
+        : books.filter(b => b.shelf === "Read" || b.shelf === "DNF");
+      const res = await fetch("/api/ask-obi", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mode: "bulk_filter",
+          books: pool.items.map(b => ({ title: b.title, author: b.author, genre: b.genre })),
+          profile: profileForObi,
+          userId,
+          listFingerprint,
+        }),
+      });
+      const data = await res.json();
+      if (data.picks?.length) {
+        const resolved = await resolveSeriesPicks(data.picks, books);
+        const finalTitles = resolved.map(r => r.title);
+        const substitutions = resolved.filter(r => r.book).map(r => r.book);
+        const pickSet = new Set(finalTitles.map(t => t.toLowerCase()));
+        // Make sure all picks (from the 100 pool, plus substitutions) are in
+        // the displayed items list — items might only have first-page results.
+        const picksFromPool = pool.items.filter(b => pickSet.has(b.title.toLowerCase()));
+        const allObiBooks = [...picksFromPool, ...substitutions];
+        const itemsByTitle = new Map(items.map(i => [i.title.toLowerCase(), i]));
+        const newToShow = allObiBooks.filter(b => !itemsByTitle.has(b.title.toLowerCase()));
+        if (newToShow.length) {
+          setItems(prev => [...prev, ...newToShow]);
+          // Fetch covers for the newly added
+          const covMap = { ...covers };
+          for (const rec of newToShow) {
+            const owned = books.find(bk => normBookKey(bk.title) === normBookKey(rec.title));
+            if (owned?.coverUrl) { covMap[rec.title] = owned.coverUrl; continue; }
+            try {
+              const r = await fetch("/api/fetch-cover", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ title:rec.title, author:rec.author }) });
+              const d = await r.json();
+              if (d.coverUrl) covMap[rec.title] = d.coverUrl;
+            } catch {}
+          }
+          setCovers(covMap);
+        }
+        setObiSubstitutions(substitutions);
+        setObiPicks(pickSet);
+      }
+    } catch (e) {
+      console.error("[browse-curate]", e);
+    }
+    setObiCurateLoading(false);
   }
 
   return (
@@ -3242,18 +3317,36 @@ function BrowseTab({ books, userId, onEdit, onAddBook }) {
       </div>
 
       {/* Results */}
-      {items.length > 0 && (
+      {items.length > 0 && (() => {
+        const displayed = obiPicks
+          ? items.filter(r => obiPicks.has(r.title.toLowerCase()))
+          : items;
+        const headerLabel = obiPicks
+          ? `Obi-curated · ${displayed.length}`
+          : `Catalog · ${total} results`;
+        return (
         <div style={{ padding:"0 18px" }}>
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"baseline", marginBottom:14 }}>
-            <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, color:"rgba(255,255,255,0.55)", textTransform:"uppercase", letterSpacing:"0.1em" }}>Catalog · {total} results</p>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14, gap:8, flexWrap:"wrap" }}>
+            <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, color:"rgba(255,255,255,0.55)", textTransform:"uppercase", letterSpacing:"0.1em" }}>{headerLabel}</p>
+            {obiPicks
+              ? <button onClick={() => { setObiPicks(null); setObiSubstitutions([]); }} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(255,235,195,0.7)", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, textDecoration:"underline" }}>Show full catalog list</button>
+              : items.length >= 10 && <button onClick={curateWithObi} disabled={obiCurateLoading} style={{ display:"flex", alignItems:"center", gap:5, background:"rgba(15,8,2,0.55)", color:"#fff", border:"1px solid rgba(120,70,20,0.3)", borderRadius:14, padding:"4px 10px", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, cursor: obiCurateLoading ? "default" : "pointer", backdropFilter:"blur(4px)" }}>
+                  {obiCurateLoading
+                    ? <><span style={{ width:10, height:10, border:"1.5px solid rgba(255,255,255,0.3)", borderTopColor:"#fff", borderRadius:"50%", display:"inline-block", animation:"spin 0.7s linear infinite" }} />Obi…</>
+                    : <>Ask Obi</>}
+                </button>
+            }
           </div>
+          {obiPicks && displayed.length === 0 && (
+            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:"rgba(255,235,195,0.7)", fontStyle:"italic", padding:"20px 0" }}>Obi didn't flag any of these as strong fits. Try widening your filters or showing the full catalog list.</p>
+          )}
           <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-            {items.map((rec, i) => {
+            {displayed.map((rec, i) => {
               const owned = books.find(b => normBookKey(b.title) === normBookKey(rec.title));
               return <RecCard key={`${rec.title}-${i}`} rec={rec} coverUrl={covers[rec.title]} ownedBook={owned} onAddDirect={() => {}} onEdit={onEdit} onAddBook={onAddBook} index={i} userId={userId} libraryProfile={books.filter(b => b.shelf === "Read" || b.shelf === "DNF")} />;
             })}
           </div>
-          {hasMore && (
+          {!obiPicks && hasMore && (
             <button onClick={() => loadPage(false)} disabled={loading} style={{
               width:"100%", marginTop:14, padding:"11px 0",
               background:"rgba(138,90,40,0.15)", border:"1px solid rgba(138,90,40,0.4)", borderRadius:10,
@@ -3261,7 +3354,8 @@ function BrowseTab({ books, userId, onEdit, onAddBook }) {
             }}>{loading ? "Loading…" : `Load more (${total - items.length} remaining)`}</button>
           )}
         </div>
-      )}
+        );
+      })()}
     </div>
   );
 }
