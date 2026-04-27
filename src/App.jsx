@@ -1,7 +1,15 @@
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo, useRef, useEffect, createContext, useContext } from "react";
 import { supabase } from "./supabase.js";
 import { track } from "@vercel/analytics";
 import { generatePaigeRecs, browseCatalog } from "./lib/paige-client.js";
+
+// Stable session-long Read+DNF snapshot, captured once on first non-empty
+// books load. Consumed by Obi-using components so the prompt's profile
+// prefix stays byte-identical across calls — pairs with server-side
+// cache_control:ephemeral on the same prefix to keep prompt-cache hits warm.
+// Defaults to null so consumers can detect "no snapshot yet" and fall back
+// to a passed-in libraryProfile prop.
+const LibraryProfileContext = createContext(null);
 
 const GENRES = ["Fiction","Non-Fiction","Fantasy","Sci-Fi","Mystery","Thriller","Horror","Romance","Biography","History","Historical Fiction","Young Adult","Self-Help","Graphic Novel","Other"];
 const GENRE_COLORS = {
@@ -416,6 +424,11 @@ const DESCRIPTIONS = {
 const ASPECTS = ["Prose", "Plot", "Characters", "Dialogue", "Pacing", "World-building", "Ending"];
 
 function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPicker, onSaveScores, onSaveDescription, onSaveProgress, onSavePages, onSaveAspects, onAdd, forceProse, onAuthor, libraryProfile = [], userId, guestMode = false }) {
+  // Stable session-snapshot of the user's library, used for Obi calls so the
+  // prompt's profile prefix stays byte-identical across calls and the
+  // server's prompt cache stays warm.
+  const profileSnapshot = useContext(LibraryProfileContext);
+  const obiProfile = (profileSnapshot && profileSnapshot.length > 0) ? profileSnapshot : libraryProfile;
   const [expanded, setExpanded] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [shelfDropOpen, setShelfDropOpen] = useState(false);
@@ -527,7 +540,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           book: { title: book.title, author: book.author, genre: book.genre, description: fetchedDescription },
-          profile: libraryProfile,
+          profile: obiProfile,
           userId,
         }),
       });
@@ -2301,6 +2314,10 @@ function BookCoverThumb({ book: b }) {
 }
 
 function RecCard({ rec, coverUrl, ownedBook, onAddDirect, onEdit, onAddBook, index, userId, libraryProfile }) {
+  // Stable session-snapshot of the user's library, used for Obi calls so the
+  // prompt's profile prefix stays byte-identical across calls (warm cache).
+  const profileSnapshot = useContext(LibraryProfileContext);
+  const obiProfile = (profileSnapshot && profileSnapshot.length > 0) ? profileSnapshot : libraryProfile;
   const [expanded, setExpanded] = useState(false);
   const [dropOpen, setDropOpen] = useState(false);
   const touchMoved = useRef(false);
@@ -2377,7 +2394,7 @@ function RecCard({ rec, coverUrl, ownedBook, onAddDirect, onEdit, onAddBook, ind
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           book: { title: rec.title, author: rec.author, genre: rec.genre },
-          profile: libraryProfile,
+          profile: obiProfile,
           userId,
         }),
       });
@@ -6703,6 +6720,8 @@ function parseGoodreadsCSV(text, shelfMap = DEFAULT_GR_SHELF_MAP) {
 }
 
 function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd, userId, initialTab }) {
+  // Stable session-snapshot of the user's library for Obi calls.
+  const profileSnapshot = useContext(LibraryProfileContext);
   const [activeTab, setActiveTab] = useState(initialTab || "books");
   const [bio, setBio] = useState(null);
   const [bioLoading, setBioLoading] = useState(false);
@@ -6726,7 +6745,9 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd, userI
     if (obiRec) return;
     setObiRecLoading(true);
     try {
-      const profile = books.filter(b => b.shelf === "Read" || b.shelf === "DNF");
+      const profile = (profileSnapshot && profileSnapshot.length > 0)
+        ? profileSnapshot
+        : books.filter(b => b.shelf === "Read" || b.shelf === "DNF");
       const bibliography = (sortedUnread || []).slice(0, 20).map(b => ({ title: b.title, genre: b.genre, publishYear: b.publishYear }));
       const res = await fetch("/api/ask-obi", {
         method: "POST",
@@ -7342,6 +7363,12 @@ export default function App() {
     }
     return [];
   });
+  // Stable session-long snapshot of the user's Read+DNF library, captured the
+  // first time books loads. Passed to Obi so the prompt's profile prefix stays
+  // identical across calls — pairs with server-side cache_control:ephemeral on
+  // the same prefix to keep prompt-cache hits warm. Resets on userId change
+  // (login/logout) and on next page load (always, since it's session state).
+  const [libraryProfileSnapshot, setLibraryProfileSnapshot] = useState([]);
   const [tab, setTab] = useState("shelf");
   const [showAdd, setShowAdd] = useState(false);
   const [addBookDraft, setAddBookDraft] = useState(null);
@@ -7476,6 +7503,18 @@ export default function App() {
   if (!session && !guestMode) return <LoginScreen onGuest={() => { localStorage.setItem(GUEST_ACTIVE_KEY, "1"); setGuestMode(true); track("guest_started"); }} />;
 
   const userId = session?.user.id ?? "guest";
+
+  // Capture profile snapshot the first time books loads with Read/DNF data.
+  // Stays stable across the session so Obi's prompt cache hits warmly.
+  // Reset on userId change so logging in as a different user re-snapshots.
+  useEffect(() => {
+    setLibraryProfileSnapshot([]);
+  }, [userId]);
+  useEffect(() => {
+    if (libraryProfileSnapshot.length > 0) return;
+    const filtered = books.filter(b => b.shelf === "Read" || b.shelf === "DNF");
+    if (filtered.length > 0) setLibraryProfileSnapshot(filtered);
+  }, [books, libraryProfileSnapshot.length]);
 
   function addBook(form) {
     if (books.some(b => normBookKey(b.title) === normBookKey(form.title) && (b.author||"").toLowerCase() === (form.author||"").toLowerCase())) return;
@@ -7655,6 +7694,7 @@ export default function App() {
   }
 
   return (
+    <LibraryProfileContext.Provider value={libraryProfileSnapshot}>
     <div style={{ position:"fixed", inset:0, display:"flex", flexDirection:"column", overflow:"hidden" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');
@@ -7928,5 +7968,6 @@ export default function App() {
           </div>
         )}
     </div>
+    </LibraryProfileContext.Provider>
   );
 }
