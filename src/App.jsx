@@ -7494,14 +7494,8 @@ export default function App() {
       });
   }, [session]);
 
-  if (authLoading) return (
-    <div style={{ width:"100%", height:"100dvh", background:"#3a2010", display:"flex", alignItems:"center", justifyContent:"center" }}>
-      <div style={{ width:28, height:28, border:`3px solid ${WOOD.amber}`, borderTopColor:"transparent", borderRadius:"50%", animation:"spin 0.8s linear infinite" }} />
-    </div>
-  );
-
-  if (!session && !guestMode) return <LoginScreen onGuest={() => { localStorage.setItem(GUEST_ACTIVE_KEY, "1"); setGuestMode(true); track("guest_started"); }} />;
-
+  // userId derived BEFORE the early returns so the snapshot useEffects can
+  // run unconditionally (Rules of Hooks: hook count must be stable per render).
   const userId = session?.user.id ?? "guest";
 
   // Capture profile snapshot the first time books loads with Read/DNF data.
@@ -7515,6 +7509,14 @@ export default function App() {
     const filtered = books.filter(b => b.shelf === "Read" || b.shelf === "DNF");
     if (filtered.length > 0) setLibraryProfileSnapshot(filtered);
   }, [books, libraryProfileSnapshot.length]);
+
+  if (authLoading) return (
+    <div style={{ width:"100%", height:"100dvh", background:"#3a2010", display:"flex", alignItems:"center", justifyContent:"center" }}>
+      <div style={{ width:28, height:28, border:`3px solid ${WOOD.amber}`, borderTopColor:"transparent", borderRadius:"50%", animation:"spin 0.8s linear infinite" }} />
+    </div>
+  );
+
+  if (!session && !guestMode) return <LoginScreen onGuest={() => { localStorage.setItem(GUEST_ACTIVE_KEY, "1"); setGuestMode(true); track("guest_started"); }} />;
 
   function addBook(form) {
     if (books.some(b => normBookKey(b.title) === normBookKey(form.title) && (b.author||"").toLowerCase() === (form.author||"").toLowerCase())) return;
