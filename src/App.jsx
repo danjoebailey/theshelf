@@ -3248,10 +3248,22 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
     if (!scannedBooks.length || obiLoading) return;
     setObiLoading(true);
     try {
-      const fingerprint = scannedBooks.map(b => `${b.title}|${b.author || ""}`).join("\n");
+      // Exclude books the user has already read (or DNF'd) — no point asking
+      // Obi to recommend books they've already finished or rejected.
+      const consumedTitles = new Set(
+        books.filter(b => b.shelf === "Read" || b.shelf === "DNF")
+             .map(b => normBookKey(b.title))
+      );
+      const candidates = scannedBooks.filter(b => !consumedTitles.has(normBookKey(b.title)));
+      if (candidates.length === 0) {
+        setObiPicks(new Set());
+        setObiLoading(false);
+        return;
+      }
+      const fingerprint = candidates.map(b => `${b.title}|${b.author || ""}`).join("\n");
       let hash = 0;
       for (let i = 0; i < fingerprint.length; i++) { hash = ((hash << 5) - hash) + fingerprint.charCodeAt(i); hash &= hash; }
-      const listFingerprint = `scan::${scannedBooks.length}::${Math.abs(hash).toString(36)}`;
+      const listFingerprint = `scan::${candidates.length}::${Math.abs(hash).toString(36)}`;
       const profileForObi = obiProfileSnapshot && obiProfileSnapshot.length > 0
         ? obiProfileSnapshot
         : books.filter(b => b.shelf === "Read" || b.shelf === "DNF");
@@ -3260,7 +3272,7 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           mode: "bulk_filter",
-          books: scannedBooks.map(b => ({ title: b.title, author: b.author || "Unknown", genre: null })),
+          books: candidates.map(b => ({ title: b.title, author: b.author || "Unknown", genre: null })),
           profile: profileForObi,
           userId,
           listFingerprint,
