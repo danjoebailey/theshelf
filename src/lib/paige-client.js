@@ -309,20 +309,28 @@ export async function browseCatalog(userBooks, { genre = null, qualifiers = null
     filtered.push({ book, tagEntry: te });
   }
   // Sort: tier ascending (1 = top tier), then publication year descending.
-  filtered.sort((a, b) => {
-    if (sort === "year") {
+  // Random sort uses Fisher-Yates so each call surfaces a different sample
+  // from the same filter set — discovery-oriented.
+  if (sort === "random") {
+    for (let i = filtered.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [filtered[i], filtered[j]] = [filtered[j], filtered[i]];
+    }
+  } else {
+    filtered.sort((a, b) => {
+      if (sort === "year") {
+        const ya = parseInt(a.book.publicationDate?.slice(0, 4)) || 0;
+        const yb = parseInt(b.book.publicationDate?.slice(0, 4)) || 0;
+        return yb - ya;
+      }
+      const ta = parseInt(a.book.tier) || (a.book.tier === "S" ? 0 : 99);
+      const tb = parseInt(b.book.tier) || (b.book.tier === "S" ? 0 : 99);
+      if (ta !== tb) return ta - tb;
       const ya = parseInt(a.book.publicationDate?.slice(0, 4)) || 0;
       const yb = parseInt(b.book.publicationDate?.slice(0, 4)) || 0;
       return yb - ya;
-    }
-    // default: tier
-    const ta = parseInt(a.book.tier) || (a.book.tier === "S" ? 0 : 99);
-    const tb = parseInt(b.book.tier) || (b.book.tier === "S" ? 0 : 99);
-    if (ta !== tb) return ta - tb;
-    const ya = parseInt(a.book.publicationDate?.slice(0, 4)) || 0;
-    const yb = parseInt(b.book.publicationDate?.slice(0, 4)) || 0;
-    return yb - ya;
-  });
+    });
+  }
   const page = filtered.slice(offset, offset + limit);
   return {
     items: page.map(({ book, tagEntry }) => ({

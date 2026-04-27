@@ -3165,6 +3165,39 @@ function BrowseTab({ books, userId, onEdit, onAddBook }) {
   // meaningless against a different filter.
   useEffect(() => { setObiPicks(null); setObiSubstitutions([]); }, [filterGenre, qualifiers]);
 
+  // Randomize: re-fetch with sort:random for a fresh sample from the same
+  // filter set. Each click rolls the dice — surfaces hidden gems that
+  // wouldn't make it above the fold under tier-sort.
+  async function randomize() {
+    setLoading(true);
+    setObiPicks(null); setObiSubstitutions([]);
+    try {
+      const data = await browseCatalog(books, { genre: filterGenre, qualifiers, sort: "random", offset: 0, limit: 30 });
+      setItems(data.items);
+      setTotal(data.total);
+      setHasMore(data.hasMore);
+      // Fetch covers for new items not already cached
+      const covMap = { ...covers };
+      const need = data.items.filter(r => !covMap[r.title]);
+      const BATCH = 5;
+      for (let b = 0; b < need.length; b += BATCH) {
+        await Promise.all(need.slice(b, b + BATCH).map(async rec => {
+          const owned = books.find(bk => normBookKey(bk.title) === normBookKey(rec.title));
+          if (owned?.coverUrl) { covMap[rec.title] = owned.coverUrl; return; }
+          try {
+            const r = await fetch("/api/fetch-cover", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ title:rec.title, author:rec.author }) });
+            const d = await r.json();
+            if (d.coverUrl) covMap[rec.title] = d.coverUrl;
+          } catch {}
+        }));
+        setCovers({ ...covMap });
+      }
+    } catch (e) {
+      console.error("[browse-random]", e);
+    }
+    setLoading(false);
+  }
+
   async function loadPage(reset = true) {
     setLoading(true);
     if (reset) { setObiPicks(null); setObiSubstitutions([]); }
@@ -3330,11 +3363,22 @@ function BrowseTab({ books, userId, onEdit, onAddBook }) {
             <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, color:"rgba(255,255,255,0.55)", textTransform:"uppercase", letterSpacing:"0.1em" }}>{headerLabel}</p>
             {obiPicks
               ? <button onClick={() => { setObiPicks(null); setObiSubstitutions([]); }} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(255,235,195,0.7)", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, textDecoration:"underline" }}>Show full catalog list</button>
-              : items.length >= 10 && <button onClick={curateWithObi} disabled={obiCurateLoading} style={{ display:"flex", alignItems:"center", gap:5, background:"rgba(15,8,2,0.55)", color:"#fff", border:"1px solid rgba(120,70,20,0.3)", borderRadius:14, padding:"4px 10px", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, cursor: obiCurateLoading ? "default" : "pointer", backdropFilter:"blur(4px)" }}>
-                  {obiCurateLoading
-                    ? <><span style={{ width:10, height:10, border:"1.5px solid rgba(255,255,255,0.3)", borderTopColor:"#fff", borderRadius:"50%", display:"inline-block", animation:"spin 0.7s linear infinite" }} />Obi…</>
-                    : <>Ask Obi</>}
-                </button>
+              : (
+                <div style={{ display:"flex", gap:6 }}>
+                  {items.length >= 10 && (
+                    <button onClick={curateWithObi} disabled={obiCurateLoading || loading} style={{ display:"flex", alignItems:"center", gap:5, background:"rgba(15,8,2,0.55)", color:"#fff", border:"1px solid rgba(120,70,20,0.3)", borderRadius:14, padding:"4px 10px", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, cursor: obiCurateLoading ? "default" : "pointer", backdropFilter:"blur(4px)" }}>
+                      {obiCurateLoading
+                        ? <><span style={{ width:10, height:10, border:"1.5px solid rgba(255,255,255,0.3)", borderTopColor:"#fff", borderRadius:"50%", display:"inline-block", animation:"spin 0.7s linear infinite" }} />Obi…</>
+                        : <>Ask Obi</>}
+                    </button>
+                  )}
+                  <button onClick={randomize} disabled={loading || obiCurateLoading} title="Shuffle for a fresh sample" style={{ display:"flex", alignItems:"center", gap:5, background:"rgba(15,8,2,0.55)", color:"#fff", border:"1px solid rgba(120,70,20,0.3)", borderRadius:14, padding:"4px 10px", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, cursor: loading ? "default" : "pointer", backdropFilter:"blur(4px)" }}>
+                    {loading
+                      ? <><span style={{ width:10, height:10, border:"1.5px solid rgba(255,255,255,0.3)", borderTopColor:"#fff", borderRadius:"50%", display:"inline-block", animation:"spin 0.7s linear infinite" }} />…</>
+                      : <>↻ Randomize</>}
+                  </button>
+                </div>
+              )
             }
           </div>
           {obiPicks && displayed.length === 0 && (
