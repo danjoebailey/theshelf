@@ -2734,7 +2734,14 @@ function PaigeTab({ books, userId, onAddDirect, onEdit, onAddBook }) {
         }),
       });
       const data = await res.json();
-      if (data.picks?.length) setObiPicks(new Set(data.picks.map(t => t.toLowerCase())));
+      if (data.picks?.length) {
+        const pickSet = new Set(data.picks.map(t => t.toLowerCase()));
+        setObiPicks(pickSet);
+        // If Obi promoted books from reserve into the curated set, fetch their
+        // covers so they render with art instead of placeholder gradients.
+        const promoted = (reserve[mode] || []).filter(r => pickSet.has(r.title.toLowerCase()));
+        if (promoted.length) await fetchCoversForRecs(promoted, mode);
+      }
     } catch (e) {
       console.error("[curate]", e);
     }
@@ -2951,7 +2958,13 @@ function PaigeTab({ books, userId, onAddDirect, onEdit, onAddBook }) {
 
           {/* Results */}
           {currentRecs && currentRecs.length > 0 && (() => {
-            const deduped = [...new Map(currentRecs.map(r => [r.title.toLowerCase(), r])).values()];
+            // When Obi-curate is active, look across recs+reserve since Obi may
+            // have promoted reserve books into the picks. Otherwise just show
+            // currentRecs as before.
+            const sourcePool = obiPicks
+              ? [...currentRecs, ...(reserve[mode] || [])]
+              : currentRecs;
+            const deduped = [...new Map(sourcePool.map(r => [r.title.toLowerCase(), r])).values()];
             const baseFiltered = deduped.filter(r => {
               if (filterGenre && r.genre !== filterGenre) return false;
               if (hideOnShelf && books.find(b => normBookKey(b.title) === normBookKey(r.title))) return false;
