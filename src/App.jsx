@@ -4270,9 +4270,9 @@ function ReikoTab({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook }) {
           <div style={{ padding: "0 18px 16px" }}>
             {pickerCollapsed ? (
               <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
-                <div style={{ flex: 1, display: "flex", flexWrap: "wrap", gap: 5 }}>
+                <div style={{ flex: 1, display: "flex", flexWrap: "wrap", gap: 8 }}>
                   {books.filter(b => selected.includes(b.id)).map(b => (
-                    <span key={b.id} style={{ padding: "4px 10px", borderRadius: 20, background: WOOD.card, border: "1px solid rgba(138,90,40,0.25)", fontFamily: "'Crimson Pro',serif", fontSize: 13, color: WOOD.textDim, whiteSpace: "nowrap" }}>{b.title}</span>
+                    <BookCover key={b.id} book={b} width={36} height={54} radius={3} shadow="1px 1px 4px rgba(0,0,0,0.25)" />
                   ))}
                 </div>
                 <button onClick={() => setPickerCollapsed(false)} style={{ flexShrink: 0, background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.45)", padding: 2, marginTop: 2 }}>
