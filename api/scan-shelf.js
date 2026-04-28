@@ -56,9 +56,9 @@ export default async function handler(req, res) {
   }
 
   content.push(textBlock(`
-The OVERVIEW image shows the full bookcase(s). The labeled crops below it are a ${rows || "?"}-row × ${cols || "?"}-column grid of the same image, top-to-bottom, left-to-right.
+The OVERVIEW image shows the full bookcase(s) in original orientation. The labeled crops below it are a ${rows || "?"}-row × ${cols || "?"}-column grid of the same image, top-to-bottom, left-to-right — but each crop has been ROTATED 90° CLOCKWISE so vertical spine text reads horizontally (left-to-right) for easier OCR.
 
-Use the overview to understand bookcase layout (how many bookcases, how many shelves), then use the crops to read individual book spines carefully.
+Use the overview to understand bookcase layout (how many bookcases, how many shelves). Then use the rotated crops to read individual book spines — the text on book spines should appear horizontal in the crops.
 
 Return a single deduplicated JSON array of all books you can identify. No markdown, no explanation — only the JSON:
 [{"title": "Book Title", "author": "Author Name", "shelf": 1}]

@@ -3164,6 +3164,30 @@ function imgToB64(img, sx, sy, sw, sh, maxW) {
   return canvas.toDataURL("image/jpeg", 0.75).split(",")[1];
 }
 
+// Same as imgToB64 but rotates the crop 90° clockwise. Spine text on
+// upright books runs top-to-bottom in the photo; rotating each crop makes
+// the text horizontal, which Claude reads more reliably (per user prototype).
+function imgToB64Rotated(img, sx, sy, sw, sh, maxW) {
+  // Pull the crop to a temp canvas first, then rotate into the final canvas.
+  const temp = document.createElement("canvas");
+  temp.width = sw;
+  temp.height = sh;
+  temp.getContext("2d").drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
+  // After 90° CW: original height becomes new width. Cap maxW on that axis.
+  const scale = Math.min(1, maxW / sh);
+  const w = Math.round(sh * scale);  // new width (= original height)
+  const h = Math.round(sw * scale);  // new height (= original width)
+  const final = document.createElement("canvas");
+  final.width = w;
+  final.height = h;
+  const ctx = final.getContext("2d");
+  ctx.translate(w, 0);
+  ctx.rotate(Math.PI / 2);
+  // In rotated coords, dest dimensions are swapped relative to the canvas
+  ctx.drawImage(temp, 0, 0, h, w);
+  return final.toDataURL("image/jpeg", 0.75).split(",")[1];
+}
+
 function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
   // Cache the most recent scan results per user. We DON'T cache the image
   // itself (data URLs can blow past localStorage quota and don't survive
@@ -3294,7 +3318,9 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
         for (let col = 0; col < SCAN_COLS; col++) {
           const x = col * colW;
           const w = col === SCAN_COLS - 1 ? W - x : colW;
-          crops.push({ row: row + 1, col: col + 1, data: imgToB64(img, x, y, w, h, 600) });
+          // Rotated 90° CW so vertical spine text becomes horizontal — easier
+          // for Claude vision OCR. Overview stays unrotated for layout context.
+          crops.push({ row: row + 1, col: col + 1, data: imgToB64Rotated(img, x, y, w, h, 600) });
         }
       }
       setProgress({ step: "Reading spines…", pct: 50 });
