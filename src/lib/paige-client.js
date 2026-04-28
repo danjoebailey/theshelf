@@ -336,7 +336,14 @@ export async function enrichScannedBooks(scannedBooks) {
 // catalog entry when a swap happened — caller can add it to the display pool.
 export async function resolveSeriesPicks(pickTitles, userBooks) {
   await ensureLoaded();
-  const userReadSet = new Set((userBooks || []).map(b => normalize(b.title)));
+  // Only Read+DNF count as 'past this book' for substitution purposes —
+  // a book on Curious/Currently Reading still represents intent to read,
+  // so the user wants the series entry point as the recommendation.
+  const userReadSet = new Set(
+    (userBooks || [])
+      .filter(b => b.shelf === "Read" || b.shelf === "DNF")
+      .map(b => normalize(b.title))
+  );
   const allBooks = [...primaryCatalog, ...recLibrary];
 
   // Series index: name → books sorted by order
