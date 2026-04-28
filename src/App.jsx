@@ -3213,9 +3213,11 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
     }
   }, [scannedBooks, obiPicks, obiSubstitutions, covers, cacheKey]);
 
-  // Backfill covers for any scanned/substituted book that doesn't have one
-  // yet — happens on revisit when the original session lost some fetches
-  // (timeout, error, navigated away mid-fetch).
+  // Backfill covers AND missing authors for any scanned/substituted book
+  // that doesn't have a cover yet. The cover-fetcher already pings OL/GB/
+  // iTunes which return author info — when scan OCR'd a title cleanly but
+  // missed the spine's author, we use the cover-fetcher's author as the
+  // backfill so cards stop showing 'Unknown'.
   useEffect(() => {
     const all = [...scannedBooks, ...obiSubstitutions];
     const need = all.filter(b => !covers[b.title] && b.title);
@@ -3223,19 +3225,33 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
     let cancelled = false;
     (async () => {
       const covMap = { ...covers };
+      const authorBackfills = {};
       const BATCH = 5;
       for (let b = 0; b < need.length; b += BATCH) {
         if (cancelled) return;
         await Promise.all(need.slice(b, b + BATCH).map(async rec => {
           const owned = books.find(bk => normBookKey(bk.title) === normBookKey(rec.title));
-          if (owned?.coverUrl) { covMap[rec.title] = owned.coverUrl; return; }
+          if (owned?.coverUrl) {
+            covMap[rec.title] = owned.coverUrl;
+            if ((!rec.author || /^unknown$/i.test(rec.author)) && owned.author) {
+              authorBackfills[rec.title] = owned.author;
+            }
+            return;
+          }
           try {
             const r = await fetch("/api/fetch-cover", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ title:rec.title, author:rec.author }) });
             const d = await r.json();
             if (d.coverUrl) covMap[rec.title] = d.coverUrl;
+            if ((!rec.author || /^unknown$/i.test(rec.author)) && d.author) {
+              authorBackfills[rec.title] = d.author;
+            }
           } catch {}
         }));
         if (!cancelled) setCovers({ ...covMap });
+      }
+      if (!cancelled && Object.keys(authorBackfills).length) {
+        setScannedBooks(prev => prev.map(b => authorBackfills[b.title] ? { ...b, author: authorBackfills[b.title] } : b));
+        setObiSubstitutions(prev => prev.map(b => authorBackfills[b.title] ? { ...b, author: authorBackfills[b.title] } : b));
       }
     })();
     return () => { cancelled = true; };

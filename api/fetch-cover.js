@@ -40,21 +40,27 @@ export default async function handler(req, res) {
 
   const seen = new Set();
   const options = [];
+  // Track first-seen authors per source — returned alongside the cover so
+  // shelf-scan callers can backfill Unknown authors when the fetcher matched
+  // the book in OpenLibrary / Google Books / iTunes.
+  const authorsSeen = [];
 
-  function add(source, coverUrl, coverId = null) {
+  function add(source, coverUrl, coverId = null, foundAuthor = null) {
     const url = cleanThumb(coverUrl);
     if (!url || seen.has(url)) return;
     seen.add(url);
     options.push({ source, coverUrl: url, coverId });
+    if (foundAuthor) authorsSeen.push(foundAuthor);
   }
 
   // 1. iTunes first — best quality (600x600)
   (itunesData?.results || [])
     .filter(r => titleMatches(r.trackName || "", cleanTitle))
-    .map(r => r.artworkUrl100?.replace("/100x100bb.", "/600x600bb."))
-    .filter(Boolean)
     .slice(0, 3)
-    .forEach((url, i) => add(i === 0 ? "iTunes" : `iTunes (${i + 1})`, url));
+    .forEach((r, i) => {
+      const url = r.artworkUrl100?.replace("/100x100bb.", "/600x600bb.");
+      if (url) add(i === 0 ? "iTunes" : `iTunes (${i + 1})`, url, null, r.artistName);
+    });
 
   // 2. Open Library — reliable, always -L.jpg
   if (isbn) add("Open Library (ISBN)", `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg`);
@@ -64,23 +70,34 @@ export default async function handler(req, res) {
     .forEach((d, i) => add(
       i === 0 ? "Open Library" : `Open Library (${i + 1})`,
       `https://covers.openlibrary.org/b/id/${d.cover_i}-L.jpg`,
-      d.cover_i
+      d.cover_i,
+      Array.isArray(d.author_name) ? d.author_name[0] : null
     ));
 
   // 3. Google Books — thumbnail as-is (last resort)
-  const gbIsbnThumb = gbIsbnData?.items?.[0]?.volumeInfo?.imageLinks?.thumbnail;
-  if (gbIsbnThumb) add("Google Books (ISBN)", gbIsbnThumb);
+  const gbIsbnVi = gbIsbnData?.items?.[0]?.volumeInfo;
+  const gbIsbnThumb = gbIsbnVi?.imageLinks?.thumbnail;
+  if (gbIsbnThumb) add("Google Books (ISBN)", gbIsbnThumb, null, gbIsbnVi.authors?.[0]);
 
   (gbTitleData?.items || [])
     .filter(i => titleMatches(i.volumeInfo?.title || "", cleanTitle))
-    .map(i => i.volumeInfo?.imageLinks?.thumbnail)
-    .filter(Boolean)
     .slice(0, 3)
-    .forEach((url, i) => add(i === 0 ? "Google Books" : `Google Books (${i + 1})`, url));
+    .forEach((it, i) => {
+      const vi = it.volumeInfo;
+      if (vi?.imageLinks?.thumbnail) add(
+        i === 0 ? "Google Books" : `Google Books (${i + 1})`,
+        vi.imageLinks.thumbnail,
+        null,
+        vi.authors?.[0]
+      );
+    });
 
   const best = options[0] || null;
   const coverUrl = best?.coverUrl || null;
   const coverId = options.find(o => o.coverId)?.coverId || null;
+  // Most common author across the matched sources — falls back to first-seen.
+  // Used by shelf-scan to backfill Unknown authors when OCR missed the spine.
+  const author = authorsSeen[0] || null;
 
-  res.json({ coverUrl, coverId, options });
+  res.json({ coverUrl, coverId, author, options });
 }
