@@ -1,7 +1,18 @@
 import { useState, useMemo, useRef, useEffect, createContext, useContext } from "react";
 import { supabase } from "./supabase.js";
 import { track } from "@vercel/analytics";
-import { generatePaigeRecs, browseCatalog, resolveSeriesPicks, enrichScannedBooks } from "./lib/paige-client.js";
+import { generatePaigeRecs, browseCatalog, resolveSeriesPicks, enrichScannedBooks, getSeriesFor, preloadCatalog } from "./lib/paige-client.js";
+
+// Format a book's title with series suffix when we know the series.
+// Looks at book.series first (from catalog enrichment), falls back to
+// a sync catalog lookup by title+author. Returns the bare title when
+// there's no series info — including for books not in our catalog.
+function titleWithSeries(book) {
+  if (!book) return "";
+  const s = book.series || getSeriesFor(book.title, book.author);
+  if (!s?.name || !s?.order) return book.title || "";
+  return `${book.title} (${s.name}, #${s.order})`;
+}
 
 // Stable session-long Read+DNF snapshot, captured once on first non-empty
 // books load. Consumed by Obi-using components so the prompt's profile
@@ -585,7 +596,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
           <div>
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start" }}>
               <div style={{ minWidth:0, flex:1 }}>
-                <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:21, color:WOOD.text, lineHeight:1.2, marginBottom:1, whiteSpace:expanded?"normal":"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{book.title}</p>
+                <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:21, color:WOOD.text, lineHeight:1.2, marginBottom:1, whiteSpace:expanded?"normal":"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{titleWithSeries(book)}</p>
                 <p style={{ fontSize:12, color:WOOD.textDim, fontStyle:"italic", marginBottom:2 }}>{book.author}</p>
               </div>
               <div style={{ display:"flex", alignItems:"center", gap:6, flexShrink:0 }}>
@@ -993,7 +1004,7 @@ function BookRow({ book, index, onEdit, onRemove, onShelfChange, onAdd, onSavePr
           })()}
         </div>
         <div style={{ flex:1, minWidth:0 }}>
-          <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, lineHeight:1.2, whiteSpace:expanded?"normal":"nowrap", overflow:"hidden", textOverflow:"ellipsis", marginBottom:1 }}>{book.title}</p>
+          <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, lineHeight:1.2, whiteSpace:expanded?"normal":"nowrap", overflow:"hidden", textOverflow:"ellipsis", marginBottom:1 }}>{titleWithSeries(book)}</p>
           <p style={{ fontSize:11, color:WOOD.textDim, fontStyle:"italic", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{book.author}</p>
         </div>
         <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:3, flexShrink:0 }}>
@@ -1060,7 +1071,7 @@ function BookRowPages({ book, index, onEdit, onRemove, onShelfChange, maxPages, 
       <div style={{ display:"flex", alignItems:"center", gap:10, minHeight: expanded ? 0 : rowHeight - 14 }}>
         <BookCover book={book} width={Math.round(Math.min(rowHeight-14,80)*2/3)} height={Math.min(rowHeight-14,80)} radius={3} shadow="1px 1px 5px rgba(0,0,0,0.3)" />
         <div style={{ flex:1, minWidth:0 }}>
-          <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, lineHeight:1.2, whiteSpace:expanded?"normal":"nowrap", overflow:"hidden", textOverflow:"ellipsis", marginBottom:1 }}>{book.title}</p>
+          <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, lineHeight:1.2, whiteSpace:expanded?"normal":"nowrap", overflow:"hidden", textOverflow:"ellipsis", marginBottom:1 }}>{titleWithSeries(book)}</p>
           <p style={{ fontSize:11, color:WOOD.textDim, fontStyle:"italic", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", marginBottom:4 }}>{book.author}</p>
           {pages > 0 && <p style={{ fontSize:10, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif" }}>{pages.toLocaleString()} pages</p>}
         </div>
@@ -1861,7 +1872,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
                     : <BookSpine title={book.title} genre={book.genre} size={28} />
                   }
                   <div style={{ minWidth:0, flex:1 }}>
-                    <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{book.title}</p>
+                    <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{titleWithSeries(book)}</p>
                     <p style={{ fontSize:11, color:WOOD.textDim, fontStyle:"italic" }}>{book.author}</p>
                   </div>
                   <span style={{ fontSize:9, fontFamily:"'DM Sans',sans-serif", color:WOOD.textFaint, flexShrink:0 }}>in library</span>
@@ -1880,7 +1891,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
                     : <BookSpine title={book.title} genre={book.genre} size={28} />
                   }
                   <div style={{ minWidth:0, flex:1 }}>
-                    <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{book.title}</p>
+                    <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{titleWithSeries(book)}</p>
                     <p style={{ fontSize:11, color:WOOD.textDim, fontStyle:"italic" }}>{book.author}</p>
                   </div>
                   <span style={{ background:GENRE_COLORS[book.genre]||GENRE_COLORS["Other"], color:"#fff", borderRadius:"20px", padding:"2px 8px", fontSize:9, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.06em", flexShrink:0 }}>{book.genre}</span>
@@ -2424,7 +2435,7 @@ function RecCard({ rec, coverUrl, ownedBook, onAddDirect, onEdit, onAddBook, ind
           <div style={{ flex: 1, minWidth: 0, display:"flex", flexDirection:"column", justifyContent:"space-between" }}>
             <div>
               <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", marginBottom:3 }}>
-                <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 17, color: WOOD.text, lineHeight: 1.2, flex:1, paddingRight:6 }}>{rec.title}</p>
+                <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 17, color: WOOD.text, lineHeight: 1.2, flex:1, paddingRight:6 }}>{titleWithSeries(rec)}</p>
                 <button
                   onTouchEnd={e => { e.stopPropagation(); e.preventDefault(); ownedBook && onEdit ? onEdit(ownedBook) : onAddBook && onAddBook({ title:rec.title, author:rec.author, genre:rec.genre, coverUrl, pages:rec.pages||0 }); }}
                   onClick={e => { e.stopPropagation(); ownedBook && onEdit ? onEdit(ownedBook) : onAddBook && onAddBook({ title:rec.title, author:rec.author, genre:rec.genre, coverUrl, pages:rec.pages||0 }); }}
@@ -4009,7 +4020,7 @@ function AuthorRecCard({ rec, books, onAuthor, onEdit, onAddBook, onAddDirect, p
                 <div onClick={() => ownedBook ? onEdit && onEdit(ownedBook) : onAddBook && onAddBook(draft)} style={{ display: "flex", gap: 12, flex: 1, minWidth: 0, cursor: "pointer", opacity: ownedBook ? 1 : 0.8 }}>
                   <BookCover book={{ title: b.title, coverUrl }} width={42} height={62} radius={3} shadow="1px 1px 5px rgba(0,0,0,0.2)" />
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 17, color: CR.text, lineHeight: 1.2, marginBottom: 4 }}>{b.title}</p>
+                    <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 17, color: CR.text, lineHeight: 1.2, marginBottom: 4 }}>{titleWithSeries(b)}</p>
                     {b.publishYear && <p style={{ fontSize: 11, color: CR.textDim, fontFamily: "'DM Sans',sans-serif", marginBottom: 6 }}>{b.publishYear}{b.pages ? ` · ${b.pages} pages` : ""}</p>}
                     {b.genre && <span style={{ background: GENRE_COLORS[b.genre] || "#94a3b8", color: "#fff", borderRadius: 20, padding: "3px 8px", fontSize: 8, fontFamily: "'DM Sans',sans-serif", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", lineHeight: 1 }}>{b.genre}</span>}
                   </div>
@@ -4373,7 +4384,7 @@ function ReikoTab({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook }) {
                       : <div style={{ height: 34, width: 23, borderRadius: 3, background: color, flexShrink: 0 }} />
                     }
                     <div style={{ minWidth: 0, textAlign: "left" }}>
-                      <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 13, color: isOn ? WOOD.text : WOOD.textDim, lineHeight: 1.2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 130 }}>{book.title}</p>
+                      <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 13, color: isOn ? WOOD.text : WOOD.textDim, lineHeight: 1.2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 130 }}>{titleWithSeries(book)}</p>
                       <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, color: WOOD.textFaint, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 130 }}>{book.author}</p>
                     </div>
                     {isOn && (
@@ -6423,7 +6434,7 @@ function StatsTab({ books }) {
                   <div key={b.id} style={{ display:"flex", gap:10, alignItems:"center" }}>
                     <BookCover book={b} width={38} height={58} radius={3} shadow="1px 1px 4px rgba(0,0,0,0.25)" />
                     <div style={{ flex:1, minWidth:0 }}>
-                      <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:WOOD.text, lineHeight:1.2, marginBottom:2, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{b.title}</p>
+                      <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:WOOD.text, lineHeight:1.2, marginBottom:2, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{titleWithSeries(b)}</p>
                       <p style={{ fontSize:11, color:WOOD.textDim, fontStyle:"italic", marginBottom: pct !== null ? 5 : 0 }}>{b.author}</p>
                       {pct !== null && (
                         <>
@@ -6530,7 +6541,7 @@ function BookSearchModal({ book, onSave, onClose }) {
             : <BookSpine title={book.title} genre={book.genre} size={72} />
           }
           <div style={{ minWidth:0, flex:1 }}>
-            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:20, color:"#1a1a1a", lineHeight:1.2, marginBottom:4 }}>{book.title}</p>
+            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:20, color:"#1a1a1a", lineHeight:1.2, marginBottom:4 }}>{titleWithSeries(book)}</p>
             <p style={{ fontSize:13, color:"#6b7280", fontStyle:"italic", marginBottom:8 }}>{book.author}</p>
             <div style={{ display:"flex", gap:6, flexWrap:"wrap", alignItems:"center" }}>
               <span style={{ background:GENRE_COLORS[book.genre]||"#94a3b8", color:"#fff", borderRadius:20, padding:"3px 10px", fontSize:11, fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em" }}>{book.genre}</span>
@@ -6687,7 +6698,7 @@ function AddSheet({ onSave, onClose, initialBook = null }) {
                     : <BookSpine title={book.title} genre={book.genre} size={32} />
                   }
                   <div style={{ minWidth:0 }}>
-                    <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, color:WOOD.text, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{book.title}</p>
+                    <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, color:WOOD.text, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{titleWithSeries(book)}</p>
                     <p style={{ fontSize:12, color:WOOD.textDim, fontStyle:"italic" }}>{book.author}</p>
                     <div style={{ display:"flex", gap:6, marginTop:3, alignItems:"center" }}>
                       <span style={{ background:GENRE_COLORS[book.genre], color:"#fff", borderRadius:"20px", padding:"3px 10px", fontSize:10, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em" }}>{book.genre}</span>
@@ -6900,7 +6911,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
 
         {/* Header */}
         <div style={{ padding:"20px 16px 12px 22px", marginBottom:0, position:"relative", flexShrink:0, borderBottom:`1px solid ${CR.border}` }}>
-          <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:24, fontWeight:400, color:CR.text, letterSpacing:"-0.01em", lineHeight:1.2, paddingRight:52 }}>{book.title}</p>
+          <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:24, fontWeight:400, color:CR.text, letterSpacing:"-0.01em", lineHeight:1.2, paddingRight:52 }}>{titleWithSeries(book)}</p>
           <p onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); onAuthor&&onAuthor(book.author); }} onClick={()=>onAuthor&&onAuthor(book.author)} style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, fontStyle:"italic", color:CR.textDim, marginTop:2, cursor:onAuthor?"pointer":"default", textDecorationLine:onAuthor?"underline":"none", textDecorationStyle:"dotted" }}>{book.author}</p>
           <div style={{ marginTop:7 }}>
             <span style={{ background:GENRE_COLORS[book.genre]||"#94a3b8", color:"#fff", borderRadius:"20px", padding:"3px 10px", fontSize:9, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", lineHeight:1, display:"inline-block" }}>{book.genre}</span>
@@ -7771,7 +7782,7 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd, userI
                 <BookCover book={book} width={42} height={62} radius={3} shadow="1px 1px 5px rgba(0,0,0,0.2)" />
                 <div style={{ flex:1, minWidth:0, display:"flex", alignItems:"stretch", gap:8 }}>
                   <div style={{ flex:1, minWidth:0 }}>
-                    <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:17, color:CR.text, lineHeight:1.2, marginBottom:4 }}>{book.title}</p>
+                    <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:17, color:CR.text, lineHeight:1.2, marginBottom:4 }}>{titleWithSeries(book)}</p>
                     {book.rating > 0 && <StarRating value={book.rating} readonly size={14} />}
                     <div style={{ marginTop:6 }}>
                       <span style={{ background:GENRE_COLORS[book.genre]||"#94a3b8", color:"#fff", borderRadius:"20px", padding:"3px 8px", fontSize:8, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", lineHeight:1 }}>{book.genre}</span>
@@ -8157,6 +8168,9 @@ export default function App() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
     });
+    // Warm the catalog so series lookups (titleWithSeries) work on first
+    // render. Cheap — same fetch we'd hit on first visit to Paige/Browse.
+    preloadCatalog().catch(() => {});
     return () => subscription.unsubscribe();
   }, []);
 

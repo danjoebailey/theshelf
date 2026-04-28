@@ -4,6 +4,8 @@ let recLibrary = null;
 let primaryCatalog = null;
 let tagData = null;
 let tagByNorm = null; // normalized title+author → tagEntry lookup
+let seriesByTitleAuthor = null; // title+author → {name, order, total}
+let seriesByTitle = null;       // title → {name, order, total} (fallback)
 let loadPromise = null;
 
 async function ensureLoaded() {
@@ -22,17 +24,43 @@ async function ensureLoaded() {
     // as (e.g., a subtitled title also registers under its suffix) so shelf
     // entries can match regardless of which form they stored.
     tagByNorm = {};
+    seriesByTitleAuthor = {};
+    seriesByTitle = {};
     const allBooks = [...primary, ...rec];
     for (const book of allBooks) {
       const te = tags[String(book.id)];
-      if (!te) continue;
-      const entry = { id: book.id, genre: book.genre, ...te };
-      for (const key of joinKeyVariants(book.title, book.author)) {
-        if (!tagByNorm[key]) tagByNorm[key] = entry;
+      if (te) {
+        const entry = { id: book.id, genre: book.genre, ...te };
+        for (const key of joinKeyVariants(book.title, book.author)) {
+          if (!tagByNorm[key]) tagByNorm[key] = entry;
+        }
+      }
+      if (book.series && book.series.name && book.series.order) {
+        const tk = normalize(book.title);
+        const tak = `${tk}::${normalize(book.author || "")}`;
+        if (!seriesByTitleAuthor[tak]) seriesByTitleAuthor[tak] = book.series;
+        if (!seriesByTitle[tk]) seriesByTitle[tk] = book.series;
       }
     }
   });
   return loadPromise;
+}
+
+// Synchronous series lookup once the catalog is loaded. Returns the
+// {name, order, total} object for a known book, or null. Callers should
+// kick off ensureLoaded() at app boot via preloadCatalog() so this
+// returns useful data on first render.
+export function getSeriesFor(title, author) {
+  if (!seriesByTitleAuthor) return null;
+  const tk = normalize(title || "");
+  const tak = `${tk}::${normalize(author || "")}`;
+  return seriesByTitleAuthor[tak] || seriesByTitle[tk] || null;
+}
+
+// Public wrapper so App.jsx can kick off catalog loading at boot — keeps
+// ensureLoaded() private but lets the rest of the app warm the cache.
+export function preloadCatalog() {
+  return ensureLoaded();
 }
 
 function normalize(s) {
@@ -292,6 +320,7 @@ export async function enrichScannedBooks(scannedBooks) {
       ...scanned,
       author: hasAuthor ? scanned.author : match.author,
       genre: scanned.genre || match.genre,
+      series: scanned.series || match.series || null,
       _inCatalog: true,
     };
   });
