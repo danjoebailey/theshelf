@@ -32,6 +32,9 @@ export const config = {
   api: {
     bodyParser: { sizeLimit: "4mb" },
   },
+  // Vision calls with up to 36 crops can take 30s+. Default 10s timeout
+  // returns a 500 to the client before Anthropic responds.
+  maxDuration: 60,
 };
 
 export default async function handler(req, res) {

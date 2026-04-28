@@ -3365,7 +3365,13 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ overview, crops, rows, cols }),
       });
-      if (!res.ok) throw new Error(`Scan failed: ${res.status}`);
+      if (!res.ok) {
+        // Surface the real error (timeout, rate limit, body-too-large, etc.)
+        // instead of a bare status code so the user knows what to retry.
+        let msg = `Scan failed (${res.status})`;
+        try { const ed = await res.json(); if (ed.error) msg = `Scan failed: ${ed.error}`; } catch {}
+        throw new Error(msg);
+      }
       const data = await res.json();
       if (data.error) throw new Error(data.error);
       // Enrich scanned books from our 10K-book catalog — fills in missing
