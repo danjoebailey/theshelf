@@ -7037,10 +7037,6 @@ function normBookKey(title) {
     .replace(/colour/g,'color').replace(/honour/g,'honor').replace(/favour/g,'favor').replace(/behaviour/g,'behavior').replace(/neighbour/g,'neighbor');
 }
 
-function normAuthorKey(author) {
-  return (author || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^\w]/g, '');
-}
-
 // Levenshtein edit distance for short strings.
 function levenshtein(a, b) {
   if (a === b) return 0;
