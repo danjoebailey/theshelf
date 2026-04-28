@@ -364,7 +364,10 @@ export async function resolveSeriesPicks(pickTitles, userBooks) {
     const seriesBooks = seriesByName[seriesKey];
     const firstUnread = seriesBooks.find(b => !userReadSet.has(normalize(b.title)));
     if (firstUnread && normalize(firstUnread.title) !== normPick) {
-      // Substitute with the entry point
+      // Substitute with the entry point — but only call it 'first' when it
+      // actually IS book one. If the user already read earlier entries, this
+      // is the next unread, not the start of the series.
+      const isFirstInSeries = (firstUnread.series.order || 0) === 1;
       resolved.push({
         title: firstUnread.title,
         book: {
@@ -373,7 +376,9 @@ export async function resolveSeriesPicks(pickTitles, userBooks) {
           genre: firstUnread.genre,
           publishYear: parseInt(firstUnread.publicationDate?.slice(0, 4)) || null,
           pages: firstUnread.pageCount || null,
-          reason: `First in ${firstUnread.series.name} — start here.`,
+          reason: isFirstInSeries
+            ? `First in ${firstUnread.series.name} — start here.`
+            : `Next unread in ${firstUnread.series.name}.`,
           score: 0,
         },
       });
