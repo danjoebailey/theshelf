@@ -243,18 +243,29 @@ function passesQualifiers(tagEntry, qualifiers) {
 export async function enrichScannedBooks(scannedBooks) {
   await ensureLoaded();
   const allBooks = [...primaryCatalog, ...recLibrary];
+  // Two indexes: strict (title+author) avoids cross-author collisions for
+  // ambiguous titles like 'Malice' (Walter/Higashino/Gwynne); loose (title)
+  // is the fallback when OCR couldn't read the author.
+  const byTitleAuthor = {};
   const byTitle = {};
   for (const book of allBooks) {
-    const k = normalize(book.title);
-    if (!byTitle[k]) byTitle[k] = book;
+    const tk = normalize(book.title);
+    const tak = `${tk}::${normalize(book.author || "")}`;
+    if (!byTitleAuthor[tak]) byTitleAuthor[tak] = book;
+    if (!byTitle[tk]) byTitle[tk] = book;
   }
   return scannedBooks.map(scanned => {
-    const k = normalize(scanned.title);
-    const match = byTitle[k];
+    const tk = normalize(scanned.title);
+    const hasAuthor = scanned.author && !/^unknown$/i.test(scanned.author);
+    const tak = `${tk}::${normalize(scanned.author || "")}`;
+    // When OCR gave us an author, require it to match — same-title-different-
+    // author books are real (Malice by Walter is fantasy; by Higashino is
+    // mystery). When OCR didn't, fall back to title-only.
+    const match = hasAuthor ? byTitleAuthor[tak] : byTitle[tk];
     if (!match) return { ...scanned, _inCatalog: false };
     return {
       ...scanned,
-      author: (!scanned.author || /^unknown$/i.test(scanned.author)) ? match.author : scanned.author,
+      author: hasAuthor ? scanned.author : match.author,
       genre: scanned.genre || match.genre,
       _inCatalog: true,
     };

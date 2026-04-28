@@ -3373,11 +3373,14 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
       const enriched = await enrichScannedBooks(data.books || []);
       setScannedBooks(enriched);
       setProgress({ step: "", pct: 100 });
-      // Fetch covers for whatever we matched in the catalog
+      // Fetch covers using the enriched list — catalog match may have filled
+      // in a missing author, and we need that for accurate cover lookup
+      // (e.g. 'Malice' → many books, only 'Malice + Heather Walter' returns
+      // the right cover).
       const covMap = {};
       const BATCH = 5;
-      for (let b = 0; b < (data.books || []).length; b += BATCH) {
-        await Promise.all((data.books || []).slice(b, b + BATCH).map(async rec => {
+      for (let b = 0; b < enriched.length; b += BATCH) {
+        await Promise.all(enriched.slice(b, b + BATCH).map(async rec => {
           try {
             const r = await fetch("/api/fetch-cover", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ title:rec.title, author:rec.author }) });
             const d = await r.json();
