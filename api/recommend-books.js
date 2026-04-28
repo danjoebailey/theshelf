@@ -53,7 +53,7 @@ export default async function handler(req, res) {
     ? `\n\nThe reader has ALREADY READ the following books — do NOT recommend any of them under any circumstances:\n${owned.map(t => `- "${t}"`).join("\n")}`
     : "";
 
-  const userMessage = `Based on these books the reader has enjoyed:\n${bookList}${moodLine}${excludeLine}\n\nRecommend exactly 10 books they would love. For each, provide a concise reason (1–2 sentences) explaining why it fits their taste. Respond ONLY with a JSON object — no markdown, no explanation — in this exact format:\n{"recommendations":[{"title":"...","author":"...","genre":"...","publishYear":1954,"pages":320,"reason":"..."},...]}\n\nGenres must be one of: Fiction, Non-Fiction, Fantasy, Sci-Fi, Mystery, Thriller, Horror, Romance, Biography, History, Historical Fiction, Young Adult, Self-Help, Graphic Novel, Other.`;
+  const userMessage = `Based on these books the reader has enjoyed:\n${bookList}${moodLine}${excludeLine}\n\nRecommend exactly 10 books they would love. For each, provide a concise reason (1–2 sentences) explaining why it fits their taste.\n\nCRITICAL — only recommend books that have ACTUALLY BEEN PUBLISHED:\n- Do NOT recommend announced-but-unreleased books (e.g. "The Doors of Stone" by Patrick Rothfuss, "The Winds of Winter" by GRRM)\n- Do NOT invent titles or fabricate fake sequels\n- Do NOT include books you're uncertain exist\n- If a series is incomplete, only recommend books that have actually been published\n\nIf you're not confident a specific book exists and you've actually read about it, replace it with a different real book.\n\nRespond ONLY with a JSON object — no markdown, no explanation — in this exact format:\n{"recommendations":[{"title":"...","author":"...","genre":"...","publishYear":1954,"pages":320,"reason":"..."},...]}\n\nGenres must be one of: Fiction, Non-Fiction, Fantasy, Sci-Fi, Mystery, Thriller, Horror, Romance, Biography, History, Historical Fiction, Young Adult, Self-Help, Graphic Novel, Other.`;
 
   const response = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -72,28 +72,60 @@ export default async function handler(req, res) {
   // Strip markdown fences if Claude wrapped the response.
   text = text.replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim();
 
+  let parsed = null;
   // 1. Strict full parse.
-  try { return res.json(JSON.parse(text)); } catch {}
-
+  try { parsed = JSON.parse(text); } catch {}
   // 2. Extract a {…} object via greedy match.
-  const objMatch = text.match(/\{[\s\S]*\}/);
-  if (objMatch) {
-    try { return res.json(JSON.parse(objMatch[0])); } catch {}
+  if (!parsed) {
+    const objMatch = text.match(/\{[\s\S]*\}/);
+    if (objMatch) { try { parsed = JSON.parse(objMatch[0]); } catch {} }
+  }
+  // 3. Bare array shape — Claude sometimes drops the {recommendations:…}
+  //    wrapper despite the prompt.
+  if (!parsed) {
+    const arrMatch = text.match(/\[[\s\S]*\]/);
+    if (arrMatch) {
+      try { parsed = { recommendations: JSON.parse(arrMatch[0]) }; } catch {}
+    }
+  }
+  // 4. Truncation recovery — walk bracket depth, close at last complete
+  //    top-level object inside the recommendations array.
+  if (!parsed) parsed = recoverTruncatedRecs(text);
+
+  if (!parsed?.recommendations) {
+    return res.status(500).json({ error: "Failed to parse recommendations.", raw: text.slice(0, 300) });
   }
 
-  // 3. Bare array shape — Claude sometimes returns [{...}, ...] without
-  //    the {recommendations:...} wrapper despite the prompt.
-  const arrMatch = text.match(/\[[\s\S]*\]/);
-  if (arrMatch) {
-    try { return res.json({ recommendations: JSON.parse(arrMatch[0]) }); } catch {}
-  }
+  // Verification pass — drop hallucinated books (Doors of Stone, fabricated
+  // sequels, fake titles) by checking each rec against Google Books for an
+  // entry with a publication date that's already passed.
+  const verified = await Promise.all(
+    parsed.recommendations.map(async rec => ({ rec, real: await isPublished(rec.title, rec.author) }))
+  );
+  parsed.recommendations = verified.filter(v => v.real).map(v => v.rec);
 
-  // 4. Truncation recovery — walk the text, find the last complete top-level
-  //    object inside a recommendations array, and close the JSON there.
-  const recovered = recoverTruncatedRecs(text);
-  if (recovered) return res.json(recovered);
+  res.json(parsed);
+}
 
-  res.status(500).json({ error: "Failed to parse recommendations.", raw: text.slice(0, 300) });
+// Returns true if Google Books has at least one match for title+author with
+// a publishedDate at or before today. Filters announced-but-unreleased books
+// and pure fabrications. On API error, returns true (don't drop on infra
+// failure — better to show a possibly-fake book than lose all recs).
+async function isPublished(title, author) {
+  if (!title || !author) return false;
+  try {
+    const q = `intitle:"${title}" inauthor:"${author}"`;
+    const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=3`;
+    const r = await fetch(url);
+    const d = await r.json();
+    if (!d.items?.length) return false;
+    const today = new Date();
+    return d.items.some(item => {
+      const pub = item.volumeInfo?.publishedDate;
+      if (!pub) return false;
+      try { return new Date(pub) <= today; } catch { return false; }
+    });
+  } catch { return true; }
 }
 
 function recoverTruncatedRecs(text) {
