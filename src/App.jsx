@@ -2764,7 +2764,7 @@ function PaigeTab({ books, userId, onAddDirect, onEdit, onAddBook }) {
     const covMap = {};
     const needsFetch = [];
     for (const rec of results) {
-      const owned = books.find(b => normBookKey(b.title) === normBookKey(rec.title));
+      const owned = findOwnedBook(rec, books);
       if (owned?.coverUrl) covMap[rec.title] = owned.coverUrl;
       else needsFetch.push(rec);
     }
@@ -2981,7 +2981,7 @@ function PaigeTab({ books, userId, onAddDirect, onEdit, onAddBook }) {
             const deduped = [...new Map(sourcePool.map(r => [r.title.toLowerCase(), r])).values()];
             const baseFiltered = deduped.filter(r => {
               if (filterGenre && r.genre !== filterGenre) return false;
-              if (hideOnShelf && books.find(b => normBookKey(b.title) === normBookKey(r.title))) return false;
+              if (hideOnShelf && findOwnedBook(r, books)) return false;
               return true;
             });
             const filtered = obiPicks
@@ -3011,7 +3011,7 @@ function PaigeTab({ books, userId, onAddDirect, onEdit, onAddBook }) {
               )}
               <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
                 {filtered.map((rec, i) => (
-                  <RecCard key={i} index={i} rec={rec} coverUrl={currentCovers[rec.title] || null} ownedBook={books.find(b => normBookKey(b.title) === normBookKey(rec.title))} onAddDirect={onAddDirect} onEdit={onEdit} onAddBook={onAddBook} userId={userId} libraryProfile={profile} />
+                  <RecCard key={i} index={i} rec={rec} coverUrl={currentCovers[rec.title] || null} ownedBook={findOwnedBook(rec, books)} onAddDirect={onAddDirect} onEdit={onEdit} onAddBook={onAddBook} userId={userId} libraryProfile={profile} />
                 ))}
               </div>
               {/* Next 10 */}
@@ -3467,7 +3467,7 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
           )}
           <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
             {displayList.map((rec, i) => {
-              const owned = books.find(b => normBookKey(b.title) === normBookKey(rec.title));
+              const owned = findOwnedBook(rec, books);
               const recForCard = { title: rec.title, author: rec.author || "Unknown", genre: rec.genre || "Fiction" };
               return <RecCard key={`${rec.title}-${i}`} rec={recForCard} coverUrl={covers[rec.title]} ownedBook={owned} onAddDirect={onAddDirect} onEdit={onEdit} onAddBook={onAddBook} index={i} userId={userId} libraryProfile={books.filter(b => b.shelf === "Read" || b.shelf === "DNF")} />;
             })}
@@ -3731,7 +3731,7 @@ function BrowseTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
           )}
           <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
             {displayed.map((rec, i) => {
-              const owned = books.find(b => normBookKey(b.title) === normBookKey(rec.title));
+              const owned = findOwnedBook(rec, books);
               return <RecCard key={`${rec.title}-${i}`} rec={rec} coverUrl={covers[rec.title]} ownedBook={owned} onAddDirect={onAddDirect} onEdit={onEdit} onAddBook={onAddBook} index={i} userId={userId} libraryProfile={books.filter(b => b.shelf === "Read" || b.shelf === "DNF")} />;
             })}
           </div>
@@ -4053,7 +4053,7 @@ function ReikoTab({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook }) {
       const covers = {};
       const needsCover = [];
       for (const rec of results) {
-        const owned = books.find(b => normBookKey(b.title) === normBookKey(rec.title));
+        const owned = findOwnedBook(rec, books);
         if (owned?.coverUrl) covers[rec.title] = owned.coverUrl;
         else needsCover.push(rec);
       }
@@ -4303,7 +4303,7 @@ function ReikoTab({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook }) {
               <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 12 }}>Recommended for you</p>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {[...new Map(recs.map(r => [r.title.toLowerCase(), r])).values()].map((rec, i) => (
-                  <RecCard key={i} index={i} rec={rec} coverUrl={recCovers[rec.title] || books.find(b => normBookKey(b.title) === normBookKey(rec.title))?.coverUrl || null} ownedBook={books.find(b => normBookKey(b.title) === normBookKey(rec.title))} onAddDirect={onAddDirect} onEdit={onEdit} onAddBook={onAddBook} />
+                  <RecCard key={i} index={i} rec={rec} coverUrl={recCovers[rec.title] || findOwnedBook(rec, books)?.coverUrl || null} ownedBook={findOwnedBook(rec, books)} onAddDirect={onAddDirect} onEdit={onEdit} onAddBook={onAddBook} />
                 ))}
               </div>
             </div>
@@ -7035,6 +7035,54 @@ function normBookKey(title) {
     .toLowerCase()
     .replace(/[^\w]/g, '')
     .replace(/colour/g,'color').replace(/honour/g,'honor').replace(/favour/g,'favor').replace(/behaviour/g,'behavior').replace(/neighbour/g,'neighbor');
+}
+
+function normAuthorKey(author) {
+  return (author || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^\w]/g, '');
+}
+
+// Levenshtein edit distance for short strings.
+function levenshtein(a, b) {
+  if (a === b) return 0;
+  if (!a.length) return b.length;
+  if (!b.length) return a.length;
+  let prev = Array.from({ length: b.length + 1 }, (_, i) => i);
+  let curr = new Array(b.length + 1);
+  for (let i = 0; i < a.length; i++) {
+    curr[0] = i + 1;
+    for (let j = 0; j < b.length; j++) {
+      const cost = a[i] === b[j] ? 0 : 1;
+      curr[j + 1] = Math.min(curr[j] + 1, prev[j + 1] + 1, prev[j] + cost);
+    }
+    [prev, curr] = [curr, prev];
+  }
+  return prev[b.length];
+}
+
+// Fuzzy owned-book lookup. Falls back to author + similar-title when an
+// exact normalized-title match misses \u2014 handles OCR slip-ups like
+// "Strength of Five" being on the shelf as "Strength of the Few".
+function findOwnedBook(rec, libraryBooks) {
+  if (!rec?.title || !libraryBooks?.length) return null;
+  const recKey = normBookKey(rec.title);
+  const exact = libraryBooks.find(b => normBookKey(b.title) === recKey);
+  if (exact) return exact;
+  if (!rec.author) return null;
+  const recAuthor = normAuthorKey(rec.author);
+  if (!recAuthor) return null;
+  const sameAuthor = libraryBooks.filter(b => normAuthorKey(b.author) === recAuthor);
+  if (!sameAuthor.length) return null;
+  let best = null, bestRatio = Infinity;
+  for (const b of sameAuthor) {
+    const bKey = normBookKey(b.title);
+    const dist = levenshtein(recKey, bKey);
+    const ratio = dist / Math.max(recKey.length, bKey.length, 1);
+    if (ratio < bestRatio) { best = b; bestRatio = ratio; }
+  }
+  // Threshold tuned so 'strengthoffive' vs 'strengthofthefew' matches
+  // (~0.32 ratio) but unrelated same-author books like Stormlight #1 vs #2
+  // don't (typically > 0.5 ratio).
+  return bestRatio < 0.40 ? best : null;
 }
 
 function normalizeGenre(genre) {
