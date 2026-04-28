@@ -3165,75 +3165,68 @@ function imgToB64(img, sx, sy, sw, sh, maxW) {
 }
 
 function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
-  // Cache the most recent scan per user in localStorage so re-opens of the
-  // tab don't repay for an unchanged photo. Includes the image (as a base64
-  // data URL so it survives the URL.createObjectURL going stale), scan
-  // results, Obi picks, substitutions, and cover URLs.
+  // Cache the most recent scan results per user. We DON'T cache the image
+  // itself (data URLs can blow past localStorage quota and don't survive
+  // serialization cleanly) — only the scan output, Obi picks, and cover
+  // URLs. On revisit, user sees the previous scan results without an image
+  // preview; uploading a new photo starts fresh.
   const cacheKey = `theshelf:shelf-scan:${userId || "guest"}`;
-  const initial = (() => {
+  function readCache() {
     try {
       const raw = localStorage.getItem(cacheKey);
       if (!raw) return null;
-      const parsed = JSON.parse(raw);
-      return parsed;
+      const p = JSON.parse(raw);
+      // Sanity-check shape — refuse anything that doesn't smell like our schema
+      if (!p || typeof p !== "object" || !Array.isArray(p.scannedBooks)) return null;
+      return p;
     } catch { return null; }
-  })();
+  }
 
-  const [imageUrl, setImageUrl] = useState(initial?.imageUrl || null);
-  const [imageMeta, setImageMeta] = useState(initial?.imageMeta || null);
+  const [imageUrl, setImageUrl] = useState(null);
+  const [imageMeta, setImageMeta] = useState(null);
   const [scanning, setScanning] = useState(false);
   const [progress, setProgress] = useState({ step: "", pct: 0 });
-  const [scannedBooks, setScannedBooks] = useState(initial?.scannedBooks || []);
-  const [obiPicks, setObiPicks] = useState(initial?.obiPicks ? new Set(initial.obiPicks) : null);
+  const [scannedBooks, setScannedBooks] = useState(() => readCache()?.scannedBooks || []);
+  const [obiPicks, setObiPicks] = useState(() => {
+    const c = readCache();
+    return c?.obiPicks ? new Set(c.obiPicks) : null;
+  });
   const [obiLoading, setObiLoading] = useState(false);
-  const [obiSubstitutions, setObiSubstitutions] = useState(initial?.obiSubstitutions || []);
+  const [obiSubstitutions, setObiSubstitutions] = useState(() => readCache()?.obiSubstitutions || []);
   const [error, setError] = useState(null);
-  const [covers, setCovers] = useState(initial?.covers || {});
+  const [covers, setCovers] = useState(() => readCache()?.covers || {});
   const fileRef = useRef(null);
   const obiProfileSnapshot = useContext(LibraryProfileContext);
 
-  // Persist any meaningful state change to localStorage.
+  // Persist scan results whenever they change.
   useEffect(() => {
-    if (!imageUrl && !scannedBooks.length) return;
+    if (!scannedBooks.length) return;
     try {
       localStorage.setItem(cacheKey, JSON.stringify({
-        imageUrl,
-        imageMeta,
         scannedBooks,
         obiPicks: obiPicks ? [...obiPicks] : null,
         obiSubstitutions,
         covers,
       }));
     } catch (e) {
-      // Quota exceeded etc — non-fatal; just don't cache this round.
       console.warn("[shelf-scan cache] save failed", e.message);
     }
-  }, [imageUrl, scannedBooks, obiPicks, obiSubstitutions, covers, cacheKey]);
+  }, [scannedBooks, obiPicks, obiSubstitutions, covers, cacheKey]);
 
   function clearCache() {
     try { localStorage.removeItem(cacheKey); } catch {}
   }
 
-  // File → base64 data URL (durable across reloads, survives URL.revokeObjectURL).
-  function fileToDataUrl(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  }
-
-  async function handleFile(file) {
+  function handleFile(file) {
     if (!file?.type.startsWith("image/")) return;
-    const url = await fileToDataUrl(file);
+    const url = URL.createObjectURL(file);
     setImageUrl(url);
     setScannedBooks([]);
     setObiPicks(null);
     setObiSubstitutions([]);
     setCovers({});
     setError(null);
-    clearCache();  // new upload invalidates the previous cached scan
+    clearCache();
     loadImageEl(url).then(img =>
       setImageMeta({ size: `${(file.size / 1024).toFixed(0)} KB`, dims: `${img.naturalWidth}×${img.naturalHeight}` })
     );
@@ -3386,7 +3379,7 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
             <img src={imageUrl} alt="Shelf" style={{ width:"100%", display:"block", maxHeight:280, objectFit:"cover", objectPosition:"top" }} />
             <div style={{ position:"absolute", bottom:0, left:0, right:0, padding:"12px", background:"linear-gradient(transparent,rgba(15,8,2,0.85))", display:"flex", justifyContent:"space-between", alignItems:"flex-end" }}>
               <span style={{ color:"rgba(255,235,195,0.8)", fontSize:11, fontFamily:"'DM Sans',sans-serif" }}>{imageMeta?.dims} · {imageMeta?.size}</span>
-              <button onClick={() => { setImageUrl(null); setImageMeta(null); setScannedBooks([]); setObiPicks(null); setObiSubstitutions([]); setCovers({}); setError(null); clearCache(); }} style={{ background:"rgba(255,255,255,0.18)", border:"1px solid rgba(255,255,255,0.4)", color:"#fff", fontSize:11, padding:"4px 10px", borderRadius:6, cursor:"pointer", fontFamily:"'DM Sans',sans-serif" }}>Change</button>
+              <button onClick={() => { if (imageUrl?.startsWith("blob:")) URL.revokeObjectURL(imageUrl); setImageUrl(null); setImageMeta(null); setScannedBooks([]); setObiPicks(null); setObiSubstitutions([]); setCovers({}); setError(null); clearCache(); }} style={{ background:"rgba(255,255,255,0.18)", border:"1px solid rgba(255,255,255,0.4)", color:"#fff", fontSize:11, padding:"4px 10px", borderRadius:6, cursor:"pointer", fontFamily:"'DM Sans',sans-serif" }}>Change</button>
             </div>
           </div>
         )}
