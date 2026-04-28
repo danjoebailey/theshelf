@@ -3219,6 +3219,7 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
   const [obiSubstitutions, setObiSubstitutions] = useState(() => readCache()?.obiSubstitutions || []);
   const [error, setError] = useState(null);
   const [covers, setCovers] = useState(() => readCache()?.covers || {});
+  const [hideUnmatched, setHideUnmatched] = useState(() => !!readCache()?.hideUnmatched);
   const fileRef = useRef(null);
   const obiProfileSnapshot = useContext(LibraryProfileContext);
 
@@ -3231,11 +3232,12 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
         obiPicks: obiPicks ? [...obiPicks] : null,
         obiSubstitutions,
         covers,
+        hideUnmatched,
       }));
     } catch (e) {
       console.warn("[shelf-scan cache] save failed", e.message);
     }
-  }, [scannedBooks, obiPicks, obiSubstitutions, covers, cacheKey]);
+  }, [scannedBooks, obiPicks, obiSubstitutions, covers, hideUnmatched, cacheKey]);
 
   // Backfill covers AND missing authors for any scanned/substituted book
   // that doesn't have a cover yet. The cover-fetcher already pings OL/GB/
@@ -3416,16 +3418,23 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
 
   // Build display list — when Obi is active, narrow to picks + substitutions
   const displayList = (() => {
-    if (!obiPicks) return scannedBooks;
-    const merged = [...scannedBooks, ...obiSubstitutions];
-    const seen = new Set();
-    return merged.filter(b => {
-      const k = b.title.toLowerCase();
-      if (seen.has(k) || !obiPicks.has(k)) return false;
-      seen.add(k);
-      return true;
-    });
+    let base;
+    if (!obiPicks) {
+      base = scannedBooks;
+    } else {
+      const merged = [...scannedBooks, ...obiSubstitutions];
+      const seen = new Set();
+      base = merged.filter(b => {
+        const k = b.title.toLowerCase();
+        if (seen.has(k) || !obiPicks.has(k)) return false;
+        seen.add(k);
+        return true;
+      });
+    }
+    if (hideUnmatched) base = base.filter(b => b._inCatalog !== false);
+    return base;
   })();
+  const unmatchedCount = scannedBooks.filter(b => b._inCatalog === false).length;
 
   return (
     <div style={{ padding:"0 0 100px" }}>
@@ -3493,19 +3502,33 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
         <div style={{ padding:"0 18px" }}>
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14, gap:8, flexWrap:"wrap" }}>
             <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, color:"rgba(255,255,255,0.55)", textTransform:"uppercase", letterSpacing:"0.1em" }}>
-              {obiPicks ? `Obi-curated · ${displayList.length}` : `Found · ${scannedBooks.length} books`}
+              {obiPicks
+                ? `Obi-curated · ${displayList.length}`
+                : hideUnmatched
+                  ? `Matched · ${displayList.length} of ${scannedBooks.length}`
+                  : `Found · ${scannedBooks.length} books`}
             </p>
-            {obiPicks
-              ? <button onClick={() => { setObiPicks(null); setObiSubstitutions([]); }} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(255,235,195,0.7)", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, textDecoration:"underline" }}>Show full scan list</button>
-              : scannedBooks.length >= 3 && <button onClick={askObi} disabled={obiLoading} style={{ display:"flex", alignItems:"center", gap:5, background:"rgba(15,8,2,0.55)", color:"#fff", border:"1px solid rgba(120,70,20,0.3)", borderRadius:14, padding:"4px 10px", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, cursor: obiLoading ? "default" : "pointer", backdropFilter:"blur(4px)" }}>
-                  {obiLoading
-                    ? <><span style={{ width:10, height:10, border:"1.5px solid rgba(255,255,255,0.3)", borderTopColor:"#fff", borderRadius:"50%", display:"inline-block", animation:"spin 0.7s linear infinite" }} />Obi…</>
-                    : <>Ask Obi</>}
+            <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
+              {unmatchedCount > 0 && (
+                <button onClick={() => setHideUnmatched(v => !v)} style={{ display:"flex", alignItems:"center", gap:5, background: hideUnmatched ? "rgba(200,136,58,0.25)" : "rgba(15,8,2,0.55)", color:"#fff", border: hideUnmatched ? "1px solid rgba(200,136,58,0.6)" : "1px solid rgba(120,70,20,0.3)", borderRadius:14, padding:"4px 10px", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, cursor:"pointer", backdropFilter:"blur(4px)" }}>
+                  {hideUnmatched ? "✓ Matched only" : "Show only matched"}
                 </button>
-            }
+              )}
+              {obiPicks
+                ? <button onClick={() => { setObiPicks(null); setObiSubstitutions([]); }} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(255,235,195,0.7)", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, textDecoration:"underline" }}>Show full scan list</button>
+                : scannedBooks.length >= 3 && <button onClick={askObi} disabled={obiLoading} style={{ display:"flex", alignItems:"center", gap:5, background:"rgba(15,8,2,0.55)", color:"#fff", border:"1px solid rgba(120,70,20,0.3)", borderRadius:14, padding:"4px 10px", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, cursor: obiLoading ? "default" : "pointer", backdropFilter:"blur(4px)" }}>
+                    {obiLoading
+                      ? <><span style={{ width:10, height:10, border:"1.5px solid rgba(255,255,255,0.3)", borderTopColor:"#fff", borderRadius:"50%", display:"inline-block", animation:"spin 0.7s linear infinite" }} />Obi…</>
+                      : <>Ask Obi</>}
+                  </button>
+              }
+            </div>
           </div>
           {obiPicks && displayList.length === 0 && (
             <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:"rgba(255,235,195,0.7)", fontStyle:"italic", padding:"20px 0" }}>Obi didn't flag any of these as strong fits for you.</p>
+          )}
+          {!obiPicks && hideUnmatched && displayList.length === 0 && (
+            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:"rgba(255,235,195,0.7)", fontStyle:"italic", padding:"20px 0" }}>None of the scanned spines matched a book in our catalog.</p>
           )}
           <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
             {displayList.map((rec, i) => {
