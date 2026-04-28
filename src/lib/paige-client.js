@@ -240,28 +240,53 @@ function passesQualifiers(tagEntry, qualifiers) {
 // + rec library = ~13K books). If we have a match, fill in author + genre
 // from the catalog and mark _inCatalog: true so callers can filter the
 // scan view to "books the system actually knows about."
+// Pulls the last name out of an author string for fuzzy author matching.
+// Handles "Last, First" (inverted format), "First Last", and multi-word
+// last names by always taking the final word. "Heather Walter" → walter,
+// "Hemingway, Ernest" → hemingway, "George R.R. Martin" → martin.
+function lastName(author) {
+  if (!author) return "";
+  if (author.includes(",")) return normalize(author.split(",")[0]);
+  const tokens = author.trim().split(/\s+/);
+  return normalize(tokens[tokens.length - 1] || "");
+}
+
 export async function enrichScannedBooks(scannedBooks) {
   await ensureLoaded();
   const allBooks = [...primaryCatalog, ...recLibrary];
-  // Two indexes: strict (title+author) avoids cross-author collisions for
-  // ambiguous titles like 'Malice' (Walter/Higashino/Gwynne); loose (title)
-  // is the fallback when OCR couldn't read the author.
-  const byTitleAuthor = {};
-  const byTitle = {};
+  // Group all books with the same normalized title so we can pick the right
+  // one by author. Same-title books are real (Malice by Walter is fantasy;
+  // by Higashino is mystery; by Gwynne is grimdark fantasy).
+  const byTitleList = {};
   for (const book of allBooks) {
     const tk = normalize(book.title);
-    const tak = `${tk}::${normalize(book.author || "")}`;
-    if (!byTitleAuthor[tak]) byTitleAuthor[tak] = book;
-    if (!byTitle[tk]) byTitle[tk] = book;
+    if (!byTitleList[tk]) byTitleList[tk] = [];
+    byTitleList[tk].push(book);
   }
   return scannedBooks.map(scanned => {
     const tk = normalize(scanned.title);
+    const candidates = byTitleList[tk] || [];
+    if (candidates.length === 0) return { ...scanned, _inCatalog: false };
     const hasAuthor = scanned.author && !/^unknown$/i.test(scanned.author);
-    const tak = `${tk}::${normalize(scanned.author || "")}`;
-    // When OCR gave us an author, require it to match — same-title-different-
-    // author books are real (Malice by Walter is fantasy; by Higashino is
-    // mystery). When OCR didn't, fall back to title-only.
-    const match = hasAuthor ? byTitleAuthor[tak] : byTitle[tk];
+    let match = null;
+    if (hasAuthor) {
+      const targetFull = normalize(scanned.author);
+      const targetLast = lastName(scanned.author);
+      // 1. Exact full-author match (handles 'James S.A. Corey' = 'James S A Corey').
+      match = candidates.find(b => normalize(b.author || "") === targetFull);
+      // 2. Last-name fallback (handles 'H. Walter' = 'Heather Walter',
+      //    'Hemingway, Ernest' = 'Ernest Hemingway').
+      if (!match && targetLast) {
+        match = candidates.find(b => lastName(b.author || "") === targetLast);
+      }
+      // No match — different author, leave _inCatalog: false to avoid
+      // cross-author contamination (Walter's Malice ≠ Higashino's Malice).
+    } else {
+      // OCR didn't read the author — best we can do is the first-indexed
+      // candidate (primary catalog precedes rec library, so this favors
+      // the more popular book when there's ambiguity).
+      match = candidates[0];
+    }
     if (!match) return { ...scanned, _inCatalog: false };
     return {
       ...scanned,
