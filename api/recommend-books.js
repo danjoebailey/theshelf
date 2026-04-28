@@ -60,7 +60,7 @@ export default async function handler(req, res) {
     headers: { "Content-Type": "application/json", "x-api-key": apiKey, "anthropic-version": "2023-06-01" },
     body: JSON.stringify({
       model: "claude-sonnet-4-6",
-      max_tokens: 2000,
+      max_tokens: 3000,
       messages: [{ role: "user", content: userMessage }],
     }),
   });
@@ -68,15 +68,54 @@ export default async function handler(req, res) {
   if (!response.ok) return res.status(500).json({ error: await response.text() });
 
   const data = await response.json();
-  const text = (data.content?.[0]?.text || "").trim();
+  let text = (data.content?.[0]?.text || "").trim();
+  // Strip markdown fences if Claude wrapped the response.
+  text = text.replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "").trim();
 
-  try {
-    return res.json(JSON.parse(text));
-  } catch {
-    const match = text.match(/\{[\s\S]*\}/);
-    if (match) {
-      try { return res.json(JSON.parse(match[0])); } catch {}
-    }
-    res.status(500).json({ error: "Failed to parse recommendations." });
+  // 1. Strict full parse.
+  try { return res.json(JSON.parse(text)); } catch {}
+
+  // 2. Extract a {…} object via greedy match.
+  const objMatch = text.match(/\{[\s\S]*\}/);
+  if (objMatch) {
+    try { return res.json(JSON.parse(objMatch[0])); } catch {}
   }
+
+  // 3. Bare array shape — Claude sometimes returns [{...}, ...] without
+  //    the {recommendations:...} wrapper despite the prompt.
+  const arrMatch = text.match(/\[[\s\S]*\]/);
+  if (arrMatch) {
+    try { return res.json({ recommendations: JSON.parse(arrMatch[0]) }); } catch {}
+  }
+
+  // 4. Truncation recovery — walk the text, find the last complete top-level
+  //    object inside a recommendations array, and close the JSON there.
+  const recovered = recoverTruncatedRecs(text);
+  if (recovered) return res.json(recovered);
+
+  res.status(500).json({ error: "Failed to parse recommendations.", raw: text.slice(0, 300) });
+}
+
+function recoverTruncatedRecs(text) {
+  const arrStart = text.indexOf("[");
+  if (arrStart === -1) return null;
+  const tail = text.slice(arrStart);
+  let depth = 0, inStr = false, escape = false, lastClose = -1;
+  for (let i = 0; i < tail.length; i++) {
+    const c = tail[i];
+    if (escape) { escape = false; continue; }
+    if (c === "\\") { escape = true; continue; }
+    if (c === '"') inStr = !inStr;
+    if (inStr) continue;
+    if (c === "{") depth++;
+    else if (c === "}") {
+      depth--;
+      if (depth === 0) lastClose = i;
+    }
+  }
+  if (lastClose === -1) return null;
+  try {
+    const arr = JSON.parse(tail.slice(0, lastClose + 1) + "]");
+    return Array.isArray(arr) ? { recommendations: arr } : null;
+  } catch { return null; }
 }
