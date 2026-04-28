@@ -3423,7 +3423,7 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           mode: "bulk_filter",
-          books: candidates.map(b => ({ title: b.title, author: b.author || "Unknown", genre: null })),
+          books: candidates.map(b => ({ title: b.title, author: b.author || "Unknown", genre: b.genre || null })),
           profile: profileForObi,
           userId,
           listFingerprint,

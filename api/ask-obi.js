@@ -81,7 +81,9 @@ export default async function handler(req, res) {
     const { books, profile, listFingerprint } = req.body;
     if (!Array.isArray(books) || !books.length) return res.status(400).json({ error: "No books" });
 
-    const cacheKey = `bulk::${listFingerprint || ""}`;
+    // v2 cache key — invalidates older bulk picks generated under the looser
+    // pre-Apr-28 prompt that didn't apply the per-book yes/pass test.
+    const cacheKey = `bulk::v2::${listFingerprint || ""}`;
     if (listFingerprint) {
       const cached = await getCached(userId, cacheKey);
       if (cached) {
@@ -103,13 +105,17 @@ ${buildProfileLines(profile)}`;
 
     const uncachedQuery = `
 
-Candidate list (Paige's algorithm ranked these by statistical fit, top to bottom):
+Candidate list:
 ${bookList}
 
-Walk this list from top to bottom. Identify the 10 (or fewer if fewer truly fit) books you most strongly believe this reader would enjoy. Apply qualitative judgment about pacing, tone, emotional register, depth, and ideas — beyond just statistical fit. Be selective: if only 4 are strong fits, return 4.
+Identify only the books you'd strongly recommend — where multiple dimensions of fit align (prose quality, themes, tone, intellectual register), not just a shared genre tag. A book sharing a genre with their library but missing on prose or depth is NOT a fit.
 
-Return ONLY a JSON array of the integer 1-based indices you've selected, in original input order. No prose, no explanations.
-Example output: [1, 4, 7, 12, 18, 23, 29, 35, 42, 51]`;
+Apply this test for each book: if the reader asked you about it individually, would you say "yes, read this" or "pass"? Include ONLY the yeses. Be strict — better to return 3 confident picks than 10 hedged ones.
+
+Return AT MOST 10. Return [] if none truly fit.
+
+Output ONLY a JSON array of 1-based indices in original input order. No prose.
+Example: [1, 4, 7, 12, 18]`;
 
     try {
       const response = await callClaude(apiKey, [
