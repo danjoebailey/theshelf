@@ -95,9 +95,10 @@ export default async function handler(req, res) {
   const best = options[0] || null;
   const coverUrl = best?.coverUrl || null;
   const coverId = options.find(o => o.coverId)?.coverId || null;
-  // Most common author across the matched sources — falls back to first-seen.
-  // Used by shelf-scan to backfill Unknown authors when OCR missed the spine.
-  const author = authorsSeen[0] || null;
+  // Author surfaced by whichever source matched first — lets shelf-scan
+  // backfill 'Unknown' authors when OCR missed the spine. Renamed to avoid
+  // shadowing the `author` param destructured from req.body.
+  const matchedAuthor = authorsSeen[0] || null;
 
-  res.json({ coverUrl, coverId, author, options });
+  res.json({ coverUrl, coverId, author: matchedAuthor, options });
 }
