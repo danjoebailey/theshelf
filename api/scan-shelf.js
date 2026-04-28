@@ -69,10 +69,10 @@ Rules:
   return content;
 }
 
-// Crop counts at or above this trigger a 2-batch parallel split. 16 crops
-// (4×4 grid) consistently stay under 30s as a single call; above that we've
-// observed 60s+ Anthropic latency that hits the Vercel timeout.
-const SPLIT_THRESHOLD = 16;
+// Below this, run as a single call. Above, fan out per-row in parallel —
+// each row batch has cols-many crops + overview = small, fast call. Wall
+// time becomes ~max(individual call times) instead of summing.
+const SINGLE_CALL_THRESHOLD = 8;
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
@@ -88,26 +88,41 @@ export default async function handler(req, res) {
     let allBooks = [];
     let anyTruncated = false;
 
-    if (crops.length >= SPLIT_THRESHOLD) {
-      // Split into top/bottom halves and run in parallel — halves total
-      // latency vs. one big call. Each half sees the full overview for
-      // context and only the crops it's responsible for.
-      const halfRow = Math.ceil(rows / 2);
-      const topCrops = crops.filter(c => c.row <= halfRow);
-      const botCrops = crops.filter(c => c.row > halfRow);
-
-      const [topRaw, botRaw] = await Promise.all([
-        callClaudeVision(apiKey, buildContent(overview, topCrops, rows, cols, `the upper half (rows 1-${halfRow})`), 4500),
-        callClaudeVision(apiKey, buildContent(overview, botCrops, rows, cols, `the lower half (rows ${halfRow + 1}-${rows})`), 4500),
-      ]);
-
-      const top = parseBookArray(topRaw.replace(/```json|```/g, "").trim());
-      const bot = parseBookArray(botRaw.replace(/```json|```/g, "").trim());
-      if (!top.books && !bot.books) {
-        throw new Error(`No JSON array in either batch. Top: ${topRaw.slice(0, 100)} | Bot: ${botRaw.slice(0, 100)}`);
+    if (crops.length > SINGLE_CALL_THRESHOLD) {
+      // Per-row parallel fan-out. Each row batch is small (cols crops +
+      // overview), so individual Anthropic calls complete in ~5-10s. With
+      // Promise.allSettled, total wall time ≈ slowest single batch and a
+      // failure in one row doesn't take down the whole scan.
+      const byRow = {};
+      for (const c of crops) {
+        (byRow[c.row] = byRow[c.row] || []).push(c);
       }
-      allBooks = [...(top.books || []), ...(bot.books || [])];
-      anyTruncated = top.truncated || bot.truncated;
+      const rowKeys = Object.keys(byRow).map(k => parseInt(k, 10)).sort((a, b) => a - b);
+
+      const settled = await Promise.allSettled(
+        rowKeys.map(async rowNum => {
+          const batch = byRow[rowNum];
+          const content = buildContent(overview, batch, rows, cols, `row ${rowNum} of ${rows}`);
+          const raw = await callClaudeVision(apiKey, content, 2500);
+          return parseBookArray(raw.replace(/```json|```/g, "").trim());
+        })
+      );
+
+      let anyFailed = false;
+      for (const s of settled) {
+        if (s.status === "fulfilled" && s.value.books) {
+          allBooks.push(...s.value.books);
+          if (s.value.truncated) anyTruncated = true;
+        } else {
+          anyFailed = true;
+        }
+      }
+      if (allBooks.length === 0) {
+        const firstErr = settled.find(s => s.status === "rejected")?.reason?.message || "All row batches failed";
+        throw new Error(firstErr);
+      }
+      // Surface partial-failure as truncation so the user sees the cap hint.
+      if (anyFailed) anyTruncated = true;
     } else {
       const raw = await callClaudeVision(apiKey, buildContent(overview, crops, rows, cols, "the entire shelf"), 6000);
       const cleaned = raw.replace(/```json|```/g, "").trim();
@@ -117,9 +132,8 @@ export default async function handler(req, res) {
       anyTruncated = parsed.truncated;
     }
 
-    // Server-side dedupe (defense in depth — client also dedupes; also
-    // critical for the split case where the same book might be picked up
-    // by both halves at the seam).
+    // Server-side dedupe — books that appear in multiple row batches (e.g.
+    // tall books spanning two rows) should be returned once.
     const seen = new Set();
     const deduped = allBooks.filter(b => {
       const key = (b.title || "").toLowerCase().replace(/[^a-z0-9]/g, "");
