@@ -3230,6 +3230,7 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
   const [error, setError] = useState(null);
   const [covers, setCovers] = useState(() => readCache()?.covers || {});
   const [hideUnmatched, setHideUnmatched] = useState(() => !!readCache()?.hideUnmatched);
+  const [truncated, setTruncated] = useState(() => !!readCache()?.truncated);
   const fileRef = useRef(null);
   const obiProfileSnapshot = useContext(LibraryProfileContext);
 
@@ -3243,11 +3244,12 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
         obiSubstitutions,
         covers,
         hideUnmatched,
+        truncated,
       }));
     } catch (e) {
       console.warn("[shelf-scan cache] save failed", e.message);
     }
-  }, [scannedBooks, obiPicks, obiSubstitutions, covers, hideUnmatched, cacheKey]);
+  }, [scannedBooks, obiPicks, obiSubstitutions, covers, hideUnmatched, truncated, cacheKey]);
 
   // Backfill covers AND missing authors for any scanned/substituted book
   // that doesn't have a cover yet. The cover-fetcher already pings OL/GB/
@@ -3307,6 +3309,7 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
     setObiSubstitutions([]);
     setCovers({});
     setError(null);
+    setTruncated(false);
     clearCache();
     loadImageEl(url).then(img =>
       setImageMeta({ size: `${(file.size / 1024).toFixed(0)} KB`, dims: `${img.naturalWidth}×${img.naturalHeight}` })
@@ -3316,7 +3319,7 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
   async function scan() {
     if (!imageUrl || scanning) return;
     setScanning(true); setError(null);
-    setScannedBooks([]); setObiPicks(null); setObiSubstitutions([]);
+    setScannedBooks([]); setObiPicks(null); setObiSubstitutions([]); setTruncated(false);
     try {
       setProgress({ step: "Sizing up the shelf…", pct: 10 });
       const img = await loadImageEl(imageUrl);
@@ -3378,6 +3381,7 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
       // authors and genres for any title we already know.
       const enriched = await enrichScannedBooks(data.books || []);
       setScannedBooks(enriched);
+      setTruncated(!!data.truncated);
       setProgress({ step: "", pct: 100 });
       // Fetch covers using the enriched list — catalog match may have filled
       // in a missing author, and we need that for accurate cover lookup
@@ -3573,11 +3577,11 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
           {!obiPicks && hideUnmatched && displayList.length === 0 && (
             <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:"rgba(255,235,195,0.7)", fontStyle:"italic", padding:"20px 0" }}>None of the scanned spines matched a book in our catalog.</p>
           )}
-          {/* Soft cap hint — max_tokens=4000 truncates around ~150-160 books.
-              If we land in that range, the scan likely missed some spines. */}
-          {!obiPicks && scannedBooks.length >= 145 && (
+          {/* Truncation hint — server signals when Claude's response hit the
+              token cap and we recovered partial results. */}
+          {!obiPicks && truncated && (
             <div style={{ marginBottom:14, padding:"10px 12px", background:"rgba(160,100,40,0.1)", border:"1px solid rgba(160,100,40,0.3)", borderRadius:8 }}>
-              <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:"rgba(255,235,195,0.75)" }}>That's a packed shelf — we cap each scan around 160 books. For more coverage, try a closer shot of one section.</p>
+              <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:"rgba(255,235,195,0.75)" }}>That's a packed shelf — we hit the response cap and showed the {scannedBooks.length} books we recovered. For more coverage, try a closer shot of one section.</p>
             </div>
           )}
           <div style={{ display:"flex", flexDirection:"column", gap:10 }}>

@@ -13,7 +13,9 @@ async function callClaudeVision(apiKey, content) {
     },
     body: JSON.stringify({
       model: "claude-sonnet-4-6",
-      max_tokens: 4000,
+      // 6000 tokens ≈ 200-240 book entries. Above that we rely on the
+      // truncation recovery in parseBookArray() and signal it to the client.
+      max_tokens: 6000,
       messages: [{ role: "user", content }],
     }),
   });
@@ -76,9 +78,8 @@ Rules:
   try {
     const raw = await callClaudeVision(apiKey, content);
     const cleaned = raw.replace(/```json|```/g, "").trim();
-    const match = cleaned.match(/\[[\s\S]*\]/);
-    if (!match) throw new Error(`No JSON array in response: ${cleaned.slice(0, 200)}`);
-    const parsed = JSON.parse(match[0]);
+    const { books: parsed, truncated } = parseBookArray(cleaned);
+    if (!parsed) throw new Error(`No JSON array in response: ${cleaned.slice(0, 200)}`);
     // Server-side dedupe (defense in depth — client also dedupes)
     const seen = new Set();
     const deduped = parsed.filter(b => {
@@ -87,8 +88,41 @@ Rules:
       seen.add(key);
       return true;
     });
-    res.json({ books: deduped });
+    res.json({ books: deduped, truncated });
   } catch (e) {
     res.status(500).json({ error: e.message || "Scan failed" });
   }
+}
+
+// Parse Claude's array response, recovering gracefully when max_tokens
+// truncates mid-object. Returns { books, truncated } so the client can warn
+// the user that some spines were cut off.
+function parseBookArray(cleaned) {
+  // Happy path: full closing bracket present.
+  const fullMatch = cleaned.match(/\[[\s\S]*\]/);
+  if (fullMatch) {
+    try { return { books: JSON.parse(fullMatch[0]), truncated: false }; } catch {}
+  }
+  // Truncated: walk the string, track bracket depth + string state, find
+  // the last complete top-level `}`, and close the array there.
+  const start = cleaned.indexOf("[");
+  if (start === -1) return { books: null, truncated: false };
+  const tail = cleaned.slice(start);
+  let depth = 0, inStr = false, escape = false, lastClose = -1;
+  for (let i = 0; i < tail.length; i++) {
+    const c = tail[i];
+    if (escape) { escape = false; continue; }
+    if (c === "\\") { escape = true; continue; }
+    if (c === '"') inStr = !inStr;
+    if (inStr) continue;
+    if (c === "{") depth++;
+    else if (c === "}") {
+      depth--;
+      if (depth === 0) lastClose = i;
+    }
+  }
+  if (lastClose === -1) return { books: null, truncated: false };
+  const recovered = tail.slice(0, lastClose + 1) + "]";
+  try { return { books: JSON.parse(recovered), truncated: true }; }
+  catch { return { books: null, truncated: false }; }
 }
