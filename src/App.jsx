@@ -3143,8 +3143,18 @@ function ReedTab({ books, userId, onEdit, onShelfChange, onSaveScores, onAuthor 
 
 // Shelf Scan — point at any bookshelf, extract titles via Claude Vision,
 // then run Ask Obi against the user's profile to surface picks worth reading.
-const SCAN_COLS = 3;
-const SCAN_ROWS = 5;
+// Default grid used when the preflight call fails. Real scans use the
+// adaptive grid computed from the bookcases × shelves preflight response.
+const SCAN_COLS_DEFAULT = 3;
+const SCAN_ROWS_DEFAULT = 5;
+// Hard ceilings — never exceed regardless of what preflight returns.
+// 6×6 = 36 crops keeps cost under ~15¢/scan even on high-res photos.
+const SCAN_COLS_MAX = 6;
+const SCAN_ROWS_MAX = 6;
+// Total source-pixel budget across all crops. We dynamically pick maxW
+// per crop so num_crops × (maxW × 0.75 maxW) ≈ this budget — keeps input
+// tokens flat regardless of grid density or source resolution.
+const CROP_PIXEL_BUDGET = 12_000_000;
 
 function loadImageEl(src) {
   return new Promise((resolve, reject) => {
@@ -3308,28 +3318,52 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
     setScanning(true); setError(null);
     setScannedBooks([]); setObiPicks(null); setObiSubstitutions([]);
     try {
-      setProgress({ step: "Slicing image…", pct: 15 });
+      setProgress({ step: "Sizing up the shelf…", pct: 10 });
       const img = await loadImageEl(imageUrl);
       const W = img.naturalWidth, H = img.naturalHeight;
-      const colW = Math.floor(W / SCAN_COLS), rowH = Math.floor(H / SCAN_ROWS);
       const overview = imgToB64(img, 0, 0, W, H, 400);
+
+      // Preflight: ask Claude to count bookcases × shelves so we can
+      // size the OCR grid to the photo. Falls back to defaults on failure.
+      let cols = SCAN_COLS_DEFAULT, rows = SCAN_ROWS_DEFAULT;
+      try {
+        const pf = await fetch("/api/scan-preflight", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ overview }),
+        });
+        if (pf.ok) {
+          const pfData = await pf.json();
+          if (pfData.bookcases && pfData.shelves) {
+            // ×2 cols splits each bookcase in half so each crop has ~7 spines.
+            cols = Math.min(SCAN_COLS_MAX, Math.max(2, pfData.bookcases * 2));
+            rows = Math.min(SCAN_ROWS_MAX, Math.max(2, pfData.shelves));
+          }
+        }
+      } catch {} // preflight is opportunistic; default grid still works
+
+      const numCrops = cols * rows;
+      const maxW = Math.max(500, Math.min(1000, Math.round(Math.sqrt(CROP_PIXEL_BUDGET / numCrops))));
+
+      setProgress({ step: "Slicing image…", pct: 25 });
+      const colW = Math.floor(W / cols), rowH = Math.floor(H / rows);
       const crops = [];
-      for (let row = 0; row < SCAN_ROWS; row++) {
+      for (let row = 0; row < rows; row++) {
         const y = row * rowH;
-        const h = row === SCAN_ROWS - 1 ? H - y : rowH;
-        for (let col = 0; col < SCAN_COLS; col++) {
+        const h = row === rows - 1 ? H - y : rowH;
+        for (let col = 0; col < cols; col++) {
           const x = col * colW;
-          const w = col === SCAN_COLS - 1 ? W - x : colW;
+          const w = col === cols - 1 ? W - x : colW;
           // Rotated 90° CW so vertical spine text becomes horizontal — easier
           // for Claude vision OCR. Overview stays unrotated for layout context.
-          crops.push({ row: row + 1, col: col + 1, data: imgToB64Rotated(img, x, y, w, h, 600) });
+          crops.push({ row: row + 1, col: col + 1, data: imgToB64Rotated(img, x, y, w, h, maxW) });
         }
       }
       setProgress({ step: "Reading spines…", pct: 50 });
       const res = await fetch("/api/scan-shelf", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ overview, crops, rows: SCAN_ROWS, cols: SCAN_COLS }),
+        body: JSON.stringify({ overview, crops, rows, cols }),
       });
       if (!res.ok) throw new Error(`Scan failed: ${res.status}`);
       const data = await res.json();
@@ -3529,6 +3563,13 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
           )}
           {!obiPicks && hideUnmatched && displayList.length === 0 && (
             <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:"rgba(255,235,195,0.7)", fontStyle:"italic", padding:"20px 0" }}>None of the scanned spines matched a book in our catalog.</p>
+          )}
+          {/* Soft cap hint — max_tokens=4000 truncates around ~150-160 books.
+              If we land in that range, the scan likely missed some spines. */}
+          {!obiPicks && scannedBooks.length >= 145 && (
+            <div style={{ marginBottom:14, padding:"10px 12px", background:"rgba(160,100,40,0.1)", border:"1px solid rgba(160,100,40,0.3)", borderRadius:8 }}>
+              <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:"rgba(255,235,195,0.75)" }}>That's a packed shelf — we cap each scan around 160 books. For more coverage, try a closer shot of one section.</p>
+            </div>
           )}
           <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
             {displayList.map((rec, i) => {
