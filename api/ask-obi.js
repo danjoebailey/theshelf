@@ -81,9 +81,9 @@ export default async function handler(req, res) {
     const { books, profile, listFingerprint } = req.body;
     if (!Array.isArray(books) || !books.length) return res.status(400).json({ error: "No books" });
 
-    // v2 cache key — invalidates older bulk picks generated under the looser
-    // pre-Apr-28 prompt that didn't apply the per-book yes/pass test.
-    const cacheKey = `bulk::v2::${listFingerprint || ""}`;
+    // v3 cache key — invalidates v2 picks generated under a too-strict prompt
+    // that anchored on 'at most 10' + 'be strict' and missed obvious yeses.
+    const cacheKey = `bulk::v3::${listFingerprint || ""}`;
     if (listFingerprint) {
       const cached = await getCached(userId, cacheKey);
       if (cached) {
@@ -108,14 +108,14 @@ ${buildProfileLines(profile)}`;
 Candidate list:
 ${bookList}
 
-Identify only the books you'd strongly recommend — where multiple dimensions of fit align (prose quality, themes, tone, intellectual register), not just a shared genre tag. A book sharing a genre with their library but missing on prose or depth is NOT a fit.
+For each book on this list, apply this test: if the reader asked you about it individually, would you say "yes, read this" or "pass"? Include EVERY book where the answer is yes — don't stop at an arbitrary count, and don't shy away from returning 15+ books if that many genuinely fit.
 
-Apply this test for each book: if the reader asked you about it individually, would you say "yes, read this" or "pass"? Include ONLY the yeses. Be strict — better to return 3 confident picks than 10 hedged ones.
+A yes requires alignment across multiple dimensions (prose quality, themes, tone, intellectual register, what this reader has actually loved before) — not just a shared genre tag. A book that nails 4+ dimensions is a yes; one that shares only a genre is a pass.
 
-Return AT MOST 10. Return [] if none truly fit.
+Return up to 25 to keep the response manageable. Return [] if none fit.
 
 Output ONLY a JSON array of 1-based indices in original input order. No prose.
-Example: [1, 4, 7, 12, 18]`;
+Example: [1, 3, 4, 7, 12, 15, 18, 23]`;
 
     try {
       const response = await callClaude(apiKey, [
@@ -125,7 +125,7 @@ Example: [1, 4, 7, 12, 18]`;
       const match = response.match(/\[[\d,\s]+\]/);
       if (!match) throw new Error(`No JSON array in Obi response: ${response.slice(0, 100)}`);
       const indices = JSON.parse(match[0]);
-      const picks = indices.map(i => books[i - 1]?.title).filter(Boolean).slice(0, 10);
+      const picks = indices.map(i => books[i - 1]?.title).filter(Boolean).slice(0, 25);
       if (listFingerprint) await saveCache(userId, cacheKey, JSON.stringify(picks));
       return res.json({ picks });
     } catch (e) {
