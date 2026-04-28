@@ -7025,7 +7025,16 @@ function normAuthorKey(name) {
 }
 
 function normBookKey(title) {
-  return (title || '').replace(/\s*[(:].*/,'').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^\w]/g, '').replace(/colour/g,'color').replace(/honour/g,'honor').replace(/favour/g,'favor').replace(/behaviour/g,'behavior').replace(/neighbour/g,'neighbor');
+  // Stripping leading 'The/A/An' before normalization so 'Terror' matches
+  // 'The Terror' for owned-book detection. Same pattern used in paige-
+  // client.js' joinKeyVariants for the shelf-catalog join.
+  return (title || '')
+    .replace(/\s*[(:].*/,'')
+    .replace(/^\s*(the|an?)\s+/i, '')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^\w]/g, '')
+    .replace(/colour/g,'color').replace(/honour/g,'honor').replace(/favour/g,'favor').replace(/behaviour/g,'behavior').replace(/neighbour/g,'neighbor');
 }
 
 function normalizeGenre(genre) {
