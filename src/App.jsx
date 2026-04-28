@@ -7021,7 +7021,14 @@ function getPublishYear(book) {
 }
 
 function normAuthorKey(name) {
-  return (name || '').replace(/[åÅ]/g, 'aa').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\./g, '').toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
+  return (name || '')
+    .replace(/[åÅ]/g, 'aa')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/\./g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, '')
+    .replace(/\s+[a-z]\s+/g, ' ')
+    .replace(/\s+/g, ' ').trim();
 }
 
 function normBookKey(title) {
@@ -7063,22 +7070,33 @@ function findOwnedBook(rec, libraryBooks) {
   const recKey = normBookKey(rec.title);
   const exact = libraryBooks.find(b => normBookKey(b.title) === recKey);
   if (exact) return exact;
-  if (!rec.author) return null;
+  // Author-anchored fuzzy match: same author, Levenshtein-similar title.
+  // Treat 'Unknown' as missing author so OCR fallback writes don't gate the match.
   const recAuthor = normAuthorKey(rec.author);
-  if (!recAuthor) return null;
-  const sameAuthor = libraryBooks.filter(b => normAuthorKey(b.author) === recAuthor);
-  if (!sameAuthor.length) return null;
+  if (recAuthor && recAuthor !== 'unknown') {
+    const sameAuthor = libraryBooks.filter(b => normAuthorKey(b.author) === recAuthor);
+    if (sameAuthor.length) {
+      let best = null, bestRatio = Infinity;
+      for (const b of sameAuthor) {
+        const bKey = normBookKey(b.title);
+        const dist = levenshtein(recKey, bKey);
+        const ratio = dist / Math.max(recKey.length, bKey.length, 1);
+        if (ratio < bestRatio) { best = b; bestRatio = ratio; }
+      }
+      if (bestRatio < 0.40) return best;
+    }
+  }
+  // Title-only fuzzy fallback when author is missing/unknown or no same-
+  // author books exist. Stricter threshold to avoid cross-author collisions.
   let best = null, bestRatio = Infinity;
-  for (const b of sameAuthor) {
+  for (const b of libraryBooks) {
     const bKey = normBookKey(b.title);
+    if (!bKey) continue;
     const dist = levenshtein(recKey, bKey);
     const ratio = dist / Math.max(recKey.length, bKey.length, 1);
     if (ratio < bestRatio) { best = b; bestRatio = ratio; }
   }
-  // Threshold tuned so 'strengthoffive' vs 'strengthofthefew' matches
-  // (~0.32 ratio) but unrelated same-author books like Stormlight #1 vs #2
-  // don't (typically > 0.5 ratio).
-  return bestRatio < 0.40 ? best : null;
+  return bestRatio < 0.20 ? best : null;
 }
 
 function normalizeGenre(genre) {
