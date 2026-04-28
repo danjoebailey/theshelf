@@ -3496,7 +3496,6 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
             border:"2px dashed rgba(160,100,40,0.5)", borderRadius:12, padding:"36px 24px", textAlign:"center",
             background:"rgba(15,8,2,0.35)", cursor:"pointer", transition:"all 0.15s",
           }}>
-            <div style={{ fontSize:32, marginBottom:8 }}>📚</div>
             <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, color:"rgba(255,235,195,0.85)", marginBottom:4 }}>Tap to upload a shelf photo</p>
             <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, color:"rgba(255,235,195,0.5)" }}>Works best with even lighting and a head-on angle</p>
             <input ref={fileRef} type="file" accept="image/*" style={{ display:"none" }} onChange={e => handleFile(e.target.files[0])} />
