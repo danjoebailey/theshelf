@@ -53,8 +53,8 @@ export default async function handler(req, res) {
     const match = raw.match(/\{[\s\S]*?\}/);
     if (!match) throw new Error(`No JSON in response: ${raw.slice(0, 200)}`);
     const parsed = JSON.parse(match[0]);
-    const bookcases = Math.max(1, Math.min(6, parseInt(parsed.bookcases) || 1));
-    const shelves = Math.max(2, Math.min(6, parseInt(parsed.shelves) || 4));
+    const bookcases = Math.max(1, Math.min(8, parseInt(parsed.bookcases) || 1));
+    const shelves = Math.max(2, Math.min(8, parseInt(parsed.shelves) || 4));
     res.json({ bookcases, shelves });
   } catch (e) {
     res.status(500).json({ error: e.message || "Preflight failed" });

@@ -3159,13 +3159,16 @@ function ReedTab({ books, userId, onEdit, onShelfChange, onSaveScores, onAuthor 
 const SCAN_COLS_DEFAULT = 3;
 const SCAN_ROWS_DEFAULT = 5;
 // Hard ceilings — never exceed regardless of what preflight returns.
-// 6×6 = 36 crops keeps cost under ~15¢/scan even on high-res photos.
-const SCAN_COLS_MAX = 6;
-const SCAN_ROWS_MAX = 6;
+// 8×8 = 64 crops; pushes worst-case cost to ~25-35¢ on high-res photos
+// but recovers significantly more spines on packed shelves.
+const SCAN_COLS_MAX = 8;
+const SCAN_ROWS_MAX = 8;
 // Total source-pixel budget across all crops. We dynamically pick maxW
 // per crop so num_crops × (maxW × 0.75 maxW) ≈ this budget — keeps input
-// tokens flat regardless of grid density or source resolution.
-const CROP_PIXEL_BUDGET = 12_000_000;
+// tokens flat regardless of grid density or source resolution. Bumped
+// alongside the grid cap so 64-crop scans don't shrink each cell to
+// unreadable resolutions.
+const CROP_PIXEL_BUDGET = 18_000_000;
 
 function loadImageEl(src) {
   return new Promise((resolve, reject) => {
