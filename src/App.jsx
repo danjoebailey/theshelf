@@ -7256,10 +7256,10 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
               <BookCover book={displayBook} width={173} height={255} radius={6} shadow="3px 3px 0 rgba(0,0,0,0.12)" />
               {activeTab === "edit" && (
                 <div style={{ position:"absolute", bottom:-14, left:"50%", transform:"translateX(-50%)", display:"flex", gap:6 }}>
-                  <button onClick={findCover} disabled={coverFetch==="loading"} style={{ fontSize:10, color:CR.textDim, background:CR.bg, border:`1px solid ${CR.border}`, borderRadius:20, padding:"3px 12px", cursor:"pointer", whiteSpace:"nowrap", fontFamily:"'DM Sans',sans-serif" }}>
+                  <button onClick={findCover} disabled={coverFetch==="loading"} style={{ fontSize:10, color:CR.textDim, background:"#fff", border:`1px solid ${CR.border}`, borderRadius:20, padding:"3px 12px", cursor:"pointer", whiteSpace:"nowrap", fontFamily:"'DM Sans',sans-serif" }}>
                     {coverFetch==="loading" ? "…" : "Change Cover"}
                   </button>
-                  <button onClick={() => setIsbnScanOpen(true)} style={{ fontSize:10, color:CR.textDim, background:CR.bg, border:`1px solid ${CR.border}`, borderRadius:20, padding:"3px 12px", cursor:"pointer", whiteSpace:"nowrap", fontFamily:"'DM Sans',sans-serif" }}>
+                  <button onClick={() => setIsbnScanOpen(true)} style={{ fontSize:10, color:CR.textDim, background:"#fff", border:`1px solid ${CR.border}`, borderRadius:20, padding:"3px 12px", cursor:"pointer", whiteSpace:"nowrap", fontFamily:"'DM Sans',sans-serif" }}>
                     Scan ISBN
                   </button>
                 </div>
