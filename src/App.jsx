@@ -7213,7 +7213,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
         background: BOOK_LEATHER_BG, backgroundBlendMode: BOOK_LEATHER_BG_BLEND, backgroundSize: "160px 160px, cover",
         height:"98%", display:"flex", flexDirection:"column",
         boxShadow:"0 -4px 40px rgba(0,0,0,0.18)",
-        padding: "16px 0 0 16px",
+        padding: "12px 0 0 12px",
       }}>
         <div style={{
           background: `${BOOK_PAGE_GRAIN}, ${CR.bg}`,
@@ -8048,7 +8048,7 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd, userI
         background: BOOK_LEATHER_BG, backgroundBlendMode: BOOK_LEATHER_BG_BLEND, backgroundSize: "160px 160px, cover",
         height:"98%", display:"flex", flexDirection:"column",
         boxShadow:"0 -4px 40px rgba(0,0,0,0.18)",
-        padding: "16px 16px 0 0",
+        padding: "12px 12px 0 0",
       }}>
         <div style={{
           background: `${BOOK_PAGE_GRAIN}, ${CR.bg}`,
