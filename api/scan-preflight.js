@@ -40,12 +40,13 @@ export default async function handler(req, res) {
   const content = [
     { type: "image", source: { type: "base64", media_type: "image/jpeg", data: overview } },
     { type: "text", text: `Look at this bookshelf photo. Return ONLY JSON in this exact format, no markdown, no explanation:
-{"bookcases": N, "shelves": M}
+{"bookcases": N, "shelves": M, "estimatedBooks": K}
 
 - bookcases = number of distinct VERTICAL SECTIONS containing books. Count each arch, alcove, column, or contiguous block of vertical spines as one — even if they're part of the same piece of furniture. A 3-arch IKEA bookcase counts as 3, not 1. A wide single-section bookcase still counts as 1.
 - shelves = number of horizontal shelf rows in the tallest section
-- If unclear, lean toward HIGHER counts — this drives the OCR grid density and undercounting hurts spine-reading accuracy.
-- Both must be positive integers.` },
+- estimatedBooks = your rough estimate of total visible books across the whole image (vertical spines + horizontal stacks). Order-of-magnitude is fine: 30, 80, 150, 300. Round generously.
+- If unclear on bookcases/shelves, lean toward HIGHER counts.
+- All three must be positive integers.` },
   ];
 
   try {
@@ -55,7 +56,8 @@ export default async function handler(req, res) {
     const parsed = JSON.parse(match[0]);
     const bookcases = Math.max(1, Math.min(8, parseInt(parsed.bookcases) || 1));
     const shelves = Math.max(2, Math.min(8, parseInt(parsed.shelves) || 4));
-    res.json({ bookcases, shelves });
+    const estimatedBooks = Math.max(0, parseInt(parsed.estimatedBooks) || 0);
+    res.json({ bookcases, shelves, estimatedBooks });
   } catch (e) {
     res.status(500).json({ error: e.message || "Preflight failed" });
   }

@@ -3246,6 +3246,11 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
   const [hideUnmatched, setHideUnmatched] = useState(() => !!readCache()?.hideUnmatched);
   const [truncated, setTruncated] = useState(() => !!readCache()?.truncated);
   const [scanFailures, setScanFailures] = useState(() => readCache()?.scanFailures || null);
+  // Preflight result captured at upload time so we can show density
+  // warning before the user spends money on a scan that won't perform
+  // well. Cleared on image change/clear.
+  const [preflight, setPreflight] = useState(null);
+  const [preflighting, setPreflighting] = useState(false);
   const fileRef = useRef(null);
   const obiProfileSnapshot = useContext(LibraryProfileContext);
 
@@ -3327,10 +3332,25 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
     setError(null);
     setTruncated(false);
     setScanFailures(null);
+    setPreflight(null);
     clearCache();
-    loadImageEl(url).then(img =>
-      setImageMeta({ size: `${(file.size / 1024).toFixed(0)} KB`, dims: `${img.naturalWidth}×${img.naturalHeight}` })
-    );
+    loadImageEl(url).then(async img => {
+      setImageMeta({ size: `${(file.size / 1024).toFixed(0)} KB`, dims: `${img.naturalWidth}×${img.naturalHeight}` });
+      // Run preflight in background so the density warning is ready
+      // before the user taps Scan. Result is cached and reused by the
+      // main scan flow — no duplicate preflight call.
+      setPreflighting(true);
+      try {
+        const overview = imgToB64(img, 0, 0, img.naturalWidth, img.naturalHeight, 400);
+        const pf = await fetch("/api/scan-preflight", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ overview }),
+        });
+        if (pf.ok) setPreflight(await pf.json());
+      } catch {}
+      setPreflighting(false);
+    });
   }
 
   async function scan() {
@@ -3343,26 +3363,28 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
       const W = img.naturalWidth, H = img.naturalHeight;
       const overview = imgToB64(img, 0, 0, W, H, 400);
 
-      // Preflight: ask Claude to count bookcases × shelves so we can
-      // size the OCR grid to the photo. Falls back to defaults on failure.
+      // Preflight: reuse the result captured at upload time. Falls back to
+      // a fresh call only if upload-time preflight failed (e.g. user
+      // navigated to scan before the background call finished).
       let cols = SCAN_COLS_DEFAULT, rows = SCAN_ROWS_DEFAULT;
-      try {
-        const pf = await fetch("/api/scan-preflight", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ overview }),
-        });
-        if (pf.ok) {
-          const pfData = await pf.json();
-          if (pfData.bookcases && pfData.shelves) {
-            // ×3 cols subdivides each bookcase into thirds so each crop
-            // has ~5-7 spines — tight enough for accurate OCR even on
-            // densely packed shelves. ×2 was too sparse.
-            cols = Math.min(SCAN_COLS_MAX, Math.max(3, pfData.bookcases * 3));
-            rows = Math.min(SCAN_ROWS_MAX, Math.max(2, pfData.shelves));
-          }
-        }
-      } catch {} // preflight is opportunistic; default grid still works
+      let pfData = preflight;
+      if (!pfData) {
+        try {
+          const pf = await fetch("/api/scan-preflight", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ overview }),
+          });
+          if (pf.ok) pfData = await pf.json();
+        } catch {}
+      }
+      if (pfData?.bookcases && pfData?.shelves) {
+        // ×3 cols subdivides each bookcase into thirds so each crop
+        // has ~5-7 spines — tight enough for accurate OCR even on
+        // densely packed shelves.
+        cols = Math.min(SCAN_COLS_MAX, Math.max(3, pfData.bookcases * 3));
+        rows = Math.min(SCAN_ROWS_MAX, Math.max(2, pfData.shelves));
+      }
 
       // Each cell ships TWO images (rotated + original) so divide the
       // budget by 2× cells. Combined with quality:0.65 below, this keeps
@@ -3538,26 +3560,37 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
             <img src={imageUrl} alt="Shelf" style={{ width:"100%", display:"block", maxHeight:280, objectFit:"cover", objectPosition:"top" }} />
             <div style={{ position:"absolute", bottom:0, left:0, right:0, padding:"12px", background:"linear-gradient(transparent,rgba(15,8,2,0.85))", display:"flex", justifyContent:"space-between", alignItems:"flex-end" }}>
               <span style={{ color:"rgba(255,235,195,0.8)", fontSize:11, fontFamily:"'DM Sans',sans-serif" }}>{imageMeta?.dims} · {imageMeta?.size}</span>
-              <button onClick={() => { if (imageUrl?.startsWith("blob:")) URL.revokeObjectURL(imageUrl); setImageUrl(null); setImageMeta(null); setScannedBooks([]); setObiPicks(null); setObiSubstitutions([]); setCovers({}); setError(null); clearCache(); }} style={{ background:"rgba(255,255,255,0.18)", border:"1px solid rgba(255,255,255,0.4)", color:"#fff", fontSize:11, padding:"4px 10px", borderRadius:6, cursor:"pointer", fontFamily:"'DM Sans',sans-serif" }}>Change</button>
+              <button onClick={() => { if (imageUrl?.startsWith("blob:")) URL.revokeObjectURL(imageUrl); setImageUrl(null); setImageMeta(null); setScannedBooks([]); setObiPicks(null); setObiSubstitutions([]); setCovers({}); setError(null); setTruncated(false); setScanFailures(null); setPreflight(null); clearCache(); }} style={{ background:"rgba(255,255,255,0.18)", border:"1px solid rgba(255,255,255,0.4)", color:"#fff", fontSize:11, padding:"4px 10px", borderRadius:6, cursor:"pointer", fontFamily:"'DM Sans',sans-serif" }}>Change</button>
             </div>
           </div>
         )}
       </div>
 
+      {/* Density warning — surfaced from preflight before the user
+          spends money on a full-shelf scan that won't perform well. */}
+      {imageUrl && !scanning && scannedBooks.length === 0 && preflight?.estimatedBooks >= 100 && (
+        <div style={{ margin:"0 18px 14px", padding:"12px 14px", background:"rgba(160,100,40,0.12)", border:"1px solid rgba(160,100,40,0.4)", borderRadius:10 }}>
+          <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:"rgba(255,235,195,0.85)", marginBottom:6, fontWeight:600 }}>Packed shelf detected (~{preflight.estimatedBooks} books)</p>
+          <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, color:"rgba(255,235,195,0.65)", lineHeight:1.45 }}>Full-shelf scans of dense walls typically capture 30–50% of visible books. For best coverage, take a closer shot of one bookcase or section at a time. You can still scan the whole shot below.</p>
+        </div>
+      )}
+
       {/* Scan button */}
       {imageUrl && (
         <div style={{ padding:"0 18px 22px" }}>
-          <button onClick={scan} disabled={scanning} style={{
+          <button onClick={scan} disabled={scanning || preflighting} style={{
             width:"100%", padding:"13px 0",
-            background: scanning ? "rgba(138,90,40,0.15)" : `linear-gradient(135deg,${WOOD.amber},#c8883a)`,
-            border:"none", borderRadius:12, cursor: scanning ? "default" : "pointer",
+            background: scanning || preflighting ? "rgba(138,90,40,0.15)" : `linear-gradient(135deg,${WOOD.amber},#c8883a)`,
+            border:"none", borderRadius:12, cursor: scanning || preflighting ? "default" : "pointer",
             fontFamily:"'DM Sans',sans-serif", fontSize:15, fontWeight:700,
-            color: scanning ? WOOD.textFaint : "#1a0900",
+            color: scanning || preflighting ? WOOD.textFaint : "#1a0900",
             display:"flex", alignItems:"center", justifyContent:"center", gap:8,
           }}>
             {scanning
               ? <><span style={{ width:16, height:16, border:"2px solid rgba(26,9,0,0.3)", borderTopColor:"#1a0900", borderRadius:"50%", display:"inline-block", animation:"spin 0.7s linear infinite" }} />Scanning…</>
-              : scannedBooks.length > 0 ? "Scan Again" : "Scan Shelf"}
+              : preflighting
+                ? <><span style={{ width:16, height:16, border:"2px solid rgba(255,235,195,0.3)", borderTopColor:"rgba(255,235,195,0.7)", borderRadius:"50%", display:"inline-block", animation:"spin 0.7s linear infinite" }} />Analyzing shelf…</>
+                : scannedBooks.length > 0 ? "Scan Again" : "Scan Shelf"}
           </button>
           {scanning && (
             <div style={{ marginTop:12, padding:"10px 12px", background:"rgba(15,8,2,0.4)", borderRadius:8 }}>
