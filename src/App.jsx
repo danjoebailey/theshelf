@@ -2065,13 +2065,12 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
                 : <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor"><rect x="0" y="0" width="6" height="11" rx="1"/><rect x="7" y="0" width="6" height="11" rx="1"/><rect x="0" y="12" width="13" height="1" rx="0.5"/></svg>
               }
             </button>
-            {/* Cover-size pill — only in shelf view, where the scroll rows render */}
+            {/* Cover-size pill — single button, click cycles S → M → L → S.
+                Only renders in shelf view where the scroll rows actually use it. */}
             {seriesViewStyle === "shelf" && (
-              <div style={{ display:"flex", background:"rgba(15,8,2,0.55)", border:"1px solid rgba(120,70,20,0.3)", borderRadius:20, overflow:"hidden", backdropFilter:"blur(4px)" }}>
-                {[["sm","S"],["md","M"],["lg","L"]].map(([key, label]) => (
-                  <button key={key} {...tc(() => setCoverSize(key), true)} style={{ padding:"5px 9px", border:"none", background: coverSize === key ? WOOD.amber : "transparent", color: coverSize === key ? "#1a0900" : "rgba(255,255,255,0.65)", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600, cursor:"pointer" }}>{label}</button>
-                ))}
-              </div>
+              <button {...tc(() => setCoverSize(s => s === "sm" ? "md" : s === "md" ? "lg" : "sm"), true)} title="Cycle cover size" style={{ display:"flex", alignItems:"center", justifyContent:"center", minWidth:24, padding:"3px 7px", background:"rgba(15,8,2,0.55)", border:"1px solid rgba(120,70,20,0.3)", borderRadius:20, backdropFilter:"blur(4px)", cursor:"pointer", color:"#fff", fontFamily:"'DM Sans',sans-serif", fontSize:10, fontWeight:600 }}>
+                {coverSize === "sm" ? "S" : coverSize === "lg" ? "L" : "M"}
+              </button>
             )}
             </div>
             {/* sort dropdown pill */}
