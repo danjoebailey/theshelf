@@ -7227,7 +7227,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
         <div style={{ padding:"20px 16px 12px 22px", marginBottom:0, position:"relative", flexShrink:0, borderBottom:`1px solid ${CR.border}` }}>
           <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:24, fontWeight:400, color:CR.text, letterSpacing:"-0.01em", lineHeight:1.2, paddingRight:52 }}>{titleWithSeries(book)}</p>
           <div style={{ display:"flex", alignItems:"baseline", gap:4, marginTop:2 }}>
-            <p onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); onAuthor&&onAuthor(book.author); }} onClick={()=>onAuthor&&onAuthor(book.author)} style={{ fontFamily:"'Crimson Pro',serif", fontSize:18, fontStyle:"italic", color:CR.textDim, cursor:onAuthor?"pointer":"default", textDecorationLine:onAuthor?"underline":"none", textDecorationStyle:"dotted" }}>{book.author}</p>
+            <p onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); onAuthor&&onAuthor(book.author); }} onClick={()=>onAuthor&&onAuthor(book.author)} style={{ fontFamily:"'Crimson Pro',serif", fontSize:18, fontStyle:"italic", color:CR.textDim, cursor:onAuthor?"pointer":"default" }}>{book.author}</p>
             {onAuthor && <button {...tc(()=>onAuthor(book.author), true)} style={{ background:"transparent", border:"none", cursor:"pointer", padding:"2px 4px 0", color:"rgba(120,70,20,0.6)", fontSize:10, lineHeight:1 }}>↗</button>}
           </div>
           <div style={{ marginTop:7 }}>
