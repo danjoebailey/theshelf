@@ -7225,12 +7225,23 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
         }}>
         {/* Header */}
         <div style={{ padding:"20px 16px 12px 22px", marginBottom:0, position:"relative", flexShrink:0, borderBottom:`1px solid ${CR.border}` }}>
-          <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:24, fontWeight:400, color:CR.text, letterSpacing:"-0.01em", lineHeight:1.2, paddingRight:52 }}>{book.title}</p>
           {(() => {
             const s = book.series || getSeriesFor(book.title, book.author);
-            return s?.name && s?.order ? (
-              <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, fontStyle:"italic", color:CR.textFaint, marginTop:3, lineHeight:1.2 }}>{s.name}, #{s.order}</p>
-            ) : null;
+            const hasSeries = s?.name && s?.order;
+            // Strip trailing '(Series, #N)' suffix when we have catalog series
+            // data — Goodreads imports bake the suffix into book.title, which
+            // would double up with the dedicated series row below.
+            const cleanTitle = hasSeries
+              ? (book.title || "").replace(/\s*\([^()]+,\s*#\d+\)\s*$/, "")
+              : book.title;
+            return (
+              <>
+                <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:24, fontWeight:400, color:CR.text, letterSpacing:"-0.01em", lineHeight:1.2, paddingRight:52 }}>{cleanTitle}</p>
+                {hasSeries && (
+                  <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, fontStyle:"italic", color:CR.textFaint, marginTop:3, lineHeight:1.2 }}>{s.name}, #{s.order}</p>
+                )}
+              </>
+            );
           })()}
           <div style={{ display:"flex", alignItems:"baseline", gap:4, marginTop:2 }}>
             <p onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); onAuthor&&onAuthor(book.author); }} onClick={()=>onAuthor&&onAuthor(book.author)} style={{ fontFamily:"'Crimson Pro',serif", fontSize:18, fontStyle:"italic", color:CR.textDim, cursor:onAuthor?"pointer":"default" }}>{book.author}</p>
