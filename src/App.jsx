@@ -8974,17 +8974,17 @@ export default function App() {
                 transition:"background 0.2s, border-color 0.2s",
               }}>
                 {id==="shelf"
-                  ? <img src="/shelf-nav-icon.png" alt="Shelf" style={{ width:44, height:32, objectFit:"contain", display:"block", opacity: tab===id ? 1 : 0.55, transition:"opacity 0.2s" }} />
+                  ? <img src="/shelf-nav-icon.png" alt="Shelf" style={{ width:44, height:32, objectFit:"contain", display:"block" }} />
                   : id==="stats"
-                  ? <img src="/three_books_breakdown.png" alt="Breakdown" style={{ width:44, height:32, objectFit:"contain", display:"block", opacity: tab===id ? 1 : 0.55, transition:"opacity 0.2s" }} />
+                  ? <img src="/three_books_breakdown.png" alt="Breakdown" style={{ width:44, height:32, objectFit:"contain", display:"block" }} />
                   : id==="reiko"
-                  ? <img src="/recommend_book.png" alt="Reiko" style={{ width:44, height:32, objectFit:"contain", display:"block", opacity: tab===id ? 1 : 0.55, transition:"opacity 0.2s" }} />
-                  : <img src="/all_3_books_no_bg.png" alt="Rankings" style={{ width:44, height:32, objectFit:"contain", display:"block", opacity: tab===id ? 1 : 0.55, transition:"opacity 0.2s" }} />
+                  ? <img src="/recommend_book.png" alt="Reiko" style={{ width:44, height:32, objectFit:"contain", display:"block" }} />
+                  : <img src="/all_3_books_no_bg.png" alt="Rankings" style={{ width:44, height:32, objectFit:"contain", display:"block" }} />
                 }
                 <span style={{
                   fontSize:10, fontWeight:600, letterSpacing:"0.02em",
-                  color: tab===id ? "#ffffff" : "rgba(255,255,255,0.5)",
-                  transition:"color 0.2s", whiteSpace:"nowrap",
+                  color:"#ffffff",
+                  whiteSpace:"nowrap",
                 }}>
                   {label}
                 </span>
