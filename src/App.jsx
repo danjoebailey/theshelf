@@ -3179,19 +3179,19 @@ function loadImageEl(src) {
   });
 }
 
-function imgToB64(img, sx, sy, sw, sh, maxW) {
+function imgToB64(img, sx, sy, sw, sh, maxW, quality = 0.75) {
   const scale = Math.min(1, maxW / sw);
   const canvas = document.createElement("canvas");
   canvas.width = Math.round(sw * scale);
   canvas.height = Math.round(sh * scale);
   canvas.getContext("2d").drawImage(img, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
-  return canvas.toDataURL("image/jpeg", 0.75).split(",")[1];
+  return canvas.toDataURL("image/jpeg", quality).split(",")[1];
 }
 
 // Same as imgToB64 but rotates the crop 90° clockwise. Spine text on
 // upright books runs top-to-bottom in the photo; rotating each crop makes
 // the text horizontal, which Claude reads more reliably (per user prototype).
-function imgToB64Rotated(img, sx, sy, sw, sh, maxW) {
+function imgToB64Rotated(img, sx, sy, sw, sh, maxW, quality = 0.75) {
   // Pull the crop to a temp canvas first, then rotate into the final canvas.
   const temp = document.createElement("canvas");
   temp.width = sw;
@@ -3209,7 +3209,7 @@ function imgToB64Rotated(img, sx, sy, sw, sh, maxW) {
   ctx.rotate(Math.PI / 2);
   // In rotated coords, dest dimensions are swapped relative to the canvas
   ctx.drawImage(temp, 0, 0, h, w);
-  return final.toDataURL("image/jpeg", 0.75).split(",")[1];
+  return final.toDataURL("image/jpeg", quality).split(",")[1];
 }
 
 function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
@@ -3364,8 +3364,11 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
         }
       } catch {} // preflight is opportunistic; default grid still works
 
-      const numCrops = cols * rows;
-      const maxW = Math.max(500, Math.min(1000, Math.round(Math.sqrt(CROP_PIXEL_BUDGET / numCrops))));
+      // Each cell ships TWO images (rotated + original) so divide the
+      // budget by 2× cells. Combined with quality:0.65 below, this keeps
+      // the request body under Vercel's 4MB cap on dense grids.
+      const numImages = cols * rows * 2;
+      const maxW = Math.max(450, Math.min(1000, Math.round(Math.sqrt(CROP_PIXEL_BUDGET / numImages))));
 
       setProgress({ step: "Slicing image…", pct: 25 });
       const colW = Math.floor(W / cols), rowH = Math.floor(H / rows);
@@ -3376,9 +3379,19 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
         for (let col = 0; col < cols; col++) {
           const x = col * colW;
           const w = col === cols - 1 ? W - x : colW;
-          // Rotated 90° CW so vertical spine text becomes horizontal — easier
-          // for Claude vision OCR. Overview stays unrotated for layout context.
-          crops.push({ row: row + 1, col: col + 1, data: imgToB64Rotated(img, x, y, w, h, maxW) });
+          // Send TWO versions per cell. Rotated 90° CW handles vertical
+          // spines (the common case). Original handles books stacked
+          // horizontally — their spine text is already left-to-right and
+          // gets garbled by the rotation. Claude reads whichever is
+          // legible; server-side dedupe collapses any double-reads.
+          // JPEG quality 0.65 (vs default 0.75) to fit body limits with
+          // 2× the images per cell.
+          crops.push({
+            row: row + 1,
+            col: col + 1,
+            data: imgToB64Rotated(img, x, y, w, h, maxW, 0.65),
+            original: imgToB64(img, x, y, w, h, maxW, 0.65),
+          });
         }
       }
       setProgress({ step: "Reading spines…", pct: 50 });

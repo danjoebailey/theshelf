@@ -51,6 +51,8 @@ export const config = {
 // Build the message content for a batch of crops. Each batch sees the full
 // overview image so Claude has layout context regardless of which rows it's
 // reading. The prompt tells Claude which rows it's actually responsible for.
+// Each cell ships TWO crops — rotated and original — so Claude can read
+// books in either orientation (most spines vertical, some stacks horizontal).
 function buildContent(overview, crops, rows, cols, rowsCovered) {
   const content = [];
   content.push(textBlock(
@@ -59,14 +61,23 @@ function buildContent(overview, crops, rows, cols, rowsCovered) {
   content.push(imageBlock(overview));
 
   for (const c of crops) {
-    content.push(textBlock(`--- Row ${c.row}, Column ${c.col} ---`));
+    content.push(textBlock(`--- Row ${c.row}, Column ${c.col} (rotated 90° CW for vertical spines) ---`));
     content.push(imageBlock(c.data));
+    if (c.original) {
+      content.push(textBlock(`--- Row ${c.row}, Column ${c.col} (original orientation, for horizontal stacks) ---`));
+      content.push(imageBlock(c.original));
+    }
   }
 
   content.push(textBlock(`
-The OVERVIEW image shows the full bookcase(s) in original orientation. The labeled crops below it cover ${rowsCovered} of a ${rows || "?"}-row × ${cols || "?"}-column grid of the same image, top-to-bottom, left-to-right — but each crop has been ROTATED 90° CLOCKWISE so vertical spine text reads horizontally (left-to-right) for easier OCR.
+The OVERVIEW image shows the full bookcase(s) in original orientation. The labeled crops below cover ${rowsCovered} of a ${rows || "?"}-row × ${cols || "?"}-column grid of the same image. For each cell you see TWO versions:
 
-Use the overview to understand bookcase layout (how many bookcases, how many shelves). Then use the rotated crops to read individual book spines — the text on book spines should appear horizontal in the crops. Only return books visible in THIS BATCH's crops, not the entire shelf.
+1. Rotated 90° CW — so VERTICAL spines (the common case, books standing up) read horizontally for easier OCR.
+2. Original orientation — for HORIZONTAL stacks (books lying flat with spines facing camera) whose text already reads left-to-right and would be garbled by rotation.
+
+Read both and combine results. Books appearing in BOTH versions of a cell are the same physical book — only count them once.
+
+Use the overview to understand bookcase layout. Only return books visible in THIS BATCH's crops, not the entire shelf.
 
 Return a single deduplicated JSON array of all books you can identify. No markdown, no explanation — only the JSON:
 [{"title": "Book Title", "author": "Author Name", "shelf": 1}]
@@ -75,7 +86,7 @@ Rules:
 - "shelf" = the row number (1–${rows || "?"}) the book appears in
 - If a book appears in multiple crops within this batch, include it once
 - Skip completely illegible spines
-- Stacked/horizontal books count too
+- Stacked/horizontal books count too — read them from the original-orientation version
 - AUTHOR FALLBACK: if you can read the title clearly but the author portion of the spine is unreadable or cropped, use your knowledge of well-known books to fill in the author (e.g., if you read "Blood Meridian" but can't see the author spine, write "Cormac McCarthy"). Only set author to null when you genuinely don't know who wrote it.`));
 
   return content;
