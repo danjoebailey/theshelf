@@ -9008,11 +9008,11 @@ export default function App() {
                 borderRadius:"0 0 10px 10px",
                 transition:"background 0.2s, border-color 0.2s",
               }}>
-                <img src="/prof_pic.png" alt="Account" style={{ height:34, width:34, objectFit:"cover", display:"block", borderRadius:"50%", opacity: showProfileMenu ? 1 : 0.7, transition:"opacity 0.2s" }} />
+                <img src="/prof_pic.png" alt="Account" style={{ height:34, width:34, objectFit:"cover", display:"block", borderRadius:"50%" }} />
                 <span style={{
                   fontSize:10, fontWeight:600, letterSpacing:"0.02em",
-                  color: showProfileMenu ? "#ffffff" : "rgba(255,255,255,0.5)",
-                  transition:"color 0.2s", whiteSpace:"nowrap",
+                  color:"#ffffff",
+                  whiteSpace:"nowrap",
                 }}>
                   Account
                 </span>
