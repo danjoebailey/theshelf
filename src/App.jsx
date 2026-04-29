@@ -7327,7 +7327,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
                 <div style={{ display:"flex", gap:20, alignItems:"flex-end", flexWrap:"wrap" }}>
                   <div>
                     <p style={lbl}>Genre</p>
-                    <select value={genre} onChange={e => setGenre(e.target.value)} style={{ padding:"9px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'DM Sans',sans-serif", color:CR.text, outline:"none", cursor:"pointer" }}>
+                    <select value={genre} onChange={e => setGenre(e.target.value)} style={{ padding:"9px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:"#fff", fontSize:13, fontFamily:"'DM Sans',sans-serif", color:CR.text, outline:"none", cursor:"pointer" }}>
                       {GENRES.map(g => <option key={g} value={g}>{g}</option>)}
                     </select>
                   </div>
@@ -7335,14 +7335,14 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
                     <p style={lbl}>Date Started</p>
                     <div style={{ position:"relative", display:"inline-block" }}>
                       <input ref={dateStartedRef} type="date" value={dateStarted} onChange={e => setDateStarted(e.target.value)} style={{ position:"absolute", top:0, left:0, width:"100%", height:"100%", opacity:0, cursor:"pointer", zIndex:1 }} />
-                      <div style={{ padding:"9px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'DM Sans',sans-serif", color:CR.text }}>{dateStarted ? new Date(dateStarted+"T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}) : "—"}</div>
+                      <div style={{ padding:"9px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:"#fff", fontSize:13, fontFamily:"'DM Sans',sans-serif", color:CR.text }}>{dateStarted ? new Date(dateStarted+"T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}) : "—"}</div>
                     </div>
                   </div>
                   <div>
                     <p style={lbl}>Date Read</p>
                     <div style={{ position:"relative", display:"inline-block" }}>
                       <input ref={dateReadRef} type="date" value={date} onChange={e => setDate(e.target.value)} style={{ position:"absolute", top:0, left:0, width:"100%", height:"100%", opacity:0, cursor:"pointer", zIndex:1 }} />
-                      <div style={{ padding:"9px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'DM Sans',sans-serif", color:CR.text }}>{date ? new Date(date+"T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}) : "—"}</div>
+                      <div style={{ padding:"9px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:"#fff", fontSize:13, fontFamily:"'DM Sans',sans-serif", color:CR.text }}>{date ? new Date(date+"T00:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"}) : "—"}</div>
                     </div>
                   </div>
                 </div>
@@ -7353,7 +7353,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
             {(shelf === "Read" || shelf === "Reading") && (
               <div style={{ padding:"0 22px", marginBottom:20 }}>
                 <p style={lbl}>Notes</p>
-                <textarea rows={3} value={notes} onChange={e => setNotes(e.target.value)} placeholder="Your thoughts on the book…" style={{ width:"100%", padding:"10px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:CR.panel, fontSize:13, fontFamily:"'Crimson Pro',serif", color:CR.text, resize:"none", outline:"none", lineHeight:1.6, boxSizing:"border-box" }} />
+                <textarea rows={3} value={notes} onChange={e => setNotes(e.target.value)} placeholder="Your thoughts on the book…" style={{ width:"100%", padding:"10px 13px", border:`1px solid ${CR.border}`, borderRadius:6, background:"#fff", fontSize:13, fontFamily:"'Crimson Pro',serif", color:CR.text, resize:"none", outline:"none", lineHeight:1.6, boxSizing:"border-box" }} />
               </div>
             )}
           </>}
