@@ -7236,9 +7236,9 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
               {(() => { const py = getPublishYear(book); return py && book.pages > 0 ? <span style={{ color:CR.border }}>·</span> : null; })()}
               {book.pages > 0 && <span>{book.pages.toLocaleString()} pages</span>}
             </div>
-            <div style={{ display:"flex", gap:2, background:"#fff", border:`1px solid ${CR.border}`, borderRadius:6, padding:2, flexShrink:0 }}>
+            <div style={{ display:"flex", gap:2, background:"transparent", borderRadius:6, padding:0, flexShrink:0 }}>
               {tabs.map(t => (
-                <button key={t.key} onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); setActiveTab(t.key); }} onClick={() => setActiveTab(t.key)} title={t.label} style={{ display:"flex", alignItems:"center", gap:4, padding:"8px 10px", border:"none", borderRadius:4, background:activeTab===t.key ? "#8a5a28" : "transparent", color:activeTab===t.key ? "#fff" : CR.textDim, fontSize:11, fontFamily:"'DM Sans',sans-serif", cursor:"pointer", boxShadow:"none", transition:"all 0.12s", whiteSpace:"nowrap" }}>
+                <button key={t.key} onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); setActiveTab(t.key); }} onClick={() => setActiveTab(t.key)} title={t.label} style={{ display:"flex", alignItems:"center", gap:4, padding:"8px 10px", border:`1px solid ${activeTab===t.key ? WOOD.amber : "rgba(120,70,20,0.3)"}`, borderRadius:4, background:activeTab===t.key ? WOOD.amber : "rgba(15,8,2,0.55)", color:"#fff", fontSize:11, fontFamily:"'DM Sans',sans-serif", cursor:"pointer", boxShadow:"none", transition:"all 0.12s", whiteSpace:"nowrap" }}>
                   {t.icon}{activeTab===t.key && <span style={{ marginLeft:2 }}>{t.label}</span>}
                 </button>
               ))}
@@ -8071,9 +8071,9 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd, userI
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/></svg>
               Ask Obi
             </button>
-            <div style={{ display:"flex", gap:2, background:"#fff", border:`1px solid ${CR.border}`, borderRadius:6, padding:2 }}>
+            <div style={{ display:"flex", gap:2, background:"transparent", borderRadius:6, padding:0 }}>
               {tabs.map(t => (
-                <button key={t.key} onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); setActiveTab(t.key); }} onClick={()=>setActiveTab(t.key)} title={t.label} style={{ display:"flex", alignItems:"center", gap:4, padding:"8px 10px", border:"none", borderRadius:4, background:activeTab===t.key ? "#8a5a28" : "transparent", color:activeTab===t.key ? "#fff" : CR.textDim, fontSize:11, fontFamily:"'DM Sans',sans-serif", cursor:"pointer", boxShadow:"none", transition:"all 0.12s", whiteSpace:"nowrap" }}>
+                <button key={t.key} onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); setActiveTab(t.key); }} onClick={()=>setActiveTab(t.key)} title={t.label} style={{ display:"flex", alignItems:"center", gap:4, padding:"8px 10px", border:`1px solid ${activeTab===t.key ? WOOD.amber : "rgba(120,70,20,0.3)"}`, borderRadius:4, background:activeTab===t.key ? WOOD.amber : "rgba(15,8,2,0.55)", color:"#fff", fontSize:11, fontFamily:"'DM Sans',sans-serif", cursor:"pointer", boxShadow:"none", transition:"all 0.12s", whiteSpace:"nowrap" }}>
                   {t.icon}{activeTab===t.key && <span style={{ marginLeft:2 }}>{t.label}</span>}
                 </button>
               ))}
