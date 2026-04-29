@@ -7226,14 +7226,14 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
         {/* Header */}
         <div style={{ padding:"20px 16px 12px 22px", marginBottom:0, position:"relative", flexShrink:0, borderBottom:`1px solid ${CR.border}` }}>
           {(() => {
-            const s = book.series || getSeriesFor(book.title, book.author);
+            // Goodreads imports bake the series suffix into book.title (e.g.
+            // 'Words of Radiance (The Stormlight Archive, #2)'). Strip it
+            // BEFORE the catalog lookup so getSeriesFor can match the bare
+            // title; otherwise normalize() never finds the entry and we lose
+            // the series detection entirely.
+            const cleanTitle = (book.title || "").replace(/\s*\([^()]+,\s*#\d+\)\s*$/, "");
+            const s = book.series || getSeriesFor(cleanTitle, book.author);
             const hasSeries = s?.name && s?.order;
-            // Strip trailing '(Series, #N)' suffix when we have catalog series
-            // data — Goodreads imports bake the suffix into book.title, which
-            // would double up with the dedicated series row below.
-            const cleanTitle = hasSeries
-              ? (book.title || "").replace(/\s*\([^()]+,\s*#\d+\)\s*$/, "")
-              : book.title;
             return (
               <>
                 <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:24, fontWeight:400, color:CR.text, letterSpacing:"-0.01em", lineHeight:1.2, paddingRight:52 }}>{cleanTitle}</p>
