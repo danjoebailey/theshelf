@@ -3633,18 +3633,17 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
           opt out for a cheaper regular scan via the link. */}
       {imageUrl && !scanning && scannedBooks.length === 0 && preflight?.estimatedBooks >= 100 && (() => {
         const N = Math.min(5, Math.max(2, Math.ceil(preflight.estimatedBooks / 60)));
-        const estCost = (N * 0.15).toFixed(2);
         return (
           <div style={{ margin:"0 18px 14px", padding:"12px 14px", background:"rgba(160,100,40,0.12)", border:"1px solid rgba(160,100,40,0.4)", borderRadius:10 }}>
             <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:"rgba(255,235,195,0.85)", marginBottom:6, fontWeight:600 }}>Packed shelf detected (~{preflight.estimatedBooks} books)</p>
             {forceRegular ? (
               <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, color:"rgba(255,235,195,0.65)", lineHeight:1.45 }}>
-                Using regular scan (~$0.15) — typically captures 30–50% of dense shelves.{" "}
+                Using regular scan — typically captures 30–50% of dense shelves.{" "}
                 <span onClick={() => setForceRegular(false)} style={{ color:"rgba(200,150,80,0.95)", cursor:"pointer", textDecoration:"underline" }}>Switch to Deep Scan</span> for full coverage.
               </p>
             ) : (
               <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, color:"rgba(255,235,195,0.65)", lineHeight:1.45 }}>
-                Using <strong>Deep Scan</strong>: splits the photo into {N} sections and scans each in parallel (~${estCost}). Captures ~80% vs ~40% on regular scans.{" "}
+                Using <strong>Deep Scan</strong>: splits the photo into {N} sections and scans each in parallel. Captures ~80% vs ~40% on regular scans.{" "}
                 <span onClick={() => setForceRegular(true)} style={{ color:"rgba(200,150,80,0.95)", cursor:"pointer", textDecoration:"underline" }}>Use regular scan instead</span>
               </p>
             )}
