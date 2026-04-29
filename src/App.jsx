@@ -8969,7 +8969,7 @@ export default function App() {
                 alignItems:"center", justifyContent:"center", gap:2,
                 padding:"6px 2px 8px",
                 background: tab===id ? "rgba(184,104,0,0.22)" : "transparent",
-                borderTop: tab===id ? "3px solid #f5c050" : "3px solid transparent",
+                borderTop: tab===id ? "3px solid #fff" : "3px solid transparent",
                 borderRadius:"0 0 10px 10px",
                 transition:"background 0.2s, border-color 0.2s",
               }}>
@@ -9004,7 +9004,7 @@ export default function App() {
                 alignItems:"center", justifyContent:"center", gap:2,
                 padding:"6px 2px 8px",
                 background: showProfileMenu ? "rgba(184,104,0,0.22)" : "transparent",
-                borderTop: showProfileMenu ? "3px solid #f5c050" : "3px solid transparent",
+                borderTop: showProfileMenu ? "3px solid #fff" : "3px solid transparent",
                 borderRadius:"0 0 10px 10px",
                 transition:"background 0.2s, border-color 0.2s",
               }}>
