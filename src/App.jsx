@@ -3349,8 +3349,10 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
         if (pf.ok) {
           const pfData = await pf.json();
           if (pfData.bookcases && pfData.shelves) {
-            // ×2 cols splits each bookcase in half so each crop has ~7 spines.
-            cols = Math.min(SCAN_COLS_MAX, Math.max(2, pfData.bookcases * 2));
+            // ×3 cols subdivides each bookcase into thirds so each crop
+            // has ~5-7 spines — tight enough for accurate OCR even on
+            // densely packed shelves. ×2 was too sparse.
+            cols = Math.min(SCAN_COLS_MAX, Math.max(3, pfData.bookcases * 3));
             rows = Math.min(SCAN_ROWS_MAX, Math.max(2, pfData.shelves));
           }
         }

@@ -279,20 +279,32 @@ function lastName(author) {
   return normalize(tokens[tokens.length - 1] || "");
 }
 
+// Title normalization for matching that strips a leading article. OCR
+// often misses the small 'The' on a spine ("Way of Kings" vs catalog's
+// "The Way of Kings") — without this, those titles silently fail to
+// match. Applied to both sides of the lookup.
+function normalizeTitleForMatch(title) {
+  if (!title) return "";
+  const stripped = title.trim().replace(/^(the|a|an)\s+/i, "");
+  return normalize(stripped);
+}
+
 export async function enrichScannedBooks(scannedBooks) {
   await ensureLoaded();
   const allBooks = [...primaryCatalog, ...recLibrary];
   // Group all books with the same normalized title so we can pick the right
   // one by author. Same-title books are real (Malice by Walter is fantasy;
-  // by Higashino is mystery; by Gwynne is grimdark fantasy).
+  // by Higashino is mystery; by Gwynne is grimdark fantasy). Article-strip
+  // the index key so OCR's "Way of Kings" still finds catalog's "The Way
+  // of Kings".
   const byTitleList = {};
   for (const book of allBooks) {
-    const tk = normalize(book.title);
+    const tk = normalizeTitleForMatch(book.title);
     if (!byTitleList[tk]) byTitleList[tk] = [];
     byTitleList[tk].push(book);
   }
   return scannedBooks.map(scanned => {
-    const tk = normalize(scanned.title);
+    const tk = normalizeTitleForMatch(scanned.title);
     const candidates = byTitleList[tk] || [];
     if (candidates.length === 0) return { ...scanned, _inCatalog: false };
     const hasAuthor = scanned.author && !/^unknown$/i.test(scanned.author);

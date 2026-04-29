@@ -42,9 +42,10 @@ export default async function handler(req, res) {
     { type: "text", text: `Look at this bookshelf photo. Return ONLY JSON in this exact format, no markdown, no explanation:
 {"bookcases": N, "shelves": M}
 
-- bookcases = number of distinct vertical bookcase units visible (separate furniture units side by side)
-- shelves = number of horizontal shelf rows in the tallest bookcase
-- If unclear, estimate. Both must be positive integers.` },
+- bookcases = number of distinct VERTICAL SECTIONS containing books. Count each arch, alcove, column, or contiguous block of vertical spines as one — even if they're part of the same piece of furniture. A 3-arch IKEA bookcase counts as 3, not 1. A wide single-section bookcase still counts as 1.
+- shelves = number of horizontal shelf rows in the tallest section
+- If unclear, lean toward HIGHER counts — this drives the OCR grid density and undercounting hurts spine-reading accuracy.
+- Both must be positive integers.` },
   ];
 
   try {
