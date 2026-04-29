@@ -7244,7 +7244,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
               ))}
             </div>
           </div>
-          <button onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); onClose(); }} onClick={onClose} style={{ position:"absolute", top:20, right:16, background:"#fff", border:`1px solid ${CR.border}`, borderRadius:"50%", width:30, height:30, cursor:"pointer", color:CR.textDim, fontSize:13, display:"flex", alignItems:"center", justifyContent:"center" }}>✕</button>
+          <button onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); onClose(); }} onClick={onClose} style={{ position:"absolute", top:20, right:16, background:"transparent", border:"none", width:30, height:30, cursor:"pointer", color:CR.textDim, fontSize:16, display:"flex", alignItems:"center", justifyContent:"center" }}>✕</button>
         </div>
 
         {/* Scrollable body */}
@@ -8086,7 +8086,7 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd, userI
                 : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:CR.text, lineHeight:1.7 }}>{obiRec}</p>}
             </div>
           )}
-          <button onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); onClose(); }} onClick={onClose} style={{ position:"absolute", top:20, right:16, background:"#fff", border:`1px solid ${CR.border}`, borderRadius:"50%", width:30, height:30, cursor:"pointer", color:CR.textDim, fontSize:13, display:"flex", alignItems:"center", justifyContent:"center" }}>✕</button>
+          <button onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); onClose(); }} onClick={onClose} style={{ position:"absolute", top:20, right:16, background:"transparent", border:"none", width:30, height:30, cursor:"pointer", color:CR.textDim, fontSize:16, display:"flex", alignItems:"center", justifyContent:"center" }}>✕</button>
         </div>
 
         {/* Content */}
