@@ -7291,7 +7291,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
               <p style={{...lbl, textAlign:"center"}}>Shelf</p>
               <div style={{ display:"grid", gridTemplateColumns:"repeat(5,1fr)", gap:5 }}>
                 {SHELVES.map(s => (
-                  <button key={s} onClick={() => { if (s === "Read" && shelf === "Reading") setDate(new Date().toISOString().slice(0,10)); setShelf(s); }} style={{ padding:"8px 4px", border:`1px solid ${shelf===s ? CR.text : CR.border}`, background:shelf===s ? CR.text : CR.panel, color:shelf===s ? CR.bg : CR.textDim, fontSize:12, fontFamily:"'DM Sans',sans-serif", borderRadius:4, cursor:"pointer", textAlign:"center", transition:"all 0.12s" }}>{s}</button>
+                  <button key={s} onClick={() => { if (s === "Read" && shelf === "Reading") setDate(new Date().toISOString().slice(0,10)); setShelf(s); }} style={{ padding:"8px 4px", border:`1px solid ${shelf===s ? CR.text : CR.border}`, background:shelf===s ? CR.text : "#fff", color:shelf===s ? CR.bg : CR.textDim, fontSize:12, fontFamily:"'DM Sans',sans-serif", borderRadius:4, cursor:"pointer", textAlign:"center", transition:"all 0.12s" }}>{s}</button>
                 ))}
               </div>
             </div>
@@ -7368,12 +7368,12 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
                   { key:"prose",  label:"Prose",  icon:<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> },
                   { key:"scores", label:"Scores", icon:<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12V9M8 12V5M13 12V7M18 12V3"/></svg> },
                 ].map(({ key, label, icon }) => (
-                  <button key={key} onClick={key==="about"?fetchAbout:key==="prose"?fetchProse:fetchScores} style={{ display:"flex", alignItems:"center", gap:5, padding:"6px 12px", borderRadius:20, border:"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:500, transition:"all 0.15s", background:detailPanel===key ? CR.text : CR.panel, color:detailPanel===key ? CR.bg : CR.textDim }}>
+                  <button key={key} onClick={key==="about"?fetchAbout:key==="prose"?fetchProse:fetchScores} style={{ display:"flex", alignItems:"center", gap:5, padding:"6px 12px", borderRadius:20, border:detailPanel===key ? "none" : `1px solid ${CR.border}`, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:500, transition:"all 0.15s", background:detailPanel===key ? CR.text : "#fff", color:detailPanel===key ? CR.bg : CR.textDim }}>
                     {icon}{label}
                   </button>
                 ))}
                 {(!["Read","DNF"].includes(shelf) || book._fromRecs) && (
-                  <button {...tc(fetchObi)} style={{ display:"flex", alignItems:"center", gap:5, padding:"6px 12px", borderRadius:20, border:"none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:500, transition:"all 0.15s", background:detailPanel==="obi" ? CR.text : CR.panel, color:detailPanel==="obi" ? CR.bg : CR.textDim }}>
+                  <button {...tc(fetchObi)} style={{ display:"flex", alignItems:"center", gap:5, padding:"6px 12px", borderRadius:20, border:detailPanel==="obi" ? "none" : `1px solid ${CR.border}`, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:500, transition:"all 0.15s", background:detailPanel==="obi" ? CR.text : "#fff", color:detailPanel==="obi" ? CR.bg : CR.textDim }}>
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/></svg>
                     Ask Obi
                   </button>
@@ -8067,7 +8067,7 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd, userI
               onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); if(sortedUnread?.length) fetchObiRec(); }}
               onClick={()=>{ if(sortedUnread?.length) fetchObiRec(); }}
               disabled={!sortedUnread?.length}
-              style={{ display:"flex", alignItems:"center", gap:5, padding:"6px 12px", borderRadius:20, border:"none", cursor:sortedUnread?.length ? "pointer" : "not-allowed", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, transition:"all 0.15s", background:showObiRec ? CR.text : CR.panel, color:showObiRec ? CR.bg : CR.textDim, opacity:sortedUnread?.length ? 1 : 0.4, flexShrink:0 }}>
+              style={{ display:"flex", alignItems:"center", gap:5, padding:"6px 12px", borderRadius:20, border:showObiRec ? "none" : `1px solid ${CR.border}`, cursor:sortedUnread?.length ? "pointer" : "not-allowed", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, transition:"all 0.15s", background:showObiRec ? CR.text : "#fff", color:showObiRec ? CR.bg : CR.textDim, opacity:sortedUnread?.length ? 1 : 0.4, flexShrink:0 }}>
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/></svg>
               Ask Obi
             </button>
