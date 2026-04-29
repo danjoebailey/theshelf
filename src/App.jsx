@@ -2066,9 +2066,9 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
               }
             </button>
             {/* Cover-size pill — single button, click cycles S → M → L → S.
-                Only renders in shelf view where the scroll rows actually use it. */}
+                Sized to match the list/shelf toggle and other filter pills. */}
             {seriesViewStyle === "shelf" && (
-              <button {...tc(() => setCoverSize(s => s === "sm" ? "md" : s === "md" ? "lg" : "sm"), true)} title="Cycle cover size" style={{ display:"flex", alignItems:"center", justifyContent:"center", minWidth:24, padding:"3px 7px", background:"rgba(15,8,2,0.55)", border:"1px solid rgba(120,70,20,0.3)", borderRadius:20, backdropFilter:"blur(4px)", cursor:"pointer", color:"#fff", fontFamily:"'DM Sans',sans-serif", fontSize:10, fontWeight:600 }}>
+              <button {...tc(() => setCoverSize(s => s === "sm" ? "md" : s === "md" ? "lg" : "sm"), true)} title="Cycle cover size" style={{ display:"flex", alignItems:"center", justifyContent:"center", padding:"5px 10px", background:"rgba(15,8,2,0.55)", border:"1px solid rgba(120,70,20,0.3)", borderRadius:20, backdropFilter:"blur(4px)", cursor:"pointer", color:"#fff", fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:600, lineHeight:1 }}>
                 {coverSize === "sm" ? "S" : coverSize === "lg" ? "L" : "M"}
               </button>
             )}
