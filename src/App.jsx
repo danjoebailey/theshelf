@@ -7068,6 +7068,23 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
   const [coverFetch, setCoverFetch] = useState(null);
   const [pages, setPages] = useState(book.pages || 0);
   const [isbnScanOpen, setIsbnScanOpen] = useState(false);
+  // Catalog series lookup may need to wait for preloadCatalog to finish on a
+  // fresh page load — getSeriesFor is sync and returns null until the JSON
+  // resolves. Resolve once and store so the header re-renders with the row.
+  const [resolvedSeries, setResolvedSeries] = useState(() => {
+    if (book.series && book.series.name && book.series.order) return book.series;
+    const ct = (book.title || "").replace(/\s*\([^()]+,\s*#\d+\)\s*$/, "");
+    return getSeriesFor(ct, book.author);
+  });
+  useEffect(() => {
+    if (resolvedSeries) return;
+    preloadCatalog().then(() => {
+      const ct = (book.title || "").replace(/\s*\([^()]+,\s*#\d+\)\s*$/, "");
+      const s = getSeriesFor(ct, book.author);
+      if (s) setResolvedSeries(s);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [book.title, book.author]);
   const defaultTab = initialTab || ((book.shelf === "Curious" || !book.shelf) ? "details" : "edit");
   const [activeTab, setActiveTab] = useState(defaultTab);
   const [detailPanel, setDetailPanel] = useState(null); // "about" | "prose" | "scores"
@@ -7226,19 +7243,13 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
         {/* Header */}
         <div style={{ padding:"20px 16px 12px 22px", marginBottom:0, position:"relative", flexShrink:0, borderBottom:`1px solid ${CR.border}` }}>
           {(() => {
-            // Goodreads imports bake the series suffix into book.title (e.g.
-            // 'Words of Radiance (The Stormlight Archive, #2)'). Strip it
-            // BEFORE the catalog lookup so getSeriesFor can match the bare
-            // title; otherwise normalize() never finds the entry and we lose
-            // the series detection entirely.
             const cleanTitle = (book.title || "").replace(/\s*\([^()]+,\s*#\d+\)\s*$/, "");
-            const s = book.series || getSeriesFor(cleanTitle, book.author);
-            const hasSeries = s?.name && s?.order;
+            const hasSeries = resolvedSeries?.name && resolvedSeries?.order;
             return (
               <>
                 <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:24, fontWeight:400, color:CR.text, letterSpacing:"-0.01em", lineHeight:1.2, paddingRight:52 }}>{cleanTitle}</p>
                 {hasSeries && (
-                  <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, fontStyle:"italic", color:CR.textFaint, marginTop:3, lineHeight:1.2 }}>{s.name}, #{s.order}</p>
+                  <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, fontStyle:"italic", color:CR.textFaint, marginTop:3, lineHeight:1.2 }}>{resolvedSeries.name}, #{resolvedSeries.order}</p>
                 )}
               </>
             );
