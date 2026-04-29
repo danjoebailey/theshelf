@@ -165,8 +165,10 @@ const WOOD = {
 };
 
 const CR = {
-  bg: "#f5e8d0", panel: "#ece0c4", text: "#2a1e10",
-  textDim: "#8a7060", textFaint: "#b8a888", border: "#d8ceba", amber: "#b86800",
+  // Cooler, more stone-tinted parchment matching the diorama's page color —
+  // less buttery, slightly grayer warm cream. Keeps text contrast intact.
+  bg: "#ecdfc5", panel: "#e2d6bb", text: "#2a1e10",
+  textDim: "#8a7060", textFaint: "#b8a888", border: "#d4c8af", amber: "#b86800",
 };
 
 // Rustic hardcover color palettes
@@ -6941,6 +6943,22 @@ function AddSheet({ onSave, onClose, initialBook = null }) {
   );
 }
 
+// Leather-bound book cover styling for the EditSheet / AuthorModal frames.
+// Diorama vocabulary: warm umber/sienna leather with stoneware-like grain,
+// page set into the cover with a slight inset shadow as if pressed in.
+const BOOK_LEATHER_BG = `
+  url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.55 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>"),
+  radial-gradient(ellipse at 30% 20%, #a06636 0%, #6f3f1d 60%, #4d2a13 100%)
+`;
+const BOOK_LEATHER_BG_BLEND = "multiply, normal";
+// Inset shadow profile used by the parchment "page" so it reads as set
+// into the cover board, not floating on top.
+const BOOK_PAGE_INSET = "inset 0 2px 6px rgba(0,0,0,0.22), inset 0 -1px 3px rgba(0,0,0,0.10), inset 2px 0 5px rgba(0,0,0,0.18)";
+// Very fine paper grain for the parchment page area — the diorama's pages
+// have visible tooth without being noisy. Multiply blend so the grain
+// darkens a tiny amount per cell rather than recoloring the page.
+const BOOK_PAGE_GRAIN = "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.10 0'/></filter><rect width='100%25' height='100%25' filter='url(%23p)'/></svg>\")";
+
 // Camera-based ISBN barcode scanner. Uses the browser's native
 // BarcodeDetector API (no JS library) to read EAN-13 codes from the
 // back cover. Falls back to manual ISBN entry on browsers without
@@ -7191,8 +7209,20 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
 
   return (
     <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.5)", zIndex:300, display:"flex", flexDirection:"column", justifyContent:"flex-end" }} onClick={onClose}>
-      <div onClick={e=>e.stopPropagation()} onTouchEnd={e=>e.stopPropagation()} style={{ background:CR.bg, borderRadius:0, height:"98%", display:"flex", flexDirection:"column", boxShadow:"0 -4px 40px rgba(0,0,0,0.18)", borderTop:"6px solid #8a5a28", borderLeft:"6px solid #8a5a28" }}>
-
+      <div onClick={e=>e.stopPropagation()} onTouchEnd={e=>e.stopPropagation()} style={{
+        background: BOOK_LEATHER_BG, backgroundBlendMode: BOOK_LEATHER_BG_BLEND, backgroundSize: "160px 160px, cover",
+        height:"98%", display:"flex", flexDirection:"column",
+        boxShadow:"0 -4px 40px rgba(0,0,0,0.18)",
+        padding: "16px 0 0 16px",
+      }}>
+        <div style={{
+          background: `${BOOK_PAGE_GRAIN}, ${CR.bg}`,
+          backgroundBlendMode: "multiply, normal",
+          backgroundSize: "180px 180px, cover",
+          flex: 1, minHeight: 0,
+          display: "flex", flexDirection: "column",
+          boxShadow: BOOK_PAGE_INSET,
+        }}>
         {/* Header */}
         <div style={{ padding:"20px 16px 12px 22px", marginBottom:0, position:"relative", flexShrink:0, borderBottom:`1px solid ${CR.border}` }}>
           <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:24, fontWeight:400, color:CR.text, letterSpacing:"-0.01em", lineHeight:1.2, paddingRight:52 }}>{titleWithSeries(book)}</p>
@@ -7405,6 +7435,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
               </div>
             </div>
           )}
+        </div>
         </div>
       </div>
       {isbnScanOpen && <IsbnScanModal onDetect={handleIsbnDetected} onClose={() => setIsbnScanOpen(false)} />}
@@ -7828,8 +7859,8 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd, userI
   }
 
   const CR = {
-    bg: "#f5e8d0", panel: "#ece5d8", text: "#2a1e10",
-    textDim: "#8a7060", textFaint: "#b8a888", border: "#d8ceba", amber: "#b86800",
+    bg: "#ecdfc5", panel: "#e2d6bb", text: "#2a1e10",
+    textDim: "#8a7060", textFaint: "#b8a888", border: "#d4c8af", amber: "#b86800",
   };
 
   const normAuthorName = s => (s||"").toLowerCase().replace(/[^a-z\s]/g,"").replace(/\s+/g," ").trim();
@@ -8013,8 +8044,20 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd, userI
 
   return (
     <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.5)", zIndex:400, display:"flex", flexDirection:"column", justifyContent:"flex-end" }} onClick={onClose}>
-      <div onClick={e=>e.stopPropagation()} onTouchEnd={e=>e.stopPropagation()} style={{ background:CR.bg, borderRadius:0, height:"98%", display:"flex", flexDirection:"column", boxShadow:"0 -4px 40px rgba(0,0,0,0.18)", borderTop:"6px solid #8a5a28", borderRight:"6px solid #8a5a28" }}>
-
+      <div onClick={e=>e.stopPropagation()} onTouchEnd={e=>e.stopPropagation()} style={{
+        background: BOOK_LEATHER_BG, backgroundBlendMode: BOOK_LEATHER_BG_BLEND, backgroundSize: "160px 160px, cover",
+        height:"98%", display:"flex", flexDirection:"column",
+        boxShadow:"0 -4px 40px rgba(0,0,0,0.18)",
+        padding: "16px 16px 0 0",
+      }}>
+        <div style={{
+          background: `${BOOK_PAGE_GRAIN}, ${CR.bg}`,
+          backgroundBlendMode: "multiply, normal",
+          backgroundSize: "180px 180px, cover",
+          flex: 1, minHeight: 0,
+          display: "flex", flexDirection: "column",
+          boxShadow: "inset 0 2px 6px rgba(0,0,0,0.22), inset 0 -1px 3px rgba(0,0,0,0.10), inset -2px 0 5px rgba(0,0,0,0.18)",
+        }}>
         {/* Header */}
         <div style={{ padding:"20px 16px 0 22px", marginBottom:20, position:"relative", flexShrink:0 }}>
           <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:24, fontWeight:400, color:CR.text, letterSpacing:"-0.01em" }}>{author}</p>
@@ -8244,6 +8287,7 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd, userI
             <p style={{ color:CR.textDim, fontStyle:"italic", textAlign:"center", paddingTop:40 }}>Coming soon.</p>
           )}
 
+        </div>
         </div>
       </div>
     </div>
