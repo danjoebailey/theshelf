@@ -3251,6 +3251,10 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
   // well. Cleared on image change/clear.
   const [preflight, setPreflight] = useState(null);
   const [preflighting, setPreflighting] = useState(false);
+  // User-controlled override: when preflight detects a packed shelf
+  // (>=100 books) we default to deep scan, but the user can opt out
+  // for a cheaper regular scan via the warning's link.
+  const [forceRegular, setForceRegular] = useState(false);
   const fileRef = useRef(null);
   const obiProfileSnapshot = useContext(LibraryProfileContext);
 
@@ -3333,6 +3337,7 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
     setTruncated(false);
     setScanFailures(null);
     setPreflight(null);
+    setForceRegular(false);
     clearCache();
     loadImageEl(url).then(async img => {
       setImageMeta({ size: `${(file.size / 1024).toFixed(0)} KB`, dims: `${img.naturalWidth}×${img.naturalHeight}` });
@@ -3353,6 +3358,88 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
     });
   }
 
+  // Run the full preflight + grid + crop + scan pipeline against any
+  // image (whole upload OR a cropped region of it). Returns the parsed
+  // scan-shelf response. Used both by regular single-pass scans and by
+  // deep-scan multi-region orchestration where each region is treated
+  // as if it were its own uploaded photo.
+  async function scanRegion(img, cachedPreflight) {
+    const W = img.naturalWidth, H = img.naturalHeight;
+    const overview = imgToB64(img, 0, 0, W, H, 400);
+
+    let pfData = cachedPreflight;
+    if (!pfData) {
+      try {
+        const pf = await fetch("/api/scan-preflight", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ overview }),
+        });
+        if (pf.ok) pfData = await pf.json();
+      } catch {}
+    }
+    let cols = SCAN_COLS_DEFAULT, rows = SCAN_ROWS_DEFAULT;
+    if (pfData?.bookcases && pfData?.shelves) {
+      cols = Math.min(SCAN_COLS_MAX, Math.max(3, pfData.bookcases * 3));
+      rows = Math.min(SCAN_ROWS_MAX, Math.max(2, pfData.shelves));
+    }
+
+    const numImages = cols * rows * 2;
+    const maxW = Math.max(450, Math.min(1000, Math.round(Math.sqrt(CROP_PIXEL_BUDGET / numImages))));
+
+    const colW = Math.floor(W / cols), rowH = Math.floor(H / rows);
+    const crops = [];
+    for (let row = 0; row < rows; row++) {
+      const y = row * rowH;
+      const h = row === rows - 1 ? H - y : rowH;
+      for (let col = 0; col < cols; col++) {
+        const x = col * colW;
+        const w = col === cols - 1 ? W - x : colW;
+        crops.push({
+          row: row + 1,
+          col: col + 1,
+          data: imgToB64Rotated(img, x, y, w, h, maxW, 0.65),
+          original: imgToB64(img, x, y, w, h, maxW, 0.65),
+        });
+      }
+    }
+    const res = await fetch("/api/scan-shelf", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ overview, crops, rows, cols }),
+    });
+    if (!res.ok) {
+      let msg = `Scan failed (${res.status})`;
+      try { const ed = await res.json(); if (ed.error) msg = `Scan failed: ${ed.error}`; } catch {}
+      throw new Error(msg);
+    }
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    return data;
+  }
+
+  // Slice an image into N vertical regions. Each region becomes an HTMLImageElement
+  // ready to be fed back through scanRegion(). Vertical splits because most
+  // bookshelves are wider than tall; for portrait single-bookcase photos this
+  // would split awkwardly but those photos rarely trip the density threshold.
+  async function splitImageIntoRegions(img, n) {
+    const W = img.naturalWidth, H = img.naturalHeight;
+    const colW = Math.floor(W / n);
+    const regions = [];
+    for (let i = 0; i < n; i++) {
+      const x = i * colW;
+      const w = i === n - 1 ? W - x : colW;
+      const canvas = document.createElement("canvas");
+      canvas.width = w;
+      canvas.height = H;
+      canvas.getContext("2d").drawImage(img, x, 0, w, H, 0, 0, w, H);
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+      const regionImg = await loadImageEl(dataUrl);
+      regions.push(regionImg);
+    }
+    return regions;
+  }
+
   async function scan() {
     if (!imageUrl || scanning) return;
     setScanning(true); setError(null);
@@ -3360,83 +3447,58 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
     try {
       setProgress({ step: "Sizing up the shelf…", pct: 10 });
       const img = await loadImageEl(imageUrl);
-      const W = img.naturalWidth, H = img.naturalHeight;
-      const overview = imgToB64(img, 0, 0, W, H, 400);
 
-      // Preflight: reuse the result captured at upload time. Falls back to
-      // a fresh call only if upload-time preflight failed (e.g. user
-      // navigated to scan before the background call finished).
-      let cols = SCAN_COLS_DEFAULT, rows = SCAN_ROWS_DEFAULT;
-      let pfData = preflight;
-      if (!pfData) {
-        try {
-          const pf = await fetch("/api/scan-preflight", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ overview }),
-          });
-          if (pf.ok) pfData = await pf.json();
-        } catch {}
-      }
-      if (pfData?.bookcases && pfData?.shelves) {
-        // ×3 cols subdivides each bookcase into thirds so each crop
-        // has ~5-7 spines — tight enough for accurate OCR even on
-        // densely packed shelves.
-        cols = Math.min(SCAN_COLS_MAX, Math.max(3, pfData.bookcases * 3));
-        rows = Math.min(SCAN_ROWS_MAX, Math.max(2, pfData.shelves));
-      }
+      const useDeepScan = !forceRegular && (preflight?.estimatedBooks || 0) >= 100;
+      let allBooks = [];
+      let anyTruncated = false;
+      let aggFailedRows = 0, aggTotalRows = 0;
 
-      // Each cell ships TWO images (rotated + original) so divide the
-      // budget by 2× cells. Combined with quality:0.65 below, this keeps
-      // the request body under Vercel's 4MB cap on dense grids.
-      const numImages = cols * rows * 2;
-      const maxW = Math.max(450, Math.min(1000, Math.round(Math.sqrt(CROP_PIXEL_BUDGET / numImages))));
+      if (useDeepScan) {
+        // Number of regions scales with estimated book count — ~50-60 books
+        // per region keeps each region scan in the high-yield zone. Capped
+        // at 5 to bound cost (~75¢ worst case).
+        const N = Math.min(5, Math.max(2, Math.ceil(preflight.estimatedBooks / 60)));
+        setProgress({ step: `Splitting into ${N} sections…`, pct: 20 });
+        const regionImgs = await splitImageIntoRegions(img, N);
+        setProgress({ step: `Deep scanning ${N} sections in parallel…`, pct: 35 });
 
-      setProgress({ step: "Slicing image…", pct: 25 });
-      const colW = Math.floor(W / cols), rowH = Math.floor(H / rows);
-      const crops = [];
-      for (let row = 0; row < rows; row++) {
-        const y = row * rowH;
-        const h = row === rows - 1 ? H - y : rowH;
-        for (let col = 0; col < cols; col++) {
-          const x = col * colW;
-          const w = col === cols - 1 ? W - x : colW;
-          // Send TWO versions per cell. Rotated 90° CW handles vertical
-          // spines (the common case). Original handles books stacked
-          // horizontally — their spine text is already left-to-right and
-          // gets garbled by the rotation. Claude reads whichever is
-          // legible; server-side dedupe collapses any double-reads.
-          // JPEG quality 0.65 (vs default 0.75) to fit body limits with
-          // 2× the images per cell.
-          crops.push({
-            row: row + 1,
-            col: col + 1,
-            data: imgToB64Rotated(img, x, y, w, h, maxW, 0.65),
-            original: imgToB64(img, x, y, w, h, maxW, 0.65),
-          });
+        const settled = await Promise.allSettled(regionImgs.map(rImg => scanRegion(rImg, null)));
+        let regionFailures = 0;
+        for (const s of settled) {
+          if (s.status === "fulfilled") {
+            allBooks.push(...(s.value.books || []));
+            if (s.value.truncated) anyTruncated = true;
+            aggFailedRows += s.value.failedRows || 0;
+            aggTotalRows += s.value.totalRows || 0;
+          } else {
+            regionFailures++;
+            console.warn("[deep scan] region failed:", s.reason?.message);
+          }
         }
+        if (allBooks.length === 0) throw new Error("All deep-scan regions failed.");
+        if (regionFailures > 0) console.warn(`[deep scan] ${regionFailures} of ${N} regions failed`);
+      } else {
+        setProgress({ step: "Reading spines…", pct: 35 });
+        const data = await scanRegion(img, preflight);
+        allBooks = data.books || [];
+        anyTruncated = !!data.truncated;
+        aggFailedRows = data.failedRows || 0;
+        aggTotalRows = data.totalRows || 0;
       }
-      setProgress({ step: "Reading spines…", pct: 50 });
-      const res = await fetch("/api/scan-shelf", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ overview, crops, rows, cols }),
+
+      // Cross-region dedupe — books at region boundaries may get scanned twice.
+      const seen = new Set();
+      const deduped = allBooks.filter(b => {
+        const k = (b.title || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+        if (!k || seen.has(k)) return false;
+        seen.add(k);
+        return true;
       });
-      if (!res.ok) {
-        // Surface the real error (timeout, rate limit, body-too-large, etc.)
-        // instead of a bare status code so the user knows what to retry.
-        let msg = `Scan failed (${res.status})`;
-        try { const ed = await res.json(); if (ed.error) msg = `Scan failed: ${ed.error}`; } catch {}
-        throw new Error(msg);
-      }
-      const data = await res.json();
-      if (data.error) throw new Error(data.error);
-      // Enrich scanned books from our 10K-book catalog — fills in missing
-      // authors and genres for any title we already know.
-      const enriched = await enrichScannedBooks(data.books || []);
+
+      const enriched = await enrichScannedBooks(deduped);
       setScannedBooks(enriched);
-      setTruncated(!!data.truncated);
-      setScanFailures(data.failedRows > 0 ? { failed: data.failedRows, total: data.totalRows } : null);
+      setTruncated(anyTruncated);
+      setScanFailures(aggFailedRows > 0 ? { failed: aggFailedRows, total: aggTotalRows } : null);
       setProgress({ step: "", pct: 100 });
       // Fetch covers using the enriched list — catalog match may have filled
       // in a missing author, and we need that for accurate cover lookup
@@ -3560,20 +3622,35 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
             <img src={imageUrl} alt="Shelf" style={{ width:"100%", display:"block", maxHeight:280, objectFit:"cover", objectPosition:"top" }} />
             <div style={{ position:"absolute", bottom:0, left:0, right:0, padding:"12px", background:"linear-gradient(transparent,rgba(15,8,2,0.85))", display:"flex", justifyContent:"space-between", alignItems:"flex-end" }}>
               <span style={{ color:"rgba(255,235,195,0.8)", fontSize:11, fontFamily:"'DM Sans',sans-serif" }}>{imageMeta?.dims} · {imageMeta?.size}</span>
-              <button onClick={() => { if (imageUrl?.startsWith("blob:")) URL.revokeObjectURL(imageUrl); setImageUrl(null); setImageMeta(null); setScannedBooks([]); setObiPicks(null); setObiSubstitutions([]); setCovers({}); setError(null); setTruncated(false); setScanFailures(null); setPreflight(null); clearCache(); }} style={{ background:"rgba(255,255,255,0.18)", border:"1px solid rgba(255,255,255,0.4)", color:"#fff", fontSize:11, padding:"4px 10px", borderRadius:6, cursor:"pointer", fontFamily:"'DM Sans',sans-serif" }}>Change</button>
+              <button onClick={() => { if (imageUrl?.startsWith("blob:")) URL.revokeObjectURL(imageUrl); setImageUrl(null); setImageMeta(null); setScannedBooks([]); setObiPicks(null); setObiSubstitutions([]); setCovers({}); setError(null); setTruncated(false); setScanFailures(null); setPreflight(null); setForceRegular(false); clearCache(); }} style={{ background:"rgba(255,255,255,0.18)", border:"1px solid rgba(255,255,255,0.4)", color:"#fff", fontSize:11, padding:"4px 10px", borderRadius:6, cursor:"pointer", fontFamily:"'DM Sans',sans-serif" }}>Change</button>
             </div>
           </div>
         )}
       </div>
 
-      {/* Density warning — surfaced from preflight before the user
-          spends money on a full-shelf scan that won't perform well. */}
-      {imageUrl && !scanning && scannedBooks.length === 0 && preflight?.estimatedBooks >= 100 && (
-        <div style={{ margin:"0 18px 14px", padding:"12px 14px", background:"rgba(160,100,40,0.12)", border:"1px solid rgba(160,100,40,0.4)", borderRadius:10 }}>
-          <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:"rgba(255,235,195,0.85)", marginBottom:6, fontWeight:600 }}>Packed shelf detected (~{preflight.estimatedBooks} books)</p>
-          <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, color:"rgba(255,235,195,0.65)", lineHeight:1.45 }}>Full-shelf scans of dense walls typically capture 30–50% of visible books. For best coverage, take a closer shot of one bookcase or section at a time. You can still scan the whole shot below.</p>
-        </div>
-      )}
+      {/* Density warning — when preflight detects a packed shelf, default
+          to deep scan (multi-region parallel) for full coverage. User can
+          opt out for a cheaper regular scan via the link. */}
+      {imageUrl && !scanning && scannedBooks.length === 0 && preflight?.estimatedBooks >= 100 && (() => {
+        const N = Math.min(5, Math.max(2, Math.ceil(preflight.estimatedBooks / 60)));
+        const estCost = (N * 0.15).toFixed(2);
+        return (
+          <div style={{ margin:"0 18px 14px", padding:"12px 14px", background:"rgba(160,100,40,0.12)", border:"1px solid rgba(160,100,40,0.4)", borderRadius:10 }}>
+            <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:"rgba(255,235,195,0.85)", marginBottom:6, fontWeight:600 }}>Packed shelf detected (~{preflight.estimatedBooks} books)</p>
+            {forceRegular ? (
+              <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, color:"rgba(255,235,195,0.65)", lineHeight:1.45 }}>
+                Using regular scan (~$0.15) — typically captures 30–50% of dense shelves.{" "}
+                <span onClick={() => setForceRegular(false)} style={{ color:"rgba(200,150,80,0.95)", cursor:"pointer", textDecoration:"underline" }}>Switch to Deep Scan</span> for full coverage.
+              </p>
+            ) : (
+              <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, color:"rgba(255,235,195,0.65)", lineHeight:1.45 }}>
+                Using <strong>Deep Scan</strong>: splits the photo into {N} sections and scans each in parallel (~${estCost}). Captures ~80% vs ~40% on regular scans.{" "}
+                <span onClick={() => setForceRegular(true)} style={{ color:"rgba(200,150,80,0.95)", cursor:"pointer", textDecoration:"underline" }}>Use regular scan instead</span>
+              </p>
+            )}
+          </div>
+        );
+      })()}
 
       {/* Scan button */}
       {imageUrl && (
@@ -3590,7 +3667,11 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
               ? <><span style={{ width:16, height:16, border:"2px solid rgba(26,9,0,0.3)", borderTopColor:"#1a0900", borderRadius:"50%", display:"inline-block", animation:"spin 0.7s linear infinite" }} />Scanning…</>
               : preflighting
                 ? <><span style={{ width:16, height:16, border:"2px solid rgba(255,235,195,0.3)", borderTopColor:"rgba(255,235,195,0.7)", borderRadius:"50%", display:"inline-block", animation:"spin 0.7s linear infinite" }} />Analyzing shelf…</>
-                : scannedBooks.length > 0 ? "Scan Again" : "Scan Shelf"}
+                : scannedBooks.length > 0
+                  ? "Scan Again"
+                  : (!forceRegular && (preflight?.estimatedBooks || 0) >= 100)
+                    ? "Deep Scan"
+                    : "Scan Shelf"}
           </button>
           {scanning && (
             <div style={{ marginTop:12, padding:"10px 12px", background:"rgba(15,8,2,0.4)", borderRadius:8 }}>
