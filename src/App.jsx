@@ -3245,6 +3245,7 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
   const [covers, setCovers] = useState(() => readCache()?.covers || {});
   const [hideUnmatched, setHideUnmatched] = useState(() => !!readCache()?.hideUnmatched);
   const [truncated, setTruncated] = useState(() => !!readCache()?.truncated);
+  const [scanFailures, setScanFailures] = useState(() => readCache()?.scanFailures || null);
   const fileRef = useRef(null);
   const obiProfileSnapshot = useContext(LibraryProfileContext);
 
@@ -3259,11 +3260,12 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
         covers,
         hideUnmatched,
         truncated,
+        scanFailures,
       }));
     } catch (e) {
       console.warn("[shelf-scan cache] save failed", e.message);
     }
-  }, [scannedBooks, obiPicks, obiSubstitutions, covers, hideUnmatched, truncated, cacheKey]);
+  }, [scannedBooks, obiPicks, obiSubstitutions, covers, hideUnmatched, truncated, scanFailures, cacheKey]);
 
   // Backfill covers AND missing authors for any scanned/substituted book
   // that doesn't have a cover yet. The cover-fetcher already pings OL/GB/
@@ -3324,6 +3326,7 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
     setCovers({});
     setError(null);
     setTruncated(false);
+    setScanFailures(null);
     clearCache();
     loadImageEl(url).then(img =>
       setImageMeta({ size: `${(file.size / 1024).toFixed(0)} KB`, dims: `${img.naturalWidth}×${img.naturalHeight}` })
@@ -3333,7 +3336,7 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
   async function scan() {
     if (!imageUrl || scanning) return;
     setScanning(true); setError(null);
-    setScannedBooks([]); setObiPicks(null); setObiSubstitutions([]); setTruncated(false);
+    setScannedBooks([]); setObiPicks(null); setObiSubstitutions([]); setTruncated(false); setScanFailures(null);
     try {
       setProgress({ step: "Sizing up the shelf…", pct: 10 });
       const img = await loadImageEl(imageUrl);
@@ -3398,6 +3401,7 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
       const enriched = await enrichScannedBooks(data.books || []);
       setScannedBooks(enriched);
       setTruncated(!!data.truncated);
+      setScanFailures(data.failedRows > 0 ? { failed: data.failedRows, total: data.totalRows } : null);
       setProgress({ step: "", pct: 100 });
       // Fetch covers using the enriched list — catalog match may have filled
       // in a missing author, and we need that for accurate cover lookup
@@ -3592,9 +3596,16 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
           {!obiPicks && hideUnmatched && displayList.length === 0 && (
             <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:"rgba(255,235,195,0.7)", fontStyle:"italic", padding:"20px 0" }}>None of the scanned spines matched a book in our catalog.</p>
           )}
-          {/* Truncation hint — server signals when Claude's response hit the
-              token cap and we recovered partial results. */}
-          {!obiPicks && truncated && (
+          {/* Failure-specific hint — some row batches died (timeout, 5xx,
+              malformed response). Re-running often rescues them. */}
+          {!obiPicks && scanFailures && (
+            <div style={{ marginBottom:14, padding:"10px 12px", background:"rgba(192,57,43,0.1)", border:"1px solid rgba(192,57,43,0.3)", borderRadius:8 }}>
+              <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:"rgba(255,235,195,0.85)" }}>{scanFailures.failed} of {scanFailures.total} row scans failed (transient API errors). Retrying the scan will likely recover those books.</p>
+            </div>
+          )}
+          {/* Truncation hint — only fires when Claude's actual response
+              hit the token cap, no longer conflated with batch failures. */}
+          {!obiPicks && truncated && !scanFailures && (
             <div style={{ marginBottom:14, padding:"10px 12px", background:"rgba(160,100,40,0.1)", border:"1px solid rgba(160,100,40,0.3)", borderRadius:8 }}>
               <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:"rgba(255,235,195,0.75)" }}>That's a packed shelf — we hit the response cap and showed the {scannedBooks.length} books we recovered. For more coverage, try a closer shot of one section.</p>
             </div>

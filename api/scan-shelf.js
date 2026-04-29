@@ -22,6 +22,18 @@ async function callClaudeVision(apiKey, content, maxTokens = 4500) {
   return (data.content?.[0]?.text || "").trim();
 }
 
+// One retry with brief backoff. The most common failure mode for parallel
+// row batches is a transient 5xx or rate limit — retrying nearly always
+// succeeds, and silently losing a batch leaves real books out of the scan.
+async function callWithRetry(apiKey, content, maxTokens) {
+  try {
+    return await callClaudeVision(apiKey, content, maxTokens);
+  } catch (e) {
+    await new Promise(r => setTimeout(r, 900));
+    return callClaudeVision(apiKey, content, maxTokens);
+  }
+}
+
 function imageBlock(b64) {
   return { type: "image", source: { type: "base64", media_type: "image/jpeg", data: b64 } };
 }
@@ -88,41 +100,47 @@ export default async function handler(req, res) {
     let allBooks = [];
     let anyTruncated = false;
 
+    let failedRows = 0;
+    let totalRows = 1;
+
     if (crops.length > SINGLE_CALL_THRESHOLD) {
       // Per-row parallel fan-out. Each row batch is small (cols crops +
       // overview), so individual Anthropic calls complete in ~5-10s. With
-      // Promise.allSettled, total wall time ≈ slowest single batch and a
-      // failure in one row doesn't take down the whole scan.
+      // Promise.allSettled + per-call retry, total wall time ≈ slowest
+      // single batch and a transient failure in one row no longer drops
+      // those books from the scan.
       const byRow = {};
       for (const c of crops) {
         (byRow[c.row] = byRow[c.row] || []).push(c);
       }
       const rowKeys = Object.keys(byRow).map(k => parseInt(k, 10)).sort((a, b) => a - b);
+      totalRows = rowKeys.length;
 
       const settled = await Promise.allSettled(
         rowKeys.map(async rowNum => {
           const batch = byRow[rowNum];
           const content = buildContent(overview, batch, rows, cols, `row ${rowNum} of ${rows}`);
-          const raw = await callClaudeVision(apiKey, content, 2500);
+          const raw = await callWithRetry(apiKey, content, 3500);
           return parseBookArray(raw.replace(/```json|```/g, "").trim());
         })
       );
 
-      let anyFailed = false;
-      for (const s of settled) {
+      for (let i = 0; i < settled.length; i++) {
+        const s = settled[i];
         if (s.status === "fulfilled" && s.value.books) {
           allBooks.push(...s.value.books);
           if (s.value.truncated) anyTruncated = true;
+          console.log(`[scan-shelf] row ${rowKeys[i]}: ${s.value.books.length} books${s.value.truncated ? " (truncated)" : ""}`);
         } else {
-          anyFailed = true;
+          failedRows++;
+          const reason = s.status === "rejected" ? s.reason?.message : "no books parsed";
+          console.warn(`[scan-shelf] row ${rowKeys[i]} FAILED: ${reason}`);
         }
       }
       if (allBooks.length === 0) {
         const firstErr = settled.find(s => s.status === "rejected")?.reason?.message || "All row batches failed";
         throw new Error(firstErr);
       }
-      // Surface partial-failure as truncation so the user sees the cap hint.
-      if (anyFailed) anyTruncated = true;
     } else {
       const raw = await callClaudeVision(apiKey, buildContent(overview, crops, rows, cols, "the entire shelf"), 6000);
       const cleaned = raw.replace(/```json|```/g, "").trim();
@@ -141,7 +159,7 @@ export default async function handler(req, res) {
       seen.add(key);
       return true;
     });
-    res.json({ books: deduped, truncated: anyTruncated });
+    res.json({ books: deduped, truncated: anyTruncated, failedRows, totalRows });
   } catch (e) {
     res.status(500).json({ error: e.message || "Scan failed" });
   }
