@@ -8256,7 +8256,7 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd, userI
                   const owned = s.books.filter(b => ownedKeys.has(normBookKey(b.title)) || (b.altTitles && b.altTitles.some(alt => ownedKeys.has(normBookKey(alt))))).length;
                   const complete = owned >= s.books.length;
                   return (
-                    <div key={s.name} style={{ marginBottom: 20, background: CR.panel, borderRadius: 12, border: `1px solid ${CR.border}`, overflow: "visible" }}>
+                    <div key={s.name} style={{ marginBottom: 20, background: "#fff", borderRadius: 12, border: `1px solid ${CR.border}`, overflow: "visible" }}>
                       <div style={{ padding: "12px 14px 8px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 17, color: CR.text, fontWeight: 500 }}>{s.name}</p>
                         <span style={{
