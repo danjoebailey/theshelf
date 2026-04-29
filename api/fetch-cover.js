@@ -99,6 +99,10 @@ export default async function handler(req, res) {
   // backfill 'Unknown' authors when OCR missed the spine. Renamed to avoid
   // shadowing the `author` param destructured from req.body.
   const matchedAuthor = authorsSeen[0] || null;
+  // Page count from the GB ISBN match — only meaningful when caller passed
+  // an ISBN, since title-only matches return whichever edition GB ranked
+  // first (often hardcover) and would silently overwrite the user's value.
+  const pages = isbn && gbIsbnVi?.pageCount ? gbIsbnVi.pageCount : null;
 
-  res.json({ coverUrl, coverId, author: matchedAuthor, options });
+  res.json({ coverUrl, coverId, author: matchedAuthor, pages, options });
 }

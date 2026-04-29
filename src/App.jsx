@@ -6775,6 +6775,101 @@ function AddSheet({ onSave, onClose, initialBook = null }) {
   );
 }
 
+// Camera-based ISBN barcode scanner. Uses the browser's native
+// BarcodeDetector API (no JS library) to read EAN-13 codes from the
+// back cover. Falls back to manual ISBN entry on browsers without
+// support (Firefox, older iOS).
+function IsbnScanModal({ onDetect, onClose }) {
+  const videoRef = useRef(null);
+  const [error, setError] = useState(null);
+  const [supported, setSupported] = useState(true);
+  const [manualIsbn, setManualIsbn] = useState("");
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !("BarcodeDetector" in window)) {
+      setSupported(false);
+      return;
+    }
+    let stream = null;
+    let raf = null;
+    let cancelled = false;
+
+    (async () => {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "environment" },
+        });
+        if (cancelled) { stream.getTracks().forEach(t => t.stop()); return; }
+        const v = videoRef.current;
+        if (!v) return;
+        v.srcObject = stream;
+        await v.play();
+        const detector = new window.BarcodeDetector({ formats: ["ean_13"] });
+        const tick = async () => {
+          if (cancelled) return;
+          try {
+            const codes = await detector.detect(v);
+            if (codes.length) {
+              const isbn = codes[0].rawValue;
+              // ISBN-13s start with 978 or 979 — guard against UPC-A and
+              // other EAN-13 codes that would happen to scan from the box.
+              if (/^97[89]\d{10}$/.test(isbn)) {
+                cancelled = true;
+                stream.getTracks().forEach(t => t.stop());
+                onDetect(isbn);
+                return;
+              }
+            }
+          } catch {}
+          raf = requestAnimationFrame(tick);
+        };
+        tick();
+      } catch (e) {
+        setError(e?.message || "Couldn't access the camera.");
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      if (raf) cancelAnimationFrame(raf);
+      if (stream) stream.getTracks().forEach(t => t.stop());
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function submitManual() {
+    const cleaned = manualIsbn.replace(/[^0-9]/g, "");
+    if (/^97[89]\d{10}$/.test(cleaned)) onDetect(cleaned);
+    else setError("ISBN must be 13 digits starting with 978 or 979.");
+  }
+
+  return (
+    <div onClick={onClose} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.85)", zIndex:200, display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}>
+      <div onClick={e => e.stopPropagation()} style={{ background:"#1a0900", borderRadius:14, padding:20, maxWidth:400, width:"100%", border:"1px solid rgba(160,100,40,0.4)" }}>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14 }}>
+          <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:18, color:"rgba(255,235,195,0.9)" }}>Scan ISBN</p>
+          <button onClick={onClose} style={{ background:"rgba(255,255,255,0.12)", border:"none", borderRadius:"50%", width:28, height:28, cursor:"pointer", color:"#fff", fontSize:14 }}>✕</button>
+        </div>
+        {supported ? (
+          <>
+            {error
+              ? <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:13, color:"#e08070", padding:"20px 0" }}>{error}</p>
+              : <video ref={videoRef} playsInline muted style={{ width:"100%", borderRadius:8, background:"#000" }} />}
+            <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, color:"rgba(255,235,195,0.55)", marginTop:10, textAlign:"center" }}>Point camera at the back-cover barcode</p>
+          </>
+        ) : (
+          <>
+            <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:"rgba(255,235,195,0.7)", marginBottom:10 }}>Your browser doesn't support camera scanning. Type the ISBN-13 from the back cover:</p>
+            <input value={manualIsbn} onChange={e => setManualIsbn(e.target.value)} placeholder="9780553804676" inputMode="numeric" style={{ width:"100%", padding:"10px 12px", borderRadius:8, border:"1px solid rgba(160,100,40,0.4)", background:"rgba(255,255,255,0.06)", color:"#fff", fontFamily:"'DM Sans',sans-serif", fontSize:14, marginBottom:10 }} />
+            <button onClick={submitManual} style={{ width:"100%", padding:"10px 0", background:WOOD.amber, color:"#1a0900", border:"none", borderRadius:8, fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:700, cursor:"pointer" }}>Look up</button>
+            {error && <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:"#e08070", marginTop:8 }}>{error}</p>}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onAuthor, onRemove, libraryProfile = [], userId, initialTab }) {
   const [rating, setRating] = useState(book.rating || 0);
   const [shelf, setShelf] = useState(book.shelf || "Read");
@@ -6787,6 +6882,8 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
   const [coverUrl, setCoverUrl] = useState(book.coverUrl || null);
   const [coverId, setCoverId] = useState(book.coverId || null);
   const [coverFetch, setCoverFetch] = useState(null);
+  const [pages, setPages] = useState(book.pages || 0);
+  const [isbnScanOpen, setIsbnScanOpen] = useState(false);
   const defaultTab = initialTab || ((book.shelf === "Curious" || !book.shelf) ? "details" : "edit");
   const [activeTab, setActiveTab] = useState(defaultTab);
   const [detailPanel, setDetailPanel] = useState(null); // "about" | "prose" | "scores"
@@ -6818,6 +6915,27 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
       const res = await fetch("/api/fetch-cover", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ title:book.title, author:book.author, isbn:book.isbn }) });
       const data = await res.json();
       setCoverFetch(data.options?.length ? { options: data.options } : "notfound");
+    } catch { setCoverFetch("notfound"); }
+  }
+
+  async function handleIsbnDetected(isbn) {
+    setIsbnScanOpen(false);
+    setCoverFetch("loading");
+    try {
+      const res = await fetch("/api/fetch-cover", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ title:book.title, author:book.author, isbn }) });
+      const data = await res.json();
+      // Auto-apply the ISBN-matched cover and page count — both are
+      // edition-specific, so the GB ISBN result is the right answer.
+      // Still surface the picker if there are alternates so the user can
+      // choose a different art if GB returned a poor scan of the cover.
+      if (data.coverUrl) {
+        const u = hiResCoverUrl(data.coverUrl);
+        setCoverUrl(u);
+        setModalCoverUrl(u);
+        setCoverId(data.coverId || null);
+      }
+      if (data.pages) setPages(data.pages);
+      setCoverFetch(data.options?.length ? { options: data.options } : null);
     } catch { setCoverFetch("notfound"); }
   }
 
@@ -6941,9 +7059,14 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
             <div style={{ position:"relative" }}>
               <BookCover book={displayBook} width={173} height={255} radius={6} shadow="3px 3px 0 rgba(0,0,0,0.12)" />
               {activeTab === "edit" && (
-                <button onClick={findCover} disabled={coverFetch==="loading"} style={{ position:"absolute", bottom:-14, left:"50%", transform:"translateX(-50%)", fontSize:10, color:CR.textDim, background:CR.bg, border:`1px solid ${CR.border}`, borderRadius:20, padding:"3px 12px", cursor:"pointer", whiteSpace:"nowrap", fontFamily:"'DM Sans',sans-serif" }}>
-                  {coverFetch==="loading" ? "…" : "Change Cover"}
-                </button>
+                <div style={{ position:"absolute", bottom:-14, left:"50%", transform:"translateX(-50%)", display:"flex", gap:6 }}>
+                  <button onClick={findCover} disabled={coverFetch==="loading"} style={{ fontSize:10, color:CR.textDim, background:CR.bg, border:`1px solid ${CR.border}`, borderRadius:20, padding:"3px 12px", cursor:"pointer", whiteSpace:"nowrap", fontFamily:"'DM Sans',sans-serif" }}>
+                    {coverFetch==="loading" ? "…" : "Change Cover"}
+                  </button>
+                  <button onClick={() => setIsbnScanOpen(true)} style={{ fontSize:10, color:CR.textDim, background:CR.bg, border:`1px solid ${CR.border}`, borderRadius:20, padding:"3px 12px", cursor:"pointer", whiteSpace:"nowrap", fontFamily:"'DM Sans',sans-serif" }}>
+                    Scan ISBN
+                  </button>
+                </div>
               )}
             </div>
           </div>
@@ -7103,7 +7226,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
           )}
 
           {/* Save */}
-          {activeTab === "edit" && <button onClick={() => onSave({ id:book.id, rating, shelf, genre, date, dateStarted: dateStarted || null, notes, coverUrl, coverId })} style={{ display:"block", width:"calc(100% - 44px)", margin:"20px 22px 0", padding:14, background:CR.text, border:"none", borderRadius:8, color:CR.bg, fontSize:14, fontFamily:"'DM Sans',sans-serif", fontWeight:500, letterSpacing:"0.05em", cursor:"pointer" }}>Save changes</button>}
+          {activeTab === "edit" && <button onClick={() => onSave({ id:book.id, rating, shelf, genre, date, dateStarted: dateStarted || null, notes, coverUrl, coverId, pages })} style={{ display:"block", width:"calc(100% - 44px)", margin:"20px 22px 0", padding:14, background:CR.text, border:"none", borderRadius:8, color:CR.bg, fontSize:14, fontFamily:"'DM Sans',sans-serif", fontWeight:500, letterSpacing:"0.05em", cursor:"pointer" }}>Save changes</button>}
           {activeTab === "edit" && onRemove && !confirmRemove && (
             <p onClick={()=>setConfirmRemove(true)} style={{ textAlign:"center", margin:"16px 0 8px", fontSize:13, color:"#a0524a", fontFamily:"'DM Sans',sans-serif", cursor:"pointer", textDecorationLine:"underline", textDecorationStyle:"dotted" }}>Remove from library</p>
           )}
@@ -7118,6 +7241,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
           )}
         </div>
       </div>
+      {isbnScanOpen && <IsbnScanModal onDetect={handleIsbnDetected} onClose={() => setIsbnScanOpen(false)} />}
     </div>
   );
 }
@@ -8428,7 +8552,7 @@ export default function App() {
   }
 
   function saveEdit(updated) {
-    const next = books.map(b => b.id === updated.id ? { ...b, rating: updated.rating, shelf: updated.shelf, genre: updated.genre ?? b.genre, date: updated.date ?? b.date, dateStarted: updated.dateStarted ?? b.dateStarted, notes: updated.notes ?? b.notes, coverUrl: updated.coverUrl ?? b.coverUrl, coverId: updated.coverId ?? b.coverId } : b);
+    const next = books.map(b => b.id === updated.id ? { ...b, rating: updated.rating, shelf: updated.shelf, genre: updated.genre ?? b.genre, date: updated.date ?? b.date, dateStarted: updated.dateStarted ?? b.dateStarted, notes: updated.notes ?? b.notes, coverUrl: updated.coverUrl ?? b.coverUrl, coverId: updated.coverId ?? b.coverId, pages: updated.pages ?? b.pages } : b);
     setBooks(next);
     if (!guestMode) dbUpdateBook(next.find(b => b.id === updated.id), userId);
   }
