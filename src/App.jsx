@@ -1087,7 +1087,7 @@ function BookRowPages({ book, index, onEdit, onRemove, onShelfChange, maxPages, 
   );
 }
 
-function SeriesView({ shelfBooks, allUserBooks, activeShelf = "Read", seriesViewStyle, setSeriesViewStyle, detectingSeriesLoading, setDetectingSeriesLoading, onBatchDetectSeries, onEdit, onRemove, onShelfChange, onSaveProgress, onSavePages, onSaveAspects, onAuthor, seriesTiers = {}, onSetSeriesTier, seriesSort = "read", onSetSeriesTotal, onAddBook }) {
+function SeriesView({ shelfBooks, allUserBooks, activeShelf = "Read", seriesViewStyle, setSeriesViewStyle, detectingSeriesLoading, setDetectingSeriesLoading, onBatchDetectSeries, onEdit, onRemove, onShelfChange, onSaveProgress, onSavePages, onSaveAspects, onAuthor, seriesTiers = {}, onSetSeriesTier, seriesSort = "read", onSetSeriesTotal, onAddBook, coverSize = "md" }) {
   const SHELF_PRIORITY = { "Read": 0, "DNF": 1, "Reading": 2, "The List": 3, "Curious": 4 };
   const seriesBooks = shelfBooks.filter(b => b.series);
   const grouped = {};
@@ -1148,14 +1148,14 @@ function SeriesView({ shelfBooks, allUserBooks, activeShelf = "Read", seriesView
             <SeriesCard key={name} seriesName={name} books={sb} seriesTotal={seriesTotal} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} tier={seriesTiers[name] || null} onSetTier={t => onSetSeriesTier && onSetSeriesTier(name, t)} onSetTotal={v => onSetSeriesTotal && onSetSeriesTotal(name, v)} />
           ))
         : seriesEntries.map(([name, { books: sb, seriesTotal }]) => (
-            <SeriesShelfRow key={name} name={name} books={sb} seriesTotal={seriesTotal} allBooks={allUserBooks} onEdit={onEdit} onAddBook={onAddBook} onAuthor={onAuthor} activeShelf={activeShelf} tier={seriesTiers[name] || null} onSetTier={t => onSetSeriesTier && onSetSeriesTier(name, t)} onSetTotal={v => onSetSeriesTotal && onSetSeriesTotal(name, v)} />
+            <SeriesShelfRow key={name} name={name} books={sb} seriesTotal={seriesTotal} allBooks={allUserBooks} onEdit={onEdit} onAddBook={onAddBook} onAuthor={onAuthor} activeShelf={activeShelf} tier={seriesTiers[name] || null} onSetTier={t => onSetSeriesTier && onSetSeriesTier(name, t)} onSetTotal={v => onSetSeriesTotal && onSetSeriesTotal(name, v)} coverSize={coverSize} />
           ))
       }
     </>
   );
 }
 
-function SeriesShelfRow({ name, books, seriesTotal, allBooks, onEdit, onAddBook, onAuthor, activeShelf = "Read", tier, onSetTier, onSetTotal }) {
+function SeriesShelfRow({ name, books, seriesTotal, allBooks, onEdit, onAddBook, onAuthor, activeShelf = "Read", tier, onSetTier, onSetTotal, coverSize = "md" }) {
   const autoShowUnread = activeShelf !== "Read" && activeShelf !== "DNF";
   const [showUnread, setShowUnread] = useState(autoShowUnread);
   const [unreadBooks, setUnreadBooks] = useState(null);
@@ -1243,7 +1243,7 @@ function SeriesShelfRow({ name, books, seriesTotal, allBooks, onEdit, onAddBook,
               style={{ flexShrink:0, cursor:"pointer", textAlign:"center" }}
             >
               <div>
-                <BookCoverThumb book={b} />
+                <BookCoverThumb book={b} size={coverSize} />
               </div>
               {b.rating > 0 && <p style={{ fontSize:9, color:WOOD.amber, marginTop:2, lineHeight:1 }}>{"★".repeat(Math.floor(b.rating))}{b.rating % 1 >= 0.5 ? "½" : ""}</p>}
             </div>
@@ -1260,7 +1260,7 @@ function SeriesShelfRow({ name, books, seriesTotal, allBooks, onEdit, onAddBook,
               onTouchEnd={e => { const dx = Math.abs(e.changedTouches[0].clientX - tX); const dy = Math.abs(e.changedTouches[0].clientY - tY); if (dx < 8 && dy < 8) { e.preventDefault(); e.stopPropagation(); handleTap(); } }}
               onClick={e => { e.stopPropagation(); handleTap(); }}
               style={{ flexShrink:0, cursor:"pointer", textAlign:"center" }}>
-              <BookCoverThumb book={{ title: item.title, coverUrl: item.coverUrl, genre: item.genre }} />
+              <BookCoverThumb book={{ title: item.title, coverUrl: item.coverUrl, genre: item.genre }} size={coverSize} />
               {existing?.shelf && existing.shelf !== "Read" && existing.shelf !== "DNF" && <p style={{ fontSize:8, color:WOOD.textDim, fontFamily:"'DM Sans',sans-serif", marginTop:2, lineHeight:1 }}>{existing.shelf}</p>}
             </div>
           );
@@ -1451,7 +1451,7 @@ async function fetchAuthorBiblio(authorName, { onProgress, forceRefresh = false 
   return enriched;
 }
 
-function AuthorShelfRow({ authorName, books, allBooks, onEdit, onAddBook, onAuthor, tier, onSetTier }) {
+function AuthorShelfRow({ authorName, books, allBooks, onEdit, onAddBook, onAuthor, tier, onSetTier, coverSize = "md" }) {
   const [showUnread, setShowUnread] = useState(false);
   const [unreadBiblio, setUnreadBiblio] = useState(null); // null=not fetched, []=fetched
   const [unreadLoading, setUnreadLoading] = useState(false);
@@ -1511,7 +1511,7 @@ function AuthorShelfRow({ authorName, books, allBooks, onEdit, onAddBook, onAuth
               onClick={() => onEdit && onEdit(b)}
               style={{ flexShrink:0, cursor:"pointer", textAlign:"center" }}
             >
-              <BookCoverThumb book={b} />
+              <BookCoverThumb book={b} size={coverSize} />
               {b.rating > 0 && <p style={{ fontSize:9, color:WOOD.amber, marginTop:2, lineHeight:1 }}>{"★".repeat(Math.floor(b.rating))}{b.rating % 1 >= 0.5 ? "½" : ""}</p>}
             </div>
           );
@@ -1527,7 +1527,7 @@ function AuthorShelfRow({ authorName, books, allBooks, onEdit, onAddBook, onAuth
             onTouchEnd={e => { const dx = Math.abs(e.changedTouches[0].clientX - tX); const dy = Math.abs(e.changedTouches[0].clientY - tY); if (dx < 8 && dy < 8) { e.preventDefault(); e.stopPropagation(); handleTap(); } }}
             onClick={e => { e.stopPropagation(); handleTap(); }}
             style={{ flexShrink:0, cursor:"pointer", textAlign:"center" }} title={item.title}>
-            <BookCoverThumb book={{ title: item.title, coverUrl: item.coverUrl, genre: item.genre }} />
+            <BookCoverThumb book={{ title: item.title, coverUrl: item.coverUrl, genre: item.genre }} size={coverSize} />
             {existing?.shelf && existing.shelf !== "Read" && existing.shelf !== "DNF" && <p style={{ fontSize:8, color:WOOD.textDim, fontFamily:"'DM Sans',sans-serif", marginTop:2, lineHeight:1 }}>{existing.shelf}</p>}
           </div>
           );
@@ -1622,7 +1622,7 @@ function AuthorCard({ authorName, books, onEdit, onRemove, onShelfChange, onSave
   );
 }
 
-function AuthorsView({ allBooks, allUserBooks, authorSort, authorTiers, onSetAuthorTier, seriesViewStyle, setSeriesViewStyle, onEdit, onRemove, onShelfChange, onSaveProgress, onSavePages, onSaveAspects, onAuthor, onAddBook }) {
+function AuthorsView({ allBooks, allUserBooks, authorSort, authorTiers, onSetAuthorTier, seriesViewStyle, setSeriesViewStyle, onEdit, onRemove, onShelfChange, onSaveProgress, onSavePages, onSaveAspects, onAuthor, onAddBook, coverSize = "md" }) {
   const grouped = {};
   const authorDisplayName = {};
   allBooks.forEach(b => {
@@ -1654,7 +1654,7 @@ function AuthorsView({ allBooks, allUserBooks, authorSort, authorTiers, onSetAut
             <AuthorCard key={name} authorName={name} books={books} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} tier={authorTiers[name]||null} onSetTier={t => onSetAuthorTier && onSetAuthorTier(name, t)} />
           ))
         : entries.map(([name, books]) => (
-            <AuthorShelfRow key={name} authorName={name} books={books} allBooks={allUserBooks} onEdit={onEdit} onAddBook={onAddBook} onAuthor={onAuthor} tier={authorTiers[name]||null} onSetTier={t => onSetAuthorTier && onSetAuthorTier(name, t)} />
+            <AuthorShelfRow key={name} authorName={name} books={books} allBooks={allUserBooks} onEdit={onEdit} onAddBook={onAddBook} onAuthor={onAuthor} tier={authorTiers[name]||null} onSetTier={t => onSetAuthorTier && onSetAuthorTier(name, t)} coverSize={coverSize} />
           ))
       }
     </>
@@ -1687,6 +1687,13 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
   const [seriesAuthorSortDropOpen, setSeriesAuthorSortDropOpen] = useState(false);
   const [browseModeDropOpen, setBrowseModeDropOpen] = useState(false);
   const [authorSort, setAuthorSort] = useState("read");
+  // Cover size for series/author shelf-row scrollers. Persists per device.
+  const [coverSize, setCoverSize] = useState(() => {
+    try { return localStorage.getItem("theshelf:coverSize") || "md"; } catch { return "md"; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem("theshelf:coverSize", coverSize); } catch {}
+  }, [coverSize]);
   const searchInputRef = useRef(null);
   const [detectingSeriesLoading, setDetectingSeriesLoading] = useState(false);
   const searchTimer = useRef(null);
@@ -2058,6 +2065,14 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
                 : <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor"><rect x="0" y="0" width="6" height="11" rx="1"/><rect x="7" y="0" width="6" height="11" rx="1"/><rect x="0" y="12" width="13" height="1" rx="0.5"/></svg>
               }
             </button>
+            {/* Cover-size pill — only in shelf view, where the scroll rows render */}
+            {seriesViewStyle === "shelf" && (
+              <div style={{ display:"flex", background:"rgba(15,8,2,0.55)", border:"1px solid rgba(120,70,20,0.3)", borderRadius:20, overflow:"hidden", backdropFilter:"blur(4px)" }}>
+                {[["sm","S"],["md","M"],["lg","L"]].map(([key, label]) => (
+                  <button key={key} {...tc(() => setCoverSize(key), true)} style={{ padding:"5px 9px", border:"none", background: coverSize === key ? WOOD.amber : "transparent", color: coverSize === key ? "#1a0900" : "rgba(255,255,255,0.65)", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600, cursor:"pointer" }}>{label}</button>
+                ))}
+              </div>
+            )}
             </div>
             {/* sort dropdown pill */}
             <div style={{ position:"relative" }}>
@@ -2178,9 +2193,9 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
           </div>
         )}
         {browseMode === "series"
-          ? <SeriesView shelfBooks={books} allUserBooks={books} activeShelf={activeShelf} seriesViewStyle={seriesViewStyle} setSeriesViewStyle={setSeriesViewStyle} detectingSeriesLoading={detectingSeriesLoading} setDetectingSeriesLoading={setDetectingSeriesLoading} onBatchDetectSeries={onBatchDetectSeries} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} seriesTiers={seriesTiers} onSetSeriesTier={onSetSeriesTier} seriesSort={seriesSort} onSetSeriesTotal={onSetSeriesTotal} onAddBook={onAddBook} />
+          ? <SeriesView shelfBooks={books} allUserBooks={books} activeShelf={activeShelf} seriesViewStyle={seriesViewStyle} setSeriesViewStyle={setSeriesViewStyle} detectingSeriesLoading={detectingSeriesLoading} setDetectingSeriesLoading={setDetectingSeriesLoading} onBatchDetectSeries={onBatchDetectSeries} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} seriesTiers={seriesTiers} onSetSeriesTier={onSetSeriesTier} seriesSort={seriesSort} onSetSeriesTotal={onSetSeriesTotal} onAddBook={onAddBook} coverSize={coverSize} />
           : browseMode === "authors"
-          ? <AuthorsView allBooks={books.filter(b=>(b.shelf||"Read")==="Read")} allUserBooks={books} authorSort={authorSort} authorTiers={authorTiers} onSetAuthorTier={onSetAuthorTier} seriesViewStyle={seriesViewStyle} setSeriesViewStyle={setSeriesViewStyle} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} onAddBook={onAddBook} />
+          ? <AuthorsView allBooks={books.filter(b=>(b.shelf||"Read")==="Read")} allUserBooks={books} authorSort={authorSort} authorTiers={authorTiers} onSetAuthorTier={onSetAuthorTier} seriesViewStyle={seriesViewStyle} setSeriesViewStyle={setSeriesViewStyle} onEdit={onEdit} onRemove={onRemove} onShelfChange={onShelfChange} onSaveProgress={onSaveProgress} onSavePages={onSavePages} onSaveAspects={onSaveAspects} onAuthor={onAuthor} onAddBook={onAddBook} coverSize={coverSize} />
           : filtered.map((book,i)=>(
           <div key={`${book.id}_${i}`} style={{ display:"flex", alignItems:"stretch", gap:0 }}>
             {sort==="custom" && (
@@ -2303,21 +2318,31 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
   );
 }
 
-function BookCoverThumb({ book: b }) {
+// Cover sizes for the series/author shelf-row scrollers. User-selectable
+// via the S/M/L pill in those views' headers; "md" matches the previous
+// hardcoded 60×90 so existing callers without a size prop are unchanged.
+const COVER_THUMB_SIZES = {
+  sm: { w: 45, h: 68, fontSize: 8 },
+  md: { w: 60, h: 90, fontSize: 9 },
+  lg: { w: 80, h: 120, fontSize: 11 },
+};
+
+function BookCoverThumb({ book: b, size = "md" }) {
+  const dim = COVER_THUMB_SIZES[size] || COVER_THUMB_SIZES.md;
   return (
     <div style={{ flexShrink:0 }}>
       {(b.coverUrl || b.coverId)
         ? <img
             src={b.coverUrl || `https://covers.openlibrary.org/b/id/${b.coverId}-M.jpg`}
             alt={b.title} title={b.title}
-            style={{ height:90, width:60, objectFit:"cover", borderRadius:5, boxShadow:"0 3px 10px rgba(0,0,0,0.35)", display:"block" }} />
+            style={{ height:dim.h, width:dim.w, objectFit:"cover", borderRadius:5, boxShadow:"0 3px 10px rgba(0,0,0,0.35)", display:"block" }} />
         : <div style={{
-            height:90, width:60, borderRadius:5,
+            height:dim.h, width:dim.w, borderRadius:5,
             background:GENRE_COLORS[b.genre]||"#7b6fa0",
             display:"flex", alignItems:"center", justifyContent:"center",
             boxShadow:"0 3px 10px rgba(0,0,0,0.3)",
           }}>
-            <span style={{ fontSize:9, color:"#fff", textAlign:"center", padding:"0 4px", lineHeight:1.3, fontFamily:"'Crimson Pro',serif", fontStyle:"italic" }}>{b.title}</span>
+            <span style={{ fontSize:dim.fontSize, color:"#fff", textAlign:"center", padding:"0 4px", lineHeight:1.3, fontFamily:"'Crimson Pro',serif", fontStyle:"italic" }}>{b.title}</span>
           </div>
       }
     </div>
