@@ -7249,7 +7249,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
               <>
                 <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:24, fontWeight:400, color:CR.text, letterSpacing:"-0.01em", lineHeight:1.2, paddingRight:52 }}>{cleanTitle}</p>
                 {hasSeries && (
-                  <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, fontStyle:"italic", color:CR.text, marginTop:3, lineHeight:1.2 }}>({resolvedSeries.name}, #{resolvedSeries.order})</p>
+                  <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, fontStyle:"italic", color:CR.text, marginTop:3, lineHeight:1.2 }}>({resolvedSeries.name}, #{resolvedSeries.order})</p>
                 )}
               </>
             );
