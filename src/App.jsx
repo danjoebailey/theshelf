@@ -2767,7 +2767,7 @@ const PAIGE_MODES = [
   { key:"new_to_me",    label:"Branch Out",    desc:"Genres and styles missing from your shelf" },
 ];
 
-function PaigeTab({ books, userId, onAddDirect, onEdit, onAddBook }) {
+function PaigeTab({ books, userId, onAddDirect, onBulkAddDirect, onEdit, onAddBook }) {
   const [mode, setMode] = useState("popular");
   const [loading, setLoading] = useState(false);
   const [recs, setRecs] = useState({});       // { [mode]: [...items] }
@@ -3108,7 +3108,20 @@ function PaigeTab({ books, userId, onAddDirect, onEdit, onAddBook }) {
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12, gap:8, flexWrap:"wrap" }}>
                 <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:10, fontWeight:700, color:"rgba(255,255,255,0.6)", textTransform:"uppercase", letterSpacing:"0.1em" }}>{headerLabel}</p>
                 {obiPicks
-                  ? <button onClick={() => setObiPicks(null)} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(255,235,195,0.7)", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, textDecoration:"underline" }}>Show Paige's full list</button>
+                  ? (() => {
+                      const ownedKeys = new Set(books.map(b => normBookKey(b.title)));
+                      const addable = filtered.filter(r => !ownedKeys.has(normBookKey(r.title)));
+                      return (
+                        <div style={{ display:"flex", gap:6, alignItems:"center", flexWrap:"wrap" }}>
+                          {addable.length > 0 && onBulkAddDirect && (
+                            <button onClick={() => onBulkAddDirect(addable.map(r => ({ title: r.title, author: r.author, genre: r.genre, pages: r.pages || 0, coverUrl: currentCovers[r.title] || null })), "Recommended")} style={{ display:"flex", alignItems:"center", gap:5, background: WOOD.amber, color:"#1a0900", border:"none", borderRadius:14, padding:"4px 10px", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:700, cursor:"pointer" }}>
+                              Add {addable.length} to Recommended
+                            </button>
+                          )}
+                          <button onClick={() => setObiPicks(null)} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(255,235,195,0.7)", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, textDecoration:"underline" }}>Show Paige's full list</button>
+                        </div>
+                      );
+                    })()
                   : baseFiltered.length >= 10 && <button onClick={curateWithObi} disabled={obiCurateLoading} style={{ display:"flex", alignItems:"center", gap:5, background:"rgba(15,8,2,0.55)", color:"#fff", border:"1px solid rgba(120,70,20,0.3)", borderRadius:14, padding:"4px 10px", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, cursor: obiCurateLoading ? "default" : "pointer", backdropFilter:"blur(4px)" }}>
                       {obiCurateLoading
                         ? <><span style={{ width:10, height:10, border:"1.5px solid rgba(255,255,255,0.3)", borderTopColor:"#fff", borderRadius:"50%", display:"inline-block", animation:"spin 0.7s linear infinite" }} />Obi…</>
@@ -3898,7 +3911,7 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAdd
 
 // Browse — discovery without profile. Same qualifier panel as Paige, but
 // returns the full catalog filtered by qualifiers + genre, sorted by tier.
-function BrowseTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
+function BrowseTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAddDirect }) {
   const [filterGenre, setFilterGenre] = useState(null);
   const [genreDropOpen, setGenreDropOpen] = useState(false);
   const [qualifiers, setQualifiers] = useState({});
@@ -4125,7 +4138,20 @@ function BrowseTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14, gap:8, flexWrap:"wrap" }}>
             <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, color:"rgba(255,255,255,0.55)", textTransform:"uppercase", letterSpacing:"0.1em" }}>{headerLabel}</p>
             {obiPicks
-              ? <button onClick={() => { setObiPicks(null); setObiSubstitutions([]); }} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(255,235,195,0.7)", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, textDecoration:"underline" }}>Show full catalog list</button>
+              ? (() => {
+                  const ownedKeys = new Set(books.map(b => normBookKey(b.title)));
+                  const addable = displayed.filter(r => !ownedKeys.has(normBookKey(r.title)));
+                  return (
+                    <div style={{ display:"flex", gap:6, alignItems:"center", flexWrap:"wrap" }}>
+                      {addable.length > 0 && onBulkAddDirect && (
+                        <button onClick={() => onBulkAddDirect(addable.map(r => ({ title: r.title, author: r.author, genre: r.genre, pages: r.pages || 0, coverUrl: covers[r.title] || null })), "Recommended")} style={{ display:"flex", alignItems:"center", gap:5, background: WOOD.amber, color:"#1a0900", border:"none", borderRadius:14, padding:"4px 10px", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:700, cursor:"pointer" }}>
+                          Add {addable.length} to Recommended
+                        </button>
+                      )}
+                      <button onClick={() => { setObiPicks(null); setObiSubstitutions([]); }} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(255,235,195,0.7)", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, textDecoration:"underline" }}>Show full catalog list</button>
+                    </div>
+                  );
+                })()
               : (
                 <div style={{ display:"flex", gap:6 }}>
                   {items.length >= 10 && (
@@ -4243,13 +4269,13 @@ function RecommendPage({ books, userId, onAddDirect, onBulkAddDirect, onAuthor, 
       </div>
       {/* Content */}
       {character === "paige"
-        ? <PaigeTab books={books} userId={userId} onAddDirect={onAddDirect} onEdit={onEdit} onAddBook={onAddBook} />
+        ? <PaigeTab books={books} userId={userId} onAddDirect={onAddDirect} onBulkAddDirect={onBulkAddDirect} onEdit={onEdit} onAddBook={onAddBook} />
         : character === "reiko"
         ? <ReikoTab books={books} userId={userId} onAddDirect={onAddDirect} onAuthor={onAuthor} onEdit={onEdit} onAddBook={onAddBook} />
         : character === "reed"
         ? <ReedTab books={books} userId={userId} onEdit={onEdit} onShelfChange={onShelfChange} onSaveScores={onSaveScores} onAuthor={onAuthor} />
         : character === "browse"
-        ? <BrowseTab books={books} userId={userId} onEdit={onEdit} onAddBook={onAddBook} onAddDirect={onAddDirect} />
+        ? <BrowseTab books={books} userId={userId} onEdit={onEdit} onAddBook={onAddBook} onAddDirect={onAddDirect} onBulkAddDirect={onBulkAddDirect} />
         : <ShelfScanTab books={books} userId={userId} onEdit={onEdit} onAddBook={onAddBook} onAddDirect={onAddDirect} onBulkAddDirect={onBulkAddDirect} />
       }
     </div>
