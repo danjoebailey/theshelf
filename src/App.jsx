@@ -1252,7 +1252,9 @@ function SeriesShelfRow({ name, books, seriesTotal, allBooks, onEdit, onAddBook,
               <div>
                 <BookCoverThumb book={b} size={coverSize} />
               </div>
-              {b.rating > 0 && <p style={{ fontSize:9, color:WOOD.amber, marginTop:2, lineHeight:1 }}>{"★".repeat(Math.floor(b.rating))}{b.rating % 1 >= 0.5 ? "½" : ""}</p>}
+              {b.rating > 0
+                ? <p style={{ fontSize:9, color:WOOD.amber, marginTop:2, lineHeight:1 }}>{"★".repeat(Math.floor(b.rating))}{b.rating % 1 >= 0.5 ? "½" : ""}</p>
+                : (b.shelf === "The List" || b.shelf === "Curious") && <p style={{ fontSize:8, color:WOOD.textDim, fontFamily:"'DM Sans',sans-serif", marginTop:2, lineHeight:1 }}>{b.shelf}</p>}
             </div>
           );
         })}
