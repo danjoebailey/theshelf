@@ -621,11 +621,12 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
             {(() => {
               const shelf = book.shelf || "Read";
               const SHELF_META = {
-                "Read":     { label: "Read",     bg:"rgba(60,120,80,0.55)",  color:"rgba(255,255,255,0.9)", border:"rgba(60,120,80,0.4)"  },
-                "Reading":  { label: "Reading",  bg:"rgba(210,100,30,0.55)", color:"rgba(255,255,255,0.9)", border:"rgba(210,100,30,0.4)" },
-                "The List": { label: "The List", bg:"rgba(80,120,180,0.7)",  color:"rgba(255,255,255,0.9)", border:"rgba(80,120,180,0.5)" },
-                "Curious":  { label: "Curious",  bg:"rgba(180,155,80,0.7)",  color:"rgba(255,255,255,0.9)", border:"rgba(180,155,80,0.5)" },
-                "DNF":      { label: "DNF",      bg:"rgba(160,50,50,0.55)",  color:"rgba(255,255,255,0.9)", border:"rgba(160,50,50,0.4)" },
+                "Read":        { label: "Read",        bg:"rgba(60,120,80,0.55)",  color:"rgba(255,255,255,0.9)", border:"rgba(60,120,80,0.4)"  },
+                "Reading":     { label: "Reading",     bg:"rgba(210,100,30,0.55)", color:"rgba(255,255,255,0.9)", border:"rgba(210,100,30,0.4)" },
+                "The List":    { label: "The List",    bg:"rgba(80,120,180,0.7)",  color:"rgba(255,255,255,0.9)", border:"rgba(80,120,180,0.5)" },
+                "Curious":     { label: "Curious",     bg:"rgba(180,155,80,0.7)",  color:"rgba(255,255,255,0.9)", border:"rgba(180,155,80,0.5)" },
+                "DNF":         { label: "DNF",         bg:"rgba(160,50,50,0.55)",  color:"rgba(255,255,255,0.9)", border:"rgba(160,50,50,0.4)" },
+                "Recommended": { label: "Recommended", bg:"rgba(140,80,180,0.6)",  color:"rgba(255,255,255,0.9)", border:"rgba(140,80,180,0.45)"},
               };
               const meta = SHELF_META[shelf];
               return (
@@ -2446,11 +2447,12 @@ function RecCard({ rec, coverUrl, ownedBook, onAddDirect, onEdit, onAddBook, ind
   const [showObi, setShowObi] = useState(false);
 
   const SHELF_META = {
-    "Read":     { bg:"rgba(60,120,80,0.55)",  color:"rgba(255,255,255,0.9)", border:"rgba(60,120,80,0.4)"  },
-    "Reading":  { bg:"rgba(210,100,30,0.55)", color:"rgba(255,255,255,0.9)", border:"rgba(210,100,30,0.4)" },
-    "The List": { bg:"rgba(80,120,180,0.7)",  color:"rgba(255,255,255,0.9)", border:"rgba(80,120,180,0.5)" },
-    "Curious":  { bg:"rgba(180,155,80,0.7)",  color:"rgba(255,255,255,0.9)", border:"rgba(180,155,80,0.5)" },
-    "DNF":      { bg:"rgba(160,50,50,0.55)",  color:"rgba(255,255,255,0.9)", border:"rgba(160,50,50,0.4)" },
+    "Read":        { bg:"rgba(60,120,80,0.55)",  color:"rgba(255,255,255,0.9)", border:"rgba(60,120,80,0.4)"  },
+    "Reading":     { bg:"rgba(210,100,30,0.55)", color:"rgba(255,255,255,0.9)", border:"rgba(210,100,30,0.4)" },
+    "The List":    { bg:"rgba(80,120,180,0.7)",  color:"rgba(255,255,255,0.9)", border:"rgba(80,120,180,0.5)" },
+    "Curious":     { bg:"rgba(180,155,80,0.7)",  color:"rgba(255,255,255,0.9)", border:"rgba(180,155,80,0.5)" },
+    "DNF":         { bg:"rgba(160,50,50,0.55)",  color:"rgba(255,255,255,0.9)", border:"rgba(160,50,50,0.4)" },
+    "Recommended": { bg:"rgba(140,80,180,0.6)",  color:"rgba(255,255,255,0.9)", border:"rgba(140,80,180,0.45)"},
   };
   const dropLabel = ownedBook ? (ownedBook.shelf || "Read") : "+ Add";
   const dropMeta = ownedBook ? SHELF_META[ownedBook.shelf || "Read"] : { bg:"rgba(138,90,40,0.18)", color:WOOD.amber, border:"rgba(138,90,40,0.35)" };
@@ -8296,15 +8298,16 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd, userI
 
           {activeTab === "books" && (() => {
             const SM = {
-              "Read":     { bg:"rgba(60,120,80,0.55)",  color:"rgba(255,255,255,0.9)", border:"rgba(60,120,80,0.4)"  },
-              "Reading":  { bg:"rgba(210,100,30,0.55)", color:"rgba(255,255,255,0.9)", border:"rgba(210,100,30,0.4)" },
-              "The List": { bg:"rgba(80,120,180,0.7)",  color:"rgba(255,255,255,0.9)", border:"rgba(80,120,180,0.5)" },
-              "Curious":  { bg:"rgba(180,155,80,0.7)",  color:"rgba(255,255,255,0.9)", border:"rgba(180,155,80,0.5)" },
-              "DNF":      { bg:"rgba(160,50,50,0.55)",  color:"rgba(255,255,255,0.9)", border:"rgba(160,50,50,0.4)" },
+              "Read":        { bg:"rgba(60,120,80,0.55)",  color:"rgba(255,255,255,0.9)", border:"rgba(60,120,80,0.4)"  },
+              "Reading":     { bg:"rgba(210,100,30,0.55)", color:"rgba(255,255,255,0.9)", border:"rgba(210,100,30,0.4)" },
+              "The List":    { bg:"rgba(80,120,180,0.7)",  color:"rgba(255,255,255,0.9)", border:"rgba(80,120,180,0.5)" },
+              "Curious":     { bg:"rgba(180,155,80,0.7)",  color:"rgba(255,255,255,0.9)", border:"rgba(180,155,80,0.5)" },
+              "DNF":         { bg:"rgba(160,50,50,0.55)",  color:"rgba(255,255,255,0.9)", border:"rgba(160,50,50,0.4)" },
+              "Recommended": { bg:"rgba(140,80,180,0.6)",  color:"rgba(255,255,255,0.9)", border:"rgba(140,80,180,0.45)"},
             };
 
             // Books already in library, sorted by shelf then date
-            const shelfOrder = { "Read":0, "Reading":1, "The List":2, "Curious":3, "DNF":4 };
+            const shelfOrder = { "Read":0, "Reading":1, "The List":2, "Curious":3, "DNF":4, "Recommended":5 };
             const sortedAuthorBooks = [...authorBooks].sort((a, b) => {
               const ao = shelfOrder[a.shelf] ?? 5, bo = shelfOrder[b.shelf] ?? 5;
               if (ao !== bo) return ao - bo;
