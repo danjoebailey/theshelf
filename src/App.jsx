@@ -29,7 +29,7 @@ const GENRE_COLORS = {
   "Biography":"#8a6a4a","History":"#7a7a4a","Historical Fiction":"#7a6a4a",
   "Young Adult":"#5a8a7a","Self-Help":"#4a7a5a","Graphic Novel":"#7a5a8a","Other":"#6a6a6a",
 };
-const SHELVES = ["Read", "Reading", "Recommended", "The List", "Curious", "DNF"];
+const SHELVES = ["Read", "Reading", "The List", "Curious", "DNF", "Recommended"];
 
 // ── Static book catalog (loaded once, used as first-pass for search + bibliographies) ──
 let _staticBooks = null;
@@ -1090,7 +1090,7 @@ function BookRowPages({ book, index, onEdit, onRemove, onShelfChange, maxPages, 
 }
 
 function SeriesView({ shelfBooks, allUserBooks, activeShelf = "Read", seriesViewStyle, setSeriesViewStyle, detectingSeriesLoading, setDetectingSeriesLoading, onBatchDetectSeries, onEdit, onRemove, onShelfChange, onSaveProgress, onSavePages, onSaveAspects, onAuthor, seriesTiers = {}, onSetSeriesTier, seriesSort = "read", onSetSeriesTotal, onAddBook, coverSize = "md" }) {
-  const SHELF_PRIORITY = { "Read": 0, "DNF": 1, "Reading": 2, "Recommended": 3, "The List": 4, "Curious": 5 };
+  const SHELF_PRIORITY = { "Read": 0, "DNF": 1, "Reading": 2, "The List": 3, "Curious": 4, "Recommended": 5 };
   const seriesBooks = shelfBooks.filter(b => b.series);
   const grouped = {};
   seriesBooks.forEach(b => {
