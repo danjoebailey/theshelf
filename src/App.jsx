@@ -7027,10 +7027,11 @@ const BOOK_PAGE_INSET = "inset 0 2px 6px rgba(0,0,0,0.22), inset 0 -1px 3px rgba
 // darkens a tiny amount per cell rather than recoloring the page.
 const BOOK_PAGE_GRAIN = "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.10 0'/></filter><rect width='100%25' height='100%25' filter='url(%23p)'/></svg>\")";
 
-// Camera-based ISBN barcode scanner. Uses the browser's native
-// BarcodeDetector API (no JS library) to read EAN-13 codes from the
-// back cover. Falls back to manual ISBN entry on browsers without
-// support (Firefox, older iOS).
+// Camera-based ISBN barcode scanner. Prefers the browser's native
+// BarcodeDetector API (Chrome, Edge, Android Chrome) and falls back to
+// the @zxing/browser library on iOS Safari / Firefox where the native
+// API is unavailable. Manual ISBN entry is the last resort if camera
+// access fails.
 function IsbnScanModal({ onDetect, onClose }) {
   const videoRef = useRef(null);
   const [error, setError] = useState(null);
@@ -7038,15 +7039,16 @@ function IsbnScanModal({ onDetect, onClose }) {
   const [manualIsbn, setManualIsbn] = useState("");
 
   useEffect(() => {
-    if (typeof window === "undefined" || !("BarcodeDetector" in window)) {
-      setSupported(false);
-      return;
-    }
     let stream = null;
     let raf = null;
     let cancelled = false;
+    let zxingControls = null;
 
     (async () => {
+      if (typeof window === "undefined" || !navigator.mediaDevices?.getUserMedia) {
+        setSupported(false);
+        return;
+      }
       try {
         stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: "environment" },
@@ -7056,34 +7058,49 @@ function IsbnScanModal({ onDetect, onClose }) {
         if (!v) return;
         v.srcObject = stream;
         await v.play();
-        const detector = new window.BarcodeDetector({ formats: ["ean_13"] });
-        const tick = async () => {
-          if (cancelled) return;
-          try {
-            const codes = await detector.detect(v);
-            if (codes.length) {
-              const isbn = codes[0].rawValue;
-              // ISBN-13s start with 978 or 979 — guard against UPC-A and
-              // other EAN-13 codes that would happen to scan from the box.
-              if (/^97[89]\d{10}$/.test(isbn)) {
-                cancelled = true;
-                stream.getTracks().forEach(t => t.stop());
-                onDetect(isbn);
-                return;
-              }
-            }
-          } catch {}
-          raf = requestAnimationFrame(tick);
+
+        const handleHit = isbn => {
+          // ISBN-13s start with 978 or 979 — guard against UPC-A and
+          // other EAN-13 codes that would happen to scan from the box.
+          if (!/^97[89]\d{10}$/.test(isbn)) return false;
+          cancelled = true;
+          if (zxingControls) try { zxingControls.stop(); } catch {}
+          if (stream) stream.getTracks().forEach(t => t.stop());
+          onDetect(isbn);
+          return true;
         };
-        tick();
+
+        if ("BarcodeDetector" in window) {
+          const detector = new window.BarcodeDetector({ formats: ["ean_13"] });
+          const tick = async () => {
+            if (cancelled) return;
+            try {
+              const codes = await detector.detect(v);
+              if (codes.length && handleHit(codes[0].rawValue)) return;
+            } catch {}
+            raf = requestAnimationFrame(tick);
+          };
+          tick();
+        } else {
+          // ZXing fallback for iOS Safari / Firefox.
+          const { BrowserMultiFormatReader } = await import("@zxing/browser");
+          if (cancelled) return;
+          const reader = new BrowserMultiFormatReader();
+          zxingControls = await reader.decodeFromStream(stream, v, (result, err, controls) => {
+            if (cancelled) { try { controls.stop(); } catch {} return; }
+            if (result) handleHit(result.getText());
+          });
+        }
       } catch (e) {
         setError(e?.message || "Couldn't access the camera.");
+        setSupported(false);
       }
     })();
 
     return () => {
       cancelled = true;
       if (raf) cancelAnimationFrame(raf);
+      if (zxingControls) try { zxingControls.stop(); } catch {}
       if (stream) stream.getTracks().forEach(t => t.stop());
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
