@@ -1707,6 +1707,55 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
   const [detectingSeriesLoading, setDetectingSeriesLoading] = useState(false);
   const searchTimer = useRef(null);
   const searchAbort = useRef(null);
+  const [isbnScanOpen, setIsbnScanOpen] = useState(false);
+  const [isbnLooking, setIsbnLooking] = useState(false);
+
+  async function handleIsbnDetected(isbn) {
+    setIsbnScanOpen(false);
+    setIsbnLooking(true);
+    try {
+      let book = null;
+      try {
+        const r = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&maxResults=1`);
+        const d = await r.json();
+        const v = d?.items?.[0]?.volumeInfo;
+        if (v?.title) {
+          book = {
+            title: v.title + (v.subtitle ? `: ${v.subtitle}` : ""),
+            author: (v.authors && v.authors[0]) || "Unknown",
+            genre: mapSubjectsToGenre(v.categories || []),
+            pages: v.pageCount || 0,
+            coverUrl: cleanThumb(v.imageLinks?.thumbnail) || null,
+            isbn,
+          };
+        }
+      } catch {}
+      if (!book) {
+        try {
+          const r = await fetch(`https://openlibrary.org/api/books?bibkeys=ISBN:${isbn}&format=json&jscmd=data`);
+          const d = await r.json();
+          const v = d?.[`ISBN:${isbn}`];
+          if (v?.title) {
+            book = {
+              title: v.title,
+              author: v.authors?.[0]?.name || "Unknown",
+              genre: mapSubjectsToGenre((v.subjects || []).map(s => s.name || s)),
+              pages: v.number_of_pages || 0,
+              coverUrl: v.cover?.large || v.cover?.medium || null,
+              isbn,
+            };
+          }
+        } catch {}
+      }
+      if (book) {
+        onAddBook && onAddBook({ ...book, _fromRecs: true });
+      } else {
+        alert(`Couldn't find a book for ISBN ${isbn}.`);
+      }
+    } finally {
+      setIsbnLooking(false);
+    }
+  }
 
   const searchMode = browseMode === "authors" ? "Authors" : browseMode === "series" ? "Series" : "All";
 
@@ -1855,6 +1904,17 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
               style={{ width:"100%", boxSizing:"border-box", padding:"10px 36px 10px 12px", border:"1px solid #d1d5db", borderRadius:8, fontSize:15, fontFamily:"'DM Sans',sans-serif", outline:"none", background:"#fff", color:"#111" }}/>
             {apiSearching && <span style={{ position:"absolute", right:10, top:"50%", transform:"translateY(-50%)", fontSize:12, color:"#999", fontFamily:"'DM Sans',sans-serif" }}>Searching…</span>}
             {search && !apiSearching && <button onClick={()=>{ setSearch(""); setApiResults([]); }} style={{ position:"absolute", right:8, top:"50%", transform:"translateY(-50%)", background:"transparent", color:"#999", fontSize:13, border:"none", cursor:"pointer" }}>✕</button>}
+            {!search && !apiSearching && (
+              <button onClick={()=>setIsbnScanOpen(true)} title="Scan ISBN" style={{ position:"absolute", right:6, top:"50%", transform:"translateY(-50%)", background:"transparent", color: isbnLooking ? WOOD.amber : "#999", border:"none", cursor:"pointer", padding:4, display:"flex", alignItems:"center", justifyContent:"center" }}>
+                {isbnLooking ? (
+                  <span style={{ fontSize:11, fontFamily:"'DM Sans',sans-serif", color:WOOD.amber }}>Looking up…</span>
+                ) : (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 5v14"/><path d="M8 5v14"/><path d="M12 5v10"/><path d="M17 5v14"/><path d="M21 5v14"/>
+                  </svg>
+                )}
+              </button>
+            )}
           </div>
           </div>
 
@@ -2322,6 +2382,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
           </div>
         </div>
       )}
+      {isbnScanOpen && <IsbnScanModal onDetect={handleIsbnDetected} onClose={() => setIsbnScanOpen(false)} />}
     </div>
   );
 }
