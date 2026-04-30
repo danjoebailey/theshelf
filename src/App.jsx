@@ -4064,7 +4064,7 @@ function RecommendPage({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook
     { key:"reiko",  label:"Reiko Mend",   img:"/reiko-mend.png" },
     { key:"reed",   label:"Reed Morely",  img:"/reed-morely.png" },
     { key:"browse", label:"Browse",       img:"/lore-wanderer.png" },
-    { key:"scan",   label:"Shelf Scan",   img:"/library-knight.png" },
+    { key:"scan",   label:"Shelf Scan",   img:"/shelf-scan.png" },
   ];
 
   function updateArrows() {
