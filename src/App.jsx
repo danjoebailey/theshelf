@@ -559,6 +559,12 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
       });
       const data = await res.json();
       setObiVerdict(data.verdict || "Unable to get a read on this one.");
+      // Auto-route: unowned books (e.g. catalog rankings entries) get added
+      // to Recommended on a yes verdict via the onAdd handler the parent
+      // wires up specifically for catalog-only cards.
+      if (data.call === "yes" && !book.shelf && onAdd) {
+        onAdd("Recommended");
+      }
     } catch { setObiVerdict("Unable to get a read on this one."); }
     setObiLoading(false);
   }
