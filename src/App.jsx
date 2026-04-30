@@ -3306,7 +3306,7 @@ function imgToB64Rotated(img, sx, sy, sw, sh, maxW, quality = 0.75) {
   return final.toDataURL("image/jpeg", quality).split(",")[1];
 }
 
-function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
+function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAddDirect }) {
   // Cache the most recent scan results per user. We DON'T cache the image
   // itself (data URLs can blow past localStorage quota and don't survive
   // serialization cleanly) — only the scan output, Obi picks, and cover
@@ -3693,6 +3693,12 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
     return base;
   })();
   const unmatchedCount = scannedBooks.filter(b => b._inCatalog === false).length;
+  // Catalog-confirmed and not already owned — eligible for bulk add.
+  const bulkAddable = (() => {
+    const ownedKeys = new Set(books.map(b => normBookKey(b.title)));
+    return displayList.filter(b => b._inCatalog !== false && !ownedKeys.has(normBookKey(b.title)));
+  })();
+  const [bulkOpen, setBulkOpen] = useState(false);
 
   return (
     <div style={{ padding:"0 0 100px" }}>
@@ -3808,6 +3814,32 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
                       : <>Ask Obi</>}
                   </button>
               }
+              {bulkAddable.length > 0 && onBulkAddDirect && (
+                <div style={{ position:"relative" }}>
+                  <button onClick={() => setBulkOpen(o => !o)} style={{ display:"flex", alignItems:"center", gap:5, background: WOOD.amber, color:"#1a0900", border:"none", borderRadius:14, padding:"4px 10px", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:700, cursor:"pointer" }}>
+                    Add {bulkAddable.length} to…
+                    <svg width="9" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  </button>
+                  {bulkOpen && (
+                    <div onClick={e => e.stopPropagation()} style={{ position:"absolute", top:"calc(100% + 4px)", right:0, zIndex:50, minWidth:140, background:"#f5e8d0", borderRadius:10, overflow:"hidden", boxShadow:"0 4px 20px rgba(0,0,0,0.25)", border:"1px solid rgba(138,90,40,0.3)" }}>
+                      {SHELVES.map((s, si) => (
+                        <button key={s} onClick={() => {
+                          setBulkOpen(false);
+                          onBulkAddDirect(bulkAddable.map(b => ({
+                            title: b.title,
+                            author: b.author || "Unknown",
+                            genre: b.genre || "Fiction",
+                            pages: 0,
+                            coverUrl: covers[b.title] || null,
+                          })), s);
+                        }} style={{ display:"block", width:"100%", padding:"9px 14px", textAlign:"left", background:"transparent", border:"none", borderBottom: si < SHELVES.length-1 ? "1px solid rgba(138,90,40,0.1)" : "none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:13, color:WOOD.text }}>
+                          {s}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
           {obiPicks && displayList.length === 0 && (
@@ -4114,7 +4146,7 @@ function BrowseTab({ books, userId, onEdit, onAddBook, onAddDirect }) {
   );
 }
 
-function RecommendPage({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook, onShelfChange, onSaveScores }) {
+function RecommendPage({ books, userId, onAddDirect, onBulkAddDirect, onAuthor, onEdit, onAddBook, onShelfChange, onSaveScores }) {
   const [character, setCharacter] = useState("paige");
   const scrollerRef = useRef(null);
   const [showRightArrow, setShowRightArrow] = useState(true);
@@ -4197,7 +4229,7 @@ function RecommendPage({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook
         ? <ReedTab books={books} userId={userId} onEdit={onEdit} onShelfChange={onShelfChange} onSaveScores={onSaveScores} onAuthor={onAuthor} />
         : character === "browse"
         ? <BrowseTab books={books} userId={userId} onEdit={onEdit} onAddBook={onAddBook} onAddDirect={onAddDirect} />
-        : <ShelfScanTab books={books} userId={userId} onEdit={onEdit} onAddBook={onAddBook} onAddDirect={onAddDirect} />
+        : <ShelfScanTab books={books} userId={userId} onEdit={onEdit} onAddBook={onAddBook} onAddDirect={onAddDirect} onBulkAddDirect={onBulkAddDirect} />
       }
     </div>
   );
@@ -9003,7 +9035,7 @@ export default function App() {
           {tab==="shelf"
             ? <ShelfTab books={books} onAdd={()=>setShowAdd(true)} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"", _fromRecs:book._fromRecs||false }); }} onRemove={id=>{ setBooks(prev => prev.filter(b=>b.id!==id)); track("book_removed"); if (!guestMode) dbDeleteBook(id, userId); }} onEdit={setEditBook} onScroll={setScrollY} onShelfChange={changeShelf} onImport={()=>setShowImport(true)} onSaveScores={saveScores} onSaveDescription={saveDescription} onSaveProgress={saveProgress} onSavePages={savePages} onSaveAspects={saveAspects} hideControls={!!editBook} onAuthor={setAuthorModal} userId={userId} guestMode={guestMode} onBatchDetectSeries={batchDetectSeries} seriesTiers={seriesTiers} onSetSeriesTier={async (seriesName, tier) => { const next = { ...seriesTiers }; if (tier) next[seriesName] = tier; else delete next[seriesName]; setSeriesTiers(next); if (!guestMode) { if (tier) await supabase.from("series_tiers").upsert({ user_id: userId, series_name: seriesName, tier }, { onConflict: "user_id,series_name" }); else await supabase.from("series_tiers").delete().eq("user_id", userId).eq("series_name", seriesName); } }} authorTiers={authorTiers} onSetAuthorTier={async (authorName, tier) => { const next = { ...authorTiers }; if (tier) next[authorName] = tier; else delete next[authorName]; setAuthorTiers(next); if (!guestMode) { if (tier) await supabase.from("author_tiers").upsert({ user_id: userId, author_name: authorName, tier }, { onConflict: "user_id,author_name" }); else await supabase.from("author_tiers").delete().eq("user_id", userId).eq("author_name", authorName); } }} onSetSeriesTotal={(seriesName, total) => { const updated = books.map(b => b.series === seriesName ? { ...b, seriesTotal: total } : b); setBooks(updated); if (!guestMode) updated.filter(b => b.series === seriesName).forEach(b => dbUpdateBook(b, userId)); }} />
             : tab==="reiko"
-            ? <RecommendPage books={books} userId={userId} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, rating:0, date:new Date().toISOString().slice(0,10) }; setBooks(prev => [...prev, b]); if (!guestMode) dbAddBook(b, userId); }} onAuthor={setAuthorModal} onEdit={setEditBook} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"", _fromRecs:true }); }} onShelfChange={changeShelf} onSaveScores={saveScores} />
+            ? <RecommendPage books={books} userId={userId} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, rating:0, date:new Date().toISOString().slice(0,10) }; setBooks(prev => [...prev, b]); if (!guestMode) dbAddBook(b, userId); }} onBulkAddDirect={(items, shelf) => { if (!items?.length) return; const today = new Date().toISOString().slice(0,10); const baseId = Date.now(); const ownedKeys = new Set(books.map(x => normBookKey(x.title))); const newBooks = items.filter(it => it?.title && !ownedKeys.has(normBookKey(it.title))).map((it, idx) => ({ id: baseId + idx, title: it.title, author: it.author || "Unknown", genre: normalizeGenre(it.genre), pages: parseInt(it.pages) || 0, rating: 0, shelf, coverUrl: it.coverUrl || null, coverId: null, date: today })); if (!newBooks.length) return; setBooks(prev => [...prev, ...newBooks]); if (!guestMode) newBooks.forEach(b => dbAddBook(b, userId)); track("bulk_add", { count: newBooks.length, shelf }); clearTimeout(toastTimer.current); setToast({ title: `${newBooks.length} ${newBooks.length === 1 ? "book" : "books"}`, shelf }); toastTimer.current = setTimeout(() => setToast(null), 3000); }} onAuthor={setAuthorModal} onEdit={setEditBook} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"", _fromRecs:true }); }} onShelfChange={changeShelf} onSaveScores={saveScores} />
             : tab==="rankings"
             ? <RankingsTab books={books} onSaveScores={saveScores} userId={userId} authorTiers={authorTiers} seriesTiers={seriesTiers} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"", _fromRecs:true }); }} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, date:new Date().toISOString().slice(0,10) }; setBooks(prev => [...prev, b]); if (!guestMode) dbAddBook(b, userId); }} onShelfChange={changeShelf} onEdit={setEditBook} onAuthor={setAuthorModal} />
             : <StatsTab books={books} />
