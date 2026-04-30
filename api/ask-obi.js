@@ -38,7 +38,9 @@ function buildProfileLines(profile) {
 
 function bookKey(title, author) {
   const norm = s => (s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-  return `verdict::${norm(title)}::${norm(author)}`;
+  // v2 — invalidates pre-existing cache entries that lack the trailing
+  // <call>...</call> tag so the auto-route to Recommended works.
+  return `verdict::v2::${norm(title)}::${norm(author)}`;
 }
 
 function recommendKey(author) {
@@ -212,7 +214,12 @@ Book in question: "${book.title}" by ${book.author} (${book.genre})${book.descri
 
 Write 2–3 sentences. Be direct and specific — reference what you actually know about this reader's taste. Don't hedge. No intro, no sign-off, no markdown.
 
-After your verdict, on a new line, append a single tag indicating your call: <call>yes</call> if you'd recommend this book to this reader, <call>pass</call> if not, or <call>maybe</call> if you're genuinely uncertain. The tag is for our app — don't reference it in your prose.`;
+After your verdict, on its own final line, output EXACTLY one of these three strings — nothing else on that line, no quotes, no markdown:
+<call>yes</call>
+<call>pass</call>
+<call>maybe</call>
+
+Pick "yes" if you'd recommend this book to this reader, "pass" if not, "maybe" only if genuinely uncertain. This tag is required — your response is incomplete without it.`;
 
   try {
     const raw = await callClaude(apiKey, [
@@ -229,8 +236,16 @@ After your verdict, on a new line, append a single tag indicating your call: <ca
 // Split Obi's response into the visible prose and the structured call.
 // Old cache entries lack the tag — call comes back null, no auto-routing.
 function parseVerdict(raw) {
-  const m = raw.match(/<call>\s*(yes|pass|maybe)\s*<\/call>/i);
+  // Primary: closed <call>yes|pass|maybe</call>
+  let m = raw.match(/<call>\s*(yes|pass|maybe)\s*<\/call>/i);
+  // Fallback A: dangling <call>yes (truncated by max_tokens)
+  if (!m) m = raw.match(/<call>\s*(yes|pass|maybe)\b/i);
+  // Fallback B: bare keyword on its own final line (markdown / no tag)
+  if (!m) m = raw.match(/(?:^|\n)\s*\**\s*(yes|pass|maybe)\s*\**\s*$/i);
   const call = m ? m[1].toLowerCase() : null;
-  const verdict = raw.replace(/<call>[^<]*<\/call>/gi, "").trim();
+  const verdict = raw
+    .replace(/<call>[^<\n]*(?:<\/call>)?/gi, "")
+    .replace(/(?:^|\n)\s*\**\s*(yes|pass|maybe)\s*\**\s*$/i, "")
+    .trim();
   return { verdict, call };
 }
