@@ -190,12 +190,15 @@ Name one specific title and explain in 2–3 sentences why it's the best startin
   if (!book) return res.status(400).json({ error: "Missing book data" });
 
   if ((profile || []).length < 3) {
-    return res.json({ verdict: "Your shelves are still pretty bare — add some books you've loved (and a few you've abandoned) and I'll have a lot more to work with." });
+    return res.json({ verdict: "Your shelves are still pretty bare — add some books you've loved (and a few you've abandoned) and I'll have a lot more to work with.", call: null });
   }
 
   const key = bookKey(book.title, book.author);
   const cached = await getCached(userId, key);
-  if (cached) return res.json({ verdict: cached });
+  if (cached) {
+    const parsed = parseVerdict(cached);
+    return res.json(parsed);
+  }
 
   // Split: cached profile prefix + uncached book-specific tail. Repeat Obi
   // calls within 5 min reuse the cached prefix at ~10% of input price.
@@ -207,16 +210,27 @@ ${buildProfileLines(profile)}`;
 
 Book in question: "${book.title}" by ${book.author} (${book.genre})${book.description ? `\n\nAbout the book: ${book.description}` : ""}
 
-Write 2–3 sentences. Be direct and specific — reference what you actually know about this reader's taste. Don't hedge. No intro, no sign-off, no markdown.`;
+Write 2–3 sentences. Be direct and specific — reference what you actually know about this reader's taste. Don't hedge. No intro, no sign-off, no markdown.
+
+After your verdict, on a new line, append a single tag indicating your call: <call>yes</call> if you'd recommend this book to this reader, <call>pass</call> if not, or <call>maybe</call> if you're genuinely uncertain. The tag is for our app — don't reference it in your prose.`;
 
   try {
-    const verdict = await callClaude(apiKey, [
+    const raw = await callClaude(apiKey, [
       { type: "text", text: cachedProfile, cache_control: { type: "ephemeral" } },
       { type: "text", text: uncachedQuestion },
     ]);
-    await saveCache(userId, key, verdict);
-    res.json({ verdict });
+    await saveCache(userId, key, raw);
+    res.json(parseVerdict(raw));
   } catch (e) {
     res.status(500).json({ error: e.message || "Something went wrong." });
   }
+}
+
+// Split Obi's response into the visible prose and the structured call.
+// Old cache entries lack the tag — call comes back null, no auto-routing.
+function parseVerdict(raw) {
+  const m = raw.match(/<call>\s*(yes|pass|maybe)\s*<\/call>/i);
+  const call = m ? m[1].toLowerCase() : null;
+  const verdict = raw.replace(/<call>[^<]*<\/call>/gi, "").trim();
+  return { verdict, call };
 }

@@ -29,7 +29,7 @@ const GENRE_COLORS = {
   "Biography":"#8a6a4a","History":"#7a7a4a","Historical Fiction":"#7a6a4a",
   "Young Adult":"#5a8a7a","Self-Help":"#4a7a5a","Graphic Novel":"#7a5a8a","Other":"#6a6a6a",
 };
-const SHELVES = ["Read", "Reading", "The List", "Curious", "DNF"];
+const SHELVES = ["Read", "Reading", "Recommended", "The List", "Curious", "DNF"];
 
 // ── Static book catalog (loaded once, used as first-pass for search + bibliographies) ──
 let _staticBooks = null;
@@ -1090,7 +1090,7 @@ function BookRowPages({ book, index, onEdit, onRemove, onShelfChange, maxPages, 
 }
 
 function SeriesView({ shelfBooks, allUserBooks, activeShelf = "Read", seriesViewStyle, setSeriesViewStyle, detectingSeriesLoading, setDetectingSeriesLoading, onBatchDetectSeries, onEdit, onRemove, onShelfChange, onSaveProgress, onSavePages, onSaveAspects, onAuthor, seriesTiers = {}, onSetSeriesTier, seriesSort = "read", onSetSeriesTotal, onAddBook, coverSize = "md" }) {
-  const SHELF_PRIORITY = { "Read": 0, "DNF": 1, "Reading": 2, "The List": 3, "Curious": 4 };
+  const SHELF_PRIORITY = { "Read": 0, "DNF": 1, "Reading": 2, "Recommended": 3, "The List": 4, "Curious": 5 };
   const seriesBooks = shelfBooks.filter(b => b.series);
   const grouped = {};
   seriesBooks.forEach(b => {
@@ -1193,7 +1193,7 @@ function SeriesShelfRow({ name, books, seriesTotal, allBooks, onEdit, onAddBook,
   const sortedDisplay = showUnread ? sorted : sorted.filter(b => {
     const s = b.shelf || "Read";
     if (s === activeShelf) return true;
-    return s !== "The List" && s !== "Curious";
+    return s !== "The List" && s !== "Curious" && s !== "Recommended";
   });
   return (
     <div style={{
@@ -1254,7 +1254,7 @@ function SeriesShelfRow({ name, books, seriesTotal, allBooks, onEdit, onAddBook,
               </div>
               {b.rating > 0
                 ? <p style={{ fontSize:9, color:WOOD.amber, marginTop:2, lineHeight:1 }}>{"★".repeat(Math.floor(b.rating))}{b.rating % 1 >= 0.5 ? "½" : ""}</p>
-                : (b.shelf === "The List" || b.shelf === "Curious") && <p style={{ fontSize:8, color:WOOD.textDim, fontFamily:"'DM Sans',sans-serif", marginTop:2, lineHeight:1 }}>{b.shelf}</p>}
+                : (b.shelf === "The List" || b.shelf === "Curious" || b.shelf === "Recommended") && <p style={{ fontSize:8, color:WOOD.textDim, fontFamily:"'DM Sans',sans-serif", marginTop:2, lineHeight:1 }}>{b.shelf}</p>}
             </div>
           );
         })}
@@ -2505,6 +2505,11 @@ function RecCard({ rec, coverUrl, ownedBook, onAddDirect, onEdit, onAddBook, ind
       });
       const data = await res.json();
       setObiVerdict(data.verdict || "Unable to get a read on this one.");
+      // Auto-route to the Recommended shelf when Obi gives a clear yes and
+      // the reader doesn't already own the book.
+      if (data.call === "yes" && !ownedBook && onAddDirect) {
+        onAddDirect({ title: rec.title, author: rec.author, genre: rec.genre, coverUrl, pages: rec.pages || 0 }, "Recommended");
+      }
     } catch { setObiVerdict("Unable to get a read on this one."); }
     setObiLoading(false);
   }
@@ -3815,30 +3820,46 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAdd
                   </button>
               }
               {bulkAddable.length > 0 && onBulkAddDirect && (
-                <div style={{ position:"relative" }}>
-                  <button onClick={() => setBulkOpen(o => !o)} style={{ display:"flex", alignItems:"center", gap:5, background: WOOD.amber, color:"#1a0900", border:"none", borderRadius:14, padding:"4px 10px", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:700, cursor:"pointer" }}>
-                    Add {bulkAddable.length} to…
-                    <svg width="9" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                  </button>
-                  {bulkOpen && (
-                    <div onClick={e => e.stopPropagation()} style={{ position:"absolute", top:"calc(100% + 4px)", right:0, zIndex:50, minWidth:140, background:"#f5e8d0", borderRadius:10, overflow:"hidden", boxShadow:"0 4px 20px rgba(0,0,0,0.25)", border:"1px solid rgba(138,90,40,0.3)" }}>
-                      {SHELVES.map((s, si) => (
-                        <button key={s} onClick={() => {
-                          setBulkOpen(false);
-                          onBulkAddDirect(bulkAddable.map(b => ({
-                            title: b.title,
-                            author: b.author || "Unknown",
-                            genre: b.genre || "Fiction",
-                            pages: 0,
-                            coverUrl: covers[b.title] || null,
-                          })), s);
-                        }} style={{ display:"block", width:"100%", padding:"9px 14px", textAlign:"left", background:"transparent", border:"none", borderBottom: si < SHELVES.length-1 ? "1px solid rgba(138,90,40,0.1)" : "none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:13, color:WOOD.text }}>
-                          {s}
-                        </button>
-                      ))}
+                obiPicks
+                  ? (
+                    <button onClick={() => {
+                      onBulkAddDirect(bulkAddable.map(b => ({
+                        title: b.title,
+                        author: b.author || "Unknown",
+                        genre: b.genre || "Fiction",
+                        pages: 0,
+                        coverUrl: covers[b.title] || null,
+                      })), "Recommended");
+                    }} style={{ display:"flex", alignItems:"center", gap:5, background: WOOD.amber, color:"#1a0900", border:"none", borderRadius:14, padding:"4px 10px", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:700, cursor:"pointer" }}>
+                      Add {bulkAddable.length} to Recommended
+                    </button>
+                  )
+                  : (
+                    <div style={{ position:"relative" }}>
+                      <button onClick={() => setBulkOpen(o => !o)} style={{ display:"flex", alignItems:"center", gap:5, background: WOOD.amber, color:"#1a0900", border:"none", borderRadius:14, padding:"4px 10px", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:700, cursor:"pointer" }}>
+                        Add {bulkAddable.length} to…
+                        <svg width="9" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      </button>
+                      {bulkOpen && (
+                        <div onClick={e => e.stopPropagation()} style={{ position:"absolute", top:"calc(100% + 4px)", right:0, zIndex:50, minWidth:140, background:"#f5e8d0", borderRadius:10, overflow:"hidden", boxShadow:"0 4px 20px rgba(0,0,0,0.25)", border:"1px solid rgba(138,90,40,0.3)" }}>
+                          {SHELVES.map((s, si) => (
+                            <button key={s} onClick={() => {
+                              setBulkOpen(false);
+                              onBulkAddDirect(bulkAddable.map(b => ({
+                                title: b.title,
+                                author: b.author || "Unknown",
+                                genre: b.genre || "Fiction",
+                                pages: 0,
+                                coverUrl: covers[b.title] || null,
+                              })), s);
+                            }} style={{ display:"block", width:"100%", padding:"9px 14px", textAlign:"left", background:"transparent", border:"none", borderBottom: si < SHELVES.length-1 ? "1px solid rgba(138,90,40,0.1)" : "none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:13, color:WOOD.text }}>
+                              {s}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
+                  )
               )}
             </div>
           </div>
@@ -4236,11 +4257,12 @@ function RecommendPage({ books, userId, onAddDirect, onBulkAddDirect, onAuthor, 
 }
 
 const SHELF_BADGE = {
-  "Read":     { bg:"rgba(60,120,80,0.55)",  color:"rgba(255,255,255,0.9)", border:"rgba(60,120,80,0.4)"  },
-  "Reading":  { bg:"rgba(210,100,30,0.55)", color:"rgba(255,255,255,0.9)", border:"rgba(210,100,30,0.4)" },
-  "The List": { bg:"rgba(80,120,180,0.7)",  color:"rgba(255,255,255,0.9)", border:"rgba(80,120,180,0.5)" },
-  "Curious":  { bg:"rgba(180,155,80,0.7)",  color:"rgba(255,255,255,0.9)", border:"rgba(180,155,80,0.5)" },
-  "DNF":      { bg:"rgba(160,50,50,0.55)",  color:"rgba(255,255,255,0.9)", border:"rgba(160,50,50,0.4)" },
+  "Read":        { bg:"rgba(60,120,80,0.55)",  color:"rgba(255,255,255,0.9)", border:"rgba(60,120,80,0.4)"  },
+  "Reading":     { bg:"rgba(210,100,30,0.55)", color:"rgba(255,255,255,0.9)", border:"rgba(210,100,30,0.4)" },
+  "Recommended": { bg:"rgba(140,80,180,0.6)",  color:"rgba(255,255,255,0.9)", border:"rgba(140,80,180,0.45)"},
+  "The List":    { bg:"rgba(80,120,180,0.7)",  color:"rgba(255,255,255,0.9)", border:"rgba(80,120,180,0.5)" },
+  "Curious":     { bg:"rgba(180,155,80,0.7)",  color:"rgba(255,255,255,0.9)", border:"rgba(180,155,80,0.5)" },
+  "DNF":         { bg:"rgba(160,50,50,0.55)",  color:"rgba(255,255,255,0.9)", border:"rgba(160,50,50,0.4)" },
 };
 
 function AuthorRecCard({ rec, books, onAuthor, onEdit, onAddBook, onAddDirect, preloadedCovers = {}, shouldAutoExpand = false }) {
@@ -6783,7 +6805,7 @@ function StatsTab({ books }) {
 function BookSearchModal({ book, onSave, onClose }) {
   const [rating, setRating] = useState(0);
   const [shelf, setShelf] = useState("Read");
-  const noRating = ["Reading", "The List", "Curious", "DNF"].includes(shelf);
+  const noRating = ["Reading", "Recommended", "The List", "Curious", "DNF"].includes(shelf);
 
   function save() {
     if (!noRating && !rating) return;
@@ -6907,7 +6929,7 @@ function AddSheet({ onSave, onClose, initialBook = null }) {
     setStep("confirm");
   }
 
-  const noRating = ["Reading", "The List", "Curious", "DNF"].includes(shelf);
+  const noRating = ["Reading", "Recommended", "The List", "Curious", "DNF"].includes(shelf);
 
   function save() {
     if (!selected || (!noRating && !rating)) return;
@@ -7215,7 +7237,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
   const [obiVerdict, setObiVerdict] = useState(null);
   const [obiLoading, setObiLoading] = useState(false);
 
-  const noRating = ["The List", "Curious", "Reading"];
+  const noRating = ["The List", "Curious", "Reading", "Recommended"];
   function hiResCoverUrl(url) {
     if (!url) return url;
     if (url.includes("mzstatic.com") || url.includes("itunes.apple.com")) return url.replace(/\/\d+x\d+bb\./, "/600x600bb.");
@@ -9035,7 +9057,7 @@ export default function App() {
           {tab==="shelf"
             ? <ShelfTab books={books} onAdd={()=>setShowAdd(true)} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"", _fromRecs:book._fromRecs||false }); }} onRemove={id=>{ setBooks(prev => prev.filter(b=>b.id!==id)); track("book_removed"); if (!guestMode) dbDeleteBook(id, userId); }} onEdit={setEditBook} onScroll={setScrollY} onShelfChange={changeShelf} onImport={()=>setShowImport(true)} onSaveScores={saveScores} onSaveDescription={saveDescription} onSaveProgress={saveProgress} onSavePages={savePages} onSaveAspects={saveAspects} hideControls={!!editBook} onAuthor={setAuthorModal} userId={userId} guestMode={guestMode} onBatchDetectSeries={batchDetectSeries} seriesTiers={seriesTiers} onSetSeriesTier={async (seriesName, tier) => { const next = { ...seriesTiers }; if (tier) next[seriesName] = tier; else delete next[seriesName]; setSeriesTiers(next); if (!guestMode) { if (tier) await supabase.from("series_tiers").upsert({ user_id: userId, series_name: seriesName, tier }, { onConflict: "user_id,series_name" }); else await supabase.from("series_tiers").delete().eq("user_id", userId).eq("series_name", seriesName); } }} authorTiers={authorTiers} onSetAuthorTier={async (authorName, tier) => { const next = { ...authorTiers }; if (tier) next[authorName] = tier; else delete next[authorName]; setAuthorTiers(next); if (!guestMode) { if (tier) await supabase.from("author_tiers").upsert({ user_id: userId, author_name: authorName, tier }, { onConflict: "user_id,author_name" }); else await supabase.from("author_tiers").delete().eq("user_id", userId).eq("author_name", authorName); } }} onSetSeriesTotal={(seriesName, total) => { const updated = books.map(b => b.series === seriesName ? { ...b, seriesTotal: total } : b); setBooks(updated); if (!guestMode) updated.filter(b => b.series === seriesName).forEach(b => dbUpdateBook(b, userId)); }} />
             : tab==="reiko"
-            ? <RecommendPage books={books} userId={userId} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, rating:0, date:new Date().toISOString().slice(0,10) }; setBooks(prev => [...prev, b]); if (!guestMode) dbAddBook(b, userId); }} onBulkAddDirect={(items, shelf) => { if (!items?.length) return; const today = new Date().toISOString().slice(0,10); const baseId = Date.now(); const ownedKeys = new Set(books.map(x => normBookKey(x.title))); const newBooks = items.filter(it => it?.title && !ownedKeys.has(normBookKey(it.title))).map((it, idx) => ({ id: baseId + idx, title: it.title, author: it.author || "Unknown", genre: normalizeGenre(it.genre), pages: parseInt(it.pages) || 0, rating: 0, shelf, coverUrl: it.coverUrl || null, coverId: null, date: today })); if (!newBooks.length) return; setBooks(prev => [...prev, ...newBooks]); if (!guestMode) newBooks.forEach(b => dbAddBook(b, userId)); track("bulk_add", { count: newBooks.length, shelf }); clearTimeout(toastTimer.current); setToast({ title: `${newBooks.length} ${newBooks.length === 1 ? "book" : "books"}`, shelf }); toastTimer.current = setTimeout(() => setToast(null), 3000); }} onAuthor={setAuthorModal} onEdit={setEditBook} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"", _fromRecs:true }); }} onShelfChange={changeShelf} onSaveScores={saveScores} />
+            ? <RecommendPage books={books} userId={userId} onAddDirect={(book, shelf) => { const existing = books.find(x => normBookKey(x.title) === normBookKey(book.title)); if (existing) { changeShelf(existing.id, shelf); return; } const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, rating:0, date:new Date().toISOString().slice(0,10) }; setBooks(prev => [...prev, b]); if (!guestMode) dbAddBook(b, userId); }} onBulkAddDirect={(items, shelf) => { if (!items?.length) return; const today = new Date().toISOString().slice(0,10); const baseId = Date.now(); const ownedKeys = new Set(books.map(x => normBookKey(x.title))); const newBooks = items.filter(it => it?.title && !ownedKeys.has(normBookKey(it.title))).map((it, idx) => ({ id: baseId + idx, title: it.title, author: it.author || "Unknown", genre: normalizeGenre(it.genre), pages: parseInt(it.pages) || 0, rating: 0, shelf, coverUrl: it.coverUrl || null, coverId: null, date: today })); if (!newBooks.length) return; setBooks(prev => [...prev, ...newBooks]); if (!guestMode) newBooks.forEach(b => dbAddBook(b, userId)); track("bulk_add", { count: newBooks.length, shelf }); clearTimeout(toastTimer.current); setToast({ title: `${newBooks.length} ${newBooks.length === 1 ? "book" : "books"}`, shelf }); toastTimer.current = setTimeout(() => setToast(null), 3000); }} onAuthor={setAuthorModal} onEdit={setEditBook} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"", _fromRecs:true }); }} onShelfChange={changeShelf} onSaveScores={saveScores} />
             : tab==="rankings"
             ? <RankingsTab books={books} onSaveScores={saveScores} userId={userId} authorTiers={authorTiers} seriesTiers={seriesTiers} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:new Date().toISOString().slice(0,10), description:"", scores:null, notes:"", _fromRecs:true }); }} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, date:new Date().toISOString().slice(0,10) }; setBooks(prev => [...prev, b]); if (!guestMode) dbAddBook(b, userId); }} onShelfChange={changeShelf} onEdit={setEditBook} onAuthor={setAuthorModal} />
             : <StatsTab books={books} />
