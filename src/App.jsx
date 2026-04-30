@@ -1190,6 +1190,11 @@ function SeriesShelfRow({ name, books, seriesTotal, allBooks, onEdit, onAddBook,
     const nb = parseInt((b.title.match(/\d+/) || [])[0]) || 999;
     return na - nb;
   });
+  const sortedDisplay = showUnread ? sorted : sorted.filter(b => {
+    const s = b.shelf || "Read";
+    if (s === activeShelf) return true;
+    return s !== "The List" && s !== "Curious";
+  });
   return (
     <div style={{
       marginBottom:8, background:WOOD.card, borderRadius:12,
@@ -1231,7 +1236,7 @@ function SeriesShelfRow({ name, books, seriesTotal, allBooks, onEdit, onAddBook,
         </div>
       </div>
       <div style={{ display:"flex", gap:6, overflowX:"auto", paddingBottom:4, scrollbarWidth:"none", marginLeft:-2 }}>
-        {sorted.map(b => {
+        {sortedDisplay.map(b => {
           let touchStartX = 0, touchStartY = 0;
           return (
             <div key={b.id}
