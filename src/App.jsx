@@ -611,7 +611,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
                 <button {...tc(()=>{ onEdit ? onEdit(book) : onAdd && onAdd("Read"); }, true)} style={{ background:"transparent", border:"none", cursor:"pointer", padding:"2px 4px 0", color:"rgba(120,70,20,0.6)", fontSize:16, lineHeight:1 }}>↗</button>
               </div>
             </div>
-            {!onAdd && (book.shelf || "Read") !== "The List" && (book.shelf || "Read") !== "Curious" && (book.shelf || "Read") !== "Reading" && <StarRating value={book.rating} readonly size={18} />}
+            {!onAdd && (book.shelf || "Read") !== "The List" && (book.shelf || "Read") !== "Curious" && (book.shelf || "Read") !== "Reading" && (book.shelf || "Read") !== "Recommended" && <StarRating value={book.rating} readonly size={18} />}
           </div>
           <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
             <div style={{ display:"flex", gap:7, alignItems:"center" }}>
@@ -1060,7 +1060,7 @@ function BookRow({ book, index, onEdit, onRemove, onShelfChange, onAdd, onSavePr
 function BookRowPages({ book, index, onEdit, onRemove, onShelfChange, maxPages, onSaveProgress, onSavePages }) {
   const [expanded, setExpanded] = useState(false);
   const touchMoved = useRef(false);
-  const isRated = (book.shelf || "Read") !== "The List" && (book.shelf || "Read") !== "Curious" && (book.shelf || "Read") !== "Reading";
+  const isRated = (book.shelf || "Read") !== "The List" && (book.shelf || "Read") !== "Curious" && (book.shelf || "Read") !== "Reading" && (book.shelf || "Read") !== "Recommended";
   const pages = book.pages || 0;
   const minH = 52, maxH = 190;
   const rowHeight = pages > 0 ? Math.max(minH, Math.min(maxH, minH + (pages / Math.max(maxPages, 1)) * (maxH - minH))) : minH;
