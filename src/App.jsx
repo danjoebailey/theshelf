@@ -2871,6 +2871,21 @@ function PaigeTab({ books, userId, onAddDirect, onBulkAddDirect, onEdit, onAddBo
         // Fetch covers for promoted reserve books AND any new substitutions.
         const promoted = [...(reserve[mode] || []), ...substitutions].filter(r => pickSet.has(r.title.toLowerCase()));
         if (promoted.length) await fetchCoversForRecs(promoted, mode);
+        // Auto-route Obi's picks to Recommended (skip already-owned).
+        if (onBulkAddDirect) {
+          const ownedKeys = new Set(books.map(b => normBookKey(b.title)));
+          const pool = [...(recs[mode] || []), ...(reserve[mode] || []), ...substitutions];
+          const seen = new Set();
+          const items = [];
+          for (const r of pool) {
+            const k = r.title.toLowerCase();
+            if (!pickSet.has(k) || seen.has(k)) continue;
+            if (ownedKeys.has(normBookKey(r.title))) continue;
+            seen.add(k);
+            items.push({ title: r.title, author: r.author, genre: r.genre, pages: r.pages || 0, coverUrl: currentCovers[r.title] || null });
+          }
+          if (items.length) onBulkAddDirect(items, "Recommended");
+        }
       }
     } catch (e) {
       console.error("[curate]", e);
@@ -3116,20 +3131,7 @@ function PaigeTab({ books, userId, onAddDirect, onBulkAddDirect, onEdit, onAddBo
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12, gap:8, flexWrap:"wrap" }}>
                 <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:10, fontWeight:700, color:"rgba(255,255,255,0.6)", textTransform:"uppercase", letterSpacing:"0.1em" }}>{headerLabel}</p>
                 {obiPicks
-                  ? (() => {
-                      const ownedKeys = new Set(books.map(b => normBookKey(b.title)));
-                      const addable = filtered.filter(r => !ownedKeys.has(normBookKey(r.title)));
-                      return (
-                        <div style={{ display:"flex", gap:6, alignItems:"center", flexWrap:"wrap" }}>
-                          {addable.length > 0 && onBulkAddDirect && (
-                            <button onClick={() => onBulkAddDirect(addable.map(r => ({ title: r.title, author: r.author, genre: r.genre, pages: r.pages || 0, coverUrl: currentCovers[r.title] || null })), "Recommended")} style={{ display:"flex", alignItems:"center", gap:5, background: WOOD.amber, color:"#1a0900", border:"none", borderRadius:14, padding:"4px 10px", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:700, cursor:"pointer" }}>
-                              Add {addable.length} to Recommended
-                            </button>
-                          )}
-                          <button onClick={() => setObiPicks(null)} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(255,235,195,0.7)", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, textDecoration:"underline" }}>Show Paige's full list</button>
-                        </div>
-                      );
-                    })()
+                  ? <button onClick={() => setObiPicks(null)} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(255,235,195,0.7)", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, textDecoration:"underline" }}>Show Paige's full list</button>
                   : baseFiltered.length >= 10 && <button onClick={curateWithObi} disabled={obiCurateLoading} style={{ display:"flex", alignItems:"center", gap:5, background:"rgba(15,8,2,0.55)", color:"#fff", border:"1px solid rgba(120,70,20,0.3)", borderRadius:14, padding:"4px 10px", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, cursor: obiCurateLoading ? "default" : "pointer", backdropFilter:"blur(4px)" }}>
                       {obiCurateLoading
                         ? <><span style={{ width:10, height:10, border:"1.5px solid rgba(255,255,255,0.3)", borderTopColor:"#fff", borderRadius:"50%", display:"inline-block", animation:"spin 0.7s linear infinite" }} />Obi…</>
@@ -3682,7 +3684,8 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAdd
         const finalTitles = resolved.map(r => r.title);
         const substitutions = resolved.filter(r => r.book).map(r => r.book);
         setObiSubstitutions(substitutions);
-        setObiPicks(new Set(finalTitles.map(t => t.toLowerCase())));
+        const pickSet = new Set(finalTitles.map(t => t.toLowerCase()));
+        setObiPicks(pickSet);
         // Fetch covers for substitutions if any
         const covMap = { ...covers };
         for (const rec of substitutions) {
@@ -3693,6 +3696,21 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAdd
           } catch {}
         }
         setCovers(covMap);
+        // Auto-route Obi's picks to Recommended (skip already-owned).
+        if (onBulkAddDirect) {
+          const ownedKeys = new Set(books.map(b => normBookKey(b.title)));
+          const pool = [...scannedBooks, ...substitutions];
+          const seen = new Set();
+          const itemsForAdd = [];
+          for (const r of pool) {
+            const k = r.title.toLowerCase();
+            if (!pickSet.has(k) || seen.has(k)) continue;
+            if (ownedKeys.has(normBookKey(r.title))) continue;
+            seen.add(k);
+            itemsForAdd.push({ title: r.title, author: r.author || "Unknown", genre: r.genre || "Fiction", pages: r.pages || 0, coverUrl: covMap[r.title] || null });
+          }
+          if (itemsForAdd.length) onBulkAddDirect(itemsForAdd, "Recommended");
+        }
       }
     } catch (e) {
       console.error("[scan-obi]", e);
@@ -3840,47 +3858,31 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAdd
                       : <>Ask Obi</>}
                   </button>
               }
-              {bulkAddable.length > 0 && onBulkAddDirect && (
-                obiPicks
-                  ? (
-                    <button onClick={() => {
-                      onBulkAddDirect(bulkAddable.map(b => ({
-                        title: b.title,
-                        author: b.author || "Unknown",
-                        genre: b.genre || "Fiction",
-                        pages: 0,
-                        coverUrl: covers[b.title] || null,
-                      })), "Recommended");
-                    }} style={{ display:"flex", alignItems:"center", gap:5, background: WOOD.amber, color:"#1a0900", border:"none", borderRadius:14, padding:"4px 10px", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:700, cursor:"pointer" }}>
-                      Add {bulkAddable.length} to Recommended
-                    </button>
-                  )
-                  : (
-                    <div style={{ position:"relative" }}>
-                      <button onClick={() => setBulkOpen(o => !o)} style={{ display:"flex", alignItems:"center", gap:5, background: WOOD.amber, color:"#1a0900", border:"none", borderRadius:14, padding:"4px 10px", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:700, cursor:"pointer" }}>
-                        Add {bulkAddable.length} to…
-                        <svg width="9" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                      </button>
-                      {bulkOpen && (
-                        <div onClick={e => e.stopPropagation()} style={{ position:"absolute", top:"calc(100% + 4px)", right:0, zIndex:50, minWidth:140, background:"#f5e8d0", borderRadius:10, overflow:"hidden", boxShadow:"0 4px 20px rgba(0,0,0,0.25)", border:"1px solid rgba(138,90,40,0.3)" }}>
-                          {SHELVES.map((s, si) => (
-                            <button key={s} onClick={() => {
-                              setBulkOpen(false);
-                              onBulkAddDirect(bulkAddable.map(b => ({
-                                title: b.title,
-                                author: b.author || "Unknown",
-                                genre: b.genre || "Fiction",
-                                pages: 0,
-                                coverUrl: covers[b.title] || null,
-                              })), s);
-                            }} style={{ display:"block", width:"100%", padding:"9px 14px", textAlign:"left", background:"transparent", border:"none", borderBottom: si < SHELVES.length-1 ? "1px solid rgba(138,90,40,0.1)" : "none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:13, color:WOOD.text }}>
-                              {s}
-                            </button>
-                          ))}
-                        </div>
-                      )}
+              {!obiPicks && bulkAddable.length > 0 && onBulkAddDirect && (
+                <div style={{ position:"relative" }}>
+                  <button onClick={() => setBulkOpen(o => !o)} style={{ display:"flex", alignItems:"center", gap:5, background: WOOD.amber, color:"#1a0900", border:"none", borderRadius:14, padding:"4px 10px", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:700, cursor:"pointer" }}>
+                    Add {bulkAddable.length} to…
+                    <svg width="9" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1l4 4 4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  </button>
+                  {bulkOpen && (
+                    <div onClick={e => e.stopPropagation()} style={{ position:"absolute", top:"calc(100% + 4px)", right:0, zIndex:50, minWidth:140, background:"#f5e8d0", borderRadius:10, overflow:"hidden", boxShadow:"0 4px 20px rgba(0,0,0,0.25)", border:"1px solid rgba(138,90,40,0.3)" }}>
+                      {SHELVES.map((s, si) => (
+                        <button key={s} onClick={() => {
+                          setBulkOpen(false);
+                          onBulkAddDirect(bulkAddable.map(b => ({
+                            title: b.title,
+                            author: b.author || "Unknown",
+                            genre: b.genre || "Fiction",
+                            pages: 0,
+                            coverUrl: covers[b.title] || null,
+                          })), s);
+                        }} style={{ display:"block", width:"100%", padding:"9px 14px", textAlign:"left", background:"transparent", border:"none", borderBottom: si < SHELVES.length-1 ? "1px solid rgba(138,90,40,0.1)" : "none", cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:13, color:WOOD.text }}>
+                          {s}
+                        </button>
+                      ))}
                     </div>
-                  )
+                  )}
+                </div>
               )}
             </div>
           </div>
@@ -4072,6 +4074,20 @@ function BrowseTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAddDir
         }
         setObiSubstitutions(substitutions);
         setObiPicks(pickSet);
+        // Auto-route Obi's picks to Recommended (skip already-owned).
+        if (onBulkAddDirect) {
+          const ownedKeys = new Set(books.map(b => normBookKey(b.title)));
+          const seen = new Set();
+          const itemsForAdd = [];
+          for (const r of allObiBooks) {
+            const k = r.title.toLowerCase();
+            if (seen.has(k)) continue;
+            if (ownedKeys.has(normBookKey(r.title))) continue;
+            seen.add(k);
+            itemsForAdd.push({ title: r.title, author: r.author, genre: r.genre, pages: r.pages || 0, coverUrl: covers[r.title] || null });
+          }
+          if (itemsForAdd.length) onBulkAddDirect(itemsForAdd, "Recommended");
+        }
       }
     } catch (e) {
       console.error("[browse-curate]", e);
@@ -4146,20 +4162,7 @@ function BrowseTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAddDir
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:14, gap:8, flexWrap:"wrap" }}>
             <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, color:"rgba(255,255,255,0.55)", textTransform:"uppercase", letterSpacing:"0.1em" }}>{headerLabel}</p>
             {obiPicks
-              ? (() => {
-                  const ownedKeys = new Set(books.map(b => normBookKey(b.title)));
-                  const addable = displayed.filter(r => !ownedKeys.has(normBookKey(r.title)));
-                  return (
-                    <div style={{ display:"flex", gap:6, alignItems:"center", flexWrap:"wrap" }}>
-                      {addable.length > 0 && onBulkAddDirect && (
-                        <button onClick={() => onBulkAddDirect(addable.map(r => ({ title: r.title, author: r.author, genre: r.genre, pages: r.pages || 0, coverUrl: covers[r.title] || null })), "Recommended")} style={{ display:"flex", alignItems:"center", gap:5, background: WOOD.amber, color:"#1a0900", border:"none", borderRadius:14, padding:"4px 10px", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:700, cursor:"pointer" }}>
-                          Add {addable.length} to Recommended
-                        </button>
-                      )}
-                      <button onClick={() => { setObiPicks(null); setObiSubstitutions([]); }} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(255,235,195,0.7)", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, textDecoration:"underline" }}>Show full catalog list</button>
-                    </div>
-                  );
-                })()
+              ? <button onClick={() => { setObiPicks(null); setObiSubstitutions([]); }} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(255,235,195,0.7)", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, textDecoration:"underline" }}>Show full catalog list</button>
               : (
                 <div style={{ display:"flex", gap:6 }}>
                   {items.length >= 10 && (
