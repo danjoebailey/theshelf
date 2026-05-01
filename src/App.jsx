@@ -7444,11 +7444,10 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
           <div style={{ marginTop:7 }}>
             <span style={{ background:GENRE_COLORS[book.genre]||"#94a3b8", color:"#fff", borderRadius:"20px", padding:"3px 10px", fontSize:9, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", lineHeight:1, display:"inline-block" }}>{book.genre}</span>
           </div>
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:1, gap:6 }}>
-            <div style={{ fontSize:11, color:CR.textFaint, fontFamily:"'DM Sans',sans-serif", display:"flex", alignItems:"center", gap:6 }}>
-              {(() => { const py = getPublishYear(book); return py ? <span>Published {py}</span> : null; })()}
-              {(() => { const py = getPublishYear(book); return py && book.pages > 0 ? <span style={{ color:CR.border }}>·</span> : null; })()}
-              {book.pages > 0 && <span>{book.pages.toLocaleString()} pages</span>}
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:6, gap:6 }}>
+            <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap" }}>
+              {(() => { const py = getPublishYear(book); return py ? <span style={{ fontSize:10, color:CR.textDim, background:"#fff", border:`1px solid ${CR.border}`, borderRadius:20, padding:"3px 12px", whiteSpace:"nowrap", fontFamily:"'DM Sans',sans-serif" }}>Published {py}</span> : null; })()}
+              {book.pages > 0 && <span style={{ fontSize:10, color:CR.textDim, background:"#fff", border:`1px solid ${CR.border}`, borderRadius:20, padding:"3px 12px", whiteSpace:"nowrap", fontFamily:"'DM Sans',sans-serif" }}>{book.pages.toLocaleString()} pages</span>}
             </div>
             <div style={{ display:"flex", gap:2, background:"transparent", borderRadius:6, padding:0, flexShrink:0 }}>
               {tabs.map(t => (
