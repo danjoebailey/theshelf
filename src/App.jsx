@@ -3305,7 +3305,13 @@ const SCAN_ROWS_MAX = 8;
 // tokens flat regardless of grid density or source resolution. Bumped
 // alongside the grid cap so 64-crop scans don't shrink each cell to
 // unreadable resolutions.
-const CROP_PIXEL_BUDGET = 18_000_000;
+// Halved from 18M after Vercel started returning 413 on dense single-shelf
+// scans that no longer trigger deep-scan splitting. JPEG-encoded crops at
+// ~0.5 bytes/pixel + base64 overhead push the payload past Vercel's ~4MB
+// body cap if the budget is too generous. 9M keeps a 6x4 grid (24 cells ×
+// 2 orientations = 48 images) at ~430-500px wide, JPEG ~40-50KB each, total
+// payload comfortably under 4MB.
+const CROP_PIXEL_BUDGET = 9_000_000;
 
 function loadImageEl(src) {
   return new Promise((resolve, reject) => {
