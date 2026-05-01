@@ -2523,7 +2523,7 @@ function RecCard({ rec, coverUrl, ownedBook, onAddDirect, onEdit, onAddBook, ind
       // Auto-route to the Recommended shelf when Obi gives a clear yes and
       // the reader doesn't already own the book.
       if (data.call === "yes" && !ownedBook && onAddDirect) {
-        onAddDirect({ title: rec.title, author: rec.author, genre: rec.genre, coverUrl, pages: rec.pages || 0 }, "Recommended");
+        onAddDirect({ title: rec.title, author: rec.author, genre: rec.genre, coverUrl, pages: rec.pages || 0, publishYear: rec.publishYear || null }, "Recommended");
       }
     } catch { setObiVerdict("Unable to get a read on this one."); }
     setObiLoading(false);
@@ -2889,7 +2889,7 @@ function PaigeTab({ books, userId, onAddDirect, onBulkAddDirect, onEdit, onAddBo
             if (!pickSet.has(k) || seen.has(k)) continue;
             if (ownedKeys.has(normBookKey(r.title))) continue;
             seen.add(k);
-            items.push({ title: r.title, author: r.author, genre: r.genre, pages: r.pages || 0, coverUrl: currentCovers[r.title] || null });
+            items.push({ title: r.title, author: r.author, genre: r.genre, pages: r.pages || 0, coverUrl: currentCovers[r.title] || null, publishYear: r.publishYear || null });
           }
           if (items.length) onBulkAddDirect(items, "Recommended");
         }
@@ -3714,7 +3714,7 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAdd
             if (!pickSet.has(k) || seen.has(k)) continue;
             if (ownedKeys.has(normBookKey(r.title))) continue;
             seen.add(k);
-            itemsForAdd.push({ title: r.title, author: r.author || "Unknown", genre: r.genre || "Fiction", pages: r.pages || 0, coverUrl: covMap[r.title] || null });
+            itemsForAdd.push({ title: r.title, author: r.author || "Unknown", genre: r.genre || "Fiction", pages: r.pages || 0, coverUrl: covMap[r.title] || null, publishYear: r.publishYear || null });
           }
           if (itemsForAdd.length) onBulkAddDirect(itemsForAdd, "Recommended");
         }
@@ -4091,7 +4091,7 @@ function BrowseTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAddDir
             if (seen.has(k)) continue;
             if (ownedKeys.has(normBookKey(r.title))) continue;
             seen.add(k);
-            itemsForAdd.push({ title: r.title, author: r.author, genre: r.genre, pages: r.pages || 0, coverUrl: covers[r.title] || null });
+            itemsForAdd.push({ title: r.title, author: r.author, genre: r.genre, pages: r.pages || 0, coverUrl: covers[r.title] || null, publishYear: r.publishYear || null });
           }
           if (itemsForAdd.length) onBulkAddDirect(itemsForAdd, "Recommended");
         }
@@ -7859,6 +7859,7 @@ function bookToRow(book, userId) {
     series: book.series || null,
     series_total: book.seriesTotal || null,
     date_started: book.dateStarted || null,
+    publish_year: book.publishYear || null,
   };
 }
 
@@ -7884,6 +7885,7 @@ function rowToBook(row) {
     series: row.series || null,
     seriesTotal: row.series_total || null,
     dateStarted: row.date_started || null,
+    publishYear: row.publish_year || null,
   };
 }
 
@@ -9154,7 +9156,7 @@ export default function App() {
           {tab==="shelf"
             ? <ShelfTab books={books} onAdd={()=>setShowAdd(true)} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:todayLocal(), description:"", scores:null, notes:"", _fromRecs:book._fromRecs||false }); }} onRemove={id=>{ setBooks(prev => prev.filter(b=>b.id!==id)); track("book_removed"); if (!guestMode) dbDeleteBook(id, userId); }} onEdit={setEditBook} onScroll={setScrollY} onShelfChange={changeShelf} onImport={()=>setShowImport(true)} onSaveScores={saveScores} onSaveDescription={saveDescription} onSaveProgress={saveProgress} onSavePages={savePages} onSaveAspects={saveAspects} hideControls={!!editBook} onAuthor={setAuthorModal} userId={userId} guestMode={guestMode} onBatchDetectSeries={batchDetectSeries} seriesTiers={seriesTiers} onSetSeriesTier={async (seriesName, tier) => { const next = { ...seriesTiers }; if (tier) next[seriesName] = tier; else delete next[seriesName]; setSeriesTiers(next); if (!guestMode) { if (tier) await supabase.from("series_tiers").upsert({ user_id: userId, series_name: seriesName, tier }, { onConflict: "user_id,series_name" }); else await supabase.from("series_tiers").delete().eq("user_id", userId).eq("series_name", seriesName); } }} authorTiers={authorTiers} onSetAuthorTier={async (authorName, tier) => { const next = { ...authorTiers }; if (tier) next[authorName] = tier; else delete next[authorName]; setAuthorTiers(next); if (!guestMode) { if (tier) await supabase.from("author_tiers").upsert({ user_id: userId, author_name: authorName, tier }, { onConflict: "user_id,author_name" }); else await supabase.from("author_tiers").delete().eq("user_id", userId).eq("author_name", authorName); } }} onSetSeriesTotal={(seriesName, total) => { const updated = books.map(b => b.series === seriesName ? { ...b, seriesTotal: total } : b); setBooks(updated); if (!guestMode) updated.filter(b => b.series === seriesName).forEach(b => dbUpdateBook(b, userId)); }} />
             : tab==="reiko"
-            ? <RecommendPage books={books} userId={userId} onAddDirect={(book, shelf) => { const existing = books.find(x => normBookKey(x.title) === normBookKey(book.title)); if (existing) { changeShelf(existing.id, shelf); return; } const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, rating:0, date:todayLocal() }; setBooks(prev => [...prev, b]); if (!guestMode) dbAddBook(b, userId); }} onBulkAddDirect={(items, shelf) => { if (!items?.length) return; const today = todayLocal(); const baseId = Date.now(); const ownedKeys = new Set(books.map(x => normBookKey(x.title))); const newBooks = items.filter(it => it?.title && !ownedKeys.has(normBookKey(it.title))).map((it, idx) => ({ id: baseId + idx, title: it.title, author: it.author || "Unknown", genre: normalizeGenre(it.genre), pages: parseInt(it.pages) || 0, rating: 0, shelf, coverUrl: it.coverUrl || null, coverId: null, date: today })); if (!newBooks.length) return; setBooks(prev => [...prev, ...newBooks]); if (!guestMode) newBooks.forEach(b => dbAddBook(b, userId)); track("bulk_add", { count: newBooks.length, shelf }); clearTimeout(toastTimer.current); setToast({ title: `${newBooks.length} ${newBooks.length === 1 ? "book" : "books"}`, shelf }); toastTimer.current = setTimeout(() => setToast(null), 3000); }} onAuthor={setAuthorModal} onEdit={setEditBook} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:todayLocal(), description:"", scores:null, notes:"", _fromRecs:true }); }} onShelfChange={changeShelf} onSaveScores={saveScores} />
+            ? <RecommendPage books={books} userId={userId} onAddDirect={(book, shelf) => { const existing = books.find(x => normBookKey(x.title) === normBookKey(book.title)); if (existing) { changeShelf(existing.id, shelf); return; } const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, rating:0, date:todayLocal() }; setBooks(prev => [...prev, b]); if (!guestMode) dbAddBook(b, userId); }} onBulkAddDirect={(items, shelf) => { if (!items?.length) return; const today = todayLocal(); const baseId = Date.now(); const ownedKeys = new Set(books.map(x => normBookKey(x.title))); const newBooks = items.filter(it => it?.title && !ownedKeys.has(normBookKey(it.title))).map((it, idx) => ({ id: baseId + idx, title: it.title, author: it.author || "Unknown", genre: normalizeGenre(it.genre), pages: parseInt(it.pages) || 0, rating: 0, shelf, coverUrl: it.coverUrl || null, coverId: null, date: today, publishYear: it.publishYear || null })); if (!newBooks.length) return; setBooks(prev => [...prev, ...newBooks]); if (!guestMode) newBooks.forEach(b => dbAddBook(b, userId)); track("bulk_add", { count: newBooks.length, shelf }); clearTimeout(toastTimer.current); setToast({ title: `${newBooks.length} ${newBooks.length === 1 ? "book" : "books"}`, shelf }); toastTimer.current = setTimeout(() => setToast(null), 3000); }} onAuthor={setAuthorModal} onEdit={setEditBook} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:todayLocal(), description:"", scores:null, notes:"", _fromRecs:true }); }} onShelfChange={changeShelf} onSaveScores={saveScores} />
             : tab==="rankings"
             ? <RankingsTab books={books} onSaveScores={saveScores} userId={userId} authorTiers={authorTiers} seriesTiers={seriesTiers} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:todayLocal(), description:"", scores:null, notes:"", _fromRecs:true }); }} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, date:todayLocal() }; setBooks(prev => [...prev, b]); if (!guestMode) dbAddBook(b, userId); }} onShelfChange={changeShelf} onEdit={setEditBook} onAuthor={setAuthorModal} />
             : <StatsTab books={books} />
