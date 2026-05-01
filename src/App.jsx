@@ -86,8 +86,13 @@ function staticAuthorBiblio(authorName) {
   if (!_staticByAuthor) return null;
   const norm = s => { let r = (s || "").replace(/[åÅ]/g, 'aa').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\./g, "").toLowerCase().trim(); r = r.replace(/\b([a-z])\s+(?=[a-z]\b)/g, "$1"); return r.replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim(); };
   const na = norm(authorName);
-  // Try exact, then prefix, then contains
+  // Try exact, then reversed-word-order (handles Asian/Western name flips
+  // like "Liu Cixin" vs "Cixin Liu"), then prefix, then contains.
   let books = _staticByAuthor.get(na);
+  if (!books) {
+    const reversed = na.split(" ").reverse().join(" ");
+    if (reversed !== na) books = _staticByAuthor.get(reversed);
+  }
   if (!books) {
     for (const [key, val] of _staticByAuthor) {
       if (key.startsWith(na) || na.startsWith(key)) { books = val; break; }
@@ -124,7 +129,10 @@ function staticBookMeta(title, author) {
   const na = norm(author);
   const candidates = _staticByTitle.get(nt);
   if (!candidates) return null;
-  const match = candidates.find(b => norm(b.author) === na) || candidates.find(b => norm(b.author).includes(na) || na.includes(norm(b.author)));
+  const naReversed = na.split(" ").reverse().join(" ");
+  const match = candidates.find(b => norm(b.author) === na)
+    || candidates.find(b => norm(b.author) === naReversed)
+    || candidates.find(b => norm(b.author).includes(na) || na.includes(norm(b.author)));
   if (!match) return null;
   return {
     genre: match.genre,
