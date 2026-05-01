@@ -7237,7 +7237,7 @@ function IsbnScanModal({ onDetect, onClose }) {
   );
 }
 
-function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onAuthor, onRemove, libraryProfile = [], userId, initialTab }) {
+function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onAuthor, onRemove, libraryProfile = [], userId, initialTab, onShelfChange, isDraft = false }) {
   const [rating, setRating] = useState(book.rating || 0);
   const [shelf, setShelf] = useState(book.shelf || "Read");
   const [genre, setGenre] = useState(book.genre || "Other");
@@ -7251,6 +7251,10 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
   const [coverFetch, setCoverFetch] = useState(null);
   const [pages, setPages] = useState(book.pages || 0);
   const [isbnScanOpen, setIsbnScanOpen] = useState(false);
+  const [headerShelfDropOpen, setHeaderShelfDropOpen] = useState(false);
+  // Drafts (no onShelfChange wired) start unshelved — pill shows "+ Add"
+  // until the user picks a shelf from the dropdown.
+  const [shelfTouched, setShelfTouched] = useState(false);
   // Catalog series lookup may need to wait for preloadCatalog to finish on a
   // fresh page load — getSeriesFor is sync and returns null until the JSON
   // resolves. Resolve once and store so the header re-renders with the row.
@@ -7441,8 +7445,57 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
             <p onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); onAuthor&&onAuthor(book.author); }} onClick={()=>onAuthor&&onAuthor(book.author)} style={{ fontFamily:"'Crimson Pro',serif", fontSize:18, fontStyle:"italic", color:CR.textDim, cursor:onAuthor?"pointer":"default" }}>{book.author}</p>
             {onAuthor && <button {...tc(()=>onAuthor(book.author), true)} style={{ background:"transparent", border:"none", cursor:"pointer", padding:"2px 4px 0", color:"rgba(120,70,20,0.6)", fontSize:10, lineHeight:1 }}>↗</button>}
           </div>
-          <div style={{ marginTop:7 }}>
+          <div style={{ marginTop:7, display:"flex", alignItems:"center", justifyContent:"space-between", gap:6, flexWrap:"wrap" }}>
             <span style={{ background:GENRE_COLORS[book.genre]||"#94a3b8", color:"#fff", borderRadius:"20px", padding:"3px 10px", fontSize:9, fontFamily:"'DM Sans',sans-serif", fontWeight:700, textTransform:"uppercase", letterSpacing:"0.08em", lineHeight:1, display:"inline-block" }}>{book.genre}</span>
+            {(() => {
+              const SHELF_META = {
+                "Read":        { bg:"rgba(60,120,80,0.55)",  color:"#fff", border:"rgba(60,120,80,0.4)"  },
+                "Reading":     { bg:"rgba(210,100,30,0.55)", color:"#fff", border:"rgba(210,100,30,0.4)" },
+                "The List":    { bg:"rgba(80,120,180,0.7)",  color:"#fff", border:"rgba(80,120,180,0.5)" },
+                "Curious":     { bg:"rgba(180,155,80,0.7)",  color:"#fff", border:"rgba(180,155,80,0.5)" },
+                "DNF":         { bg:"rgba(160,50,50,0.55)",  color:"#fff", border:"rgba(160,50,50,0.4)" },
+                "Recommended": { bg:"rgba(140,80,180,0.6)",  color:"#fff", border:"rgba(140,80,180,0.45)"},
+              };
+              const showAdd = isDraft && !shelfTouched;
+              const meta = SHELF_META[shelf] || SHELF_META["Read"];
+              return (
+                <div style={{ position:"relative", display:"inline-block" }}>
+                  <span {...tc(() => setHeaderShelfDropOpen(o => !o), true)} style={{
+                    background: showAdd ? "rgba(138,90,40,0.18)" : meta.bg,
+                    color: showAdd ? WOOD.textDim : meta.color,
+                    border: showAdd ? "1px solid rgba(138,90,40,0.3)" : `1px solid ${meta.border}`,
+                    borderRadius:"20px", padding:"3px 10px", fontSize:9,
+                    fontFamily:"'DM Sans',sans-serif", fontWeight:700,
+                    textTransform:"uppercase", letterSpacing:"0.08em", lineHeight:1,
+                    cursor:"pointer", display:"inline-block",
+                  }}>{showAdd ? "+ Add" : shelf}</span>
+                  {headerShelfDropOpen && (
+                    <div onClick={e => e.stopPropagation()} style={{
+                      position:"absolute", top:"calc(100% + 4px)", right:0, zIndex:60, minWidth:130,
+                      background:"#f5e8d0", borderRadius:10, overflow:"hidden",
+                      boxShadow:"0 4px 20px rgba(0,0,0,0.25)", border:"1px solid rgba(138,90,40,0.3)",
+                    }}>
+                      {SHELVES.map((s, i) => (
+                        <button key={s} {...tc(() => {
+                          setHeaderShelfDropOpen(false);
+                          setShelfTouched(true);
+                          if (s === shelf && shelfTouched) return;
+                          if (s === "Read" && shelf === "Reading") setDate(todayLocal());
+                          setShelf(s);
+                          if (onShelfChange && book.id) onShelfChange(book.id, s);
+                        }, true)} style={{
+                          display:"block", width:"100%", padding:"9px 14px", textAlign:"left",
+                          background: !showAdd && s === shelf ? "rgba(138,90,40,0.1)" : "transparent",
+                          border:"none", borderBottom: i < SHELVES.length-1 ? "1px solid rgba(138,90,40,0.1)" : "none",
+                          cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:13,
+                          color: !showAdd && s === shelf ? WOOD.amber : WOOD.text, fontWeight: !showAdd && s === shelf ? 600 : 400,
+                        }}>{s}</button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
           </div>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:6, gap:6 }}>
             <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap" }}>
@@ -9107,8 +9160,8 @@ export default function App() {
             : <StatsTab books={books} />
           }
           {showAdd && <AddSheet onSave={addBook} onClose={()=>setShowAdd(false)} />}
-          {addBookDraft && <EditSheet book={addBookDraft} onSave={updated=>{ addBook({...addBookDraft,...updated}); setAddBookDraft(null); }} onClose={()=>setAddBookDraft(null)} onSaveDescription={()=>{}} onSaveScores={()=>{}} onAuthor={setAuthorModal} libraryProfile={books.filter(b => b.shelf === "Read" || b.shelf === "DNF")} userId={userId} initialTab={addBookDraft._fromRecs ? "details" : undefined} />}
-          {editBook && <EditSheet key={editBook.id} book={editBook} onSave={updated=>{ saveEdit(updated); setEditBook(null); }} onClose={()=>setEditBook(null)} onSaveDescription={saveDescription} onSaveScores={saveScores} onAuthor={setAuthorModal} onRemove={id=>{ setBooks(prev=>prev.filter(b=>b.id!==id)); track("book_removed"); if (!guestMode) dbDeleteBook(id, userId); setEditBook(null); }} libraryProfile={books.filter(b => b.shelf === "Read" || b.shelf === "DNF")} userId={userId} />}
+          {addBookDraft && <EditSheet book={addBookDraft} onSave={updated=>{ addBook({...addBookDraft,...updated}); setAddBookDraft(null); }} onClose={()=>setAddBookDraft(null)} onSaveDescription={()=>{}} onSaveScores={()=>{}} onAuthor={setAuthorModal} libraryProfile={books.filter(b => b.shelf === "Read" || b.shelf === "DNF")} userId={userId} initialTab={addBookDraft._fromRecs ? "details" : undefined} onShelfChange={(_id, shelf) => { addBook({ ...addBookDraft, shelf }); setAddBookDraft(null); }} isDraft />}
+          {editBook && <EditSheet key={editBook.id} book={editBook} onSave={updated=>{ saveEdit(updated); setEditBook(null); }} onClose={()=>setEditBook(null)} onSaveDescription={saveDescription} onSaveScores={saveScores} onAuthor={setAuthorModal} onRemove={id=>{ setBooks(prev=>prev.filter(b=>b.id!==id)); track("book_removed"); if (!guestMode) dbDeleteBook(id, userId); setEditBook(null); }} libraryProfile={books.filter(b => b.shelf === "Read" || b.shelf === "DNF")} userId={userId} onShelfChange={changeShelf} />}
           {authorModal && <AuthorModal author={typeof authorModal === "string" ? authorModal : authorModal.name} initialTab={typeof authorModal === "object" ? authorModal.tab : undefined} books={books} onClose={()=>setAuthorModal(null)} onEdit={book=>{ setAuthorModal(null); setEditBook(book); }} onAdd={draft=>{ setAuthorModal(null); setEditBook(null); setAddBookDraft({ id:Date.now(), title:draft.title, author:draft.author, genre:draft.genre||"Fiction", pages:draft.pages||0, rating:0, shelf:"Read", coverUrl:draft.coverUrl||null, coverId:null, date:todayLocal(), description:"", scores:null, notes:"", _fromRecs:true }); }} onDirectAdd={draft=>{ addBook({ title:draft.title, author:draft.author, genre:draft.genre||"Fiction", pages:draft.pages||0, rating:0, shelf:draft.shelf, coverUrl:draft.coverUrl||null, coverId:null, description:"", scores:null, notes:"" }); }} userId={userId} />}
           {showImport && <GoodreadsImportSheet onImport={importBooks} onClose={()=>setShowImport(false)} />}
           {toast && (
