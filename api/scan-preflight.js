@@ -44,8 +44,8 @@ export default async function handler(req, res) {
 
 - bookcases = number of distinct VERTICAL SECTIONS containing books. Count each arch, alcove, column, or contiguous block of vertical spines as one — even if they're part of the same piece of furniture. A 3-arch IKEA bookcase counts as 3, not 1. A wide single-section bookcase still counts as 1.
 - shelves = number of horizontal shelf rows in the tallest section
-- estimatedBooks = your rough estimate of total visible books across the whole image (vertical spines + horizontal stacks). Order-of-magnitude is fine: 30, 80, 150, 300. Round generously.
-- If unclear on bookcases/shelves, lean toward HIGHER counts.
+- estimatedBooks = your best honest estimate of total visible books across the whole image (vertical spines + horizontal stacks). Aim for accuracy, not over- or under-counting. Examples: a single bookshelf column with horizontally-stacked books is typically 25–35 books per column; three columns ≈ 80–100 total. A floor-to-ceiling wall with full bookcases is 200+.
+- If genuinely unclear on bookcases/shelves, lean toward higher counts (those drive the scan grid density).
 - All three must be positive integers.` },
   ];
 

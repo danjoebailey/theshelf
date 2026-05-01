@@ -3585,7 +3585,7 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAdd
       setProgress({ step: "Sizing up the shelf…", pct: 10 });
       const img = await loadImageEl(imageUrl);
 
-      const useDeepScan = !forceRegular && (preflight?.estimatedBooks || 0) >= 100;
+      const useDeepScan = !forceRegular && (preflight?.estimatedBooks || 0) >= 150;
       let allBooks = [];
       let anyTruncated = false;
       let aggFailedRows = 0, aggTotalRows = 0;
@@ -3790,7 +3790,7 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAdd
       {/* Density warning — when preflight detects a packed shelf, default
           to deep scan (multi-region parallel) for full coverage. User can
           opt out for a cheaper regular scan via the link. */}
-      {imageUrl && !scanning && scannedBooks.length === 0 && preflight?.estimatedBooks >= 100 && (() => {
+      {imageUrl && !scanning && scannedBooks.length === 0 && preflight?.estimatedBooks >= 150 && (() => {
         const N = Math.min(5, Math.max(2, Math.ceil(preflight.estimatedBooks / 60)));
         return (
           <div style={{ margin:"0 18px 14px", padding:"12px 14px", background:"rgba(160,100,40,0.12)", border:"1px solid rgba(160,100,40,0.4)", borderRadius:10 }}>
@@ -3827,7 +3827,7 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAdd
                 ? <><span style={{ width:16, height:16, border:"2px solid rgba(255,235,195,0.3)", borderTopColor:"rgba(255,235,195,0.7)", borderRadius:"50%", display:"inline-block", animation:"spin 0.7s linear infinite" }} />Analyzing shelf…</>
                 : scannedBooks.length > 0
                   ? "Scan Again"
-                  : (!forceRegular && (preflight?.estimatedBooks || 0) >= 100)
+                  : (!forceRegular && (preflight?.estimatedBooks || 0) >= 150)
                     ? "Deep Scan"
                     : "Scan Shelf"}
           </button>
