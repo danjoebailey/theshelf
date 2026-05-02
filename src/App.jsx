@@ -9287,8 +9287,54 @@ export default function App() {
             : <StatsTab books={books} />
           }
           {showAdd && <AddSheet onSave={addBook} onClose={()=>setShowAdd(false)} />}
-          {addBookDraft && <EditSheet book={addBookDraft} onSave={updated=>{ addBook({...addBookDraft,...updated}); setAddBookDraft(null); }} onClose={()=>setAddBookDraft(null)} onSaveDescription={()=>{}} onSaveScores={()=>{}} onAuthor={setAuthorModal} libraryProfile={books.filter(b => b.shelf === "Read" || b.shelf === "DNF")} userId={userId} initialTab={addBookDraft._fromRecs ? "details" : undefined} onShelfChange={(_id, shelf) => { addBook({ ...addBookDraft, shelf }); setAddBookDraft(null); }} isDraft />}
-          {editBook && <EditSheet key={editBook.id} book={editBook} onSave={updated=>{ saveEdit(updated); setEditBook(null); }} onClose={()=>setEditBook(null)} onSaveDescription={saveDescription} onSaveScores={saveScores} onAuthor={setAuthorModal} onRemove={id=>{ setBooks(prev=>prev.filter(b=>b.id!==id)); track("book_removed"); if (!guestMode) dbDeleteBook(id, userId); setEditBook(null); }} libraryProfile={books.filter(b => b.shelf === "Read" || b.shelf === "DNF")} userId={userId} onShelfChange={changeShelf} />}
+          {(addBookDraft || editBook) && (() => {
+            const draftMode = !!addBookDraft && !editBook;
+            const currentBook = editBook || addBookDraft;
+            return (
+              <EditSheet
+                key="book-modal"
+                book={currentBook}
+                isDraft={draftMode}
+                onSave={updated => {
+                  if (draftMode) { addBook({ ...addBookDraft, ...updated }); setAddBookDraft(null); }
+                  else { saveEdit(updated); setEditBook(null); }
+                }}
+                onClose={() => { setAddBookDraft(null); setEditBook(null); }}
+                onSaveDescription={draftMode ? ()=>{} : saveDescription}
+                onSaveScores={draftMode ? ()=>{} : saveScores}
+                onAuthor={setAuthorModal}
+                onRemove={draftMode ? undefined : (id => { setBooks(prev=>prev.filter(b=>b.id!==id)); track("book_removed"); if (!guestMode) dbDeleteBook(id, userId); setEditBook(null); })}
+                libraryProfile={books.filter(b => b.shelf === "Read" || b.shelf === "DNF")}
+                userId={userId}
+                initialTab={draftMode && addBookDraft._fromRecs ? "details" : undefined}
+                onShelfChange={(id, shelf) => {
+                  if (!draftMode) { changeShelf(id, shelf); return; }
+                  // Draft → owned: add the book and transition the modal
+                  // in-place to edit mode so the user can keep reading the
+                  // open Ask Obi panel / verdict without an unmount.
+                  const newBook = {
+                    id: addBookDraft.id, // reuse the draft's id; nothing else has it
+                    title: addBookDraft.title, author: addBookDraft.author,
+                    genre: normalizeGenre(addBookDraft.genre),
+                    pages: parseInt(addBookDraft.pages) || 0,
+                    rating: 0, shelf,
+                    coverUrl: addBookDraft.coverUrl || null,
+                    coverId: addBookDraft.coverId || null,
+                    isbn: addBookDraft.isbn || null,
+                    publishYear: addBookDraft.publishYear || null,
+                    description: addBookDraft.description || null,
+                    notes: "",
+                    date: todayLocal(),
+                    ...(shelf === "Reading" ? { dateStarted: todayLocal() } : {}),
+                  };
+                  setBooks(prev => prev.some(b => normBookKey(b.title) === normBookKey(newBook.title)) ? prev : [...prev, newBook]);
+                  if (!guestMode) dbAddBook(newBook, userId);
+                  setAddBookDraft(null);
+                  setEditBook(newBook);
+                }}
+              />
+            );
+          })()}
           {authorModal && <AuthorModal author={typeof authorModal === "string" ? authorModal : authorModal.name} initialTab={typeof authorModal === "object" ? authorModal.tab : undefined} books={books} onClose={()=>setAuthorModal(null)} onEdit={book=>{ setAuthorModal(null); setEditBook(book); }} onAdd={draft=>{ setAuthorModal(null); setEditBook(null); setAddBookDraft({ id:Date.now(), title:draft.title, author:draft.author, genre:draft.genre||"Fiction", pages:draft.pages||0, rating:0, shelf:"Read", coverUrl:draft.coverUrl||null, coverId:null, date:todayLocal(), description:"", scores:null, notes:"", _fromRecs:true }); }} onDirectAdd={draft=>{ addBook({ title:draft.title, author:draft.author, genre:draft.genre||"Fiction", pages:draft.pages||0, rating:0, shelf:draft.shelf, coverUrl:draft.coverUrl||null, coverId:null, description:"", scores:null, notes:"" }); }} userId={userId} />}
           {showImport && <GoodreadsImportSheet onImport={importBooks} onClose={()=>setShowImport(false)} />}
           {showProfile && <ProfileModal session={session} onClose={()=>setShowProfile(false)} />}
