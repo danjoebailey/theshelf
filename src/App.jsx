@@ -7416,10 +7416,13 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
       const data = await res.json();
       setObiVerdict(data.verdict || "Unable to get a read on this one.");
       // Auto-route drafts to Recommended on a yes verdict — same behavior as
-      // a manual pick from the shelf pill (persists via onShelfChange + closes
-      // the draft modal). Owned books are left alone per spec.
+      // a manual pick from the shelf pill. Update local shelf state too so
+      // the pill displays "Recommended" after the in-place draft → owned
+      // transition (parent doesn't reach back into our useState). Owned
+      // books are left alone per spec.
       if (isDraft && data.call === "yes" && !shelfTouched) {
         setShelfTouched(true);
+        setShelf("Recommended");
         if (onShelfChange && book.id) onShelfChange(book.id, "Recommended");
       }
     } catch { setObiVerdict("Unable to get a read on this one."); }
