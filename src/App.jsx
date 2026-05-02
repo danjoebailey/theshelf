@@ -7415,6 +7415,13 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
       });
       const data = await res.json();
       setObiVerdict(data.verdict || "Unable to get a read on this one.");
+      // Auto-route drafts to Recommended on a yes verdict — same behavior as
+      // a manual pick from the shelf pill (persists via onShelfChange + closes
+      // the draft modal). Owned books are left alone per spec.
+      if (isDraft && data.call === "yes" && !shelfTouched) {
+        setShelfTouched(true);
+        if (onShelfChange && book.id) onShelfChange(book.id, "Recommended");
+      }
     } catch { setObiVerdict("Unable to get a read on this one."); }
     setObiLoading(false);
   }
@@ -8577,6 +8584,109 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd, userI
   );
 }
 
+// Profile scaffold — identity surface that will eventually host friend-visible
+// content. Persists display name in user_metadata.full_name (or localStorage
+// for guests) so the existing avatar dropdown and any future friend search
+// pick it up automatically.
+function ProfileModal({ session, onClose }) {
+  const user = session?.user;
+  const avatar = user?.user_metadata?.avatar_url || null;
+  const initialName = user?.user_metadata?.full_name || "";
+  const email = user?.email || "";
+  const isGuest = !user;
+  const GUEST_NAME_KEY = "theshelf:displayName";
+
+  const [name, setName] = useState(() => {
+    if (isGuest) return localStorage.getItem(GUEST_NAME_KEY) || "";
+    return initialName;
+  });
+  const [savedAt, setSavedAt] = useState(0);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
+
+  async function commitName() {
+    const trimmed = name.trim();
+    const baseline = isGuest ? (localStorage.getItem(GUEST_NAME_KEY) || "") : initialName;
+    if (trimmed === baseline) return;
+    setSaving(true);
+    setError(null);
+    try {
+      if (isGuest) {
+        if (trimmed) localStorage.setItem(GUEST_NAME_KEY, trimmed);
+        else localStorage.removeItem(GUEST_NAME_KEY);
+      } else {
+        const { error: e } = await supabase.auth.updateUser({ data: { full_name: trimmed } });
+        if (e) throw e;
+      }
+      setSavedAt(Date.now());
+    } catch (e) {
+      setError(e?.message || "Couldn't save");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const headerName = name.trim() || email || "Reader";
+  const showSaved = savedAt && Date.now() - savedAt < 2000;
+
+  return (
+    <div onClick={onClose} style={{
+      position:"fixed", inset:0, background:"rgba(0,0,0,0.6)", zIndex:200,
+      display:"flex", alignItems:"flex-end", justifyContent:"center",
+      padding:0, animation:"fadeIn 0.15s ease",
+    }}>
+      <div onClick={e=>e.stopPropagation()} style={{
+        background:"#f5e8d0", width:"100%", maxWidth:520,
+        borderRadius:"16px 16px 0 0", padding:"24px 22px 36px",
+        position:"relative", maxHeight:"90vh", overflowY:"auto",
+      }}>
+        <button onClick={onClose} style={{
+          position:"absolute", top:14, right:14, background:"transparent", border:"none",
+          width:30, height:30, cursor:"pointer", color:WOOD.textDim, fontSize:16,
+        }}>✕</button>
+
+        {/* Identity header */}
+        <div style={{ display:"flex", alignItems:"center", gap:14, marginBottom:24 }}>
+          {avatar
+            ? <img src={avatar} alt={headerName} style={{ width:64, height:64, borderRadius:"50%", flexShrink:0 }} />
+            : <div style={{ width:64, height:64, borderRadius:"50%", background:WOOD.amber, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+                <span style={{ fontSize:28, fontWeight:600, color:"#1a0900", fontFamily:"'DM Sans',sans-serif" }}>{(headerName || "?")[0].toUpperCase()}</span>
+              </div>
+          }
+          <div style={{ minWidth:0 }}>
+            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:24, color:WOOD.text, lineHeight:1.1, marginBottom:2 }}>{headerName}</p>
+            {email && <p style={{ fontSize:12, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif" }}>{email}</p>}
+          </div>
+        </div>
+
+        {/* Display name editor */}
+        <label style={{ display:"block" }}>
+          <p style={{ fontSize:11, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Display name</p>
+          <input
+            value={name}
+            onChange={e => setName(e.target.value)}
+            onBlur={commitName}
+            onKeyDown={e => { if (e.key === "Enter") e.currentTarget.blur(); }}
+            placeholder="What should friends see?"
+            maxLength={40}
+            style={{
+              width:"100%", boxSizing:"border-box",
+              padding:"10px 12px", border:`1px solid ${WOOD.border}`, borderRadius:8,
+              fontFamily:"'DM Sans',sans-serif", fontSize:14, color:WOOD.text, background:"#fff",
+              outline:"none",
+            }}
+          />
+        </label>
+        <div style={{ minHeight:18, marginTop:6 }}>
+          {saving && <p style={{ fontSize:11, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif" }}>Saving…</p>}
+          {!saving && showSaved && <p style={{ fontSize:11, color:"#3d7a4f", fontFamily:"'DM Sans',sans-serif" }}>Saved</p>}
+          {error && <p style={{ fontSize:11, color:"#c0392b", fontFamily:"'DM Sans',sans-serif" }}>{error}</p>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function GoodreadsImportSheet({ onImport, onClose }) {
   const [csvText, setCsvText] = useState(null);
   const [totalCount, setTotalCount] = useState(0);
@@ -8774,6 +8884,7 @@ export default function App() {
   const [scrollY, setScrollY] = useState(0);
   const [showImport, setShowImport] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
   const [coverFetchProgress, setCoverFetchProgress] = useState(null); // null | { done, total, found }
   const loadedUserRef = useRef(null);
 
@@ -9180,6 +9291,7 @@ export default function App() {
           {editBook && <EditSheet key={editBook.id} book={editBook} onSave={updated=>{ saveEdit(updated); setEditBook(null); }} onClose={()=>setEditBook(null)} onSaveDescription={saveDescription} onSaveScores={saveScores} onAuthor={setAuthorModal} onRemove={id=>{ setBooks(prev=>prev.filter(b=>b.id!==id)); track("book_removed"); if (!guestMode) dbDeleteBook(id, userId); setEditBook(null); }} libraryProfile={books.filter(b => b.shelf === "Read" || b.shelf === "DNF")} userId={userId} onShelfChange={changeShelf} />}
           {authorModal && <AuthorModal author={typeof authorModal === "string" ? authorModal : authorModal.name} initialTab={typeof authorModal === "object" ? authorModal.tab : undefined} books={books} onClose={()=>setAuthorModal(null)} onEdit={book=>{ setAuthorModal(null); setEditBook(book); }} onAdd={draft=>{ setAuthorModal(null); setEditBook(null); setAddBookDraft({ id:Date.now(), title:draft.title, author:draft.author, genre:draft.genre||"Fiction", pages:draft.pages||0, rating:0, shelf:"Read", coverUrl:draft.coverUrl||null, coverId:null, date:todayLocal(), description:"", scores:null, notes:"", _fromRecs:true }); }} onDirectAdd={draft=>{ addBook({ title:draft.title, author:draft.author, genre:draft.genre||"Fiction", pages:draft.pages||0, rating:0, shelf:draft.shelf, coverUrl:draft.coverUrl||null, coverId:null, description:"", scores:null, notes:"" }); }} userId={userId} />}
           {showImport && <GoodreadsImportSheet onImport={importBooks} onClose={()=>setShowImport(false)} />}
+          {showProfile && <ProfileModal session={session} onClose={()=>setShowProfile(false)} />}
           {toast && (
             <div style={{
               position:"fixed", bottom:90, left:0, right:0,
@@ -9301,10 +9413,21 @@ export default function App() {
                       </p>
                     </div>
                   </div>
-                  {!guestMode && <button onClick={()=>{ setShowProfileMenu(false); setShowImport(true); }} style={{
+                  <button onClick={()=>{ setShowProfileMenu(false); setShowProfile(true); }} style={{
                     display:"flex", alignItems:"center", gap:10,
                     width:"100%", padding:"12px 16px", textAlign:"left",
                     background:"transparent", border:"none", cursor:"pointer",
+                    fontFamily:"'DM Sans',sans-serif", fontSize:14, color:WOOD.text, fontWeight:400,
+                  }}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={WOOD.textDim} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+                    </svg>
+                    Profile
+                  </button>
+                  {!guestMode && <button onClick={()=>{ setShowProfileMenu(false); setShowImport(true); }} style={{
+                    display:"flex", alignItems:"center", gap:10,
+                    width:"100%", padding:"12px 16px", textAlign:"left",
+                    background:"transparent", border:"none", borderTop:"1px solid rgba(138,90,40,0.15)", cursor:"pointer",
                     fontFamily:"'DM Sans',sans-serif", fontSize:14, color:WOOD.text, fontWeight:400,
                   }}>
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={WOOD.textDim} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
