@@ -7286,7 +7286,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [book.title, book.author]);
-  const defaultTab = initialTab || ((book.shelf === "Curious" || !book.shelf) ? "details" : "edit");
+  const defaultTab = initialTab || ((book.shelf === "Read" || book.shelf === "Reading") ? "edit" : "details");
   const [activeTab, setActiveTab] = useState(defaultTab);
   const [detailPanel, setDetailPanel] = useState(null); // "about" | "prose" | "scores"
   const [description, setDescription] = useState(book.description || null);
