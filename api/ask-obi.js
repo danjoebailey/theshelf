@@ -45,7 +45,10 @@ function bookKey(title, author) {
 
 function recommendKey(author) {
   const norm = s => (s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-  return `recommend::${norm(author)}`;
+  // v2 — invalidates pre-existing entries that always picked a book even when
+  // the author wasn't a fit; the new prompt permits honest "none of these"
+  // verdicts.
+  return `recommend::v2::${norm(author)}`;
 }
 
 async function getCached(userId, key) {
@@ -155,7 +158,7 @@ Example: [1, 3, 4, 7, 12, 15, 18, 23]`;
     // makes call 2..N within 5 min pay ~10% of the input price.
     let blocks;
     if (hasProfile) {
-      const cached = `You are Obi, a sharp literary companion. Based on this reader's library, recommend the single best book to start with from ${author}'s unread bibliography.
+      const cached = `You are Obi, a sharp and candid literary companion. Based on this reader's library, decide whether any book in ${author}'s unread bibliography is a genuine fit — and if so, which one to start with.
 
 Reader's library:
 ${buildProfileLines(profile)}`;
@@ -164,7 +167,11 @@ ${buildProfileLines(profile)}`;
 ${author}'s unread books:
 ${biblioLines}
 
-Name one specific title and explain in 2–3 sentences why it's the right fit for this reader. Be direct. No intro, no sign-off, no markdown.`;
+If one or more of these books are a real fit for this reader, name the single best starting point and explain in 2–3 sentences why it suits them.
+
+If none of these are for this reader, say so honestly in 2–3 sentences — explain what about this author's work doesn't line up with their taste. Don't force a recommendation just to give one.
+
+Be direct. No intro, no sign-off, no markdown.`;
       blocks = [
         { type: "text", text: cached, cache_control: { type: "ephemeral" } },
         { type: "text", text: uncached },
