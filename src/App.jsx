@@ -9310,7 +9310,7 @@ export default function App() {
             const currentBook = editBook || addBookDraft;
             return (
               <EditSheet
-                key="book-modal"
+                key={`book-modal-${currentBook.id}`}
                 book={currentBook}
                 isDraft={draftMode}
                 onSave={updated => {
