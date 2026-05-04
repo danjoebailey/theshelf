@@ -3190,9 +3190,13 @@ function ReedTab({ books, userId, onEdit, onShelfChange, onSaveScores, onAuthor 
   const [picks, setPicks] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const shelfName = mode === "list" ? "The List" : "Curious";
+  const shelfName = mode === "list" ? "The List" : mode === "curious" ? "Curious" : "Recommended";
   const shelfBooks = books.filter(b => b.shelf === shelfName);
   const library = books.filter(b => b.rating > 0).map(b => ({ title:b.title, author:b.author, genre:b.genre, rating:b.rating }));
+  // Recommended is curated-on-curated (Paige/Reiko/Obi push books onto this
+  // shelf already), so Reed only kicks in once the pile is deep enough that
+  // re-ranking adds real signal.
+  const recsTooLight = mode === "recommended" && shelfBooks.length < 20;
 
   // Match pick titles back to actual book objects
   const pickedBooks = picks
@@ -3227,7 +3231,7 @@ function ReedTab({ books, userId, onEdit, onShelfChange, onSaveScores, onAuthor 
     <div style={{ padding:"14px 16px", display:"flex", flexDirection:"column", gap:12 }}>
       {/* Toggle */}
       <div style={{ display:"flex", gap:8, justifyContent:"center" }}>
-        {[["list","The List"],["curious","Curious"]].map(([key, label]) => (
+        {[["list","The List"],["curious","Curious"],["recommended","Recommended"]].map(([key, label]) => (
           <button key={key} {...tc(() => setMode(key))} style={{
             padding:"5px 18px", borderRadius:20, border:`1px solid ${mode===key ? "#8a5a28" : "rgba(255,235,195,0.22)"}`,
             background: mode===key ? "#8a5a28" : "transparent",
@@ -3237,26 +3241,32 @@ function ReedTab({ books, userId, onEdit, onShelfChange, onSaveScores, onAuthor 
         ))}
       </div>
 
-      {/* Empty shelf */}
-      {shelfBooks.length === 0 && (
+      {/* Empty shelf or below-threshold Recommended */}
+      {(shelfBooks.length === 0 || recsTooLight) && (
         <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, fontStyle:"italic", color:"rgba(255,235,195,0.4)", textAlign:"center", padding:"32px 0" }}>
           {mode === "list"
             ? "Your List is empty — add some books you plan to read and I'll tell you where to start."
-            : "Nothing in Curious yet — add books you're on the fence about and I'll help you decide."}
+            : mode === "curious"
+              ? "Nothing in Curious yet — add books you're on the fence about and I'll help you decide."
+              : shelfBooks.length === 0
+                ? "No recommendations yet — they'll show up as Paige and Obi suggest books for you."
+                : `Only ${shelfBooks.length} recommendation${shelfBooks.length === 1 ? "" : "s"} so far — give me at least 20 to work with and I'll pick the ones worth your time.`}
         </p>
       )}
 
       {/* Reed's intro note */}
-      {shelfBooks.length > 0 && (
+      {shelfBooks.length > 0 && !recsTooLight && (
         <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, fontStyle:"italic", color:"rgba(255,235,195,0.55)", textAlign:"center", margin:"4px 0" }}>
           {mode === "list"
             ? "Your List is long and your time is precious. Leave it to me — I'll tell you exactly what to pick up next."
-            : "Sitting on the fence? I respect it. But I've made my decision. Here's what you're picking up next."}
+            : mode === "curious"
+              ? "Sitting on the fence? I respect it. But I've made my decision. Here's what you're picking up next."
+              : "Recommendations piled up? I know what the others said. Trust me — these are the ones."}
         </p>
       )}
 
       {/* Generate / Refresh button */}
-      {shelfBooks.length > 0 && (
+      {shelfBooks.length > 0 && !recsTooLight && (
         <div style={{ display:"flex", justifyContent:"center" }}>
           <button {...tc(() => generate(!!picks))} style={{
             padding:"5px 18px", borderRadius:20, background: loading ? "rgba(184,104,0,0.45)" : WOOD.amber,

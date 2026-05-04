@@ -60,7 +60,11 @@ export default async function handler(req, res) {
     if (cached) return res.json({ picks: cached });
   }
 
-  const shelfLabel = mode === "list" ? "The List (books they plan to read)" : "Curious (books they're interested in but haven't committed to yet)";
+  const shelfLabel = mode === "list"
+    ? "The List (books they plan to read)"
+    : mode === "curious"
+      ? "Curious (books they're interested in but haven't committed to yet)"
+      : "Recommended (books pushed onto their shelf by other recommendation systems — you're the final filter)";
 
   const libraryLines = [...library]
     .sort((a, b) => (b.rating || 0) - (a.rating || 0))
