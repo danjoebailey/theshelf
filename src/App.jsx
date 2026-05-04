@@ -7251,7 +7251,12 @@ function IsbnScanModal({ onDetect, onClose }) {
   );
 }
 
-function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onAuthor, onRemove, libraryProfile = [], userId, initialTab, onShelfChange, isDraft = false }) {
+function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onAuthor, onRemove, libraryProfile = [], userId, initialTab, onShelfChange, isDraft = false, guestMode = false }) {
+  // Match BookCard: prefer the session-stable LibraryProfileContext snapshot
+  // so Obi calls from the modal hit the same prompt-cache key as calls from
+  // the card. Falls back to the prop only when the context isn't populated.
+  const profileSnapshot = useContext(LibraryProfileContext);
+  const obiProfile = (profileSnapshot && profileSnapshot.length > 0) ? profileSnapshot : libraryProfile;
   const [rating, setRating] = useState(book.rating || 0);
   const [shelf, setShelf] = useState(book.shelf || "Read");
   const [genre, setGenre] = useState(book.genre || "Other");
@@ -7402,6 +7407,16 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
     if (detailPanel === "obi") { setDetailPanel(null); return; }
     setDetailPanel("obi");
     if (obiVerdict) return;
+    if (guestMode) {
+      const count = parseInt(localStorage.getItem(GUEST_OBI_KEY) || "0");
+      if (count >= 3) {
+        setObiVerdict("Sign in to unlock unlimited Obi.");
+        track("obi_capped");
+        return;
+      }
+      localStorage.setItem(GUEST_OBI_KEY, String(count + 1));
+    }
+    track("obi_used");
     setObiLoading(true);
     try {
       const res = await fetch("/api/ask-obi", {
@@ -7409,7 +7424,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           book: { title: book.title, author: book.author, genre: book.genre, description },
-          profile: libraryProfile,
+          profile: obiProfile,
           userId,
         }),
       });
@@ -9309,6 +9324,7 @@ export default function App() {
                 onRemove={draftMode ? undefined : (id => { setBooks(prev=>prev.filter(b=>b.id!==id)); track("book_removed"); if (!guestMode) dbDeleteBook(id, userId); setEditBook(null); })}
                 libraryProfile={books.filter(b => b.shelf === "Read" || b.shelf === "DNF")}
                 userId={userId}
+                guestMode={guestMode}
                 initialTab={draftMode && addBookDraft._fromRecs ? "details" : undefined}
                 onShelfChange={(id, shelf) => {
                   if (!draftMode) { changeShelf(id, shelf); return; }
