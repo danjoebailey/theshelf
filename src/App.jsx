@@ -7546,7 +7546,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
               );
             })()}
           </div>
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"flex-end", marginTop:6, gap:6 }}>
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"center", marginTop:6, gap:6 }}>
             <div style={{ display:"flex", gap:2, background:"transparent", borderRadius:6, padding:0, flexShrink:0 }}>
               {tabs.map(t => (
                 <button key={t.key} onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); setActiveTab(t.key); }} onClick={() => setActiveTab(t.key)} title={t.label} style={{ display:"flex", alignItems:"center", gap:4, padding:"8px 10px", border:`1px solid ${activeTab===t.key ? WOOD.amber : "rgba(120,70,20,0.3)"}`, borderRadius:4, background:activeTab===t.key ? WOOD.amber : "rgba(15,8,2,0.55)", color:"#fff", fontSize:11, fontFamily:"'DM Sans',sans-serif", cursor:"pointer", boxShadow:"none", transition:"all 0.12s", whiteSpace:"nowrap" }}>
