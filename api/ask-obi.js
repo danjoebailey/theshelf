@@ -45,10 +45,10 @@ function bookKey(title, author) {
 
 function recommendKey(author) {
   const norm = s => (s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-  // v4 — input shape now includes `queued` (books on List/Curious/Reading/
-  // Recommended) so Obi stops claiming books are "absent" when they're
-  // actually on the reader's shelves.
-  return `recommend::v4::${norm(author)}`;
+  // v5 — v4 phrasing ("if queued fits, name it. Otherwise...") biased Obi
+  // toward queued picks regardless of taste fit. v5 presents queued and
+  // unread as equal candidates and tells Obi to judge by fit, not shelf.
+  return `recommend::v5::${norm(author)}`;
 }
 
 async function getCached(userId, key) {
@@ -167,11 +167,11 @@ Example: [1, 3, 4, 7, 12, 15, 18, 23]`;
 Reader's library:
 ${buildProfileLines(profile)}`;
       const uncached = `
-${queuedLines ? `\n${author}'s books already on this reader's shelves:\n${queuedLines}\n` : ""}
-${author}'s other unread books:
-${biblioLines}
 
-Decide where this reader should start with ${author}. If a book they've already queued is the right starting point, name it. Otherwise pick the best fit from the unread list. If nothing here fits, say so and name what's off. Treat queued books as available — don't call them "absent" or "missing."
+${author}'s unread books:
+${biblioLines}${queuedLines ? `\n\nAlso on this reader's shelves but not yet read (treat as equal candidates):\n${queuedLines}` : ""}
+
+Pick the best entry point into ${author}'s work for this reader. Judge by fit — queued and unread are equally available; shelf status doesn't make a book a better or worse pick. If nothing here is for this reader, say so and name what's off. Don't call queued books "absent" or "missing."
 
 Hard limit: 2 sentences. Direct prose — no preamble, no asides, no comparison name-stacking, no markdown.`;
       blocks = [
