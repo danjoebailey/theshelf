@@ -8164,10 +8164,15 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd, userI
         ? profileSnapshot
         : books.filter(b => b.shelf === "Read" || b.shelf === "DNF");
       const bibliography = (sortedUnread || []).slice(0, 20).map(b => ({ title: b.title, genre: b.genre, publishYear: b.publishYear }));
+      // Books by this author already queued on the reader's shelves but not
+      // yet read — Obi needs these to avoid claiming a book is "absent" when
+      // the reader has already lined it up to read.
+      const queuedShelves = ["The List", "Curious", "Reading", "Recommended"];
+      const queued = authorBooks.filter(b => queuedShelves.includes(b.shelf)).map(b => ({ title: b.title, shelf: b.shelf }));
       const res = await fetch("/api/ask-obi", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode: "recommend", author, bibliography, profile, userId }),
+        body: JSON.stringify({ mode: "recommend", author, bibliography, queued, profile, userId }),
       });
       const data = await res.json();
       setObiRec(data.verdict || "Unable to make a recommendation.");
