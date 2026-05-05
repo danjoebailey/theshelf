@@ -45,10 +45,9 @@ function bookKey(title, author) {
 
 function recommendKey(author) {
   const norm = s => (s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-  // v2 — invalidates pre-existing entries that always picked a book even when
-  // the author wasn't a fit; the new prompt permits honest "none of these"
-  // verdicts.
-  return `recommend::v2::${norm(author)}`;
+  // v3 — invalidates v2 verdicts that ran long with conversational asides;
+  // tightened prompt enforces a 2-sentence cap and bans preamble/asides.
+  return `recommend::v3::${norm(author)}`;
 }
 
 async function getCached(userId, key) {
@@ -167,11 +166,9 @@ ${buildProfileLines(profile)}`;
 ${author}'s unread books:
 ${biblioLines}
 
-If one or more of these books are a real fit for this reader, name the single best starting point and explain in 2–3 sentences why it suits them.
+Decide: do any of these books fit this reader? If yes, name the starting book and give one concrete reason. If no, say so and name what's off.
 
-If none of these are for this reader, say so honestly in 2–3 sentences — explain what about this author's work doesn't line up with their taste. Don't force a recommendation just to give one.
-
-Be direct. No intro, no sign-off, no markdown.`;
+Hard limit: 2 sentences. Direct prose — no preamble, no asides, no comparison name-stacking, no markdown.`;
       blocks = [
         { type: "text", text: cached, cache_control: { type: "ephemeral" } },
         { type: "text", text: uncached },
