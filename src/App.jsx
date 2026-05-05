@@ -7546,11 +7546,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
               );
             })()}
           </div>
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:6, gap:6 }}>
-            <div style={{ display:"flex", alignItems:"center", gap:6, flexWrap:"wrap" }}>
-              {(() => { const py = getPublishYear(book); return py ? <span style={{ fontSize:10, color:CR.textDim, background:"#fff", border:`1px solid ${CR.border}`, borderRadius:20, padding:"3px 12px", whiteSpace:"nowrap", fontFamily:"'DM Sans',sans-serif" }}>Published {py}</span> : null; })()}
-              {book.pages > 0 && <span style={{ fontSize:10, color:CR.textDim, background:"#fff", border:`1px solid ${CR.border}`, borderRadius:20, padding:"3px 12px", whiteSpace:"nowrap", fontFamily:"'DM Sans',sans-serif" }}>{book.pages.toLocaleString()} pages</span>}
-            </div>
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"flex-end", marginTop:6, gap:6 }}>
             <div style={{ display:"flex", gap:2, background:"transparent", borderRadius:6, padding:0, flexShrink:0 }}>
               {tabs.map(t => (
                 <button key={t.key} onTouchEnd={e=>{ e.stopPropagation(); e.preventDefault(); setActiveTab(t.key); }} onClick={() => setActiveTab(t.key)} title={t.label} style={{ display:"flex", alignItems:"center", gap:4, padding:"8px 10px", border:`1px solid ${activeTab===t.key ? WOOD.amber : "rgba(120,70,20,0.3)"}`, borderRadius:4, background:activeTab===t.key ? WOOD.amber : "rgba(15,8,2,0.55)", color:"#fff", fontSize:11, fontFamily:"'DM Sans',sans-serif", cursor:"pointer", boxShadow:"none", transition:"all 0.12s", whiteSpace:"nowrap" }}>
@@ -7577,6 +7573,12 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
                   <button onClick={() => setIsbnScanOpen(true)} style={{ fontSize:10, color:CR.textDim, background:"#fff", border:`1px solid ${CR.border}`, borderRadius:20, padding:"3px 12px", cursor:"pointer", whiteSpace:"nowrap", fontFamily:"'DM Sans',sans-serif" }}>
                     Scan ISBN
                   </button>
+                </div>
+              )}
+              {activeTab === "details" && (
+                <div style={{ position:"absolute", bottom:-14, left:"50%", transform:"translateX(-50%)", display:"flex", gap:6 }}>
+                  {(() => { const py = getPublishYear(book); return py ? <span style={{ fontSize:10, color:CR.textDim, background:"#fff", border:`1px solid ${CR.border}`, borderRadius:20, padding:"3px 12px", whiteSpace:"nowrap", fontFamily:"'DM Sans',sans-serif" }}>Published {py}</span> : null; })()}
+                  {book.pages > 0 && <span style={{ fontSize:10, color:CR.textDim, background:"#fff", border:`1px solid ${CR.border}`, borderRadius:20, padding:"3px 12px", whiteSpace:"nowrap", fontFamily:"'DM Sans',sans-serif" }}>{book.pages.toLocaleString()} pages</span>}
                 </div>
               )}
             </div>
