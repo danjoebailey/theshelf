@@ -9434,7 +9434,7 @@ export default function App() {
                   : id==="stats"
                   ? <img src="/three_books_breakdown.png" alt="Breakdown" style={{ width:44, height:32, objectFit:"contain", display:"block" }} />
                   : id==="reiko"
-                  ? <img src="/recommend_book.png" alt="Reiko" style={{ width:44, height:32, objectFit:"contain", display:"block" }} />
+                  ? <img src="/reiko_discover_nav.png" alt="Discover" style={{ width:44, height:32, objectFit:"contain", display:"block" }} />
                   : <img src="/all_3_books_no_bg.png" alt="Rankings" style={{ width:44, height:32, objectFit:"contain", display:"block" }} />
                 }
                 <span style={{
