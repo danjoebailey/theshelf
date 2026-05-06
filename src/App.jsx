@@ -5112,6 +5112,16 @@ const CANNED_LISTS = new Set([
   "sci-fi-series-alltime-all",
   "sci-fi-series-vacuum-all",
   "mystery-thriller-series-alltime-all",
+  "mystery-vacuum-all",
+  "mystery-alltime-all",
+  "thriller-vacuum-all",
+  "thriller-alltime-all",
+  "horror-vacuum-all",
+  "horror-alltime-all",
+  "historical-fiction-vacuum-all",
+  "historical-fiction-alltime-all",
+  "romance-vacuum-all",
+  "romance-alltime-all",
 ]);
 function cannedKey(genre, rankingMode, scoreCategory) {
   return `${genre.toLowerCase().replace(/[^a-z0-9]/g, "-")}-${rankingMode}-${scoreCategory}`;
