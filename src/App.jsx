@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect, createContext, useContext } from "react";
+import { useState, useMemo, useRef, useEffect, useLayoutEffect, createContext, useContext } from "react";
 import { supabase } from "./supabase.js";
 import { track } from "@vercel/analytics";
 import { generatePaigeRecs, browseCatalog, resolveSeriesPicks, enrichScannedBooks, getSeriesFor, preloadCatalog } from "./lib/paige-client.js";
@@ -2790,6 +2790,29 @@ const PAIGE_MODES = [
   { key:"new_to_me",    label:"Branch Out",    desc:"Genres and styles missing from your shelf" },
 ];
 
+// Shrinks font-size until the label fits one line within its parent, so a
+// stack of pills keeps a uniform height even with mixed-length labels.
+function AutoFitText({ text, maxFont = 13, minFont = 9, step = 0.5 }) {
+  const ref = useRef(null);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const fit = () => {
+      let s = maxFont;
+      el.style.fontSize = `${s}px`;
+      while (s > minFont && el.scrollWidth > el.clientWidth) {
+        s -= step;
+        el.style.fontSize = `${s}px`;
+      }
+    };
+    fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [text, maxFont, minFont, step]);
+  return <span ref={ref} style={{ display:"block", whiteSpace:"nowrap", overflow:"hidden", width:"100%", textAlign:"center" }}>{text}</span>;
+}
+
 function PaigeTab({ books, userId, onAddDirect, onBulkAddDirect, onEdit, onAddBook }) {
   const [mode, setMode] = useState("popular");
   const [loading, setLoading] = useState(false);
@@ -3027,7 +3050,10 @@ function PaigeTab({ books, userId, onAddDirect, onBulkAddDirect, onEdit, onAddBo
                     const m = PAIGE_MODES.find(x => x.key === key);
                     return (
                       <button key={key} onClick={() => setMode(m.key)} style={{
-                        padding: key === "all" ? "30px 38px" : "5px 14px",
+                        padding: key === "all" ? "30px 38px" : "0 14px",
+                        height: key === "all" ? "auto" : 34,
+                        display:"flex", alignItems:"center", justifyContent:"center",
+                        width:"100%", minWidth:0,
                         borderRadius:12, cursor:"pointer",
                         background: mode===m.key ? WOOD.amber : WOOD.card,
                         color: mode===m.key ? "#1a0900" : "rgba(90,56,32,0.75)",
@@ -3037,7 +3063,9 @@ function PaigeTab({ books, userId, onAddDirect, onBulkAddDirect, onEdit, onAddBo
                         borderBottom:`${key === "all" ? 4.5 : 3}px solid #8a5a28`,
                         borderRight:"none",
                         transition:"all 0.15s",
-                      }}>{m.label}</button>
+                      }}>
+                        {key === "all" ? m.label : <AutoFitText text={m.label} />}
+                      </button>
                     );
                   })}
                 </div>
