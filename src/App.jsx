@@ -3278,9 +3278,9 @@ function ReedTab({ books, userId, onEdit, onShelfChange, onSaveScores, onAuthor 
       <div style={{ display:"flex", gap:8, justifyContent:"center" }}>
         {[["list","The List"],["curious","Curious"],["recommended","Recommended"]].map(([key, label]) => (
           <button key={key} {...tc(() => setMode(key))} style={{
-            padding:"5px 18px", borderRadius:20, border:`1px solid ${mode===key ? "#8a5a28" : "rgba(255,235,195,0.22)"}`,
-            background: mode===key ? "#8a5a28" : "transparent",
-            color: mode===key ? "#fff" : "rgba(255,235,195,0.6)",
+            padding:"5px 18px", borderRadius:20, border:`1px solid ${mode===key ? WOOD.amber : "#8a5a28"}`,
+            background: mode===key ? WOOD.amber : "#8a5a28",
+            color: "#fff",
             fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:600, cursor:"pointer", transition:"all 0.15s",
           }}>{label}</button>
         ))}
