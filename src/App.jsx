@@ -3282,7 +3282,7 @@ function ReedTab({ books, userId, onEdit, onShelfChange, onSaveScores, onAuthor 
             border:`1px solid ${mode===key ? WOOD.amber : "rgba(120,70,20,0.3)"}`,
             background: mode===key ? WOOD.amber : "rgba(15,8,2,0.55)",
             backdropFilter: "blur(4px)",
-            color: "#fff",
+            color: mode===key ? "#1a0900" : "#fff",
             fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:600, cursor:"pointer", transition:"all 0.15s",
           }}>{label}</button>
         ))}
