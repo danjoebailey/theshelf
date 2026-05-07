@@ -4272,25 +4272,42 @@ function RecommendPage({ books, userId, onAddDirect, onBulkAddDirect, onAuthor, 
     <div style={{ height:"100%", overflowY:"auto", overflowX:"hidden" }}>
       {/* Character selector — horizontally scrollable; Browse hides off the
           right edge by default so users discover it via the chevron arrow. */}
-      <div style={{ position:"relative", borderBottom:"1px solid rgba(138,90,40,0.2)", background:WOOD.card }}>
+      <div style={{ position:"relative", background:WOOD.card }}>
         <div ref={scrollerRef} style={{
-          display:"flex", justifyContent:"flex-start", gap:32, padding:"8px 18px 0",
           overflowX:"auto", scrollBehavior:"smooth", scrollbarWidth:"none",
           msOverflowStyle:"none",
         }}>
-          {characters.map(c => (
-            <button key={c.key} {...tc(() => setCharacter(c.key))} style={{
-              display:"flex", flexDirection:"column", alignItems:"center", gap:4,
-              background:"transparent", border:"none", cursor:"pointer",
-              borderBottom: character===c.key ? `2px solid ${WOOD.amber}` : "2px solid transparent",
-              paddingBottom:4, transition:"all 0.15s",
-              opacity: character===c.key ? 1 : 0.45,
-              touchAction:"manipulation", flexShrink:0,
+          <div style={{ display:"inline-flex", flexDirection:"column" }}>
+            <div style={{
+              position:"relative", zIndex:2,
+              display:"flex", justifyContent:"flex-start", gap:32, padding:"8px 18px 0",
             }}>
-              <img src={c.img} alt={c.label} style={{ width:100, height:100, objectFit:"contain" }} />
-              <span style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, fontWeight:400, color:WOOD.text, whiteSpace:"nowrap" }}>{c.label}</span>
-            </button>
-          ))}
+              {characters.map(c => (
+                <button key={c.key} {...tc(() => setCharacter(c.key))} style={{
+                  display:"flex", flexDirection:"column", alignItems:"center", gap:6,
+                  background:"transparent", border:"none", cursor:"pointer",
+                  paddingBottom:4, transition:"all 0.15s",
+                  opacity: character===c.key ? 1 : 0.5,
+                  touchAction:"manipulation", flexShrink:0,
+                }}>
+                  <img src={c.img} alt={c.label} style={{ width:100, height:100, objectFit:"contain" }} />
+                  <span style={{
+                    fontFamily:"'Crimson Pro',serif", fontSize:14,
+                    fontWeight: character===c.key ? 600 : 500,
+                    color:"rgba(255,235,195,0.95)", whiteSpace:"nowrap",
+                    textShadow:"0 1px 2px rgba(0,0,0,0.6)",
+                    transform:"translateY(-10px)",
+                  }}>{c.label}</span>
+                </button>
+              ))}
+            </div>
+            <img src="/discover-shelf.png" alt="" aria-hidden="true" style={{
+              display:"block", width:"100%", height:"auto",
+              marginTop:-30, position:"relative", zIndex:1,
+              pointerEvents:"none",
+              filter:"drop-shadow(0 4px 6px rgba(0,0,0,0.32))",
+            }} />
+          </div>
         </div>
         {showLeftArrow && (
           <button onClick={() => scrollBy(-1)} aria-label="Previous" style={{
