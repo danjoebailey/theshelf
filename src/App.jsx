@@ -3020,20 +3020,32 @@ function PaigeTab({ books, userId, onAddDirect, onBulkAddDirect, onEdit, onAddBo
           {/* Mode pills on shelf */}
           <div style={{ margin:"0 18px 16px" }}>
             <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:10, fontWeight:700, color:"rgba(255,235,195,0.7)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10, textAlign:"center", textShadow:"0 1px 2px rgba(0,0,0,0.6)" }}>What kind of read?</p>
-            <div style={{ display:"flex", flexWrap:"wrap", gap:7, justifyContent:"center" }}>
-              {PAIGE_MODES.map(m => (
-                <button key={m.key} onClick={() => setMode(m.key)} style={{
-                  padding:"5px 14px", borderRadius:20, border:"none", cursor:"pointer",
-                  background: mode===m.key ? WOOD.amber : "rgba(255,235,195,0.12)",
-                  color: mode===m.key ? "#1a0900" : "rgba(255,235,195,0.6)",
-                  fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:600,
-                  transition:"all 0.15s",
-                }}>{m.label}</button>
+            <div style={{ display:"flex", justifyContent:"center", alignItems:"flex-end", gap:14 }}>
+              {[["all"], ["popular","trending","hidden_gems"], ["comfort_read","challenge_me","new_to_me"]].map((stack, idx) => (
+                <div key={idx} style={{ display:"flex", flexDirection:"column", gap:2, alignItems:"stretch" }}>
+                  {stack.map(key => {
+                    const m = PAIGE_MODES.find(x => x.key === key);
+                    return (
+                      <button key={key} onClick={() => setMode(m.key)} style={{
+                        padding: key === "all" ? "30px 38px" : "5px 14px",
+                        borderRadius:12, cursor:"pointer",
+                        background: mode===m.key ? WOOD.amber : WOOD.card,
+                        color: mode===m.key ? "#1a0900" : "rgba(90,56,32,0.75)",
+                        fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:600,
+                        borderTop:`${key === "all" ? 4.5 : 3}px solid #8a5a28`,
+                        borderLeft:`${key === "all" ? 4.5 : 3}px solid #8a5a28`,
+                        borderBottom:`${key === "all" ? 4.5 : 3}px solid #8a5a28`,
+                        borderRight:"none",
+                        transition:"all 0.15s",
+                      }}>{m.label}</button>
+                    );
+                  })}
+                </div>
               ))}
             </div>
             <img src="/discover-shelf.png" alt="" aria-hidden="true" style={{
               display:"block", width:"100%", height:"auto",
-              marginTop:-12, pointerEvents:"none",
+              marginTop:2, pointerEvents:"none",
               filter:"drop-shadow(0 4px 6px rgba(0,0,0,0.32))",
             }} />
             {modeInfo && <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:"rgba(255,235,195,0.6)", marginTop:6, fontStyle:"italic", textAlign:"center" }}>{modeInfo.desc}</p>}
