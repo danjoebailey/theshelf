@@ -6127,7 +6127,20 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, seriesTier
             <div style={{ minWidth:0 }}>
               <PillDropdown value={genreFilter} onChange={v => { setGenreFilter(v); setGenerated(false); }} options={availableGenres.map(g => ({ value:g, label:g }))} maxLabelWidth={90} />
             </div>
-            {mode === "ai" ? <div /> : (
+            {mode === "ai" && entityType === "books" ? (
+              <div style={{ display:"flex", gap:4, justifyContent:"center" }}>
+                {[["alltime","All Time"],["vacuum","Vacuum"]].map(([m, label]) => (
+                  <button key={m} {...tc(() => { setRankingMode(m); setGenerated(false); setAiItems([]); })} style={{
+                    padding:"3px 10px", borderRadius:20,
+                    border:`1px solid ${rankingMode===m ? WOOD.amber : "rgba(255,235,195,0.18)"}`,
+                    background: rankingMode===m ? WOOD.amber : "transparent",
+                    color: rankingMode===m ? "#1a0900" : "rgba(255,235,195,0.5)",
+                    fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600, cursor:"pointer",
+                    transition:"all 0.15s",
+                  }}>{label}</button>
+                ))}
+              </div>
+            ) : mode === "ai" ? <div /> : (
               <div style={{ display:"flex", gap:4, justifyContent:"center" }}>
                 {[10, 20, "all"].map(n => (
                   <button key={n} {...tc(() => { setTopN(n); setGenerated(false); })} style={{
@@ -6144,24 +6157,13 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, seriesTier
             <div />
           </div>
 
-          {/* Row 3 (AI only): score left | ranking mode center | spacer right */}
+          {/* Row 3 (AI only): score dropdown */}
           {mode === "ai" && entityType === "books" && (
             <div style={{ display:"grid", gridTemplateColumns:"1fr auto 1fr", alignItems:"center", gap:4, paddingTop:5, borderTop:"1px solid rgba(200,144,90,0.12)" }}>
               <div style={{ minWidth:0 }}>
                 <PillDropdown value={scoreCategory} onChange={v => { setScoreCategory(v); setGenerated(false); }} options={SCORE_CATEGORIES.map(({ key, label }) => ({ value:key, label }))} maxLabelWidth={80} />
               </div>
-              <div style={{ display:"flex", gap:4, justifyContent:"center" }}>
-                {[["alltime","All Time"],["vacuum","Vacuum"]].map(([m, label]) => (
-                  <button key={m} {...tc(() => { setRankingMode(m); setGenerated(false); setAiItems([]); })} style={{
-                    padding:"3px 10px", borderRadius:20,
-                    border:`1px solid ${rankingMode===m ? WOOD.amber : "rgba(255,235,195,0.18)"}`,
-                    background: rankingMode===m ? WOOD.amber : "transparent",
-                    color: rankingMode===m ? "#1a0900" : "rgba(255,235,195,0.5)",
-                    fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600, cursor:"pointer",
-                    transition:"all 0.15s",
-                  }}>{label}</button>
-                ))}
-              </div>
+              <div />
               <div />
             </div>
           )}
