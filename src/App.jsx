@@ -6157,16 +6157,6 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, seriesTier
             <div />
           </div>
 
-          {/* Row 3 (AI only): score dropdown */}
-          {mode === "ai" && entityType === "books" && (
-            <div style={{ display:"grid", gridTemplateColumns:"1fr auto 1fr", alignItems:"center", gap:4, paddingTop:5, borderTop:"1px solid rgba(200,144,90,0.12)" }}>
-              <div style={{ minWidth:0 }}>
-                <PillDropdown value={scoreCategory} onChange={v => { setScoreCategory(v); setGenerated(false); }} options={SCORE_CATEGORIES.map(({ key, label }) => ({ value:key, label }))} maxLabelWidth={80} />
-              </div>
-              <div />
-              <div />
-            </div>
-          )}
 
           {/* Row 4 (AI only): loading state or subtle count indicator for auto-loaded canned lists */}
           {mode === "ai" && entityType === "books" && (
