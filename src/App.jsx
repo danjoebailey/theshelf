@@ -5630,7 +5630,8 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, seriesTier
     return ["All", ...genres];
   }, [readBooks]);
 
-  const availableGenres = mode === "ai" ? ["All", ...GENRES.filter(g => g !== "Other")] : userGenres;
+  const AI_GENRE_EXCLUDED = new Set(["Other", "Self-Help", "Young Adult", "Graphic Novel", "Biography"]);
+  const availableGenres = mode === "ai" ? ["All", ...GENRES.filter(g => !AI_GENRE_EXCLUDED.has(g))] : userGenres;
 
   // Author groupings from read books
   const authorGroups = useMemo(() => {
