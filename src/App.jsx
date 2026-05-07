@@ -6432,11 +6432,13 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, seriesTier
         {/* AI ranking list */}
         {entityType === "books" && mode === "ai" && generated && aiDisplayItems.map((item, i) => {
           const matched = findInLibrary(item.title);
+          const meta = matched ? null : staticBookMeta(item.title, item.author);
+          const resolvedGenre = meta?.genre || item.genre || (genreFilter !== "All" ? genreFilter : "Other");
           const bookObj = (matched && !matched.coverUrl && item.coverUrl) ? { ...matched, coverUrl: item.coverUrl } : matched || {
             id: `ai_${i}`,
             title: item.title,
             author: item.author,
-            genre: genreFilter !== "All" ? genreFilter : (item.genre || "Other"),
+            genre: resolvedGenre,
             shelf: null,
             rating: 0,
             pages: item.pages || 0,
@@ -6451,7 +6453,7 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, seriesTier
               </div>
               <div style={{ flex:1, minWidth:0 }}>
                 {viewMode === "row"
-                  ? <BookRow key={bookObj.id} book={bookObj} index={i} onEdit={matched ? onEdit : null} onRemove={null} onShelfChange={matched ? onShelfChange : ()=>{}} onAdd={matched ? undefined : (s) => onAddDirect({ title:item.title, author:item.author, genre:genreFilter !== "All" ? genreFilter : "Other", pages:0, rating:0, coverUrl:item.coverUrl||null }, s)} />
+                  ? <BookRow key={bookObj.id} book={bookObj} index={i} onEdit={matched ? onEdit : null} onRemove={null} onShelfChange={matched ? onShelfChange : ()=>{}} onAdd={matched ? undefined : (s) => onAddDirect({ title:item.title, author:item.author, genre: resolvedGenre, pages:0, rating:0, coverUrl:item.coverUrl||null }, s)} />
                   : <BookCard
                       key={bookObj.id}
                       book={bookObj}
@@ -6459,7 +6461,7 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, seriesTier
                       onRemove={()=>{}} onEdit={matched ? onEdit : (b)=>onAddBook(b)} onShelfChange={()=>{}} onOpenShelfPicker={()=>{}}
                       onSaveScores={matched ? onSaveScores : ()=>{}} onSaveDescription={()=>{}}
                       forceProse
-                      onAdd={matched ? undefined : (shelf) => onAddDirect({ title:item.title, author:item.author, genre: genreFilter !== "All" ? genreFilter : (item.genre || "Other"), pages:0, rating:0, coverUrl:item.coverUrl||null }, shelf)}
+                      onAdd={matched ? undefined : (shelf) => onAddDirect({ title:item.title, author:item.author, genre: resolvedGenre, pages:0, rating:0, coverUrl:item.coverUrl||null }, shelf)}
                       libraryProfile={books.filter(b => b.shelf === "Read" || b.shelf === "DNF")}
                       userId={userId}
                     />
