@@ -4238,6 +4238,8 @@ function BrowseTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAddDir
 function RecommendPage({ books, userId, onAddDirect, onBulkAddDirect, onAuthor, onEdit, onAddBook, onShelfChange, onSaveScores }) {
   const [character, setCharacter] = useState("paige");
   const scrollerRef = useRef(null);
+  const touchStartXRef = useRef(0);
+  const touchMovedRef = useRef(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
 
@@ -4284,7 +4286,13 @@ function RecommendPage({ books, userId, onAddDirect, onBulkAddDirect, onAuthor, 
               display:"flex", justifyContent:"flex-start", gap:32, padding:"8px 18px 0",
             }}>
               {characters.map(c => (
-                <button key={c.key} {...tc(() => setCharacter(c.key))} style={{
+                <button
+                  key={c.key}
+                  onTouchStart={e => { touchStartXRef.current = e.touches[0].clientX; touchMovedRef.current = false; }}
+                  onTouchMove={e => { if (Math.abs(e.touches[0].clientX - touchStartXRef.current) > 8) touchMovedRef.current = true; }}
+                  onTouchEnd={e => { e.preventDefault(); if (!touchMovedRef.current) setCharacter(c.key); }}
+                  onClick={() => setCharacter(c.key)}
+                  style={{
                   display:"flex", flexDirection:"column", alignItems:"center", gap:6,
                   background:"transparent", border:"none", cursor:"pointer",
                   paddingBottom:4, transition:"all 0.15s",
