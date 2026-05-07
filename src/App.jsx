@@ -3023,11 +3023,11 @@ function PaigeTab({ books, userId, onAddDirect, onBulkAddDirect, onEdit, onAddBo
             <div style={{ display:"flex", flexWrap:"wrap", gap:7, justifyContent:"center" }}>
               {PAIGE_MODES.map(m => (
                 <button key={m.key} onClick={() => setMode(m.key)} style={{
-                  padding:"7px 14px", borderRadius:20, fontSize:12, fontFamily:"'DM Sans',sans-serif", fontWeight:600,
-                  cursor:"pointer", transition:"all 0.15s", border:"1px solid",
-                  background: mode===m.key ? WOOD.amber : "transparent",
-                  color: mode===m.key ? "#1a0900" : "rgba(255,235,195,0.75)",
-                  borderColor: mode===m.key ? WOOD.amber : "rgba(255,235,195,0.28)",
+                  padding:"5px 14px", borderRadius:20, border:"none", cursor:"pointer",
+                  background: mode===m.key ? WOOD.amber : "rgba(255,235,195,0.12)",
+                  color: mode===m.key ? "#1a0900" : "rgba(255,235,195,0.6)",
+                  fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:600,
+                  transition:"all 0.15s",
                 }}>{m.label}</button>
               ))}
             </div>
