@@ -4288,7 +4288,7 @@ function RecommendPage({ books, userId, onAddDirect, onBulkAddDirect, onAuthor, 
                   display:"flex", flexDirection:"column", alignItems:"center", gap:6,
                   background:"transparent", border:"none", cursor:"pointer",
                   paddingBottom:4, transition:"all 0.15s",
-                  opacity: character===c.key ? 1 : 0.5,
+                  opacity: character===c.key ? 1 : 0.8,
                   touchAction:"manipulation", flexShrink:0,
                 }}>
                   <img src={c.img} alt={c.label} style={{ width:100, height:100, objectFit:"contain" }} />
