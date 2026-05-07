@@ -6127,18 +6127,20 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, seriesTier
             <div style={{ minWidth:0 }}>
               <PillDropdown value={genreFilter} onChange={v => { setGenreFilter(v); setGenerated(false); }} options={availableGenres.map(g => ({ value:g, label:g }))} maxLabelWidth={90} />
             </div>
-            <div style={{ display:"flex", gap:4, justifyContent:"center" }}>
-              {[10, 20, "all"].map(n => (
-                <button key={n} {...tc(() => { setTopN(n); setGenerated(false); })} style={{
-                  padding:"3px 10px", borderRadius:20,
-                  border:`1px solid ${topN===n ? WOOD.amber : "rgba(255,235,195,0.22)"}`,
-                  background: topN===n ? WOOD.amber : "transparent",
-                  color: topN===n ? "#1a0900" : "rgba(255,235,195,0.6)",
-                  fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600, cursor:"pointer",
-                  transition:"all 0.15s",
-                }}>{n === "all" ? "All" : `Top ${n}`}</button>
-              ))}
-            </div>
+            {mode === "ai" ? <div /> : (
+              <div style={{ display:"flex", gap:4, justifyContent:"center" }}>
+                {[10, 20, "all"].map(n => (
+                  <button key={n} {...tc(() => { setTopN(n); setGenerated(false); })} style={{
+                    padding:"3px 10px", borderRadius:20,
+                    border:`1px solid ${topN===n ? WOOD.amber : "rgba(255,235,195,0.22)"}`,
+                    background: topN===n ? WOOD.amber : "transparent",
+                    color: topN===n ? "#1a0900" : "rgba(255,235,195,0.6)",
+                    fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600, cursor:"pointer",
+                    transition:"all 0.15s",
+                  }}>{n === "all" ? "All" : `Top ${n}`}</button>
+                ))}
+              </div>
+            )}
             <div />
           </div>
 
