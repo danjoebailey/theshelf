@@ -4269,12 +4269,13 @@ function RecommendPage({ books, userId, onAddDirect, onBulkAddDirect, onAuthor, 
   }
 
   return (
-    <div style={{ height:"100%", overflowY:"auto", overflowX:"hidden" }}>
+    <div style={{ height:"100%", display:"flex", flexDirection:"column", overflow:"hidden" }}>
       {/* Character selector — horizontally scrollable; Browse hides off the
           right edge by default so users discover it via the chevron arrow. */}
-      <div style={{ position:"relative", background:WOOD.card }}>
+      <div style={{ position:"relative", background:WOOD.card, flexShrink:0 }}>
         <div ref={scrollerRef} style={{
-          overflowX:"auto", scrollBehavior:"smooth", scrollbarWidth:"none",
+          overflowX:"auto", overflowY:"hidden",
+          scrollBehavior:"smooth", scrollbarWidth:"none",
           msOverflowStyle:"none",
         }}>
           <div style={{ display:"inline-flex", flexDirection:"column" }}>
@@ -4303,7 +4304,7 @@ function RecommendPage({ books, userId, onAddDirect, onBulkAddDirect, onAuthor, 
             </div>
             <img src="/discover-shelf.png" alt="" aria-hidden="true" style={{
               display:"block", width:"100%", height:"auto",
-              marginTop:-30, position:"relative", zIndex:1,
+              marginTop:-30, position:"sticky", left:0, zIndex:1,
               pointerEvents:"none",
               filter:"drop-shadow(0 4px 6px rgba(0,0,0,0.32))",
             }} />
@@ -4327,16 +4328,18 @@ function RecommendPage({ books, userId, onAddDirect, onBulkAddDirect, onAuthor, 
         )}
       </div>
       {/* Content */}
-      {character === "paige"
-        ? <PaigeTab books={books} userId={userId} onAddDirect={onAddDirect} onBulkAddDirect={onBulkAddDirect} onEdit={onEdit} onAddBook={onAddBook} />
-        : character === "reiko"
-        ? <ReikoTab books={books} userId={userId} onAddDirect={onAddDirect} onAuthor={onAuthor} onEdit={onEdit} onAddBook={onAddBook} />
-        : character === "reed"
-        ? <ReedTab books={books} userId={userId} onEdit={onEdit} onShelfChange={onShelfChange} onSaveScores={onSaveScores} onAuthor={onAuthor} />
-        : character === "browse"
-        ? <BrowseTab books={books} userId={userId} onEdit={onEdit} onAddBook={onAddBook} onAddDirect={onAddDirect} onBulkAddDirect={onBulkAddDirect} />
-        : <ShelfScanTab books={books} userId={userId} onEdit={onEdit} onAddBook={onAddBook} onAddDirect={onAddDirect} onBulkAddDirect={onBulkAddDirect} />
-      }
+      <div style={{ flex:1, overflowY:"auto", overflowX:"hidden" }}>
+        {character === "paige"
+          ? <PaigeTab books={books} userId={userId} onAddDirect={onAddDirect} onBulkAddDirect={onBulkAddDirect} onEdit={onEdit} onAddBook={onAddBook} />
+          : character === "reiko"
+          ? <ReikoTab books={books} userId={userId} onAddDirect={onAddDirect} onAuthor={onAuthor} onEdit={onEdit} onAddBook={onAddBook} />
+          : character === "reed"
+          ? <ReedTab books={books} userId={userId} onEdit={onEdit} onShelfChange={onShelfChange} onSaveScores={onSaveScores} onAuthor={onAuthor} />
+          : character === "browse"
+          ? <BrowseTab books={books} userId={userId} onEdit={onEdit} onAddBook={onAddBook} onAddDirect={onAddDirect} onBulkAddDirect={onBulkAddDirect} />
+          : <ShelfScanTab books={books} userId={userId} onEdit={onEdit} onAddBook={onAddBook} onAddDirect={onAddDirect} onBulkAddDirect={onBulkAddDirect} />
+        }
+      </div>
     </div>
   );
 }
