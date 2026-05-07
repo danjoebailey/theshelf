@@ -4238,8 +4238,10 @@ function BrowseTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAddDir
 function RecommendPage({ books, userId, onAddDirect, onBulkAddDirect, onAuthor, onEdit, onAddBook, onShelfChange, onSaveScores }) {
   const [character, setCharacter] = useState("paige");
   const scrollerRef = useRef(null);
+  const charsRef = useRef(null);
   const [showRightArrow, setShowRightArrow] = useState(true);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
+  const [shelfWidth, setShelfWidth] = useState(0);
 
   const characters = [
     { key:"paige",  label:"Paige Turner", img:"/page-turner.png" },
@@ -4249,19 +4251,21 @@ function RecommendPage({ books, userId, onAddDirect, onBulkAddDirect, onAuthor, 
     { key:"scan",   label:"Shelf Scan",   img:"/shelf-scan.png" },
   ];
 
-  function updateArrows() {
-    const el = scrollerRef.current;
-    if (!el) return;
-    setShowLeftArrow(el.scrollLeft > 8);
-    setShowRightArrow(el.scrollLeft + el.clientWidth < el.scrollWidth - 8);
+  function updateLayout() {
+    const sc = scrollerRef.current;
+    if (!sc) return;
+    setShowLeftArrow(sc.scrollLeft > 8);
+    setShowRightArrow(sc.scrollLeft + sc.clientWidth < sc.scrollWidth - 8);
+    const ch = charsRef.current;
+    if (ch) setShelfWidth(Math.min(ch.scrollWidth, sc.clientWidth));
   }
   useEffect(() => {
-    updateArrows();
+    updateLayout();
     const el = scrollerRef.current;
     if (!el) return;
-    el.addEventListener("scroll", updateArrows);
-    window.addEventListener("resize", updateArrows);
-    return () => { el.removeEventListener("scroll", updateArrows); window.removeEventListener("resize", updateArrows); };
+    el.addEventListener("scroll", updateLayout);
+    window.addEventListener("resize", updateLayout);
+    return () => { el.removeEventListener("scroll", updateLayout); window.removeEventListener("resize", updateLayout); };
   }, []);
 
   function scrollBy(dir) {
@@ -4277,38 +4281,39 @@ function RecommendPage({ books, userId, onAddDirect, onBulkAddDirect, onAuthor, 
           overflowX:"auto", scrollBehavior:"smooth", scrollbarWidth:"none",
           msOverflowStyle:"none",
         }}>
-          <div style={{ display:"inline-flex", flexDirection:"column" }}>
-            <div style={{
-              position:"relative", zIndex:2,
-              display:"flex", justifyContent:"flex-start", gap:32, padding:"8px 18px 0",
-            }}>
-              {characters.map(c => (
-                <button key={c.key} {...tc(() => setCharacter(c.key))} style={{
-                  display:"flex", flexDirection:"column", alignItems:"center", gap:6,
-                  background:"transparent", border:"none", cursor:"pointer",
-                  paddingBottom:4, transition:"all 0.15s",
-                  opacity: character===c.key ? 1 : 0.5,
-                  touchAction:"manipulation", flexShrink:0,
-                }}>
-                  <img src={c.img} alt={c.label} style={{ width:100, height:100, objectFit:"contain" }} />
-                  <span style={{
-                    fontFamily:"'Crimson Pro',serif", fontSize:14,
-                    fontWeight: character===c.key ? 600 : 500,
-                    color:"rgba(255,235,195,0.95)", whiteSpace:"nowrap",
-                    textShadow:"0 1px 2px rgba(0,0,0,0.6)",
-                    transform:"translateY(-10px)",
-                  }}>{c.label}</span>
-                </button>
-              ))}
-            </div>
-            <img src="/discover-shelf.png" alt="" aria-hidden="true" style={{
-              display:"block", width:"100%", height:"auto",
-              marginTop:-30, position:"relative", zIndex:1,
-              pointerEvents:"none",
-              filter:"drop-shadow(0 4px 6px rgba(0,0,0,0.32))",
-            }} />
+          <div ref={charsRef} style={{
+            position:"relative", zIndex:2,
+            display:"inline-flex", justifyContent:"flex-start", gap:32, padding:"8px 18px 0",
+          }}>
+            {characters.map(c => (
+              <button key={c.key} {...tc(() => setCharacter(c.key))} style={{
+                display:"flex", flexDirection:"column", alignItems:"center", gap:6,
+                background:"transparent", border:"none", cursor:"pointer",
+                paddingBottom:4, transition:"all 0.15s",
+                opacity: character===c.key ? 1 : 0.5,
+                touchAction:"manipulation", flexShrink:0,
+              }}>
+                <img src={c.img} alt={c.label} style={{ width:100, height:100, objectFit:"contain" }} />
+                <span style={{
+                  fontFamily:"'Crimson Pro',serif", fontSize:14,
+                  fontWeight: character===c.key ? 600 : 500,
+                  color:"rgba(255,235,195,0.95)", whiteSpace:"nowrap",
+                  textShadow:"0 1px 2px rgba(0,0,0,0.6)",
+                  transform:"translateY(-10px)",
+                }}>{c.label}</span>
+              </button>
+            ))}
           </div>
         </div>
+        <div style={{
+          width: shelfWidth || "100%", height: 30,
+          marginTop:-26, position:"relative", zIndex:1,
+          pointerEvents:"none",
+          backgroundImage:"url(/discover-shelf.png)",
+          backgroundSize:"100% 100%",
+          backgroundRepeat:"no-repeat",
+          filter:"drop-shadow(0 4px 6px rgba(0,0,0,0.32))",
+        }} />
         {showLeftArrow && (
           <button onClick={() => scrollBy(-1)} aria-label="Previous" style={{
             position:"absolute", left:4, top:"50%", transform:"translateY(-50%)",
