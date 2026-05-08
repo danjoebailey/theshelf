@@ -27,6 +27,27 @@ const titleNorm = s => norm(s).replace(/[^a-z0-9 ]/g, "");
 // titlesByAuthor → tag only specific titles by author (for selective tagging within an oeuvre)
 const RULES = [
   {
+    tag: "romantasy",
+    authors: new Set([
+      "laura thalassa",
+      "hannah whitten",
+      "allison saft",
+      "elise kova",
+    ].map(norm)),
+    titlesByAuthor: {
+      "rebecca yarros": ["fourth wing", "iron flame", "onyx storm"],
+      "holly black": [
+        "the cruel prince", "the wicked king", "the queen of nothing",
+        "the stolen heir", "how the king of elfhame learned to hate stories",
+      ],
+      "kerri maniscalco": [
+        "kingdom of the wicked", "kingdom of the cursed", "kingdom of the feared",
+        "throne of the fallen",
+      ],
+      "naomi novik": ["spinning silver", "uprooted"],
+    },
+  },
+  {
     tag: "dark-academia",
     titlesByAuthor: {
       "donna tartt": ["the secret history"],
