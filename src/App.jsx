@@ -4381,10 +4381,15 @@ function BrowseTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAddDir
 function RecommendPage({ books, userId, onAddDirect, onBulkAddDirect, onAuthor, onEdit, onAddBook, onShelfChange, onSaveScores }) {
   const [character, setCharacter] = useState("paige");
   const scrollerRef = useRef(null);
+  const contentRef = useRef(null);
   const touchStartXRef = useRef(0);
   const touchMovedRef = useRef(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
+  const [atTop, setAtTop] = useState(true);
+
+  // Reset to "at top" state when switching characters so the shelf reappears.
+  useEffect(() => { setAtTop(true); contentRef.current?.scrollTo?.({ top: 0 }); }, [character]);
 
   const characters = [
     { key:"paige",  label:"Paige Turner", img:"/page-turner.png" },
@@ -4416,8 +4421,16 @@ function RecommendPage({ books, userId, onAddDirect, onBulkAddDirect, onAuthor, 
   return (
     <div style={{ height:"100%", display:"flex", flexDirection:"column", overflow:"hidden" }}>
       {/* Character selector — horizontally scrollable; Browse hides off the
-          right edge by default so users discover it via the chevron arrow. */}
-      <div style={{ position:"relative", background:WOOD.card, flexShrink:0 }}>
+          right edge by default so users discover it via the chevron arrow.
+          Hidden while the content area is scrolled so it only reveals at top. */}
+      <div style={{
+        position:"relative", background:WOOD.card, flexShrink:0,
+        maxHeight: atTop ? 220 : 0,
+        opacity: atTop ? 1 : 0,
+        overflow:"hidden",
+        transition:"max-height 0.28s ease, opacity 0.2s ease",
+        pointerEvents: atTop ? "auto" : "none",
+      }}>
         <div ref={scrollerRef} style={{
           overflowX:"auto", overflowY:"hidden",
           scrollBehavior:"smooth", scrollbarWidth:"none",
@@ -4479,7 +4492,9 @@ function RecommendPage({ books, userId, onAddDirect, onBulkAddDirect, onAuthor, 
         )}
       </div>
       {/* Content */}
-      <div style={{ flex:1, overflowY:"auto", overflowX:"hidden" }}>
+      <div ref={contentRef}
+           onScroll={e => setAtTop(e.currentTarget.scrollTop < 8)}
+           style={{ flex:1, overflowY:"auto", overflowX:"hidden" }}>
         {character === "paige"
           ? <PaigeTab books={books} userId={userId} onAddDirect={onAddDirect} onBulkAddDirect={onBulkAddDirect} onEdit={onEdit} onAddBook={onAddBook} />
           : character === "reiko"
