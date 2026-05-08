@@ -246,7 +246,14 @@ function generateReason(mode, book, tagEntry, score, userProfile) {
 // filter layer — does not mutate the profile or change relative scoring.
 function passesQualifiers(tagEntry, qualifiers) {
   if (!qualifiers) return true;
+  // Subgenre tag filter — AND-match: every selected tag must appear on the book.
+  const wantTags = qualifiers._tags;
+  if (Array.isArray(wantTags) && wantTags.length) {
+    const have = new Set(tagEntry?.tags || []);
+    for (const t of wantTags) if (!have.has(t)) return false;
+  }
   for (const [axis, range] of Object.entries(qualifiers)) {
+    if (axis === "_tags") continue;
     if (!range) continue;
     const { min = 0, max = 10 } = range;
     if (min <= 0 && max >= 10) continue;  // default range, no filter

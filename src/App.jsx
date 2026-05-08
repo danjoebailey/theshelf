@@ -2695,6 +2695,75 @@ const QUALIFIER_SECTIONS = [
       { key: "magicSystem",   label: "Magic System" },
     ],
   },
+  {
+    label: "Subgenre",
+    type: "tags",
+    groups: [
+      { label: "Fantasy", options: [
+        { tag: "romantasy",            label: "Romantasy" },
+        { tag: "grimdark",             label: "Grimdark" },
+        { tag: "cozy-fantasy",         label: "Cozy Fantasy" },
+        { tag: "urban-fantasy",        label: "Urban Fantasy" },
+        { tag: "sword-and-sorcery",    label: "Sword & Sorcery" },
+        { tag: "portal-fantasy",       label: "Portal Fantasy" },
+        { tag: "epic-fantasy",         label: "Epic Fantasy" },
+        { tag: "mythic-retellings",    label: "Mythic Retellings" },
+        { tag: "fairy-tale-retelling", label: "Fairy-Tale Retellings" },
+        { tag: "progression-fantasy",  label: "Progression Fantasy" },
+        { tag: "steampunk",            label: "Steampunk" },
+      ]},
+      { label: "Sci-Fi", options: [
+        { tag: "space-opera",       label: "Space Opera" },
+        { tag: "cyberpunk",         label: "Cyberpunk" },
+        { tag: "hard-sf",           label: "Hard SF" },
+        { tag: "soft-sf",           label: "Soft SF" },
+        { tag: "military-sf",       label: "Military SF" },
+        { tag: "post-apocalyptic",  label: "Post-Apocalyptic" },
+        { tag: "dystopian",         label: "Dystopian" },
+        { tag: "time-travel",       label: "Time Travel" },
+        { tag: "alternate-history", label: "Alternate History" },
+        { tag: "new-weird",         label: "New Weird" },
+        { tag: "first-contact",     label: "First Contact" },
+      ]},
+      { label: "Mystery / Thriller", options: [
+        { tag: "cozy-mystery",       label: "Cozy Mystery" },
+        { tag: "noir",               label: "Noir" },
+        { tag: "hardboiled",         label: "Hardboiled" },
+        { tag: "police-procedural",  label: "Police Procedural" },
+        { tag: "historical-mystery", label: "Historical Mystery" },
+        { tag: "domestic-thriller",  label: "Domestic Thriller" },
+        { tag: "spy-thriller",       label: "Spy Thriller" },
+        { tag: "techno-thriller",    label: "Techno-Thriller" },
+        { tag: "political-thriller", label: "Political Thriller" },
+        { tag: "legal-thriller",     label: "Legal Thriller" },
+        { tag: "scandi-noir",        label: "Scandi-Noir" },
+      ]},
+      { label: "Horror", options: [
+        { tag: "gothic-horror",       label: "Gothic" },
+        { tag: "cosmic-horror",       label: "Cosmic" },
+        { tag: "supernatural-horror", label: "Supernatural" },
+        { tag: "folk-horror",         label: "Folk" },
+        { tag: "body-horror",         label: "Body" },
+        { tag: "splatterpunk",        label: "Splatterpunk" },
+        { tag: "quiet-horror",        label: "Quiet" },
+      ]},
+      { label: "Romance", options: [
+        { tag: "contemporary-romance", label: "Contemporary" },
+        { tag: "historical-romance",   label: "Historical" },
+        { tag: "paranormal-romance",   label: "Paranormal" },
+        { tag: "sports-romance",       label: "Sports" },
+        { tag: "queer-romance",        label: "Queer" },
+        { tag: "rom-com",              label: "Rom-Com" },
+        { tag: "dark-romance",         label: "Dark" },
+      ]},
+      { label: "Fiction", options: [
+        { tag: "magical-realism", label: "Magical Realism" },
+        { tag: "family-saga",     label: "Family Saga" },
+        { tag: "autofiction",     label: "Autofiction" },
+        { tag: "bildungsroman",   label: "Bildungsroman" },
+      ]},
+    ],
+  },
 ];
 
 function QualifierPanel({ qualifiers, setQualifiers, onClose }) {
@@ -2732,6 +2801,14 @@ function QualifierPanel({ qualifiers, setQualifiers, onClose }) {
     else clean[key] = next;
     setQualifiers(clean);
   }
+  function toggleTag(tag) {
+    const cur = Array.isArray(qualifiers._tags) ? qualifiers._tags : [];
+    const next = cur.includes(tag) ? cur.filter(t => t !== tag) : [...cur, tag];
+    const clean = { ...qualifiers };
+    if (next.length === 0) delete clean._tags;
+    else clean._tags = next;
+    setQualifiers(clean);
+  }
   function clearAll() { setQualifiers({}); }
 
   return (
@@ -2742,7 +2819,26 @@ function QualifierPanel({ qualifiers, setQualifiers, onClose }) {
       {QUALIFIER_SECTIONS.map(section => (
         <div key={section.label} style={{ padding:"4px 14px 8px" }}>
           <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:10, color:"rgba(255,235,195,0.5)", textTransform:"uppercase", letterSpacing:"0.1em", margin:"6px 0" }}>{section.label}</p>
-          {section.axes.map(axis => {
+          {section.type === "tags" ? section.groups.map(group => (
+            <div key={group.label} style={{ marginBottom:8 }}>
+              <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:9, color:"rgba(255,235,195,0.4)", textTransform:"uppercase", letterSpacing:"0.08em", margin:"4px 0 5px" }}>{group.label}</p>
+              <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
+                {group.options.map(opt => {
+                  const active = Array.isArray(qualifiers._tags) && qualifiers._tags.includes(opt.tag);
+                  return (
+                    <button key={opt.tag} onClick={() => toggleTag(opt.tag)} style={{
+                      padding:"3px 9px", borderRadius:14, cursor:"pointer",
+                      border:`1px solid ${active ? WOOD.amber : "rgba(138,90,40,0.35)"}`,
+                      background: active ? WOOD.amber : "rgba(15,8,2,0.45)",
+                      color: active ? "#1a0900" : "rgba(255,235,195,0.75)",
+                      fontFamily:"'DM Sans',sans-serif", fontSize:10, fontWeight:600,
+                      transition:"all 0.15s",
+                    }}>{opt.label}</button>
+                  );
+                })}
+              </div>
+            </div>
+          )) : section.axes.map(axis => {
             const r = qualifiers[axis.key] || { min: 0, max: 10 };
             const active = r.min > 0 || r.max < 10;
             return (
@@ -2830,7 +2926,7 @@ function PaigeTab({ books, userId, onAddDirect, onBulkAddDirect, onEdit, onAddBo
   // ranges are passed to the scorer so the filter skips axes with no constraint.
   const [qualifiers, setQualifiers] = useState({});
   const [qualifiersOpen, setQualifiersOpen] = useState(false);
-  const activeQualifierCount = Object.values(qualifiers).filter(r => r && (r.min > 0 || r.max < 10)).length;
+  const activeQualifierCount = Object.entries(qualifiers).filter(([k,r]) => k !== "_tags" && r && (r.min > 0 || r.max < 10)).length + (Array.isArray(qualifiers._tags) ? qualifiers._tags.length : 0);
   // Bulk Obi filter: when active, pickedTitles holds Obi's curated picks (title set).
   // results display narrows to that set; null = inactive (show Paige's full list).
   const [obiPicks, setObiPicks] = useState(null);
@@ -4019,7 +4115,7 @@ function BrowseTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAddDir
   const [obiSubstitutions, setObiSubstitutions] = useState([]);
   const obiProfileSnapshot = useContext(LibraryProfileContext);
 
-  const activeQualifierCount = Object.values(qualifiers).filter(r => r && (r.min > 0 || r.max < 10)).length;
+  const activeQualifierCount = Object.entries(qualifiers).filter(([k,r]) => k !== "_tags" && r && (r.min > 0 || r.max < 10)).length + (Array.isArray(qualifiers._tags) ? qualifiers._tags.length : 0);
 
   // Reset Obi state whenever the filter set changes — the curated subset is
   // meaningless against a different filter.
