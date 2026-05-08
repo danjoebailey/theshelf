@@ -2766,7 +2766,7 @@ const QUALIFIER_SECTIONS = [
   },
 ];
 
-function QualifierPanel({ qualifiers, setQualifiers, onClose }) {
+function QualifierPanel({ qualifiers, setQualifiers, onClose, hideSubgenres = false }) {
   const ref = useRef(null);
   // Capture the pill's vertical position at open time and anchor the panel's
   // top to it via position:fixed. Right edge always pinned to the viewport
@@ -2816,7 +2816,7 @@ function QualifierPanel({ qualifiers, setQualifiers, onClose }) {
     // and top anchored just below the pill. Width is capped so the panel
     // can never overflow either direction regardless of where the pill sits.
     <div ref={ref} style={{ position:"fixed", top: topY ?? 80, right:12, visibility: topY != null ? "visible" : "hidden", background:"rgba(40,24,12,0.97)", border:"1px solid rgba(138,90,40,0.3)", borderRadius:10, padding:"10px 0 6px", zIndex:50, width:320, maxWidth:"calc(100vw - 24px)", maxHeight:"min(520px, calc(100vh - 160px))", overflowY:"auto", overflowX:"hidden", overscrollBehavior:"contain", boxShadow:"0 8px 24px rgba(0,0,0,0.5)" }}>
-      {QUALIFIER_SECTIONS.map(section => (
+      {QUALIFIER_SECTIONS.filter(s => !(hideSubgenres && s.type === "tags")).map(section => (
         <div key={section.label} style={{ padding:"4px 14px 8px" }}>
           <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:10, color:"rgba(255,235,195,0.5)", textTransform:"uppercase", letterSpacing:"0.1em", margin:"6px 0" }}>{section.label}</p>
           {section.type === "tags" ? section.groups.map(group => (
@@ -2868,6 +2868,78 @@ function QualifierPanel({ qualifiers, setQualifiers, onClose }) {
           })}
         </div>
       ))}
+      <div style={{ display:"flex", justifyContent:"space-between", gap:8, padding:"6px 14px 8px", borderTop:"1px solid rgba(138,90,40,0.2)", marginTop:4 }}>
+        <button onClick={clearAll} style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, background:"none", border:"none", color:"rgba(255,235,195,0.6)", cursor:"pointer", padding:"4px 0" }}>Clear all</button>
+        <button onClick={onClose} style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, background:WOOD.amber, color:"#1a0900", border:"none", borderRadius:6, padding:"5px 14px", cursor:"pointer", fontWeight:600 }}>Done</button>
+      </div>
+    </div>
+  );
+}
+
+// Standalone subgenre filter — same toggle-pill UI as the section inside
+// QualifierPanel, but mounted on its own pill (used on Browse where
+// subgenres are split out from craft/tone qualifiers).
+function SubgenrePanel({ qualifiers, setQualifiers, onClose }) {
+  const ref = useRef(null);
+  const [topY, setTopY] = useState(null);
+  useEffect(() => {
+    const pill = document.querySelector('[data-subgenre-toggle="1"]');
+    if (!pill) return;
+    setTopY(pill.getBoundingClientRect().bottom + 4);
+  }, []);
+  useEffect(() => {
+    function handler(e) {
+      if (!ref.current) return;
+      if (ref.current.contains(e.target)) return;
+      if (e.target.closest('[data-subgenre-toggle="1"]')) return;
+      onClose();
+    }
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [onClose]);
+
+  function toggleTag(tag) {
+    const cur = Array.isArray(qualifiers._tags) ? qualifiers._tags : [];
+    const next = cur.includes(tag) ? cur.filter(t => t !== tag) : [...cur, tag];
+    const clean = { ...qualifiers };
+    if (next.length === 0) delete clean._tags;
+    else clean._tags = next;
+    setQualifiers(clean);
+  }
+  function clearAll() {
+    const clean = { ...qualifiers };
+    delete clean._tags;
+    setQualifiers(clean);
+  }
+
+  const section = QUALIFIER_SECTIONS.find(s => s.type === "tags");
+  if (!section) return null;
+
+  return (
+    <div ref={ref} style={{ position:"fixed", top: topY ?? 80, right:12, visibility: topY != null ? "visible" : "hidden", background:"rgba(40,24,12,0.97)", border:"1px solid rgba(138,90,40,0.3)", borderRadius:10, padding:"10px 0 6px", zIndex:50, width:320, maxWidth:"calc(100vw - 24px)", maxHeight:"min(520px, calc(100vh - 160px))", overflowY:"auto", overflowX:"hidden", overscrollBehavior:"contain", boxShadow:"0 8px 24px rgba(0,0,0,0.5)" }}>
+      <div style={{ padding:"4px 14px 8px" }}>
+        <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:10, color:"rgba(255,235,195,0.5)", textTransform:"uppercase", letterSpacing:"0.1em", margin:"6px 0" }}>{section.label}</p>
+        {section.groups.map(group => (
+          <div key={group.label} style={{ marginBottom:8 }}>
+            <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:9, color:"rgba(255,235,195,0.4)", textTransform:"uppercase", letterSpacing:"0.08em", margin:"4px 0 5px" }}>{group.label}</p>
+            <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
+              {group.options.map(opt => {
+                const active = Array.isArray(qualifiers._tags) && qualifiers._tags.includes(opt.tag);
+                return (
+                  <button key={opt.tag} onClick={() => toggleTag(opt.tag)} style={{
+                    padding:"3px 9px", borderRadius:14, cursor:"pointer",
+                    border:`1px solid ${active ? WOOD.amber : "rgba(138,90,40,0.35)"}`,
+                    background: active ? WOOD.amber : "rgba(15,8,2,0.45)",
+                    color: active ? "#1a0900" : "rgba(255,235,195,0.75)",
+                    fontFamily:"'DM Sans',sans-serif", fontSize:10, fontWeight:600,
+                    transition:"all 0.15s",
+                  }}>{opt.label}</button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
       <div style={{ display:"flex", justifyContent:"space-between", gap:8, padding:"6px 14px 8px", borderTop:"1px solid rgba(138,90,40,0.2)", marginTop:4 }}>
         <button onClick={clearAll} style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, background:"none", border:"none", color:"rgba(255,235,195,0.6)", cursor:"pointer", padding:"4px 0" }}>Clear all</button>
         <button onClick={onClose} style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, background:WOOD.amber, color:"#1a0900", border:"none", borderRadius:6, padding:"5px 14px", cursor:"pointer", fontWeight:600 }}>Done</button>
@@ -4100,6 +4172,7 @@ function BrowseTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAddDir
   const [genreDropOpen, setGenreDropOpen] = useState(false);
   const [qualifiers, setQualifiers] = useState({});
   const [qualifiersOpen, setQualifiersOpen] = useState(false);
+  const [subgenresOpen, setSubgenresOpen] = useState(false);
   const [items, setItems] = useState([]);
   const [total, setTotal] = useState(0);
   const [hasMore, setHasMore] = useState(false);
@@ -4115,7 +4188,10 @@ function BrowseTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAddDir
   const [obiSubstitutions, setObiSubstitutions] = useState([]);
   const obiProfileSnapshot = useContext(LibraryProfileContext);
 
-  const activeQualifierCount = Object.entries(qualifiers).filter(([k,r]) => k !== "_tags" && r && (r.min > 0 || r.max < 10)).length + (Array.isArray(qualifiers._tags) ? qualifiers._tags.length : 0);
+  // Browse splits subgenre selection into its own pill, so this count covers
+  // only the slider qualifiers.
+  const activeQualifierCount = Object.entries(qualifiers).filter(([k,r]) => k !== "_tags" && r && (r.min > 0 || r.max < 10)).length;
+  const activeSubgenreCount = Array.isArray(qualifiers._tags) ? qualifiers._tags.length : 0;
 
   // Reset Obi state whenever the filter set changes — the curated subset is
   // meaningless against a different filter.
@@ -4291,6 +4367,29 @@ function BrowseTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAddDir
           </div>}
         </div>
         <div style={{ position:"relative" }}>
+          <button data-subgenre-toggle="1" onClick={() => setSubgenresOpen(o => !o)} style={{
+            padding:"5px 12px", borderRadius:20, fontSize:12, fontFamily:"'DM Sans',sans-serif", fontWeight:500,
+            cursor:"pointer", transition:"background 0.15s, color 0.15s", display:"flex", alignItems:"center", gap:5, maxWidth:"60vw",
+            background: activeSubgenreCount > 0 ? WOOD.amber : "rgba(15,8,2,0.55)",
+            color: activeSubgenreCount > 0 ? "#1a0900" : "#fff",
+            border: "1px solid rgba(120,70,20,0.3)", backdropFilter:"blur(4px)",
+          }}>
+            <span style={{ overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", minWidth:0 }}>
+              {(() => {
+                const tags = Array.isArray(qualifiers._tags) ? qualifiers._tags : [];
+                if (!tags.length) return "Subgenres";
+                const section = QUALIFIER_SECTIONS.find(s => s.type === "tags");
+                const labelByTag = new Map();
+                section?.groups.forEach(g => g.options.forEach(o => labelByTag.set(o.tag, o.label)));
+                const first = labelByTag.get(tags[0]) || tags[0];
+                return tags.length === 1 ? first : `${first} +${tags.length - 1}`;
+              })()}
+            </span>
+            <span style={{ fontSize:10, color: activeSubgenreCount > 0 ? "rgba(26,9,0,0.5)" : "rgba(255,255,255,0.5)", display:"inline-block", transition:"transform 0.2s", transform: subgenresOpen ? "rotate(180deg)" : "rotate(0deg)", flexShrink:0 }}>▾</span>
+          </button>
+          {subgenresOpen && <SubgenrePanel qualifiers={qualifiers} setQualifiers={setQualifiers} onClose={() => setSubgenresOpen(false)} />}
+        </div>
+        <div style={{ position:"relative" }}>
           <button data-qualifier-toggle="1" onClick={() => setQualifiersOpen(o => !o)} style={{
             padding:"5px 12px", borderRadius:20, fontSize:12, fontFamily:"'DM Sans',sans-serif", fontWeight:500,
             cursor:"pointer", transition:"background 0.15s, color 0.15s", display:"flex", alignItems:"center", gap:5,
@@ -4302,7 +4401,7 @@ function BrowseTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAddDir
             <span style={{ display:"inline-block", width:18, textAlign:"center", fontVariantNumeric:"tabular-nums" }}>{activeQualifierCount > 0 ? activeQualifierCount : ""}</span>
             <span style={{ fontSize:10, color: activeQualifierCount > 0 ? "rgba(26,9,0,0.5)" : "rgba(255,255,255,0.5)", display:"inline-block", transition:"transform 0.2s", transform: qualifiersOpen ? "rotate(180deg)" : "rotate(0deg)" }}>▾</span>
           </button>
-          {qualifiersOpen && <QualifierPanel qualifiers={qualifiers} setQualifiers={setQualifiers} onClose={() => setQualifiersOpen(false)} />}
+          {qualifiersOpen && <QualifierPanel qualifiers={qualifiers} setQualifiers={setQualifiers} onClose={() => setQualifiersOpen(false)} hideSubgenres />}
         </div>
       </div>
 
