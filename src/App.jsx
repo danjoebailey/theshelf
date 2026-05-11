@@ -3983,6 +3983,7 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAdd
     return base;
   })();
   const unmatchedCount = scannedBooks.filter(b => b._inCatalog === false).length;
+  const matchedCount = scannedBooks.length - unmatchedCount;
   // Catalog-confirmed and not already owned — eligible for bulk add.
   const bulkAddable = (() => {
     const ownedKeys = new Set(books.map(b => normBookKey(b.title)));
@@ -4087,13 +4088,13 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAdd
               {obiPicks
                 ? `Obi-curated · ${displayList.length}`
                 : hideUnmatched
-                  ? `Matched · ${displayList.length} of ${scannedBooks.length}`
-                  : `Found · ${scannedBooks.length} books`}
+                  ? `In catalog · ${displayList.length} of ${scannedBooks.length} read`
+                  : `${scannedBooks.length} read${matchedCount > 0 ? ` · ${matchedCount} in catalog` : ""}`}
             </p>
             <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
               {unmatchedCount > 0 && (
                 <button onClick={() => setHideUnmatched(v => !v)} style={{ display:"flex", alignItems:"center", gap:5, background: hideUnmatched ? "rgba(200,136,58,0.25)" : "rgba(15,8,2,0.55)", color:"#fff", border: hideUnmatched ? "1px solid rgba(200,136,58,0.6)" : "1px solid rgba(120,70,20,0.3)", borderRadius:14, padding:"4px 10px", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, cursor:"pointer", backdropFilter:"blur(4px)" }}>
-                  {hideUnmatched ? "✓ Matched only" : "Show only matched"}
+                  {hideUnmatched ? "✓ In catalog only" : "Hide unknown spines"}
                 </button>
               )}
               {obiPicks
