@@ -4088,8 +4088,8 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAdd
               {obiPicks
                 ? `Obi-curated · ${displayList.length}`
                 : hideUnmatched
-                  ? `In catalog · ${displayList.length} of ${scannedBooks.length} read`
-                  : `${scannedBooks.length} read${matchedCount > 0 ? ` · ${matchedCount} in catalog` : ""}`}
+                  ? `In catalog · ${displayList.length} of ${scannedBooks.length} identified`
+                  : `${scannedBooks.length} identified${matchedCount > 0 ? ` · ${matchedCount} in catalog` : ""}`}
             </p>
             <div style={{ display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
               {unmatchedCount > 0 && (
