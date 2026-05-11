@@ -17,7 +17,13 @@ async function callClaudeVision(apiKey, content, maxTokens = 4500) {
       messages: [{ role: "user", content }],
     }),
   });
-  if (!response.ok) throw new Error(`Claude ${response.status}: ${await response.text()}`);
+  if (!response.ok) {
+    const body = await response.text();
+    const err = new Error(`Claude ${response.status}: ${body}`);
+    err.status = response.status;
+    err.body = body;
+    throw err;
+  }
   const data = await response.json();
   return (data.content?.[0]?.text || "").trim();
 }
@@ -113,6 +119,17 @@ export default async function handler(req, res) {
 
     let failedRows = 0;
     let totalRows = 1;
+    const failuresByStatus = {}; // e.g. { "429": 2, "529": 1, "parse": 1, "unknown": 1 }
+    function bucketFailure(s) {
+      let key;
+      if (s.status === "rejected") {
+        const code = s.reason?.status;
+        key = code ? String(code) : "unknown";
+      } else {
+        key = "parse"; // resolved but no books parsed
+      }
+      failuresByStatus[key] = (failuresByStatus[key] || 0) + 1;
+    }
 
     if (crops.length > SINGLE_CALL_THRESHOLD) {
       // Per-row parallel fan-out. Each row batch is small (cols crops +
@@ -144,8 +161,10 @@ export default async function handler(req, res) {
           console.log(`[scan-shelf] row ${rowKeys[i]}: ${s.value.books.length} books${s.value.truncated ? " (truncated)" : ""}`);
         } else {
           failedRows++;
+          bucketFailure(s);
+          const code = s.status === "rejected" ? (s.reason?.status ?? "unknown") : "parse";
           const reason = s.status === "rejected" ? s.reason?.message : "no books parsed";
-          console.warn(`[scan-shelf] row ${rowKeys[i]} FAILED: ${reason}`);
+          console.warn(`[scan-shelf] row ${rowKeys[i]} FAILED status=${code}: ${reason?.slice?.(0, 300) || reason}`);
         }
       }
       if (allBooks.length === 0) {
@@ -170,7 +189,8 @@ export default async function handler(req, res) {
       seen.add(key);
       return true;
     });
-    res.json({ books: deduped, truncated: anyTruncated, failedRows, totalRows });
+    if (failedRows > 0) console.warn(`[scan-shelf] summary: ${failedRows}/${totalRows} rows failed`, failuresByStatus);
+    res.json({ books: deduped, truncated: anyTruncated, failedRows, totalRows, failuresByStatus });
   } catch (e) {
     res.status(500).json({ error: e.message || "Scan failed" });
   }
