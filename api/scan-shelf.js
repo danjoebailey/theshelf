@@ -148,8 +148,18 @@ export default async function handler(req, res) {
         rowKeys.map(async rowNum => {
           const batch = byRow[rowNum];
           const content = buildContent(overview, batch, rows, cols, `row ${rowNum} of ${rows}`);
-          const raw = await callWithRetry(apiKey, content, 3500);
-          return parseBookArray(raw.replace(/```json|```/g, "").trim());
+          let raw = await callWithRetry(apiKey, content, 3500);
+          let cleaned = raw.replace(/```json|```/g, "").trim();
+          let parsed = parseBookArray(cleaned);
+          if (!parsed.books) {
+            // Parse failed on first attempt — Claude likely returned a refusal
+            // or non-JSON prose. Second sampling often produces valid JSON
+            // even when the first didn't, so try once more before giving up.
+            raw = await callWithRetry(apiKey, content, 3500);
+            cleaned = raw.replace(/```json|```/g, "").trim();
+            parsed = parseBookArray(cleaned);
+          }
+          return { ...parsed, raw: cleaned };
         })
       );
 
@@ -164,7 +174,10 @@ export default async function handler(req, res) {
           bucketFailure(s);
           const code = s.status === "rejected" ? (s.reason?.status ?? "unknown") : "parse";
           const reason = s.status === "rejected" ? s.reason?.message : "no books parsed";
-          console.warn(`[scan-shelf] row ${rowKeys[i]} FAILED status=${code}: ${reason?.slice?.(0, 300) || reason}`);
+          const rawSnippet = s.status === "fulfilled" && s.value?.raw
+            ? ` raw="${s.value.raw.slice(0, 300).replace(/\s+/g, " ")}"`
+            : "";
+          console.warn(`[scan-shelf] row ${rowKeys[i]} FAILED status=${code}: ${reason?.slice?.(0, 300) || reason}${rawSnippet}`);
         }
       }
       if (allBooks.length === 0) {
