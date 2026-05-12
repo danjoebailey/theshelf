@@ -3959,10 +3959,10 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAdd
               }),
             });
             const vdata = await vres.json();
-            // Drop only confirmed "pass" — keep "yes", "maybe", and parse
-            // failures (null) so we don't silently lose books on network
-            // hiccups or model non-determinism.
-            return vdata.call === "pass" ? null : title;
+            // Keep only confident "yes" verdicts. Drop "pass", "maybe", and
+            // parse failures — bulk picks should surface real endorsements,
+            // not uncertain ones or unreadable responses.
+            return vdata.call === "yes" ? title : null;
           } catch {
             return title;  // network error — fail open, keep the pick
           }
