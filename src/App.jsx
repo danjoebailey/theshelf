@@ -3931,7 +3931,49 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAdd
         setObiPicks(new Set());
         setObiSubstitutions([]);
       } else {
-        const resolved = await resolveSeriesPicks(data.picks, books);
+        // Second pass — bulk_filter is permissive by design (we want broad
+        // candidates), so each pick goes through the stricter per-book
+        // verdict prompt as a final cut. Verdict mode is proven correct
+        // on cross-identity shelves (e.g. romantasy reader looking at
+        // literary fiction); bulk alone reaches across genre identity.
+        // Verdicts cache server-side per (user, title, author), so the
+        // first scan eats the cost and re-scans / re-clicks are free.
+        const candByTitle = new Map(scannedBooks.map(b => [b.title.toLowerCase(), b]));
+        const passes = await Promise.all(data.picks.map(async title => {
+          const book = candByTitle.get(title.toLowerCase());
+          if (!book) return title;  // pick doesn't map to a candidate — keep
+          try {
+            const vres = await fetch("/api/ask-obi", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                mode: "verdict",
+                book: {
+                  title: book.title,
+                  author: book.author || "Unknown",
+                  genre: book.genre || null,
+                  description: book.description || null,
+                },
+                profile: profileForObi,
+                userId,
+              }),
+            });
+            const vdata = await vres.json();
+            // Drop only confirmed "pass" — keep "yes", "maybe", and parse
+            // failures (null) so we don't silently lose books on network
+            // hiccups or model non-determinism.
+            return vdata.call === "pass" ? null : title;
+          } catch {
+            return title;  // network error — fail open, keep the pick
+          }
+        }));
+        const filteredPicks = passes.filter(Boolean);
+        if (filteredPicks.length === 0) {
+          // All bulk picks failed the verdict pass — zero-state.
+          setObiPicks(new Set());
+          setObiSubstitutions([]);
+        } else {
+        const resolved = await resolveSeriesPicks(filteredPicks, books);
         const finalTitles = resolved.map(r => r.title);
         const substitutions = resolved.filter(r => r.book).map(r => r.book);
         setObiSubstitutions(substitutions);
@@ -3961,6 +4003,7 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAdd
             itemsForAdd.push({ title: r.title, author: r.author || "Unknown", genre: r.genre || "Fiction", pages: r.pages || 0, coverUrl: covMap[r.title] || null, publishYear: r.publishYear || null });
           }
           if (itemsForAdd.length) onBulkAddDirect(itemsForAdd, "Recommended");
+        }
         }
       }
     } catch (e) {
