@@ -3925,7 +3925,12 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAdd
         }),
       });
       const data = await res.json();
-      if (data.picks?.length) {
+      if (!data.picks?.length) {
+        // Obi finished but endorsed nothing — show the zero-state explicitly
+        // so the user doesn't think the button silently failed.
+        setObiPicks(new Set());
+        setObiSubstitutions([]);
+      } else {
         const resolved = await resolveSeriesPicks(data.picks, books);
         const finalTitles = resolved.map(r => r.title);
         const substitutions = resolved.filter(r => r.book).map(r => r.book);
