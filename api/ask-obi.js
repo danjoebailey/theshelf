@@ -86,9 +86,10 @@ export default async function handler(req, res) {
     const { books, profile, listFingerprint } = req.body;
     if (!Array.isArray(books) || !books.length) return res.status(400).json({ error: "No books" });
 
-    // v4 cache key — invalidates v3 picks generated under a too-inclusive prompt
-    // (bulk filter was reaching across genre identity to hit a 4+ dimensions
-    // threshold; v4 prompt holds the bar at the individual verdict standard).
+    // v4 cache key — bumped during a prompt-tightening experiment that was
+    // reverted after one questionable rec turned out to be too thin a signal
+    // to act on. Leaving v4 in place keeps invalidated cache entries dead,
+    // so the next call recomputes fresh under the (restored) inclusive prompt.
     // that anchored on 'at most 10' + 'be strict' and missed obvious yeses.
     const cacheKey = `bulk::v4::${listFingerprint || ""}`;
     if (listFingerprint) {
@@ -115,11 +116,11 @@ ${buildProfileLines(profile)}`;
 Candidate list:
 ${bookList}
 
-For each book, apply the same test you'd use giving an individual verdict: if the reader asked you "should I read this one?", would your honest answer be "yes" or "pass"?
+For each book on this list, apply this test: if the reader asked you about it individually, would you say "yes, read this" or "pass"? Include EVERY book where the answer is yes — don't stop at an arbitrary count, and don't shy away from returning 15+ books if that many genuinely fit.
 
-Hold the bar at "yes." The match has to come from the reading identity this library actually expresses — the dominant genres, tones, and concerns the reader has demonstrably gravitated toward — not from abstract craft alignment. A romantasy reader doesn't want Fight Club because it has great prose. A literary-fiction reader doesn't want Throne of Glass because it has strong characters. Cross-identity picks are rare and require fit on every dimension at once. When in doubt, pass.
+A yes requires alignment across multiple dimensions (prose quality, themes, tone, intellectual register, what this reader has actually loved before) — not just a shared genre tag. A book that nails 4+ dimensions is a yes; one that shares only a genre is a pass.
 
-Return only books that would earn an honest "yes" individually. Return [] if nothing meets that bar — empty is often the right answer when the candidate list doesn't overlap with this reader's tastes.
+Return up to 25 to keep the response manageable. Return [] if none fit.
 
 Output ONLY a JSON array of 1-based indices in original input order. No prose.
 Example: [1, 3, 4, 7, 12, 15, 18, 23]`;
