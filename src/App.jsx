@@ -284,10 +284,10 @@ function DecorativeShelf({ books }) {
         <img src="/shelf-nav-books.png" alt="books" style={{ height:58, width:"auto", flexShrink:0, objectFit:"contain", objectPosition:"bottom", alignSelf:"flex-end", transform:"translateY(4px)" }} />
         <img src="/knight.png" alt="knight" style={{ height:72, width:"auto", flexShrink:0, filter:"drop-shadow(2px 4px 6px rgba(0,0,0,0.5))", objectFit:"contain", alignSelf:"flex-end", transform:"translateY(4px)" }} />
       </div>
-      <div style={{
-        position:"absolute", left:0, right:0, bottom:0, height:ledgeH,
-        background:"linear-gradient(180deg, #d4a060 0%, #b07840 60%, #8a5a28 100%)",
-        boxShadow:"0 4px 10px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,220,140,0.3)",
+      <img src="/discover-shelf.png" alt="" aria-hidden="true" style={{
+        position:"absolute", left:0, right:0, bottom:0, width:"100%", height:9,
+        display:"block", objectFit:"cover", pointerEvents:"none",
+        filter:"drop-shadow(0 4px 6px rgba(0,0,0,0.32))",
       }}/>
     </div>
   );
@@ -3240,8 +3240,8 @@ function PaigeTab({ books, userId, onAddDirect, onBulkAddDirect, onEdit, onAddBo
               ))}
             </div>
             <img src="/discover-shelf.png" alt="" aria-hidden="true" style={{
-              display:"block", width:"100%", height:"auto",
-              marginTop:2, pointerEvents:"none",
+              display:"block", width:"100%", height:12,
+              marginTop:2, objectFit:"cover", pointerEvents:"none",
               filter:"drop-shadow(0 4px 6px rgba(0,0,0,0.32))",
             }} />
             {modeInfo && <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:"rgba(255,235,195,0.6)", marginTop:6, fontStyle:"italic", textAlign:"center" }}>{modeInfo.desc}</p>}
@@ -4572,7 +4572,7 @@ function RecommendPage({ books, userId, onAddDirect, onBulkAddDirect, onAuthor, 
           right edge by default so users discover it via the chevron arrow.
           Hidden while the content area is scrolled so it only reveals at top. */}
       <div style={{
-        position:"relative", background:WOOD.card, flexShrink:0,
+        position:"relative", flexShrink:0,
         maxHeight: atTop ? 220 : 0,
         opacity: atTop ? 1 : 0,
         overflow:"hidden",
@@ -4614,14 +4614,19 @@ function RecommendPage({ books, userId, onAddDirect, onBulkAddDirect, onAuthor, 
                 </button>
               ))}
             </div>
-            <img src="/discover-shelf.png" alt="" aria-hidden="true" style={{
-              display:"block", width:"100%", height:"auto",
-              marginTop:-30, position:"sticky", left:0, zIndex:1,
-              pointerEvents:"none",
-              filter:"drop-shadow(0 4px 6px rgba(0,0,0,0.32))",
-            }} />
           </div>
         </div>
+        {/* Full-viewport-width shelf band, independent of horizontal scroller's
+            content width so it always extends edge-to-edge. Sits at the bottom
+            of the wrapper so character labels (sitting near the bottom of the
+            scroller area via paddingBottom) read over the shelf surface. */}
+        <img src="/discover-shelf.png" alt="" aria-hidden="true" style={{
+          position:"absolute", left:0, right:0, bottom:10,
+          width:"100%", height:18, display:"block",
+          objectFit:"cover", objectPosition:"top",
+          pointerEvents:"none", zIndex:1,
+          filter:"drop-shadow(0 4px 6px rgba(0,0,0,0.32))",
+        }} />
         {showLeftArrow && (
           <button onClick={() => scrollBy(-1)} aria-label="Previous" style={{
             position:"absolute", left:4, top:"50%", transform:"translateY(-50%)",
