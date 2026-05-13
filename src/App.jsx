@@ -6782,7 +6782,7 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, seriesTier
   );
 }
 
-function StatsTab({ books }) {
+function StatsTab({ books, characterAvatar }) {
   const [timeline, setTimeline] = useState("All");
   const [filterMonth, setFilterMonth] = useState(null);
   const [filterOpen, setFilterOpen] = useState(false);
@@ -7120,18 +7120,39 @@ function StatsTab({ books }) {
         </div>
       )}
 
-      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8, marginBottom:12 }}>
+      <div style={{
+        display:"grid",
+        gridTemplateColumns: characterAvatar ? "1fr 96px 1fr" : "1fr 1fr",
+        gap:8, marginBottom:12, alignItems:"stretch",
+      }}>
+        {characterAvatar && (
+          <div style={{
+            gridColumn:2, gridRow:"1 / 3",
+            display:"flex", alignItems:"flex-end", justifyContent:"center",
+            pointerEvents:"none",
+          }}>
+            <img src={characterAvatar} alt="" style={{
+              maxWidth:"100%", maxHeight:"100%",
+              objectFit:"contain", objectPosition:"bottom", display:"block",
+            }} />
+          </div>
+        )}
         {[
           { label:"Books Read", value:filteredBooks.length, emoji:"📖" },
           { label:"Pages Turned", value:stats.totalPages.toLocaleString(), emoji:"📄" },
           { label:"Avg Rating", value:stats.avgRating ? stats.avgRating.toFixed(2)+" ★" : "—", emoji:"⭐" },
           { label:"Genres", value:Object.keys(stats.genreMap).length, emoji:"🏷️" },
-        ].map(({ label,value })=>(
-          <div key={label} style={{ ...card, padding:"11px 12px", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:4 }}>
-            <div style={{ fontFamily:"'Crimson Pro',serif", fontSize:28, fontWeight:400, color:WOOD.text, lineHeight:1 }}>{value}</div>
-            <div style={{ fontSize:9, color:WOOD.textFaint, textTransform:"uppercase", letterSpacing:"0.12em" }}>{label}</div>
-          </div>
-        ))}
+        ].map(({ label,value }, i)=>{
+          const placement = characterAvatar
+            ? { gridColumn: i % 2 === 0 ? 1 : 3, gridRow: Math.floor(i/2) + 1 }
+            : null;
+          return (
+            <div key={label} style={{ ...card, padding:"11px 12px", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:4, ...placement }}>
+              <div style={{ fontFamily:"'Crimson Pro',serif", fontSize:28, fontWeight:400, color:WOOD.text, lineHeight:1 }}>{value}</div>
+              <div style={{ fontSize:9, color:WOOD.textFaint, textTransform:"uppercase", letterSpacing:"0.12em" }}>{label}</div>
+            </div>
+          );
+        })}
       </div>
 
       {(() => {
@@ -9773,7 +9794,10 @@ export default function App() {
             ? <RecommendPage books={books} userId={userId} onAddDirect={(book, shelf) => { const existing = books.find(x => normBookKey(x.title) === normBookKey(book.title)); if (existing) { changeShelf(existing.id, shelf); return; } const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, rating:0, date:todayLocal() }; setBooks(prev => [...prev, b]); if (!guestMode) dbAddBook(b, userId); }} onBulkAddDirect={(items, shelf) => { if (!items?.length) return; const today = todayLocal(); const baseId = Date.now(); const ownedKeys = new Set(books.map(x => normBookKey(x.title))); const newBooks = items.filter(it => it?.title && !ownedKeys.has(normBookKey(it.title))).map((it, idx) => ({ id: baseId + idx, title: it.title, author: it.author || "Unknown", genre: normalizeGenre(it.genre), pages: parseInt(it.pages) || 0, rating: 0, shelf, coverUrl: it.coverUrl || null, coverId: null, date: today, publishYear: it.publishYear || null })); if (!newBooks.length) return; setBooks(prev => [...prev, ...newBooks]); if (!guestMode) newBooks.forEach(b => dbAddBook(b, userId)); track("bulk_add", { count: newBooks.length, shelf }); clearTimeout(toastTimer.current); setToast({ title: `${newBooks.length} ${newBooks.length === 1 ? "book" : "books"}`, shelf }); toastTimer.current = setTimeout(() => setToast(null), 3000); }} onAuthor={setAuthorModal} onEdit={setEditBook} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:todayLocal(), description:"", scores:null, notes:"", _fromRecs:true }); }} onShelfChange={changeShelf} onSaveScores={saveScores} />
             : tab==="rankings"
             ? <RankingsTab books={books} onSaveScores={saveScores} userId={userId} authorTiers={authorTiers} seriesTiers={seriesTiers} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:todayLocal(), description:"", scores:null, notes:"", _fromRecs:true }); }} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, date:todayLocal() }; setBooks(prev => [...prev, b]); if (!guestMode) dbAddBook(b, userId); }} onShelfChange={changeShelf} onEdit={setEditBook} onAuthor={setAuthorModal} />
-            : <StatsTab books={books} />
+            : <StatsTab books={books} characterAvatar={(() => {
+                const picked = guestMode ? localStorage.getItem("theshelf:avatarUrl") : session?.user?.user_metadata?.avatar_url;
+                return picked?.startsWith("/avatars/") ? picked : null;
+              })()} />
           }
           {showAdd && <AddSheet onSave={addBook} onClose={()=>setShowAdd(false)} />}
           {(addBookDraft || editBook) && (() => {
