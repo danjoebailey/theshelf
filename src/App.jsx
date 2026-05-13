@@ -7082,8 +7082,16 @@ function StatsTab({ books }) {
       {filteredBooks.length > 0 && (
         <div style={{ marginBottom:20, marginLeft:-16, marginRight:-16 }}>
           {!groupBy ? (
-            <div style={{ display:"flex", gap:6, overflowX:"auto", padding:"16px 16px 12px", scrollbarWidth:"none" }}>
-              {filteredBooks.map(b => <BookCoverThumb key={b.id} book={b} />)}
+            <div style={{ position:"relative" }}>
+              <div style={{ display:"flex", gap:6, overflowX:"auto", padding:"16px 16px 12px", scrollbarWidth:"none" }}>
+                {filteredBooks.map(b => <BookCoverThumb key={b.id} book={b} />)}
+              </div>
+              <img src="/discover-shelf.png" alt="" aria-hidden="true" style={{
+                position:"absolute", left:0, right:0, bottom:0,
+                width:"100%", height:12, display:"block",
+                objectFit:"cover", pointerEvents:"none",
+                filter:"drop-shadow(0 4px 6px rgba(0,0,0,0.32))",
+              }} />
             </div>
           ) : (
             groupedBooks.map(([groupKey, groupBooks]) => (
@@ -7095,14 +7103,20 @@ function StatsTab({ books }) {
                   }
                   <span style={{ fontSize:11, color:"#fff", fontFamily:"'DM Sans',sans-serif", fontWeight:500 }}>({groupBooks.length})</span>
                 </div>
-                <div style={{ display:"flex", gap:6, overflowX:"auto", padding:"2px 16px 10px", scrollbarWidth:"none" }}>
-                  {groupBooks.map(b => <BookCoverThumb key={b.id} book={b} />)}
+                <div style={{ position:"relative" }}>
+                  <div style={{ display:"flex", gap:6, overflowX:"auto", padding:"2px 16px 10px", scrollbarWidth:"none" }}>
+                    {groupBooks.map(b => <BookCoverThumb key={b.id} book={b} />)}
+                  </div>
+                  <img src="/discover-shelf.png" alt="" aria-hidden="true" style={{
+                    position:"absolute", left:0, right:0, bottom:0,
+                    width:"100%", height:12, display:"block",
+                    objectFit:"cover", pointerEvents:"none",
+                    filter:"drop-shadow(0 4px 6px rgba(0,0,0,0.32))",
+                  }} />
                 </div>
-                <div style={{ height:1, background:"rgba(138,90,40,0.12)", marginLeft:16, marginRight:16 }}/>
               </div>
             ))
           )}
-          <div style={{ height:1, background:"rgba(138,90,40,0.2)", marginLeft:16, marginRight:16 }}/>
         </div>
       )}
 
