@@ -8979,6 +8979,15 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd, userI
   );
 }
 
+// For character avatars in /avatars/, prefer the dedicated -head.png companion
+// at small sizes (corner menu, modal header). Google OAuth and other URLs pass through.
+function smallAvatarUrl(url) {
+  if (!url) return url;
+  const m = url.match(/^\/avatars\/([a-z0-9-]+)\.(png|jpg|webp)$/);
+  if (m && !m[1].endsWith("-head")) return `/avatars/${m[1]}-head.${m[2]}`;
+  return url;
+}
+
 // Profile scaffold — identity surface that will eventually host friend-visible
 // content. Persists display name in user_metadata.full_name (or localStorage
 // for guests) so the existing avatar dropdown and any future friend search
@@ -8990,6 +8999,12 @@ function ProfileModal({ session, onClose }) {
   const email = user?.email || "";
   const isGuest = !user;
   const GUEST_NAME_KEY = "theshelf:displayName";
+  const GUEST_AVATAR_KEY = "theshelf:avatarUrl";
+  const AVATAR_OPTIONS = [
+    { file: "madrick.png", label: "Madrick", color: "#a07040" },
+    { file: "four-ayes.png", label: "Four Ayes", color: "#c89850" },
+    { file: "sweetie.png", label: "Sweetie", color: "#d4a060" },
+  ];
 
   const [name, setName] = useState(() => {
     if (isGuest) return localStorage.getItem(GUEST_NAME_KEY) || "";
@@ -8998,6 +9013,14 @@ function ProfileModal({ session, onClose }) {
   const [savedAt, setSavedAt] = useState(0);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
+  const [avatarUrl, setAvatarUrl] = useState(() => {
+    if (isGuest) return localStorage.getItem(GUEST_AVATAR_KEY) || null;
+    return avatar;
+  });
+  const [avatarSavedAt, setAvatarSavedAt] = useState(0);
+  const [avatarError, setAvatarError] = useState(null);
+  const [brokenAvatars, setBrokenAvatars] = useState({});
+  const [headerBroken, setHeaderBroken] = useState(false);
 
   async function commitName() {
     const trimmed = name.trim();
@@ -9021,8 +9044,28 @@ function ProfileModal({ session, onClose }) {
     }
   }
 
+  async function pickAvatar(url) {
+    if (url === avatarUrl) return;
+    setAvatarError(null);
+    setHeaderBroken(false);
+    try {
+      if (isGuest) {
+        if (url) localStorage.setItem(GUEST_AVATAR_KEY, url);
+        else localStorage.removeItem(GUEST_AVATAR_KEY);
+      } else {
+        const { error: e } = await supabase.auth.updateUser({ data: { avatar_url: url } });
+        if (e) throw e;
+      }
+      setAvatarUrl(url);
+      setAvatarSavedAt(Date.now());
+    } catch (e) {
+      setAvatarError(e?.message || "Couldn't save avatar");
+    }
+  }
+
   const headerName = name.trim() || email || "Reader";
   const showSaved = savedAt && Date.now() - savedAt < 2000;
+  const showAvatarSaved = avatarSavedAt && Date.now() - avatarSavedAt < 2000;
 
   return (
     <div onClick={onClose} style={{
@@ -9042,8 +9085,8 @@ function ProfileModal({ session, onClose }) {
 
         {/* Identity header */}
         <div style={{ display:"flex", alignItems:"center", gap:14, marginBottom:24 }}>
-          {avatar
-            ? <img src={avatar} alt={headerName} style={{ width:64, height:64, borderRadius:"50%", flexShrink:0 }} />
+          {avatarUrl && !headerBroken
+            ? <img src={smallAvatarUrl(avatarUrl)} alt={headerName} onError={() => setHeaderBroken(true)} style={{ width:64, height:64, borderRadius:"50%", flexShrink:0, objectFit:"contain" }} />
             : <div style={{ width:64, height:64, borderRadius:"50%", background:WOOD.amber, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
                 <span style={{ fontSize:28, fontWeight:600, color:"#1a0900", fontFamily:"'DM Sans',sans-serif" }}>{(headerName || "?")[0].toUpperCase()}</span>
               </div>
@@ -9076,6 +9119,57 @@ function ProfileModal({ session, onClose }) {
           {saving && <p style={{ fontSize:11, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif" }}>Saving…</p>}
           {!saving && showSaved && <p style={{ fontSize:11, color:"#3d7a4f", fontFamily:"'DM Sans',sans-serif" }}>Saved</p>}
           {error && <p style={{ fontSize:11, color:"#c0392b", fontFamily:"'DM Sans',sans-serif" }}>{error}</p>}
+        </div>
+
+        {/* Avatar picker */}
+        <div style={{ marginTop:18 }}>
+          <p style={{ fontSize:11, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Avatar</p>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:12 }}>
+            {AVATAR_OPTIONS.map(opt => {
+              const src = `/avatars/${opt.file}`;
+              const selected = avatarUrl === src;
+              const broken = brokenAvatars[opt.file];
+              return (
+                <button
+                  key={opt.file}
+                  onClick={() => pickAvatar(src)}
+                  aria-label={`Choose avatar ${opt.label}`}
+                  style={{
+                    width:"100%", padding:0, cursor:"pointer",
+                    background:"transparent", border:"none",
+                    display:"flex", flexDirection:"column", alignItems:"center", gap:6,
+                  }}
+                >
+                  <div style={{
+                    width:"100%", aspectRatio:"3 / 5", borderRadius:10,
+                    background: broken ? opt.color : "rgba(255,245,220,0.5)",
+                    border: selected ? `2px solid ${WOOD.amber}` : `1px solid ${WOOD.border}`,
+                    boxShadow: selected ? `0 0 0 3px ${WOOD.amber}33` : "none",
+                    overflow:"hidden", transition:"all 0.15s",
+                    display:"flex", alignItems:"flex-end", justifyContent:"center",
+                  }}>
+                    {!broken && (
+                      <img
+                        src={src}
+                        alt=""
+                        onError={() => setBrokenAvatars(b => ({ ...b, [opt.file]: true }))}
+                        style={{ width:"100%", height:"100%", objectFit:"contain", objectPosition:"bottom", display:"block" }}
+                      />
+                    )}
+                  </div>
+                  <span style={{
+                    fontFamily:"'DM Sans',sans-serif", fontSize:12,
+                    color: selected ? WOOD.text : WOOD.textDim,
+                    fontWeight: selected ? 600 : 400,
+                  }}>{opt.label}</span>
+                </button>
+              );
+            })}
+          </div>
+          <div style={{ minHeight:18, marginTop:8 }}>
+            {showAvatarSaved && <p style={{ fontSize:11, color:"#3d7a4f", fontFamily:"'DM Sans',sans-serif" }}>Saved</p>}
+            {avatarError && <p style={{ fontSize:11, color:"#c0392b", fontFamily:"'DM Sans',sans-serif" }}>{avatarError}</p>}
+          </div>
         </div>
       </div>
     </div>
@@ -9814,7 +9908,16 @@ export default function App() {
                 borderRadius:"0 0 10px 10px",
                 transition:"background 0.2s, border-color 0.2s",
               }}>
-                <img src="/prof_pic.png" alt="Account" style={{ height:34, width:34, objectFit:"cover", display:"block", borderRadius:"50%" }} />
+                {(() => {
+                  const picked = guestMode ? localStorage.getItem("theshelf:avatarUrl") : session?.user?.user_metadata?.avatar_url;
+                  const isCharacter = picked?.startsWith("/avatars/");
+                  return <img
+                    src={isCharacter ? smallAvatarUrl(picked) : "/prof_pic.png"}
+                    alt="Account"
+                    onError={(e) => { e.currentTarget.src = "/prof_pic.png"; }}
+                    style={{ height:34, width:34, objectFit:"contain", display:"block", borderRadius:"50%" }}
+                  />;
+                })()}
                 <span style={{
                   fontSize:10, fontWeight:600, letterSpacing:"0.02em",
                   color:"#ffffff",
@@ -9841,7 +9944,7 @@ export default function App() {
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={WOOD.textDim} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
                         </div>
                       : session.user.user_metadata?.avatar_url
-                      ? <img src={session.user.user_metadata.avatar_url} style={{ width:32, height:32, borderRadius:"50%", flexShrink:0 }} />
+                      ? <img src={smallAvatarUrl(session.user.user_metadata.avatar_url)} style={{ width:32, height:32, borderRadius:"50%", flexShrink:0, objectFit:"contain" }} />
                       : <div style={{ width:32, height:32, borderRadius:"50%", background:WOOD.amber, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
                           <span style={{ fontSize:14, fontWeight:600, color:"#1a0900" }}>{(session.user.email||"?")[0].toUpperCase()}</span>
                         </div>
