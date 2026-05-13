@@ -9132,7 +9132,7 @@ function ProfileModal({ session, onClose }) {
               return (
                 <button
                   key={opt.file}
-                  onClick={() => pickAvatar(src)}
+                  {...tc(() => pickAvatar(src))}
                   aria-label={`Choose avatar ${opt.label}`}
                   style={{
                     width:"100%", padding:0, cursor:"pointer",
@@ -9893,7 +9893,7 @@ export default function App() {
           ))}
           {/* profile menu button */}
           <div style={{ flex:1, position:"relative", display:"flex", justifyContent:"center" }}>
-            <button onClick={()=>setShowProfileMenu(m=>!m)} style={{
+            <button {...tc(()=>setShowProfileMenu(m=>!m))} style={{
               background:"transparent", border:"none", cursor:"pointer",
               display:"flex", alignItems:"stretch", justifyContent:"center",
               padding:0, width:"100%", fontFamily:"'DM Sans',sans-serif",
@@ -9958,7 +9958,7 @@ export default function App() {
                       </p>
                     </div>
                   </div>
-                  <button onClick={()=>{ setShowProfileMenu(false); setShowProfile(true); }} style={{
+                  <button {...tc(()=>{ setShowProfileMenu(false); setShowProfile(true); })} style={{
                     display:"flex", alignItems:"center", gap:10,
                     width:"100%", padding:"12px 16px", textAlign:"left",
                     background:"transparent", border:"none", cursor:"pointer",
@@ -9969,7 +9969,7 @@ export default function App() {
                     </svg>
                     Profile
                   </button>
-                  {!guestMode && <button onClick={()=>{ setShowProfileMenu(false); setShowImport(true); }} style={{
+                  {!guestMode && <button {...tc(()=>{ setShowProfileMenu(false); setShowImport(true); })} style={{
                     display:"flex", alignItems:"center", gap:10,
                     width:"100%", padding:"12px 16px", textAlign:"left",
                     background:"transparent", border:"none", borderTop:"1px solid rgba(138,90,40,0.15)", cursor:"pointer",
@@ -9980,7 +9980,7 @@ export default function App() {
                     </svg>
                     Import from Goodreads
                   </button>}
-                  {!guestMode && <button onClick={fetchMissingCovers} disabled={!!coverFetchProgress} style={{
+                  {!guestMode && <button {...tc(fetchMissingCovers)} disabled={!!coverFetchProgress} style={{
                     display:"flex", alignItems:"center", gap:10,
                     width:"100%", padding:"12px 16px", textAlign:"left",
                     background:"transparent", border:"none", borderTop:"1px solid rgba(138,90,40,0.15)", cursor: coverFetchProgress ? "default" : "pointer",
@@ -9993,7 +9993,7 @@ export default function App() {
                     Fetch missing covers
                   </button>}
                   {guestMode
-                    ? <button onClick={async ()=>{ setShowProfileMenu(false); guestClearAll(); setGuestMode(false); track("guest_signed_in"); await supabase.auth.signInWithOAuth({ provider:"google", options:{ redirectTo: window.location.origin } }); }} style={{
+                    ? <button {...tc(async ()=>{ setShowProfileMenu(false); guestClearAll(); setGuestMode(false); track("guest_signed_in"); await supabase.auth.signInWithOAuth({ provider:"google", options:{ redirectTo: window.location.origin } }); })} style={{
                         display:"flex", alignItems:"center", gap:10,
                         width:"100%", padding:"12px 16px", textAlign:"left",
                         background:"transparent", border:"none", borderTop:"1px solid rgba(138,90,40,0.15)", cursor:"pointer",
@@ -10004,7 +10004,7 @@ export default function App() {
                         </svg>
                         Sign in to save your books
                       </button>
-                    : <button onClick={()=>{ setShowProfileMenu(false); supabase.auth.signOut(); }} style={{
+                    : <button {...tc(()=>{ setShowProfileMenu(false); supabase.auth.signOut(); })} style={{
                         display:"flex", alignItems:"center", gap:10,
                         width:"100%", padding:"12px 16px", textAlign:"left",
                         background:"transparent", border:"none", borderTop:"1px solid rgba(138,90,40,0.15)", cursor:"pointer",
