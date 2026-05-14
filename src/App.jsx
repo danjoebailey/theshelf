@@ -6782,7 +6782,7 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, seriesTier
   );
 }
 
-function StatsTab({ books, characterAvatar }) {
+function StatsTab({ books, characterAvatar, viewOnly = false }) {
   const [timeline, setTimeline] = useState("All");
   const [filterMonth, setFilterMonth] = useState(null);
   const [filterOpen, setFilterOpen] = useState(false);
@@ -6945,7 +6945,7 @@ function StatsTab({ books, characterAvatar }) {
     <div style={{ overflowY:"auto", padding:"12px 16px 80px", height:"100%", position:"relative", zIndex:10 }} onClick={()=>{ setFilterOpen(false); setGroupOpen(false); }}>
 
       {/* filter + group by row */}
-      <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12 }} onClick={e=>e.stopPropagation()}>
+      {!viewOnly && <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12 }} onClick={e=>e.stopPropagation()}>
         <div style={{ position:"relative" }}>
           {(() => {
             const hasF = timeline !== "All" || filterMonth !== null || ratingFilter !== null || genreFilter !== null;
@@ -7076,7 +7076,7 @@ function StatsTab({ books, characterAvatar }) {
             : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
           }
         </button>
-      </div>
+      </div>}
 
       {/* book covers strip */}
       {filteredBooks.length > 0 && (
@@ -9013,7 +9013,7 @@ function smallAvatarUrl(url) {
 // content. Persists display name in user_metadata.full_name (or localStorage
 // for guests) so the existing avatar dropdown and any future friend search
 // pick it up automatically.
-function ProfileModal({ session, onClose }) {
+function ProfileModal({ session, onClose, onProfileChanged }) {
   const user = session?.user;
   const avatar = user?.user_metadata?.avatar_url || null;
   const initialName = user?.user_metadata?.full_name || "";
@@ -9051,6 +9051,63 @@ function ProfileModal({ session, onClose }) {
   const [usernameSaving, setUsernameSaving] = useState(false);
   const [usernameError, setUsernameError] = useState(null);
   const [usernameSavedAt, setUsernameSavedAt] = useState(0);
+
+  // Friendships
+  const [friendships, setFriendships] = useState([]);
+  const [friendsLoading, setFriendsLoading] = useState(!isGuest);
+  const [friendActionPending, setFriendActionPending] = useState(null);
+  const [showAddFriend, setShowAddFriend] = useState(false);
+  const [viewingFriend, setViewingFriend] = useState(null); // {id, username, avatar_url}
+
+  async function loadFriendships() {
+    if (isGuest || !user?.id) { setFriendsLoading(false); return; }
+    const meId = user.id;
+    const { data: rows, error } = await supabase
+      .from("friendships")
+      .select("*")
+      .or(`user_a_id.eq.${meId},user_b_id.eq.${meId}`);
+    if (error) { console.error("load friendships:", error); setFriendsLoading(false); return; }
+    const otherIds = (rows || []).map(r => r.user_a_id === meId ? r.user_b_id : r.user_a_id);
+    let profilesData = [];
+    if (otherIds.length) {
+      const { data: p } = await supabase.from("profiles").select("id, username, avatar_url").in("id", otherIds);
+      profilesData = p || [];
+    }
+    const enriched = (rows || []).map(f => ({
+      ...f,
+      other: profilesData.find(p => p.id === (f.user_a_id === meId ? f.user_b_id : f.user_a_id)),
+    }));
+    setFriendships(enriched);
+    setFriendsLoading(false);
+  }
+
+  useEffect(() => { loadFriendships(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [isGuest, user?.id]);
+
+  const meId = user?.id;
+  const incomingFriends = friendships.filter(f => f.status === "pending" && f.requested_by !== meId);
+  const acceptedFriends = friendships.filter(f => f.status === "accepted");
+  const outgoingFriends = friendships.filter(f => f.status === "pending" && f.requested_by === meId);
+
+  async function acceptFriend(id) {
+    setFriendActionPending(id);
+    const { error } = await supabase
+      .from("friendships")
+      .update({ status: "accepted", accepted_at: new Date().toISOString() })
+      .eq("id", id);
+    setFriendActionPending(null);
+    if (error) { console.error("accept:", error); return; }
+    await loadFriendships();
+    onProfileChanged?.();
+  }
+
+  async function removeFriendship(id) {
+    setFriendActionPending(id);
+    const { error } = await supabase.from("friendships").delete().eq("id", id);
+    setFriendActionPending(null);
+    if (error) { console.error("remove:", error); return; }
+    await loadFriendships();
+    onProfileChanged?.();
+  }
 
   useEffect(() => {
     if (isGuest || !user?.id) { setProfileLoading(false); return; }
@@ -9113,6 +9170,7 @@ function ProfileModal({ session, onClose }) {
     setProfile(data);
     setUsernameSavedAt(Date.now());
     setUsernameEditing(false);
+    onProfileChanged?.();
   }
 
   async function commitName() {
@@ -9156,7 +9214,7 @@ function ProfileModal({ session, onClose }) {
     }
   }
 
-  const headerName = name.trim() || email || "Reader";
+  const headerName = name.trim() || profile?.username || (isGuest ? "Guest" : (email || "Reader"));
   const showSaved = savedAt && Date.now() - savedAt < 2000;
   const showAvatarSaved = avatarSavedAt && Date.now() - avatarSavedAt < 2000;
 
@@ -9216,7 +9274,7 @@ function ProfileModal({ session, onClose }) {
           <div style={{ marginBottom:16 }}>
             <p style={{ fontSize:11, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Username</p>
             <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-              <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:15, color:WOOD.text, fontWeight:500 }}>@{profile.username}</span>
+              <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:15, color:WOOD.text, fontWeight:500 }}>{profile.username}</span>
               <button {...tc(startUsernameEdit)} disabled={cooldownActive} style={{
                 background:"transparent", border:`1px solid ${WOOD.border}`,
                 borderRadius:14, padding:"3px 10px",
@@ -9240,23 +9298,20 @@ function ProfileModal({ session, onClose }) {
           <div style={{ marginBottom:16 }}>
             <p style={{ fontSize:11, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Username</p>
             <div style={{ display:"flex", gap:8, alignItems:"flex-start" }}>
-              <div style={{ position:"relative", flex:1 }}>
-                <span style={{ position:"absolute", left:12, top:11, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif", fontSize:14 }}>@</span>
-                <input
-                  autoFocus
-                  value={usernameDraft}
-                  onChange={e => setUsernameDraft(e.target.value)}
-                  onKeyDown={e => { if (e.key === "Enter") saveUsername(); if (e.key === "Escape") setUsernameEditing(false); }}
-                  maxLength={20}
-                  placeholder="bookworm"
-                  style={{
-                    width:"100%", boxSizing:"border-box",
-                    padding:"10px 12px 10px 28px", border:`1px solid ${WOOD.border}`, borderRadius:8,
-                    fontFamily:"'DM Sans',sans-serif", fontSize:14, color:WOOD.text, background:"#fff",
-                    outline:"none",
-                  }}
-                />
-              </div>
+              <input
+                autoFocus
+                value={usernameDraft}
+                onChange={e => setUsernameDraft(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter") saveUsername(); if (e.key === "Escape") setUsernameEditing(false); }}
+                maxLength={20}
+                placeholder="bookworm"
+                style={{
+                  flex:1, boxSizing:"border-box",
+                  padding:"10px 12px", border:`1px solid ${WOOD.border}`, borderRadius:8,
+                  fontFamily:"'DM Sans',sans-serif", fontSize:14, color:WOOD.text, background:"#fff",
+                  outline:"none",
+                }}
+              />
               <button {...tc(saveUsername)} disabled={usernameSaving} style={{
                 background: WOOD.amber, color:"#1a0900",
                 border:"none", borderRadius:8, padding:"10px 14px",
@@ -9352,7 +9407,323 @@ function ProfileModal({ session, onClose }) {
             {avatarError && <p style={{ fontSize:11, color:"#c0392b", fontFamily:"'DM Sans',sans-serif" }}>{avatarError}</p>}
           </div>
         </div>
+
+        {/* Friends section */}
+        {!isGuest && profile?.username && (
+          <div style={{ marginTop:24, paddingTop:18, borderTop:`1px solid ${WOOD.border}` }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
+              <p style={{ fontSize:11, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif", textTransform:"uppercase", letterSpacing:"0.1em" }}>Friends</p>
+              <button {...tc(()=>setShowAddFriend(true))} style={{
+                background:"transparent", border:`1px solid ${WOOD.amber}`,
+                borderRadius:14, padding:"4px 12px",
+                color: WOOD.amber, fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600,
+                cursor:"pointer",
+              }}>+ Add friend</button>
+            </div>
+
+            {friendsLoading && <p style={{ fontSize:12, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif" }}>Loading…</p>}
+
+            {!friendsLoading && incomingFriends.map(f => (
+              <div key={f.id} style={{ display:"flex", alignItems:"center", gap:10, padding:"8px 0" }}>
+                <FriendAvatarCircle url={f.other?.avatar_url} username={f.other?.username} size={36} />
+                <div style={{ flex:1, minWidth:0 }}>
+                  <p style={{ fontSize:14, color:WOOD.text, fontWeight:500, fontFamily:"'DM Sans',sans-serif", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{f.other?.username || "Unknown"}</p>
+                  <p style={{ fontSize:11, color:WOOD.amber, fontFamily:"'DM Sans',sans-serif" }}>wants to be friends</p>
+                </div>
+                <button {...tc(()=>acceptFriend(f.id))} disabled={friendActionPending===f.id} style={{
+                  background: WOOD.amber, color:"#1a0900", border:"none",
+                  borderRadius:14, padding:"4px 12px", fontSize:12, fontWeight:600,
+                  fontFamily:"'DM Sans',sans-serif", cursor:"pointer",
+                  opacity: friendActionPending===f.id ? 0.5 : 1,
+                }}>Accept</button>
+                <button {...tc(()=>removeFriendship(f.id))} disabled={friendActionPending===f.id} style={{
+                  background:"transparent", border:`1px solid ${WOOD.border}`,
+                  borderRadius:14, padding:"4px 10px", fontSize:11, color:WOOD.textDim,
+                  fontFamily:"'DM Sans',sans-serif", cursor:"pointer",
+                }}>Decline</button>
+              </div>
+            ))}
+
+            {!friendsLoading && acceptedFriends.map(f => (
+              <div key={f.id} style={{ display:"flex", alignItems:"center", gap:10, padding:"8px 0" }}>
+                <button
+                  {...tc(()=>setViewingFriend({ id: f.other?.id, username: f.other?.username, avatar_url: f.other?.avatar_url }))}
+                  disabled={!f.other?.id}
+                  style={{
+                    flex:1, display:"flex", alignItems:"center", gap:10,
+                    background:"transparent", border:"none", cursor: f.other?.id ? "pointer" : "default",
+                    padding:0, textAlign:"left", minWidth:0,
+                  }}
+                >
+                  <FriendAvatarCircle url={f.other?.avatar_url} username={f.other?.username} size={36} />
+                  <span style={{ flex:1, fontSize:14, color:WOOD.text, fontWeight:500, fontFamily:"'DM Sans',sans-serif", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
+                    {f.other?.username || "Unknown"}
+                  </span>
+                </button>
+                <button {...tc(()=>removeFriendship(f.id))} disabled={friendActionPending===f.id} style={{
+                  background:"transparent", border:`1px solid ${WOOD.border}`,
+                  borderRadius:14, padding:"4px 10px", fontSize:11, color:WOOD.textDim,
+                  fontFamily:"'DM Sans',sans-serif", cursor:"pointer",
+                }}>Remove</button>
+              </div>
+            ))}
+
+            {!friendsLoading && outgoingFriends.length > 0 && (
+              <div style={{ marginTop:10 }}>
+                <p style={{ fontSize:10, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif", marginBottom:4, textTransform:"uppercase", letterSpacing:"0.08em" }}>Sent</p>
+                {outgoingFriends.map(f => (
+                  <div key={f.id} style={{ display:"flex", alignItems:"center", gap:10, padding:"6px 0" }}>
+                    <FriendAvatarCircle url={f.other?.avatar_url} username={f.other?.username} size={28} />
+                    <p style={{ flex:1, fontSize:13, color:WOOD.textDim, fontFamily:"'DM Sans',sans-serif" }}>
+                      {f.other?.username || "Unknown"}
+                    </p>
+                    <button {...tc(()=>removeFriendship(f.id))} disabled={friendActionPending===f.id} style={{
+                      background:"transparent", border:"none",
+                      fontSize:11, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif",
+                      cursor:"pointer",
+                    }}>Cancel</button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {!friendsLoading && friendships.length === 0 && (
+              <p style={{ fontSize:12, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif", lineHeight:1.5 }}>
+                Share your username with someone to add them as a friend.
+              </p>
+            )}
+          </div>
+        )}
       </div>
+
+      {showAddFriend && (
+        <AddFriendSheet
+          session={session}
+          existingFriendships={friendships}
+          onSent={loadFriendships}
+          onClose={()=>setShowAddFriend(false)}
+        />
+      )}
+
+      {viewingFriend && (
+        <FriendBreakdownModal
+          friend={viewingFriend}
+          onClose={()=>setViewingFriend(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+// Renders a friend's reading breakdown (view-only, full-screen).
+function FriendBreakdownModal({ friend, onClose }) {
+  const [books, setBooks] = useState(null);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!friend?.id) return;
+    let cancelled = false;
+    supabase.from("books").select("*").eq("user_id", friend.id).order("created_at", { ascending: true })
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (error) setError(error.message || "Couldn't load");
+        else setBooks((data || []).map(rowToBook));
+      });
+    return () => { cancelled = true; };
+  }, [friend?.id]);
+
+  const characterAvatar = friend?.avatar_url?.startsWith("/avatars/") ? friend.avatar_url : null;
+
+  return (
+    <div style={{
+      position:"fixed", inset:0, zIndex:300,
+      display:"flex", flexDirection:"column",
+      animation:"fadeIn 0.15s ease",
+    }}>
+      <WoodBg />
+
+      {/* header */}
+      <div style={{
+        position:"relative", zIndex:11,
+        background:"linear-gradient(180deg, rgba(15,8,2,0.92), rgba(15,8,2,0.7))",
+        padding:"14px 16px",
+        display:"flex", alignItems:"center", gap:12,
+        borderBottom:"1px solid rgba(138,90,40,0.4)",
+      }}>
+        <button {...tc(onClose)} style={{
+          background:"transparent", border:"none", color:"#fff",
+          cursor:"pointer", padding:0, display:"flex", alignItems:"center",
+        }}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+        </button>
+        <FriendAvatarCircle url={friend.avatar_url} username={friend.username} size={32} />
+        <p style={{ flex:1, fontFamily:"'Crimson Pro',serif", fontSize:18, color:"#fff", fontWeight:500, marginLeft:2 }}>
+          {friend.username}
+        </p>
+      </div>
+
+      {/* body */}
+      <div style={{ flex:1, overflow:"hidden", position:"relative" }}>
+        {error && <p style={{ padding:20, color:"#fff", fontFamily:"'DM Sans',sans-serif" }}>Couldn't load: {error}</p>}
+        {!books && !error && <p style={{ padding:20, color:"#fff", fontFamily:"'DM Sans',sans-serif" }}>Loading…</p>}
+        {books && !error && <StatsTab books={books} characterAvatar={characterAvatar} viewOnly={true} />}
+      </div>
+    </div>
+  );
+}
+
+// Add-friend bottom-sheet. Searches profiles by exact (case-insensitive) username,
+// shows status (found / self / already friends / pending), and inserts a friendship row.
+function AddFriendSheet({ session, existingFriendships, onSent, onClose }) {
+  const [query, setQuery] = useState("");
+  const [searching, setSearching] = useState(false);
+  const [result, setResult] = useState(null); // { status, profile? }
+  const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState(null);
+
+  async function search() {
+    const v = query.trim();
+    if (!v) return;
+    setSearching(true);
+    setResult(null);
+    setSendError(null);
+
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id, username, avatar_url")
+      .ilike("username", v)
+      .maybeSingle();
+    setSearching(false);
+
+    if (error || !data) { setResult({ status: "not_found" }); return; }
+    if (data.id === session.user.id) { setResult({ status: "self" }); return; }
+
+    const meId = session.user.id;
+    const existing = (existingFriendships || []).find(f =>
+      (f.user_a_id === meId && f.user_b_id === data.id) ||
+      (f.user_b_id === meId && f.user_a_id === data.id)
+    );
+    if (existing) {
+      if (existing.status === "accepted") { setResult({ profile: data, status: "already" }); return; }
+      if (existing.requested_by === meId)  { setResult({ profile: data, status: "pending_sent" }); return; }
+      setResult({ profile: data, status: "pending_received" }); return;
+    }
+    setResult({ profile: data, status: "found" });
+  }
+
+  async function sendRequest() {
+    if (!result?.profile) return;
+    setSending(true);
+    setSendError(null);
+    const meId = session.user.id;
+    const themId = result.profile.id;
+    const [a, b] = [meId, themId].sort();
+    const { error } = await supabase.from("friendships").insert({
+      user_a_id: a,
+      user_b_id: b,
+      status: "pending",
+      requested_by: meId,
+    });
+    setSending(false);
+    if (error) { setSendError(error.message || "Couldn't send request"); return; }
+    onSent?.();
+    onClose();
+  }
+
+  return (
+    <div onClick={onClose} style={{
+      position:"fixed", inset:0, background:"rgba(0,0,0,0.7)", zIndex:300,
+      display:"flex", alignItems:"flex-end", justifyContent:"center",
+      animation:"fadeIn 0.15s ease",
+    }}>
+      <div onClick={e=>e.stopPropagation()} style={{
+        background:"#f5e8d0", width:"100%", maxWidth:520,
+        borderRadius:"16px 16px 0 0", padding:"24px 22px 36px",
+        position:"relative", maxHeight:"90vh", overflowY:"auto",
+      }}>
+        <button {...tc(onClose)} style={{
+          position:"absolute", top:14, right:14, background:"transparent", border:"none",
+          width:30, height:30, cursor:"pointer", color:WOOD.textDim, fontSize:16,
+        }}>✕</button>
+
+        <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:22, color:WOOD.text, marginBottom:6 }}>Add a friend</p>
+        <p style={{ fontSize:13, color:WOOD.textDim, marginBottom:18, fontFamily:"'DM Sans',sans-serif" }}>
+          Type their exact username.
+        </p>
+
+        <div style={{ display:"flex", gap:8 }}>
+          <input
+            autoFocus
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            onKeyDown={e => { if (e.key === "Enter") search(); }}
+            placeholder="bookworm"
+            maxLength={20}
+            style={{
+              flex:1, boxSizing:"border-box",
+              padding:"10px 12px", border:`1px solid ${WOOD.border}`, borderRadius:8,
+              fontFamily:"'DM Sans',sans-serif", fontSize:14, color:WOOD.text, background:"#fff",
+              outline:"none",
+            }}
+          />
+          <button {...tc(search)} disabled={searching || !query.trim()} style={{
+            background: WOOD.amber, color:"#1a0900",
+            border:"none", borderRadius:8, padding:"10px 16px",
+            fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:600,
+            cursor: searching ? "default" : "pointer",
+            opacity: (searching || !query.trim()) ? 0.6 : 1,
+          }}>{searching ? "..." : "Search"}</button>
+        </div>
+
+        <div style={{ marginTop:20 }}>
+          {result?.status === "not_found" && (
+            <p style={{ fontSize:13, color:WOOD.textDim, fontFamily:"'DM Sans',sans-serif" }}>
+              No user with that username.
+            </p>
+          )}
+          {result?.status === "self" && (
+            <p style={{ fontSize:13, color:WOOD.textDim, fontFamily:"'DM Sans',sans-serif" }}>
+              That's your username.
+            </p>
+          )}
+          {result?.profile && (
+            <div style={{ display:"flex", alignItems:"center", gap:12, padding:"10px 0" }}>
+              <FriendAvatarCircle url={result.profile.avatar_url} username={result.profile.username} size={44} />
+              <div style={{ flex:1, minWidth:0 }}>
+                <p style={{ fontSize:15, color:WOOD.text, fontWeight:500, fontFamily:"'DM Sans',sans-serif" }}>{result.profile.username}</p>
+                {result.status === "already" && <p style={{ fontSize:11, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif" }}>Already friends</p>}
+                {result.status === "pending_sent" && <p style={{ fontSize:11, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif" }}>Request already sent</p>}
+                {result.status === "pending_received" && <p style={{ fontSize:11, color:WOOD.amber, fontFamily:"'DM Sans',sans-serif" }}>Wants to be friends — accept from your friends list</p>}
+              </div>
+              {result.status === "found" && (
+                <button {...tc(sendRequest)} disabled={sending} style={{
+                  background: WOOD.amber, color:"#1a0900", border:"none",
+                  borderRadius:14, padding:"6px 16px", fontSize:13, fontWeight:600,
+                  fontFamily:"'DM Sans',sans-serif", cursor:"pointer",
+                  opacity: sending ? 0.6 : 1,
+                }}>{sending ? "..." : "Send request"}</button>
+              )}
+            </div>
+          )}
+          {sendError && <p style={{ fontSize:11, color:"#c0392b", marginTop:6, fontFamily:"'DM Sans',sans-serif" }}>{sendError}</p>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Small circular avatar for friend rows. Falls back to colored initial.
+function FriendAvatarCircle({ url, username, size = 36 }) {
+  const isCharacter = url?.startsWith("/avatars/");
+  const src = isCharacter ? smallAvatarUrl(url) : null;
+  if (src) {
+    return <img src={src} alt="" style={{ width:size, height:size, borderRadius:"50%", objectFit:"contain", flexShrink:0 }} />;
+  }
+  return (
+    <div style={{ width:size, height:size, borderRadius:"50%", background:WOOD.amber, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+      <span style={{ fontSize: Math.round(size * 0.4), fontWeight:600, color:"#1a0900", fontFamily:"'DM Sans',sans-serif" }}>{(username || "?")[0].toUpperCase()}</span>
     </div>
   );
 }
@@ -9529,6 +9900,8 @@ export default function App() {
   const [session, setSession] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [guestMode, setGuestMode] = useState(() => !!localStorage.getItem(GUEST_ACTIVE_KEY));
+  const [currentUsername, setCurrentUsername] = useState(null);
+  const [profileRefresh, setProfileRefresh] = useState(0);
   const [seriesTiers, setSeriesTiers] = useState({});
   const [authorTiers, setAuthorTiers] = useState({});
   const [books, setBooks] = useState(() => {
@@ -9585,6 +9958,34 @@ export default function App() {
     if (!guestMode || session) return;
     guestSaveBooks(books);
   }, [books, guestMode, session]);
+
+  // Fetch current user's username (re-runs when ProfileModal bumps profileRefresh)
+  useEffect(() => {
+    if (!session?.user?.id) { setCurrentUsername(null); return; }
+    let cancelled = false;
+    supabase.from("profiles").select("username").eq("id", session.user.id).maybeSingle()
+      .then(({ data }) => { if (!cancelled) setCurrentUsername(data?.username || null); });
+    return () => { cancelled = true; };
+  }, [session?.user?.id, profileRefresh]);
+
+  // Pending-friend-request count for the Account-icon badge
+  const [pendingRequestCount, setPendingRequestCount] = useState(0);
+  useEffect(() => {
+    if (!session?.user?.id) { setPendingRequestCount(0); return; }
+    let cancelled = false;
+    const meId = session.user.id;
+    supabase.from("friendships")
+      .select("id", { count: "exact", head: true })
+      .or(`user_a_id.eq.${meId},user_b_id.eq.${meId}`)
+      .eq("status", "pending")
+      .neq("requested_by", meId)
+      .then(({ count, error }) => {
+        if (cancelled) return;
+        if (error) console.error("pending count:", error);
+        else setPendingRequestCount(count || 0);
+      });
+    return () => { cancelled = true; };
+  }, [session?.user?.id, profileRefresh]);
 
   useEffect(() => {
     if (!session && !guestMode) { setBooks([]); loadedUserRef.current = null; return; }
@@ -10011,7 +10412,7 @@ export default function App() {
           })()}
           {authorModal && <AuthorModal author={typeof authorModal === "string" ? authorModal : authorModal.name} initialTab={typeof authorModal === "object" ? authorModal.tab : undefined} books={books} onClose={()=>setAuthorModal(null)} onEdit={book=>{ setAuthorModal(null); setEditBook(book); }} onAdd={draft=>{ setAuthorModal(null); setEditBook(null); setAddBookDraft({ id:Date.now(), title:draft.title, author:draft.author, genre:draft.genre||"Fiction", pages:draft.pages||0, rating:0, shelf:"Read", coverUrl:draft.coverUrl||null, coverId:null, date:todayLocal(), description:"", scores:null, notes:"", _fromRecs:true }); }} onDirectAdd={draft=>{ addBook({ title:draft.title, author:draft.author, genre:draft.genre||"Fiction", pages:draft.pages||0, rating:0, shelf:draft.shelf, coverUrl:draft.coverUrl||null, coverId:null, description:"", scores:null, notes:"" }); }} userId={userId} />}
           {showImport && <GoodreadsImportSheet onImport={importBooks} onClose={()=>setShowImport(false)} />}
-          {showProfile && <ProfileModal session={session} onClose={()=>setShowProfile(false)} />}
+          {showProfile && <ProfileModal session={session} onClose={()=>setShowProfile(false)} onProfileChanged={()=>setProfileRefresh(n=>n+1)} />}
           {toast && (
             <div style={{
               position:"fixed", bottom:90, left:0, right:0,
@@ -10092,16 +10493,30 @@ export default function App() {
                 borderRadius:"0 0 10px 10px",
                 transition:"background 0.2s, border-color 0.2s",
               }}>
-                {(() => {
-                  const picked = guestMode ? localStorage.getItem("theshelf:avatarUrl") : session?.user?.user_metadata?.avatar_url;
-                  const isCharacter = picked?.startsWith("/avatars/");
-                  return <img
-                    src={isCharacter ? smallAvatarUrl(picked) : "/prof_pic.png"}
-                    alt="Account"
-                    onError={(e) => { e.currentTarget.src = "/prof_pic.png"; }}
-                    style={{ height:34, width:34, objectFit:"contain", display:"block", borderRadius:"50%" }}
-                  />;
-                })()}
+                <div style={{ position:"relative", height:34, width:34 }}>
+                  {(() => {
+                    const picked = guestMode ? localStorage.getItem("theshelf:avatarUrl") : session?.user?.user_metadata?.avatar_url;
+                    const isCharacter = picked?.startsWith("/avatars/");
+                    return <img
+                      src={isCharacter ? smallAvatarUrl(picked) : "/prof_pic.png"}
+                      alt="Account"
+                      onError={(e) => { e.currentTarget.src = "/prof_pic.png"; }}
+                      style={{ height:34, width:34, objectFit:"contain", display:"block", borderRadius:"50%" }}
+                    />;
+                  })()}
+                  {pendingRequestCount > 0 && (
+                    <div style={{
+                      position:"absolute", top:-2, right:-4,
+                      background:"#c0392b", color:"#fff",
+                      borderRadius:10, minWidth:16, height:16,
+                      fontSize:10, fontWeight:700, fontFamily:"'DM Sans',sans-serif",
+                      display:"flex", alignItems:"center", justifyContent:"center",
+                      padding:"0 4px", boxSizing:"border-box",
+                      border:"1.5px solid rgba(15,8,2,0.85)",
+                      lineHeight:1,
+                    }}>{pendingRequestCount > 9 ? "9+" : pendingRequestCount}</div>
+                  )}
+                </div>
                 <span style={{
                   fontSize:10, fontWeight:600, letterSpacing:"0.02em",
                   color:"#ffffff",
@@ -10135,7 +10550,7 @@ export default function App() {
                     }
                     <div style={{ minWidth:0 }}>
                       <p style={{ fontSize:13, fontWeight:600, color:WOOD.text, fontFamily:"'DM Sans',sans-serif", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
-                        {guestMode ? "Guest" : (session.user.user_metadata?.full_name || session.user.email)}
+                        {guestMode ? "Guest" : (session.user.user_metadata?.full_name || currentUsername || session.user.email)}
                       </p>
                       <p style={{ fontSize:11, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>
                         {guestMode ? "Books are saved on this device only." : session.user.email}
