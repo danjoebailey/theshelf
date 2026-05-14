@@ -6954,14 +6954,15 @@ function StatsTab({ books, characterAvatar, viewOnly = false, topBookIds = [], t
 
   const MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
-  // Unique authors across the library (for the Top Authors picker)
+  // Top picks are limited to books on the Read shelf (and authors of those books)
+  const readShelfBooks = useMemo(() => books.filter(b => (b.shelf || "Read") === "Read"), [books]);
   const uniqueAuthorsAll = useMemo(() => {
     const seen = new Set(); const out = [];
-    for (const b of books) {
+    for (const b of readShelfBooks) {
       if (b.author && !seen.has(b.author)) { seen.add(b.author); out.push(b.author); }
     }
     return out.sort();
-  }, [books]);
+  }, [readShelfBooks]);
 
   // Picked items in rank order. Books are looked up in the library so we
   // get cover/title/author. Stale picks (book removed) drop out.
@@ -7511,7 +7512,7 @@ function StatsTab({ books, characterAvatar, viewOnly = false, topBookIds = [], t
         <TopPicksPickerSheet
           mode="books"
           title="Top 5 Books"
-          library={books}
+          library={readShelfBooks}
           currentIds={topBookIds}
           onSave={async (newIds) => { await onSaveTopBooks?.(newIds); }}
           onClose={()=>setShowBooksPicker(false)}
