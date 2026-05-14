@@ -6847,8 +6847,10 @@ function TopPicksPickerSheet({ mode, title, library, currentIds, onSave, onClose
     }}>
       <div onClick={e=>e.stopPropagation()} style={{
         background:"#f5e8d0", width:"100%", maxWidth:520,
-        borderRadius:"16px 16px 0 0", padding:"24px 22px 24px",
+        borderRadius:"16px 16px 0 0",
+        padding:"24px 22px calc(24px + max(env(safe-area-inset-bottom, 0px), 50px))",
         position:"relative",
+        height:"calc(100vh - 100px - env(safe-area-inset-top, 0px))",
         maxHeight:"calc(100vh - 100px - env(safe-area-inset-top, 0px))",
         display:"flex", flexDirection:"column",
       }}>
