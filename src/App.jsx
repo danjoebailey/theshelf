@@ -9052,62 +9052,6 @@ function ProfileModal({ session, onClose, onProfileChanged }) {
   const [usernameError, setUsernameError] = useState(null);
   const [usernameSavedAt, setUsernameSavedAt] = useState(0);
 
-  // Friendships
-  const [friendships, setFriendships] = useState([]);
-  const [friendsLoading, setFriendsLoading] = useState(!isGuest);
-  const [friendActionPending, setFriendActionPending] = useState(null);
-  const [showAddFriend, setShowAddFriend] = useState(false);
-  const [viewingFriend, setViewingFriend] = useState(null); // {id, username, avatar_url}
-
-  async function loadFriendships() {
-    if (isGuest || !user?.id) { setFriendsLoading(false); return; }
-    const meId = user.id;
-    const { data: rows, error } = await supabase
-      .from("friendships")
-      .select("*")
-      .or(`user_a_id.eq.${meId},user_b_id.eq.${meId}`);
-    if (error) { console.error("load friendships:", error); setFriendsLoading(false); return; }
-    const otherIds = (rows || []).map(r => r.user_a_id === meId ? r.user_b_id : r.user_a_id);
-    let profilesData = [];
-    if (otherIds.length) {
-      const { data: p } = await supabase.from("profiles").select("id, username, avatar_url").in("id", otherIds);
-      profilesData = p || [];
-    }
-    const enriched = (rows || []).map(f => ({
-      ...f,
-      other: profilesData.find(p => p.id === (f.user_a_id === meId ? f.user_b_id : f.user_a_id)),
-    }));
-    setFriendships(enriched);
-    setFriendsLoading(false);
-  }
-
-  useEffect(() => { loadFriendships(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [isGuest, user?.id]);
-
-  const meId = user?.id;
-  const incomingFriends = friendships.filter(f => f.status === "pending" && f.requested_by !== meId);
-  const acceptedFriends = friendships.filter(f => f.status === "accepted");
-  const outgoingFriends = friendships.filter(f => f.status === "pending" && f.requested_by === meId);
-
-  async function acceptFriend(id) {
-    setFriendActionPending(id);
-    const { error } = await supabase
-      .from("friendships")
-      .update({ status: "accepted", accepted_at: new Date().toISOString() })
-      .eq("id", id);
-    setFriendActionPending(null);
-    if (error) { console.error("accept:", error); return; }
-    await loadFriendships();
-    onProfileChanged?.();
-  }
-
-  async function removeFriendship(id) {
-    setFriendActionPending(id);
-    const { error } = await supabase.from("friendships").delete().eq("id", id);
-    setFriendActionPending(null);
-    if (error) { console.error("remove:", error); return; }
-    await loadFriendships();
-    onProfileChanged?.();
-  }
 
   useEffect(() => {
     if (isGuest || !user?.id) { setProfileLoading(false); return; }
@@ -9408,11 +9352,112 @@ function ProfileModal({ session, onClose, onProfileChanged }) {
           </div>
         </div>
 
-        {/* Friends section */}
-        {!isGuest && profile?.username && (
-          <div style={{ marginTop:24, paddingTop:18, borderTop:`1px solid ${WOOD.border}` }}>
-            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12 }}>
-              <p style={{ fontSize:11, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif", textTransform:"uppercase", letterSpacing:"0.1em" }}>Friends</p>
+      </div>
+    </div>
+  );
+}
+
+// Friends list + add-friend flow + tap-through to friend's breakdown.
+// Lives behind the Account → Friends menu item. Requires a username (gated CTA).
+function FriendsModal({ session, currentUsername, onClose, onProfileChanged, onOpenProfile }) {
+  const user = session?.user;
+  const meId = user?.id;
+  const [friendships, setFriendships] = useState([]);
+  const [friendsLoading, setFriendsLoading] = useState(true);
+  const [friendActionPending, setFriendActionPending] = useState(null);
+  const [showAddFriend, setShowAddFriend] = useState(false);
+  const [viewingFriend, setViewingFriend] = useState(null);
+
+  async function loadFriendships() {
+    if (!meId) { setFriendsLoading(false); return; }
+    const { data: rows, error } = await supabase
+      .from("friendships")
+      .select("*")
+      .or(`user_a_id.eq.${meId},user_b_id.eq.${meId}`);
+    if (error) { console.error("load friendships:", error); setFriendsLoading(false); return; }
+    const otherIds = (rows || []).map(r => r.user_a_id === meId ? r.user_b_id : r.user_a_id);
+    let profilesData = [];
+    if (otherIds.length) {
+      const { data: p } = await supabase.from("profiles").select("id, username, avatar_url").in("id", otherIds);
+      profilesData = p || [];
+    }
+    const enriched = (rows || []).map(f => ({
+      ...f,
+      other: profilesData.find(p => p.id === (f.user_a_id === meId ? f.user_b_id : f.user_a_id)),
+    }));
+    setFriendships(enriched);
+    setFriendsLoading(false);
+  }
+
+  useEffect(() => { loadFriendships(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [meId]);
+
+  const incomingFriends = friendships.filter(f => f.status === "pending" && f.requested_by !== meId);
+  const acceptedFriends = friendships.filter(f => f.status === "accepted");
+  const outgoingFriends = friendships.filter(f => f.status === "pending" && f.requested_by === meId);
+
+  async function acceptFriend(id) {
+    setFriendActionPending(id);
+    const { error } = await supabase
+      .from("friendships")
+      .update({ status: "accepted", accepted_at: new Date().toISOString() })
+      .eq("id", id);
+    setFriendActionPending(null);
+    if (error) { console.error("accept:", error); return; }
+    await loadFriendships();
+    onProfileChanged?.();
+  }
+
+  async function removeFriendship(id) {
+    setFriendActionPending(id);
+    const { error } = await supabase.from("friendships").delete().eq("id", id);
+    setFriendActionPending(null);
+    if (error) { console.error("remove:", error); return; }
+    await loadFriendships();
+    onProfileChanged?.();
+  }
+
+  return (
+    <div onClick={onClose} style={{
+      position:"fixed", inset:0, background:"rgba(0,0,0,0.6)", zIndex:200,
+      display:"flex", alignItems:"flex-end", justifyContent:"center",
+      padding:0, animation:"fadeIn 0.15s ease",
+    }}>
+      <div onClick={e=>e.stopPropagation()} style={{
+        background:"#f5e8d0", width:"100%", maxWidth:520,
+        borderRadius:"16px 16px 0 0", padding:"24px 22px 36px",
+        position:"relative", maxHeight:"90vh", overflowY:"auto",
+      }}>
+        <button {...tc(onClose)} style={{
+          position:"absolute", top:14, right:14, background:"transparent", border:"none",
+          width:30, height:30, cursor:"pointer", color:WOOD.textDim, fontSize:16,
+        }}>✕</button>
+
+        <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:24, color:WOOD.text, marginBottom:18 }}>Friends</p>
+
+        {!currentUsername && (
+          <div style={{
+            background:"rgba(184,104,0,0.10)",
+            border:`1px solid ${WOOD.amber}40`,
+            borderRadius:10, padding:"12px 14px",
+          }}>
+            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, marginBottom:4, fontWeight:600 }}>
+              Pick a username first.
+            </p>
+            <p style={{ fontSize:12, color:WOOD.textDim, marginBottom:10, fontFamily:"'DM Sans',sans-serif" }}>
+              Friends find you by your username. Set one in Profile.
+            </p>
+            <button {...tc(() => { onClose(); onOpenProfile?.(); })} style={{
+              background: WOOD.amber, color:"#1a0900",
+              border:"none", borderRadius:20, padding:"6px 14px",
+              fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:600,
+              cursor:"pointer",
+            }}>Open Profile</button>
+          </div>
+        )}
+
+        {currentUsername && (
+          <>
+            <div style={{ display:"flex", justifyContent:"flex-end", marginBottom:8 }}>
               <button {...tc(()=>setShowAddFriend(true))} style={{
                 background:"transparent", border:`1px solid ${WOOD.amber}`,
                 borderRadius:14, padding:"4px 12px",
@@ -9492,7 +9537,7 @@ function ProfileModal({ session, onClose, onProfileChanged }) {
                 Share your username with someone to add them as a friend.
               </p>
             )}
-          </div>
+          </>
         )}
       </div>
 
@@ -9902,6 +9947,7 @@ export default function App() {
   const [guestMode, setGuestMode] = useState(() => !!localStorage.getItem(GUEST_ACTIVE_KEY));
   const [currentUsername, setCurrentUsername] = useState(null);
   const [profileRefresh, setProfileRefresh] = useState(0);
+  const [showFriends, setShowFriends] = useState(false);
   const [seriesTiers, setSeriesTiers] = useState({});
   const [authorTiers, setAuthorTiers] = useState({});
   const [books, setBooks] = useState(() => {
@@ -10413,6 +10459,7 @@ export default function App() {
           {authorModal && <AuthorModal author={typeof authorModal === "string" ? authorModal : authorModal.name} initialTab={typeof authorModal === "object" ? authorModal.tab : undefined} books={books} onClose={()=>setAuthorModal(null)} onEdit={book=>{ setAuthorModal(null); setEditBook(book); }} onAdd={draft=>{ setAuthorModal(null); setEditBook(null); setAddBookDraft({ id:Date.now(), title:draft.title, author:draft.author, genre:draft.genre||"Fiction", pages:draft.pages||0, rating:0, shelf:"Read", coverUrl:draft.coverUrl||null, coverId:null, date:todayLocal(), description:"", scores:null, notes:"", _fromRecs:true }); }} onDirectAdd={draft=>{ addBook({ title:draft.title, author:draft.author, genre:draft.genre||"Fiction", pages:draft.pages||0, rating:0, shelf:draft.shelf, coverUrl:draft.coverUrl||null, coverId:null, description:"", scores:null, notes:"" }); }} userId={userId} />}
           {showImport && <GoodreadsImportSheet onImport={importBooks} onClose={()=>setShowImport(false)} />}
           {showProfile && <ProfileModal session={session} onClose={()=>setShowProfile(false)} onProfileChanged={()=>setProfileRefresh(n=>n+1)} />}
+          {showFriends && <FriendsModal session={session} currentUsername={currentUsername} onClose={()=>setShowFriends(false)} onProfileChanged={()=>setProfileRefresh(n=>n+1)} onOpenProfile={()=>setShowProfile(true)} />}
           {toast && (
             <div style={{
               position:"fixed", bottom:90, left:0, right:0,
@@ -10568,6 +10615,26 @@ export default function App() {
                     </svg>
                     Profile
                   </button>
+                  {!guestMode && <button {...tc(()=>{ setShowProfileMenu(false); setShowFriends(true); })} style={{
+                    display:"flex", alignItems:"center", gap:10,
+                    width:"100%", padding:"12px 16px", textAlign:"left",
+                    background:"transparent", border:"none", borderTop:"1px solid rgba(138,90,40,0.15)", cursor:"pointer",
+                    fontFamily:"'DM Sans',sans-serif", fontSize:14, color:WOOD.text, fontWeight:400,
+                  }}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={WOOD.textDim} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                    <span style={{ flex:1 }}>Friends</span>
+                    {pendingRequestCount > 0 && (
+                      <span style={{
+                        background:"#c0392b", color:"#fff",
+                        borderRadius:10, minWidth:18, height:18,
+                        fontSize:10, fontWeight:700, fontFamily:"'DM Sans',sans-serif",
+                        display:"inline-flex", alignItems:"center", justifyContent:"center",
+                        padding:"0 5px", lineHeight:1,
+                      }}>{pendingRequestCount > 9 ? "9+" : pendingRequestCount}</span>
+                    )}
+                  </button>}
                   {!guestMode && <button {...tc(()=>{ setShowProfileMenu(false); setShowImport(true); })} style={{
                     display:"flex", alignItems:"center", gap:10,
                     width:"100%", padding:"12px 16px", textAlign:"left",
