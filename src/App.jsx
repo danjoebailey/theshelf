@@ -7429,18 +7429,10 @@ function StatsTab({ books, characterAvatar, viewOnly = false, topBookIds = [], t
             </div>
           ) : (
             <div>
-              <div style={{ display:"flex", gap:14, overflowX:"auto", padding:"6px 4px 6px 4px", marginLeft:-4, marginRight:-4 }}>
-                {pickedBooks.map((b, i) => (
-                  <div key={b.id} style={{ position:"relative", flexShrink:0 }}>
+              <div style={{ display:"flex", gap:10, overflowX:"auto", padding:"2px 0", marginLeft:-4, marginRight:-4, paddingLeft:4, paddingRight:4 }}>
+                {pickedBooks.map(b => (
+                  <div key={b.id} style={{ flexShrink:0 }}>
                     <BookCoverThumb book={b} size="md" />
-                    <div style={{
-                      position:"absolute", top:-6, left:-6,
-                      background: WOOD.amber, color:"#1a0900",
-                      borderRadius:"50%", width:24, height:24,
-                      display:"flex", alignItems:"center", justifyContent:"center",
-                      fontFamily:"'Crimson Pro',serif", fontWeight:700, fontSize:13,
-                      boxShadow:"0 2px 6px rgba(0,0,0,0.4)",
-                    }}>{i + 1}</div>
                   </div>
                 ))}
               </div>
