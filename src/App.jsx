@@ -6845,7 +6845,9 @@ function TopPicksPickerSheet({ mode, title, library, currentIds, onSave, onClose
       <div onClick={e=>e.stopPropagation()} style={{
         background:"#f5e8d0", width:"100%", maxWidth:520,
         borderRadius:"16px 16px 0 0", padding:"24px 22px 24px",
-        position:"relative", maxHeight:"90vh", display:"flex", flexDirection:"column",
+        position:"relative",
+        maxHeight:"calc(100vh - 100px - env(safe-area-inset-top, 0px))",
+        display:"flex", flexDirection:"column",
       }}>
         <button {...tc(onClose)} aria-label="Close" style={{
           position:"absolute", top:12, right:12, zIndex:5,
