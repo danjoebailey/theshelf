@@ -6791,7 +6791,147 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, seriesTier
   );
 }
 
-function StatsTab({ books, characterAvatar, viewOnly = false }) {
+// Picker sheet for Top 5 Books / Top 5 Authors. Works for both modes — reuses
+// the same ranked-slots + library-list layout. Tap a library item to add,
+// arrows to reorder, × to remove. onSave receives the new ordered array.
+function TopPicksPickerSheet({ mode, title, library, currentIds, onSave, onClose }) {
+  const [picks, setPicks] = useState(currentIds || []);
+  const [search, setSearch] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const getId = (item) => mode === "books" ? String(item.id) : item;
+  const getDisplay = (item) => mode === "books" ? item.title : item;
+  const getSubDisplay = (item) => mode === "books" ? item.author : null;
+
+  const pickedItems = picks
+    .map(id => library.find(item => getId(item) === String(id)))
+    .filter(Boolean);
+  const availableItems = library.filter(item => !picks.some(id => String(id) === getId(item)));
+  const filteredAvailable = search.trim()
+    ? availableItems.filter(item => {
+        const q = search.trim().toLowerCase();
+        return getDisplay(item).toLowerCase().includes(q) || (getSubDisplay(item) || "").toLowerCase().includes(q);
+      })
+    : availableItems;
+
+  function add(item) {
+    if (picks.length >= 5) return;
+    const id = getId(item);
+    if (picks.some(p => String(p) === id)) return;
+    setPicks(prev => [...prev, mode === "books" ? id : item]);
+  }
+  function remove(idx) { setPicks(prev => prev.filter((_, i) => i !== idx)); }
+  function moveUp(idx) {
+    if (idx === 0) return;
+    setPicks(prev => { const a = [...prev]; [a[idx-1], a[idx]] = [a[idx], a[idx-1]]; return a; });
+  }
+  function moveDown(idx) {
+    if (idx >= picks.length - 1) return;
+    setPicks(prev => { const a = [...prev]; [a[idx], a[idx+1]] = [a[idx+1], a[idx]]; return a; });
+  }
+  async function save() {
+    setSaving(true);
+    try { await onSave(picks); onClose(); }
+    finally { setSaving(false); }
+  }
+
+  return (
+    <div onClick={onClose} style={{
+      position:"fixed", inset:0, background:"rgba(0,0,0,0.7)", zIndex:300,
+      display:"flex", alignItems:"flex-end", justifyContent:"center",
+      animation:"fadeIn 0.15s ease",
+    }}>
+      <div onClick={e=>e.stopPropagation()} style={{
+        background:"#f5e8d0", width:"100%", maxWidth:520,
+        borderRadius:"16px 16px 0 0", padding:"24px 22px 24px",
+        position:"relative", maxHeight:"90vh", display:"flex", flexDirection:"column",
+      }}>
+        <button {...tc(onClose)} style={{
+          position:"absolute", top:14, right:14, background:"transparent", border:"none",
+          width:30, height:30, cursor:"pointer", color:WOOD.textDim, fontSize:16,
+        }}>✕</button>
+
+        <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:22, color:WOOD.text, marginBottom:6 }}>{title}</p>
+        <p style={{ fontSize:12, color:WOOD.textDim, marginBottom:14, fontFamily:"'DM Sans',sans-serif", lineHeight:1.4 }}>
+          Pick up to 5 from your library. Tap to add, arrows to reorder.
+        </p>
+
+        <div style={{ marginBottom:14, flex:"0 0 auto" }}>
+          <p style={{ fontSize:11, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Your picks ({picks.length}/5)</p>
+          {pickedItems.length === 0 && (
+            <p style={{ fontSize:12, color:WOOD.textFaint, fontStyle:"italic", fontFamily:"'DM Sans',sans-serif", padding:"6px 0" }}>None yet — tap something below to add.</p>
+          )}
+          {pickedItems.map((item, idx) => (
+            <div key={getId(item)} style={{
+              display:"flex", alignItems:"center", gap:8, padding:"6px 0",
+              borderBottom: idx === pickedItems.length - 1 ? "none" : `1px solid rgba(138,90,40,0.15)`,
+            }}>
+              <span style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.amber, fontWeight:700, minWidth:22 }}>#{idx + 1}</span>
+              {mode === "books" && <BookCoverThumb book={item} size="sm" />}
+              <div style={{ flex:1, minWidth:0 }}>
+                <p style={{ fontSize:13, color:WOOD.text, fontWeight:500, fontFamily:"'DM Sans',sans-serif", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{getDisplay(item)}</p>
+                {getSubDisplay(item) && <p style={{ fontSize:11, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{getSubDisplay(item)}</p>}
+              </div>
+              <button {...tc(()=>moveUp(idx))} disabled={idx === 0} style={{ background:"transparent", border:"none", padding:"4px 6px", cursor:idx === 0?"default":"pointer", opacity: idx === 0?0.3:1, color:WOOD.textDim, fontSize:15 }}>↑</button>
+              <button {...tc(()=>moveDown(idx))} disabled={idx >= pickedItems.length - 1} style={{ background:"transparent", border:"none", padding:"4px 6px", cursor:idx >= pickedItems.length - 1?"default":"pointer", opacity:idx >= pickedItems.length - 1?0.3:1, color:WOOD.textDim, fontSize:15 }}>↓</button>
+              <button {...tc(()=>remove(idx))} style={{ background:"transparent", border:"none", padding:"4px 6px", cursor:"pointer", color:"#c0392b", fontSize:18, lineHeight:1 }}>×</button>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ flex:1, overflow:"hidden", display:"flex", flexDirection:"column", minHeight:120 }}>
+          <p style={{ fontSize:11, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>From your library</p>
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder={mode === "books" ? "Search titles or authors…" : "Search authors…"}
+            style={{
+              padding:"8px 10px", border:`1px solid ${WOOD.border}`, borderRadius:8,
+              fontFamily:"'DM Sans',sans-serif", fontSize:13, marginBottom:8,
+              background:"#fff", color:WOOD.text, outline:"none", boxSizing:"border-box",
+            }}
+          />
+          <div style={{ flex:1, overflowY:"auto", marginRight:-8, paddingRight:8 }}>
+            {filteredAvailable.length === 0 && (
+              <p style={{ fontSize:12, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif", padding:"6px 0" }}>
+                {search.trim() ? "No matches." : (availableItems.length === 0 ? "Nothing else to add." : "")}
+              </p>
+            )}
+            {filteredAvailable.map(item => (
+              <button
+                key={getId(item)}
+                {...tc(()=>add(item))}
+                disabled={picks.length >= 5}
+                style={{
+                  display:"flex", alignItems:"center", gap:8,
+                  width:"100%", padding:"6px 0", background:"transparent", border:"none",
+                  borderBottom:`1px solid rgba(138,90,40,0.1)`, textAlign:"left",
+                  cursor: picks.length >= 5 ? "default" : "pointer", opacity: picks.length >= 5 ? 0.4 : 1,
+                }}
+              >
+                {mode === "books" && <BookCoverThumb book={item} size="sm" />}
+                <div style={{ flex:1, minWidth:0 }}>
+                  <p style={{ fontSize:13, color:WOOD.text, fontFamily:"'DM Sans',sans-serif", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{getDisplay(item)}</p>
+                  {getSubDisplay(item) && <p style={{ fontSize:11, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif", overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{getSubDisplay(item)}</p>}
+                </div>
+                <span style={{ color:WOOD.amber, fontSize:20, padding:"0 6px", lineHeight:1 }}>+</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <button {...tc(save)} disabled={saving} style={{
+          marginTop:14, padding:"10px 14px",
+          background: WOOD.amber, color:"#1a0900", border:"none", borderRadius:8,
+          fontFamily:"'DM Sans',sans-serif", fontSize:14, fontWeight:600,
+          cursor: saving ? "default" : "pointer", opacity: saving ? 0.6 : 1, flex:"0 0 auto",
+        }}>{saving ? "Saving…" : "Save"}</button>
+      </div>
+    </div>
+  );
+}
+
+function StatsTab({ books, characterAvatar, viewOnly = false, topBookIds = [], topAuthors = [], onSaveTopBooks, onSaveTopAuthors }) {
   const [timeline, setTimeline] = useState("All");
   const [filterMonth, setFilterMonth] = useState(null);
   const [filterOpen, setFilterOpen] = useState(false);
@@ -6800,8 +6940,27 @@ function StatsTab({ books, characterAvatar, viewOnly = false }) {
   const [groupBy, setGroupBy] = useState(null);
   const [groupOpen, setGroupOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [showBooksPicker, setShowBooksPicker] = useState(false);
+  const [showAuthorsPicker, setShowAuthorsPicker] = useState(false);
 
   const MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+  // Unique authors across the library (for the Top Authors picker)
+  const uniqueAuthorsAll = useMemo(() => {
+    const seen = new Set(); const out = [];
+    for (const b of books) {
+      if (b.author && !seen.has(b.author)) { seen.add(b.author); out.push(b.author); }
+    }
+    return out.sort();
+  }, [books]);
+
+  // Picked items in rank order. Books are looked up in the library so we
+  // get cover/title/author. Stale picks (book removed) drop out.
+  const pickedBooks = useMemo(
+    () => topBookIds.map(id => books.find(b => String(b.id) === String(id))).filter(Boolean),
+    [topBookIds, books]
+  );
+  const pickedAuthors = useMemo(() => topAuthors || [], [topAuthors]);
 
   const availableYears = useMemo(() => {
     const years = [...new Set(books.filter(b=>(b.shelf||"Read")==="Read").map(b=>b.date?.slice(0,4)).filter(Boolean))];
@@ -7226,35 +7385,138 @@ function StatsTab({ books, characterAvatar, viewOnly = false }) {
           )})}
       </div>
 
-      {(stats.topAuthor || stats.longestBook) && (
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
-          {stats.topAuthor && (
-            <div style={{ display:"flex", flexDirection:"column" }}>
-              <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
-                <div style={{ flex:1, height:1, background:"rgba(255,255,255,0.35)" }}/>
-                <span style={{ fontSize:13, color:"#fff", textTransform:"uppercase", letterSpacing:"0.18em", fontFamily:"'Crimson Pro',serif", fontWeight:700, whiteSpace:"nowrap" }}>Top Author</span>
-                <div style={{ flex:1, height:1, background:"rgba(255,255,255,0.35)" }}/>
-              </div>
-              <div style={{ ...card, padding:14 }}>
-                <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, lineHeight:1.2, marginBottom:4 }}>{stats.topAuthor[0]}</p>
-                <p style={{ fontSize:12, color:WOOD.textDim }}>{stats.topAuthor[1]} {stats.topAuthor[1] === 1 ? "book" : "books"}</p>
-              </div>
+      {/* Top 5 Books */}
+      {(!viewOnly || pickedBooks.length > 0) && (
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
+            <div style={{ flex:1, height:1, background:"rgba(255,255,255,0.35)" }}/>
+            <span style={{ fontSize:13, color:"#fff", textTransform:"uppercase", letterSpacing:"0.18em", fontFamily:"'Crimson Pro',serif", fontWeight:700, whiteSpace:"nowrap" }}>Top 5 Books</span>
+            <div style={{ flex:1, height:1, background:"rgba(255,255,255,0.35)" }}/>
+          </div>
+          {pickedBooks.length === 0 ? (
+            <div style={{
+              background:"rgba(184,104,0,0.15)",
+              border:`1px solid ${WOOD.amber}40`,
+              borderRadius:10, padding:"12px 14px", textAlign:"center",
+            }}>
+              <p style={{ fontSize:13, color:WOOD.text, fontFamily:"'DM Sans',sans-serif", marginBottom:8 }}>
+                Pick up to 5 books that define your taste.
+              </p>
+              <button {...tc(()=>setShowBooksPicker(true))} style={{
+                background: WOOD.amber, color:"#1a0900", border:"none",
+                borderRadius:20, padding:"6px 14px",
+                fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:600,
+                cursor:"pointer",
+              }}>Pick favorites</button>
             </div>
-          )}
-          {stats.longestBook && (
-            <div style={{ display:"flex", flexDirection:"column" }}>
-              <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
-                <div style={{ flex:1, height:1, background:"rgba(255,255,255,0.35)" }}/>
-                <span style={{ fontSize:13, color:"#fff", textTransform:"uppercase", letterSpacing:"0.18em", fontFamily:"'Crimson Pro',serif", fontWeight:700, whiteSpace:"nowrap" }}>Longest Book</span>
-                <div style={{ flex:1, height:1, background:"rgba(255,255,255,0.35)" }}/>
+          ) : (
+            <div>
+              <div style={{ display:"flex", gap:14, overflowX:"auto", padding:"6px 4px 6px 4px", marginLeft:-4, marginRight:-4 }}>
+                {pickedBooks.map((b, i) => (
+                  <div key={b.id} style={{ position:"relative", flexShrink:0 }}>
+                    <BookCoverThumb book={b} size="md" />
+                    <div style={{
+                      position:"absolute", top:-6, left:-6,
+                      background: WOOD.amber, color:"#1a0900",
+                      borderRadius:"50%", width:24, height:24,
+                      display:"flex", alignItems:"center", justifyContent:"center",
+                      fontFamily:"'Crimson Pro',serif", fontWeight:700, fontSize:13,
+                      boxShadow:"0 2px 6px rgba(0,0,0,0.4)",
+                    }}>{i + 1}</div>
+                  </div>
+                ))}
               </div>
-              <div style={{ ...card, padding:14 }}>
-                <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, lineHeight:1.2, marginBottom:4, overflow:"hidden", display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical" }}>{stats.longestBook.title}</p>
-                <p style={{ fontSize:12, color:WOOD.textDim }}>{stats.longestBook.pages.toLocaleString()} pages</p>
-              </div>
+              {!viewOnly && (
+                <div style={{ textAlign:"right", marginTop:4 }}>
+                  <button {...tc(()=>setShowBooksPicker(true))} style={{
+                    background:"transparent", border:"none",
+                    color:WOOD.amber, fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600,
+                    cursor:"pointer", textTransform:"uppercase", letterSpacing:"0.08em",
+                  }}>Edit</button>
+                </div>
+              )}
             </div>
           )}
         </div>
+      )}
+
+      {/* Top 5 Authors */}
+      {(!viewOnly || pickedAuthors.length > 0) && (
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
+            <div style={{ flex:1, height:1, background:"rgba(255,255,255,0.35)" }}/>
+            <span style={{ fontSize:13, color:"#fff", textTransform:"uppercase", letterSpacing:"0.18em", fontFamily:"'Crimson Pro',serif", fontWeight:700, whiteSpace:"nowrap" }}>Top 5 Authors</span>
+            <div style={{ flex:1, height:1, background:"rgba(255,255,255,0.35)" }}/>
+          </div>
+          {pickedAuthors.length === 0 ? (
+            <div style={{
+              background:"rgba(184,104,0,0.15)",
+              border:`1px solid ${WOOD.amber}40`,
+              borderRadius:10, padding:"12px 14px", textAlign:"center",
+            }}>
+              <p style={{ fontSize:13, color:WOOD.text, fontFamily:"'DM Sans',sans-serif", marginBottom:8 }}>
+                Pick up to 5 authors you love most.
+              </p>
+              <button {...tc(()=>setShowAuthorsPicker(true))} style={{
+                background: WOOD.amber, color:"#1a0900", border:"none",
+                borderRadius:20, padding:"6px 14px",
+                fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:600,
+                cursor:"pointer",
+              }}>Pick favorites</button>
+            </div>
+          ) : (
+            <div>
+              <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
+                {pickedAuthors.map((author, i) => (
+                  <div key={author} style={{
+                    display:"inline-flex", alignItems:"center", gap:6,
+                    background:"rgba(255,235,195,0.85)", borderRadius:18,
+                    padding:"5px 12px 5px 5px",
+                    border:`1px solid rgba(160,100,40,0.3)`,
+                  }}>
+                    <span style={{
+                      background: WOOD.amber, color:"#1a0900",
+                      borderRadius:"50%", width:22, height:22,
+                      display:"flex", alignItems:"center", justifyContent:"center",
+                      fontFamily:"'Crimson Pro',serif", fontWeight:700, fontSize:12,
+                    }}>{i + 1}</span>
+                    <span style={{ fontSize:13, color:WOOD.text, fontFamily:"'DM Sans',sans-serif", fontWeight:500 }}>{author}</span>
+                  </div>
+                ))}
+              </div>
+              {!viewOnly && (
+                <div style={{ textAlign:"right", marginTop:6 }}>
+                  <button {...tc(()=>setShowAuthorsPicker(true))} style={{
+                    background:"transparent", border:"none",
+                    color:WOOD.amber, fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600,
+                    cursor:"pointer", textTransform:"uppercase", letterSpacing:"0.08em",
+                  }}>Edit</button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {!viewOnly && showBooksPicker && (
+        <TopPicksPickerSheet
+          mode="books"
+          title="Top 5 Books"
+          library={books}
+          currentIds={topBookIds}
+          onSave={async (newIds) => { await onSaveTopBooks?.(newIds); }}
+          onClose={()=>setShowBooksPicker(false)}
+        />
+      )}
+      {!viewOnly && showAuthorsPicker && (
+        <TopPicksPickerSheet
+          mode="authors"
+          title="Top 5 Authors"
+          library={uniqueAuthorsAll}
+          currentIds={topAuthors}
+          onSave={async (newAuthors) => { await onSaveTopAuthors?.(newAuthors); }}
+          onClose={()=>setShowAuthorsPicker(false)}
+        />
       )}
     </div>
   );
@@ -9390,7 +9652,7 @@ function FriendsModal({ session, currentUsername, onClose, onProfileChanged, onO
     const otherIds = (rows || []).map(r => r.user_a_id === meId ? r.user_b_id : r.user_a_id);
     let profilesData = [];
     if (otherIds.length) {
-      const { data: p } = await supabase.from("profiles").select("id, username, avatar_url").in("id", otherIds);
+      const { data: p } = await supabase.from("profiles").select("id, username, avatar_url, top_book_ids, top_authors").in("id", otherIds);
       profilesData = p || [];
     }
     const enriched = (rows || []).map(f => ({
@@ -9504,7 +9766,7 @@ function FriendsModal({ session, currentUsername, onClose, onProfileChanged, onO
             {!friendsLoading && acceptedFriends.map(f => (
               <div key={f.id} style={{ display:"flex", alignItems:"center", gap:10, padding:"8px 0" }}>
                 <button
-                  {...tc(()=>setViewingFriend({ id: f.other?.id, username: f.other?.username, avatar_url: f.other?.avatar_url }))}
+                  {...tc(()=>setViewingFriend({ id: f.other?.id, username: f.other?.username, avatar_url: f.other?.avatar_url, top_book_ids: f.other?.top_book_ids || [], top_authors: f.other?.top_authors || [] }))}
                   disabled={!f.other?.id}
                   style={{
                     flex:1, display:"flex", alignItems:"center", gap:10,
@@ -9625,7 +9887,7 @@ function FriendBreakdownModal({ friend, onClose }) {
       <div style={{ flex:1, overflow:"hidden", position:"relative" }}>
         {error && <p style={{ padding:20, color:"#fff", fontFamily:"'DM Sans',sans-serif" }}>Couldn't load: {error}</p>}
         {!books && !error && <p style={{ padding:20, color:"#fff", fontFamily:"'DM Sans',sans-serif" }}>Loading…</p>}
-        {books && !error && <StatsTab books={books} characterAvatar={characterAvatar} viewOnly={true} />}
+        {books && !error && <StatsTab books={books} characterAvatar={characterAvatar} viewOnly={true} topBookIds={friend?.top_book_ids || []} topAuthors={friend?.top_authors || []} />}
       </div>
     </div>
   );
@@ -9958,6 +10220,8 @@ export default function App() {
   const [authLoading, setAuthLoading] = useState(true);
   const [guestMode, setGuestMode] = useState(() => !!localStorage.getItem(GUEST_ACTIVE_KEY));
   const [currentUsername, setCurrentUsername] = useState(null);
+  const [currentTopBookIds, setCurrentTopBookIds] = useState([]);
+  const [currentTopAuthors, setCurrentTopAuthors] = useState([]);
   const [profileRefresh, setProfileRefresh] = useState(0);
   const [showFriends, setShowFriends] = useState(false);
   const [seriesTiers, setSeriesTiers] = useState({});
@@ -10017,12 +10281,17 @@ export default function App() {
     guestSaveBooks(books);
   }, [books, guestMode, session]);
 
-  // Fetch current user's username (re-runs when ProfileModal bumps profileRefresh)
+  // Fetch current user's profile (re-runs when something bumps profileRefresh)
   useEffect(() => {
-    if (!session?.user?.id) { setCurrentUsername(null); return; }
+    if (!session?.user?.id) { setCurrentUsername(null); setCurrentTopBookIds([]); setCurrentTopAuthors([]); return; }
     let cancelled = false;
-    supabase.from("profiles").select("username").eq("id", session.user.id).maybeSingle()
-      .then(({ data }) => { if (!cancelled) setCurrentUsername(data?.username || null); });
+    supabase.from("profiles").select("username, top_book_ids, top_authors").eq("id", session.user.id).maybeSingle()
+      .then(({ data }) => {
+        if (cancelled) return;
+        setCurrentUsername(data?.username || null);
+        setCurrentTopBookIds(Array.isArray(data?.top_book_ids) ? data.top_book_ids : []);
+        setCurrentTopAuthors(Array.isArray(data?.top_authors) ? data.top_authors : []);
+      });
     return () => { cancelled = true; };
   }, [session?.user?.id, profileRefresh]);
 
@@ -10413,10 +10682,29 @@ export default function App() {
             ? <RecommendPage books={books} userId={userId} onAddDirect={(book, shelf) => { const existing = books.find(x => normBookKey(x.title) === normBookKey(book.title)); if (existing) { changeShelf(existing.id, shelf); return; } const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, rating:0, date:todayLocal() }; setBooks(prev => [...prev, b]); if (!guestMode) dbAddBook(b, userId); }} onBulkAddDirect={(items, shelf) => { if (!items?.length) return; const today = todayLocal(); const baseId = Date.now(); const ownedKeys = new Set(books.map(x => normBookKey(x.title))); const newBooks = items.filter(it => it?.title && !ownedKeys.has(normBookKey(it.title))).map((it, idx) => ({ id: baseId + idx, title: it.title, author: it.author || "Unknown", genre: normalizeGenre(it.genre), pages: parseInt(it.pages) || 0, rating: 0, shelf, coverUrl: it.coverUrl || null, coverId: null, date: today, publishYear: it.publishYear || null })); if (!newBooks.length) return; setBooks(prev => [...prev, ...newBooks]); if (!guestMode) newBooks.forEach(b => dbAddBook(b, userId)); track("bulk_add", { count: newBooks.length, shelf }); clearTimeout(toastTimer.current); setToast({ title: `${newBooks.length} ${newBooks.length === 1 ? "book" : "books"}`, shelf }); toastTimer.current = setTimeout(() => setToast(null), 3000); }} onAuthor={setAuthorModal} onEdit={setEditBook} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:todayLocal(), description:"", scores:null, notes:"", _fromRecs:true }); }} onShelfChange={changeShelf} onSaveScores={saveScores} />
             : tab==="rankings"
             ? <RankingsTab books={books} onSaveScores={saveScores} userId={userId} authorTiers={authorTiers} seriesTiers={seriesTiers} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:todayLocal(), description:"", scores:null, notes:"", _fromRecs:true }); }} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, date:todayLocal() }; setBooks(prev => [...prev, b]); if (!guestMode) dbAddBook(b, userId); }} onShelfChange={changeShelf} onEdit={setEditBook} onAuthor={setAuthorModal} />
-            : <StatsTab books={books} characterAvatar={(() => {
-                const picked = guestMode ? localStorage.getItem("theshelf:avatarUrl") : session?.user?.user_metadata?.avatar_url;
-                return picked?.startsWith("/avatars/") ? picked : null;
-              })()} />
+            : <StatsTab
+                books={books}
+                characterAvatar={(() => {
+                  const picked = guestMode ? localStorage.getItem("theshelf:avatarUrl") : session?.user?.user_metadata?.avatar_url;
+                  return picked?.startsWith("/avatars/") ? picked : null;
+                })()}
+                topBookIds={currentTopBookIds}
+                topAuthors={currentTopAuthors}
+                onSaveTopBooks={async (newIds) => {
+                  if (!session?.user?.id) return;
+                  setCurrentTopBookIds(newIds);
+                  const { error } = await supabase.from("profiles").update({ top_book_ids: newIds }).eq("id", session.user.id);
+                  if (error) console.error("save top books:", error);
+                  setProfileRefresh(n => n + 1);
+                }}
+                onSaveTopAuthors={async (newAuthors) => {
+                  if (!session?.user?.id) return;
+                  setCurrentTopAuthors(newAuthors);
+                  const { error } = await supabase.from("profiles").update({ top_authors: newAuthors }).eq("id", session.user.id);
+                  if (error) console.error("save top authors:", error);
+                  setProfileRefresh(n => n + 1);
+                }}
+              />
           }
           {showAdd && <AddSheet onSave={addBook} onClose={()=>setShowAdd(false)} />}
           {(addBookDraft || editBook) && (() => {
