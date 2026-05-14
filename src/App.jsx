@@ -9043,6 +9043,78 @@ function ProfileModal({ session, onClose }) {
   const [brokenAvatars, setBrokenAvatars] = useState({});
   const [headerBroken, setHeaderBroken] = useState(false);
 
+  // Profile (username, etc.) — only for signed-in users
+  const [profile, setProfile] = useState(null);
+  const [profileLoading, setProfileLoading] = useState(!isGuest);
+  const [usernameEditing, setUsernameEditing] = useState(false);
+  const [usernameDraft, setUsernameDraft] = useState("");
+  const [usernameSaving, setUsernameSaving] = useState(false);
+  const [usernameError, setUsernameError] = useState(null);
+  const [usernameSavedAt, setUsernameSavedAt] = useState(0);
+
+  useEffect(() => {
+    if (isGuest || !user?.id) { setProfileLoading(false); return; }
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, username, username_set_at, display_name, avatar_url")
+        .eq("id", user.id)
+        .single();
+      if (cancelled) return;
+      if (error) console.error("load profile:", error);
+      else setProfile(data);
+      setProfileLoading(false);
+    })();
+    return () => { cancelled = true; };
+  }, [isGuest, user?.id]);
+
+  const hasUsername = !!profile?.username;
+  const cooldownEnds = profile?.username_set_at
+    ? new Date(new Date(profile.username_set_at).getTime() + 30 * 24 * 60 * 60 * 1000)
+    : null;
+  const cooldownActive = cooldownEnds && cooldownEnds.getTime() > Date.now();
+  const showUsernameSaved = usernameSavedAt && Date.now() - usernameSavedAt < 2000;
+
+  function startUsernameEdit() {
+    setUsernameDraft(profile?.username || "");
+    setUsernameError(null);
+    setUsernameEditing(true);
+  }
+
+  async function saveUsername() {
+    const v = usernameDraft.trim();
+    if (!/^[a-zA-Z0-9_]{3,20}$/.test(v)) {
+      setUsernameError("3–20 characters, letters/numbers/underscores only.");
+      return;
+    }
+    if (v.toLowerCase() === profile?.username?.toLowerCase()) {
+      setUsernameEditing(false);
+      return;
+    }
+    setUsernameSaving(true);
+    setUsernameError(null);
+    const { data, error } = await supabase
+      .from("profiles")
+      .update({ username: v })
+      .eq("id", user.id)
+      .select()
+      .single();
+    setUsernameSaving(false);
+    if (error) {
+      const msg = (error.message || "").toLowerCase();
+      if (error.code === "23505") setUsernameError("That username is taken.");
+      else if (msg.includes("30 days")) setUsernameError("Username can only change once every 30 days.");
+      else if (msg.includes("username_not_reserved")) setUsernameError("That username is reserved.");
+      else if (msg.includes("username_format")) setUsernameError("3–20 characters, letters/numbers/underscores only.");
+      else setUsernameError(error.message || "Couldn't save");
+      return;
+    }
+    setProfile(data);
+    setUsernameSavedAt(Date.now());
+    setUsernameEditing(false);
+  }
+
   async function commitName() {
     const trimmed = name.trim();
     const baseline = isGuest ? (localStorage.getItem(GUEST_NAME_KEY) || "") : initialName;
@@ -9117,6 +9189,94 @@ function ProfileModal({ session, onClose }) {
             {email && <p style={{ fontSize:12, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif" }}>{email}</p>}
           </div>
         </div>
+
+        {/* Username section (signed-in users only) */}
+        {!isGuest && !profileLoading && !usernameEditing && !hasUsername && (
+          <div style={{
+            background:"rgba(184,104,0,0.10)",
+            border:`1px solid ${WOOD.amber}40`,
+            borderRadius:10, padding:"12px 14px", marginBottom:16,
+          }}>
+            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.text, marginBottom:4, fontWeight:600 }}>
+              Pick a username to add friends.
+            </p>
+            <p style={{ fontSize:12, color:WOOD.textDim, marginBottom:10, fontFamily:"'DM Sans',sans-serif" }}>
+              Friends can see your reading breakdown.
+            </p>
+            <button {...tc(startUsernameEdit)} style={{
+              background: WOOD.amber, color:"#1a0900",
+              border:"none", borderRadius:20, padding:"6px 14px",
+              fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:600,
+              cursor:"pointer",
+            }}>Set username</button>
+          </div>
+        )}
+
+        {!isGuest && !profileLoading && !usernameEditing && hasUsername && (
+          <div style={{ marginBottom:16 }}>
+            <p style={{ fontSize:11, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Username</p>
+            <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+              <span style={{ fontFamily:"'DM Sans',sans-serif", fontSize:15, color:WOOD.text, fontWeight:500 }}>@{profile.username}</span>
+              <button {...tc(startUsernameEdit)} disabled={cooldownActive} style={{
+                background:"transparent", border:`1px solid ${WOOD.border}`,
+                borderRadius:14, padding:"3px 10px",
+                color: cooldownActive ? WOOD.textFaint : WOOD.amber,
+                fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500,
+                cursor: cooldownActive ? "default" : "pointer",
+              }}>{cooldownActive ? "Locked" : "Change"}</button>
+            </div>
+            {cooldownActive && (
+              <p style={{ fontSize:10, color:WOOD.textFaint, marginTop:4, fontFamily:"'DM Sans',sans-serif" }}>
+                Next change: {cooldownEnds.toLocaleDateString()}
+              </p>
+            )}
+            {showUsernameSaved && (
+              <p style={{ fontSize:11, color:"#3d7a4f", marginTop:4, fontFamily:"'DM Sans',sans-serif" }}>Saved</p>
+            )}
+          </div>
+        )}
+
+        {!isGuest && usernameEditing && (
+          <div style={{ marginBottom:16 }}>
+            <p style={{ fontSize:11, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Username</p>
+            <div style={{ display:"flex", gap:8, alignItems:"flex-start" }}>
+              <div style={{ position:"relative", flex:1 }}>
+                <span style={{ position:"absolute", left:12, top:11, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif", fontSize:14 }}>@</span>
+                <input
+                  autoFocus
+                  value={usernameDraft}
+                  onChange={e => setUsernameDraft(e.target.value)}
+                  onKeyDown={e => { if (e.key === "Enter") saveUsername(); if (e.key === "Escape") setUsernameEditing(false); }}
+                  maxLength={20}
+                  placeholder="bookworm"
+                  style={{
+                    width:"100%", boxSizing:"border-box",
+                    padding:"10px 12px 10px 28px", border:`1px solid ${WOOD.border}`, borderRadius:8,
+                    fontFamily:"'DM Sans',sans-serif", fontSize:14, color:WOOD.text, background:"#fff",
+                    outline:"none",
+                  }}
+                />
+              </div>
+              <button {...tc(saveUsername)} disabled={usernameSaving} style={{
+                background: WOOD.amber, color:"#1a0900",
+                border:"none", borderRadius:8, padding:"10px 14px",
+                fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:600,
+                cursor: usernameSaving ? "default" : "pointer", whiteSpace:"nowrap",
+                opacity: usernameSaving ? 0.6 : 1,
+              }}>{usernameSaving ? "..." : "Save"}</button>
+              <button {...tc(()=>{ setUsernameEditing(false); setUsernameError(null); })} style={{
+                background:"transparent", border:`1px solid ${WOOD.border}`,
+                borderRadius:8, padding:"10px 12px",
+                fontFamily:"'DM Sans',sans-serif", fontSize:13, color:WOOD.textDim,
+                cursor:"pointer",
+              }}>Cancel</button>
+            </div>
+            {usernameError && <p style={{ fontSize:11, color:"#c0392b", marginTop:6, fontFamily:"'DM Sans',sans-serif" }}>{usernameError}</p>}
+            <p style={{ fontSize:11, color:WOOD.textFaint, marginTop:4, fontFamily:"'DM Sans',sans-serif" }}>
+              3–20 characters. Letters, numbers, underscores. Changeable once per 30 days.
+            </p>
+          </div>
+        )}
 
         {/* Display name editor */}
         <label style={{ display:"block" }}>
