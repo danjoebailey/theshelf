@@ -38,17 +38,17 @@ function buildProfileLines(profile) {
 
 function bookKey(title, author) {
   const norm = s => (s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-  // v2 — invalidates pre-existing cache entries that lack the trailing
-  // <call>...</call> tag so the auto-route to Recommended works.
-  return `verdict::v2::${norm(title)}::${norm(author)}`;
+  // v3 — invalidates v2 entries that may contain hallucinated claims about
+  // the reader's history (e.g. "You DNF'd X" for books not in the library).
+  // v3 prompt forbids inventing reader history; old caches drop and regen.
+  return `verdict::v3::${norm(title)}::${norm(author)}`;
 }
 
 function recommendKey(author) {
   const norm = s => (s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-  // v5 — v4 phrasing ("if queued fits, name it. Otherwise...") biased Obi
-  // toward queued picks regardless of taste fit. v5 presents queued and
-  // unread as equal candidates and tells Obi to judge by fit, not shelf.
-  return `recommend::v5::${norm(author)}`;
+  // v6 — adds the same anti-hallucination grounding rule used in verdict
+  // mode (v3): only cite books/authors actually in the reader's library.
+  return `recommend::v6::${norm(author)}`;
 }
 
 async function getCached(userId, key) {
@@ -176,6 +176,10 @@ ${biblioLines}${queuedLines ? `\n\nAlso on this reader's shelves but not yet rea
 
 Pick the best entry point into ${author}'s work for this reader. Judge by fit — queued and unread are equally available; shelf status doesn't make a book a better or worse pick. If nothing here is for this reader, say so and name what's off. Don't call queued books "absent" or "missing."
 
+CRITICAL — grounding rules:
+- Only cite books, authors, ratings, or shelf statuses that actually appear in the reader's library above. Quote titles exactly.
+- Do NOT invent or assume anything about the reader's history that isn't in the library data.
+
 Hard limit: 2 sentences. Direct prose — no preamble, no asides, no comparison name-stacking, no markdown.`;
       blocks = [
         { type: "text", text: cached, cache_control: { type: "ephemeral" } },
@@ -224,7 +228,14 @@ ${buildProfileLines(profile)}`;
 
 Book in question: "${book.title}" by ${book.author} (${book.genre})${book.description ? `\n\nAbout the book: ${book.description}` : ""}
 
-Write 2–3 sentences. Be direct and specific — reference what you actually know about this reader's taste. Don't hedge. No intro, no sign-off, no markdown.
+Write 2–3 sentences. Be direct and specific.
+
+CRITICAL — grounding rules:
+- Only cite books, authors, ratings, or shelf statuses that actually appear in the reader's library above. Quote titles exactly.
+- Do NOT invent, assume, or imply anything about the reader's history that isn't in the library data. If they haven't shelved a book, they haven't read it — never say "you DNF'd X" or "you loved Y" unless X/Y is in the library.
+- If the library is thin or doesn't speak directly to this book's appeal, say so plainly instead of fabricating support.
+
+No intro, no sign-off, no markdown.
 
 After your verdict, on its own final line, output EXACTLY one of these three strings — nothing else on that line, no quotes, no markdown:
 <call>yes</call>
