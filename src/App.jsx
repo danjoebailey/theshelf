@@ -7429,7 +7429,7 @@ function StatsTab({ books, characterAvatar, viewOnly = false, topBookIds = [], t
             </div>
           ) : (
             <div>
-              <div style={{ display:"flex", gap:10, overflowX:"auto", padding:"2px 0", marginLeft:-4, marginRight:-4, paddingLeft:4, paddingRight:4 }}>
+              <div style={{ display:"flex", gap:10, overflowX:"auto", padding:"2px 0", marginLeft:-4, marginRight:-4, paddingLeft:4, paddingRight:4, justifyContent:"center" }}>
                 {pickedBooks.map(b => (
                   <div key={b.id} style={{ flexShrink:0 }}>
                     <BookCoverThumb book={b} size="md" />
