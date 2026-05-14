@@ -7429,12 +7429,20 @@ function StatsTab({ books, characterAvatar, viewOnly = false, topBookIds = [], t
             </div>
           ) : (
             <div>
-              <div style={{ display:"flex", gap:10, overflowX:"auto", padding:"2px 0", marginLeft:-4, marginRight:-4, paddingLeft:4, paddingRight:4, justifyContent:"center" }}>
-                {pickedBooks.map(b => (
-                  <div key={b.id} style={{ flexShrink:0 }}>
-                    <BookCoverThumb book={b} size="md" />
-                  </div>
-                ))}
+              <div style={{ position:"relative", marginLeft:-16, marginRight:-16 }}>
+                <div style={{ display:"flex", gap:10, overflowX:"auto", padding:"16px 16px 12px", justifyContent:"center", scrollbarWidth:"none" }}>
+                  {pickedBooks.map(b => (
+                    <div key={b.id} style={{ flexShrink:0 }}>
+                      <BookCoverThumb book={b} size="md" />
+                    </div>
+                  ))}
+                </div>
+                <img src="/discover-shelf.png" alt="" aria-hidden="true" style={{
+                  position:"absolute", left:0, right:0, bottom:0,
+                  width:"100%", height:12, display:"block",
+                  objectFit:"cover", pointerEvents:"none",
+                  filter:"drop-shadow(0 4px 6px rgba(0,0,0,0.32))",
+                }} />
               </div>
               {!viewOnly && (
                 <div style={{ textAlign:"right", marginTop:4 }}>
