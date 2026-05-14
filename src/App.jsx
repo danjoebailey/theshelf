@@ -9282,6 +9282,16 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd, userI
   );
 }
 
+// All character avatars. The first three are featured in the Profile picker
+// (quick-picks); the rest live behind a "More avatars" sheet.
+const AVATAR_OPTIONS = [
+  { file: "madrick.png",   label: "Madrick",   color: "#a07040" },
+  { file: "four-ayes.png", label: "Four Ayes", color: "#c89850" },
+  { file: "sweetie.png",   label: "Sweetie",   color: "#d4a060" },
+  { file: "pip.png",       label: "Pip",       color: "#7d4f1f" },
+];
+const FEATURED_AVATARS = AVATAR_OPTIONS.slice(0, 3);
+
 // For character avatars in /avatars/, prefer the dedicated -head.png companion
 // at small sizes (corner menu, modal header). Google OAuth and other URLs pass through.
 function smallAvatarUrl(url) {
@@ -9303,11 +9313,6 @@ function ProfileModal({ session, onClose, onProfileChanged }) {
   const isGuest = !user;
   const GUEST_NAME_KEY = "theshelf:displayName";
   const GUEST_AVATAR_KEY = "theshelf:avatarUrl";
-  const AVATAR_OPTIONS = [
-    { file: "madrick.png", label: "Madrick", color: "#a07040" },
-    { file: "four-ayes.png", label: "Four Ayes", color: "#c89850" },
-    { file: "sweetie.png", label: "Sweetie", color: "#d4a060" },
-  ];
 
   const [name, setName] = useState(() => {
     if (isGuest) return localStorage.getItem(GUEST_NAME_KEY) || "";
@@ -9324,6 +9329,7 @@ function ProfileModal({ session, onClose, onProfileChanged }) {
   const [avatarError, setAvatarError] = useState(null);
   const [brokenAvatars, setBrokenAvatars] = useState({});
   const [headerBroken, setHeaderBroken] = useState(false);
+  const [showMoreAvatars, setShowMoreAvatars] = useState(false);
 
   // Profile (username, etc.) — only for signed-in users
   const [profile, setProfile] = useState(null);
@@ -9587,7 +9593,7 @@ function ProfileModal({ session, onClose, onProfileChanged }) {
         <div style={{ marginTop:18 }}>
           <p style={{ fontSize:11, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10 }}>Avatar</p>
           <div style={{ display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:12 }}>
-            {AVATAR_OPTIONS.map(opt => {
+            {FEATURED_AVATARS.map(opt => {
               const src = `/avatars/${opt.file}`;
               const selected = avatarUrl === src;
               const broken = brokenAvatars[opt.file];
@@ -9628,6 +9634,14 @@ function ProfileModal({ session, onClose, onProfileChanged }) {
               );
             })}
           </div>
+          <div style={{ display:"flex", justifyContent:"center", marginTop:10 }}>
+            <button {...tc(()=>setShowMoreAvatars(true))} style={{
+              background:"transparent", border:`1px solid ${WOOD.amber}`,
+              borderRadius:14, padding:"4px 14px",
+              color: WOOD.amber, fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600,
+              cursor:"pointer", textTransform:"uppercase", letterSpacing:"0.08em",
+            }}>More avatars</button>
+          </div>
           <div style={{ minHeight:18, marginTop:8 }}>
             {showAvatarSaved && <p style={{ fontSize:11, color:"#3d7a4f", fontFamily:"'DM Sans',sans-serif" }}>Saved</p>}
             {avatarError && <p style={{ fontSize:11, color:"#c0392b", fontFamily:"'DM Sans',sans-serif" }}>{avatarError}</p>}
@@ -9635,8 +9649,97 @@ function ProfileModal({ session, onClose, onProfileChanged }) {
         </div>
 
       </div>
+      {showMoreAvatars && (
+        <AvatarsSheet
+          currentUrl={avatarUrl}
+          onPick={async (file) => { await pickAvatar(`/avatars/${file}`); setShowMoreAvatars(false); }}
+          onClose={()=>setShowMoreAvatars(false)}
+        />
+      )}
     </div>
   );
+}
+
+// Bottom sheet showing every avatar in a grid. Tapping one picks it and closes.
+function AvatarsSheet({ currentUrl, onPick, onClose }) {
+  const [brokenAvatars, setBrokenAvatars] = useState({});
+
+  return createPortal((
+    <div onClick={onClose} style={{
+      position:"fixed", inset:0, background:"rgba(0,0,0,0.7)", zIndex:9999,
+      display:"flex", alignItems:"flex-end", justifyContent:"center",
+      animation:"fadeIn 0.15s ease",
+    }}>
+      <div onClick={e=>e.stopPropagation()} style={{
+        background:"#f5e8d0", width:"100%", maxWidth:520,
+        borderRadius:"16px 16px 0 0",
+        padding:"24px 22px calc(24px + max(env(safe-area-inset-bottom, 0px), 50px))",
+        position:"relative",
+        maxHeight:"calc(100vh - 100px - env(safe-area-inset-top, 0px))",
+        display:"flex", flexDirection:"column",
+      }}>
+        <button {...tc(onClose)} aria-label="Close" style={{
+          position:"absolute", top:12, right:12, zIndex:5,
+          background:"rgba(138,90,40,0.15)", border:"none",
+          width:32, height:32, borderRadius:"50%", cursor:"pointer",
+          color:WOOD.textDim, display:"flex", alignItems:"center", justifyContent:"center",
+        }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+
+        <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:22, color:WOOD.text, marginBottom:6, paddingRight:36 }}>All avatars</p>
+        <p style={{ fontSize:12, color:WOOD.textDim, marginBottom:18, fontFamily:"'DM Sans',sans-serif", lineHeight:1.4 }}>
+          Tap one to set it.
+        </p>
+
+        <div style={{ flex:1, overflowY:"auto", marginLeft:-4, marginRight:-4, paddingLeft:4, paddingRight:4 }}>
+          <div style={{ display:"grid", gridTemplateColumns:"repeat(2, 1fr)", gap:14 }}>
+            {AVATAR_OPTIONS.map(opt => {
+              const src = `/avatars/${opt.file}`;
+              const selected = currentUrl === src;
+              const broken = brokenAvatars[opt.file];
+              return (
+                <button
+                  key={opt.file}
+                  {...tc(()=>onPick(opt.file))}
+                  aria-label={`Choose avatar ${opt.label}`}
+                  style={{
+                    width:"100%", padding:0, cursor:"pointer",
+                    background:"transparent", border:"none",
+                    display:"flex", flexDirection:"column", alignItems:"center", gap:6,
+                  }}
+                >
+                  <div style={{
+                    width:"100%", aspectRatio:"3 / 5", borderRadius:10,
+                    background: broken ? opt.color : "rgba(255,245,220,0.5)",
+                    border: selected ? `2px solid ${WOOD.amber}` : `1px solid ${WOOD.border}`,
+                    boxShadow: selected ? `0 0 0 3px ${WOOD.amber}33` : "none",
+                    overflow:"hidden",
+                    display:"flex", alignItems:"flex-end", justifyContent:"center",
+                  }}>
+                    {!broken && (
+                      <img
+                        src={src} alt=""
+                        onError={() => setBrokenAvatars(b => ({ ...b, [opt.file]: true }))}
+                        style={{ width:"100%", height:"100%", objectFit:"contain", objectPosition:"bottom", display:"block" }}
+                      />
+                    )}
+                  </div>
+                  <span style={{
+                    fontFamily:"'DM Sans',sans-serif", fontSize:13,
+                    color: selected ? WOOD.text : WOOD.textDim,
+                    fontWeight: selected ? 600 : 400,
+                  }}>{opt.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  ), document.body);
 }
 
 // Friends list + add-friend flow + tap-through to friend's breakdown.
