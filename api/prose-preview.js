@@ -19,7 +19,7 @@ export default async function handler(req, res) {
       max_tokens: 400,
       messages: [{
         role: "user",
-        content: `Write a short prose passage (2–3 paragraphs) in the unmistakable style of ${author}, capturing the voice, rhythm, and atmosphere of their book "${title}". Do not reference the book or its characters directly — just evoke the author's distinctive prose style. Return only the prose itself, no titles, headings, labels, introduction, or explanation. Do not use markdown.`,
+        content: `Write a short prose passage (2–3 paragraphs) in the unmistakable style of ${author}, capturing the voice, rhythm, and atmosphere of their book "${title}". Do not reference the book or its characters directly — just evoke the author's distinctive prose style. Use NO character names; refer to people in the abstract (the woman, a young soldier, the old man, etc.) so readers don't mistake invented names for real characters from the book. Return only the prose itself, no titles, headings, labels, introduction, or explanation. Do not use markdown.`,
       }],
     }),
   });
