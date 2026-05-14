@@ -6846,12 +6846,18 @@ function TopPicksPickerSheet({ mode, title, library, currentIds, onSave, onClose
         borderRadius:"16px 16px 0 0", padding:"24px 22px 24px",
         position:"relative", maxHeight:"90vh", display:"flex", flexDirection:"column",
       }}>
-        <button {...tc(onClose)} style={{
-          position:"absolute", top:14, right:14, background:"transparent", border:"none",
-          width:30, height:30, cursor:"pointer", color:WOOD.textDim, fontSize:16,
-        }}>✕</button>
+        <button {...tc(onClose)} aria-label="Close" style={{
+          position:"absolute", top:12, right:12, zIndex:5,
+          background:"rgba(138,90,40,0.15)", border:"none",
+          width:32, height:32, borderRadius:"50%", cursor:"pointer",
+          color:WOOD.textDim, display:"flex", alignItems:"center", justifyContent:"center",
+        }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
 
-        <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:22, color:WOOD.text, marginBottom:6 }}>{title}</p>
+        <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:22, color:WOOD.text, marginBottom:6, paddingRight:36 }}>{title}</p>
         <p style={{ fontSize:12, color:WOOD.textDim, marginBottom:14, fontFamily:"'DM Sans',sans-serif", lineHeight:1.4 }}>
           Pick up to 5 from your library. Tap to add, arrows to reorder.
         </p>
