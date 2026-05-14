@@ -8100,7 +8100,10 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
                 <div style={{ animation:"fadeIn 0.18s ease" }}>
                   {proseLoading
                     ? <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:CR.textFaint, fontStyle:"italic" }}>Generating…</p>
-                    : <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:CR.text, lineHeight:1.8 }}>{prose}</p>}
+                    : <>
+                        <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:CR.text, lineHeight:1.8 }}>{prose}</p>
+                        <p style={{ fontSize:10, color:CR.textFaint, fontFamily:"'DM Sans',sans-serif", marginTop:6, fontStyle:"italic" }}>AI-generated style sample — not from the book.</p>
+                      </>}
                 </div>
               )}
               {detailPanel === "scores" && (
