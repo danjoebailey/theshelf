@@ -6799,6 +6799,9 @@ function TopPicksPickerSheet({ mode, title, library, currentIds, onSave, onClose
   const [picks, setPicks] = useState(currentIds || []);
   const [search, setSearch] = useState("");
   const [saving, setSaving] = useState(false);
+  // Track whether the current touch involved a scroll, so we don't fire
+  // "add" when the user is just scrolling the library list.
+  const touchMoved = useRef(false);
 
   const getId = (item) => mode === "books" ? String(item.id) : item;
   const getDisplay = (item) => mode === "books" ? item.title : item;
@@ -6909,7 +6912,10 @@ function TopPicksPickerSheet({ mode, title, library, currentIds, onSave, onClose
             {filteredAvailable.map(item => (
               <button
                 key={getId(item)}
-                {...tc(()=>add(item))}
+                onTouchStart={() => { touchMoved.current = false; }}
+                onTouchMove={() => { touchMoved.current = true; }}
+                onTouchEnd={e => { if (!touchMoved.current && picks.length < 5) { e.preventDefault(); add(item); } }}
+                onClick={() => add(item)}
                 disabled={picks.length >= 5}
                 style={{
                   display:"flex", alignItems:"center", gap:8,
