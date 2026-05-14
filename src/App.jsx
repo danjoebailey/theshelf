@@ -6916,8 +6916,8 @@ function TopPicksPickerSheet({ mode, title, library, currentIds, onSave, onClose
                 key={getId(item)}
                 onTouchStart={() => { touchMoved.current = false; }}
                 onTouchMove={() => { touchMoved.current = true; }}
-                onTouchEnd={e => { if (!touchMoved.current && picks.length < 5) { e.preventDefault(); add(item); } }}
-                onClick={() => add(item)}
+                onTouchEnd={e => { e.preventDefault(); if (!touchMoved.current && picks.length < 5) add(item); }}
+                onClick={() => { if (picks.length < 5) add(item); }}
                 disabled={picks.length >= 5}
                 style={{
                   display:"flex", alignItems:"center", gap:8,
@@ -9708,7 +9708,7 @@ function AvatarsSheet({ currentUrl, onPick, onClose }) {
                   key={opt.file}
                   onTouchStart={() => { touchMoved.current = false; }}
                   onTouchMove={() => { touchMoved.current = true; }}
-                  onTouchEnd={e => { if (!touchMoved.current) { e.preventDefault(); onPick(opt.file); } }}
+                  onTouchEnd={e => { e.preventDefault(); if (!touchMoved.current) onPick(opt.file); }}
                   onClick={() => onPick(opt.file)}
                   aria-label={`Choose avatar ${opt.label}`}
                   style={{
