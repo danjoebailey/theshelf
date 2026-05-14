@@ -9357,7 +9357,7 @@ function ProfileModal({ session, onClose, onProfileChanged }) {
     ? new Date(new Date(profile.username_set_at).getTime() + 30 * 24 * 60 * 60 * 1000)
     : null;
   const cooldownActive = cooldownEnds && cooldownEnds.getTime() > Date.now();
-  const showUsernameSaved = usernameSavedAt && Date.now() - usernameSavedAt < 2000;
+  const showUsernameSaved = usernameSavedAt > 0 && Date.now() - usernameSavedAt < 2000;
 
   function startUsernameEdit() {
     setUsernameDraft(profile?.username || "");
@@ -9441,8 +9441,8 @@ function ProfileModal({ session, onClose, onProfileChanged }) {
   }
 
   const headerName = name.trim() || profile?.username || (isGuest ? "Guest" : (email || "Reader"));
-  const showSaved = savedAt && Date.now() - savedAt < 2000;
-  const showAvatarSaved = avatarSavedAt && Date.now() - avatarSavedAt < 2000;
+  const showSaved = savedAt > 0 && Date.now() - savedAt < 2000;
+  const showAvatarSaved = avatarSavedAt > 0 && Date.now() - avatarSavedAt < 2000;
 
   return (
     <div onClick={onClose} style={{
