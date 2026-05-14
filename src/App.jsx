@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef, useEffect, useLayoutEffect, createContext, useContext } from "react";
+import { createPortal } from "react-dom";
 import { supabase } from "./supabase.js";
 import { track } from "@vercel/analytics";
 import { generatePaigeRecs, browseCatalog, resolveSeriesPicks, enrichScannedBooks, getSeriesFor, preloadCatalog } from "./lib/paige-client.js";
@@ -6835,9 +6836,9 @@ function TopPicksPickerSheet({ mode, title, library, currentIds, onSave, onClose
     finally { setSaving(false); }
   }
 
-  return (
+  return createPortal((
     <div onClick={onClose} style={{
-      position:"fixed", inset:0, background:"rgba(0,0,0,0.7)", zIndex:300,
+      position:"fixed", inset:0, background:"rgba(0,0,0,0.7)", zIndex:9999,
       display:"flex", alignItems:"flex-end", justifyContent:"center",
       animation:"fadeIn 0.15s ease",
     }}>
@@ -6934,7 +6935,7 @@ function TopPicksPickerSheet({ mode, title, library, currentIds, onSave, onClose
         }}>{saving ? "Saving…" : "Save"}</button>
       </div>
     </div>
-  );
+  ), document.body);
 }
 
 function StatsTab({ books, characterAvatar, viewOnly = false, topBookIds = [], topAuthors = [], onSaveTopBooks, onSaveTopAuthors }) {
