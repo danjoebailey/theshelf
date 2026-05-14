@@ -107,24 +107,26 @@ export default async function handler(req, res) {
   res.json(parsed);
 }
 
-// Returns true if Google Books has at least one match for title+author with
-// a publishedDate at or before today. Filters announced-but-unreleased books
-// and pure fabrications. On API error, returns true (don't drop on infra
-// failure — better to show a possibly-fake book than lose all recs).
+// Returns false ONLY when Google Books confirms the book is unreleased
+// (every match has a publishedDate strictly in the future). Returns true
+// in every other case — including "Google has no entry" — so books we
+// can't verify aren't silently dropped, which was filtering out entire
+// rec batches when Claude's titles didn't match Google's exact spelling.
 async function isPublished(title, author) {
-  if (!title || !author) return false;
+  if (!title || !author) return true;
   try {
     const q = `intitle:"${title}" inauthor:"${author}"`;
     const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(q)}&maxResults=3`;
     const r = await fetch(url);
     const d = await r.json();
-    if (!d.items?.length) return false;
+    if (!d.items?.length) return true; // unverifiable, but don't drop
     const today = new Date();
-    return d.items.some(item => {
+    const allFuture = d.items.every(item => {
       const pub = item.volumeInfo?.publishedDate;
-      if (!pub) return false;
-      try { return new Date(pub) <= today; } catch { return false; }
+      if (!pub) return false; // missing date = not confirmed-future
+      try { return new Date(pub) > today; } catch { return false; }
     });
+    return !allFuture;
   } catch { return true; }
 }
 
