@@ -7351,30 +7351,28 @@ function StatsTab({ books, characterAvatar, viewOnly = false, topBookIds = [], t
             <span style={{ fontSize:13, color:"#fff", textTransform:"uppercase", letterSpacing:"0.18em", fontFamily:"'Crimson Pro',serif", fontWeight:700, whiteSpace:"nowrap" }}>Currently Reading</span>
             <div style={{ flex:1, height:1, background:"rgba(255,255,255,0.35)" }}/>
           </div>
-          <div style={{ ...card, padding:16, marginBottom:10 }}>
-            <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+          <div style={{ position:"relative", marginLeft:-16, marginRight:-16, marginBottom:10 }}>
+            <div style={{ display:"flex", gap:10, overflowX:"auto", padding:"16px 16px 12px", justifyContent:"center", scrollbarWidth:"none" }}>
               {readingBooks.map(b => {
                 const pct = b.pages > 0 && (b.currentPage || 0) > 0 ? Math.min(100, Math.round(((b.currentPage||0) / b.pages) * 100)) : null;
                 return (
-                  <div key={b.id} style={{ display:"flex", gap:10, alignItems:"center" }}>
-                    <BookCover book={b} width={38} height={58} radius={3} shadow="1px 1px 4px rgba(0,0,0,0.25)" />
-                    <div style={{ flex:1, minWidth:0 }}>
-                      <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:WOOD.text, lineHeight:1.2, marginBottom:2, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{titleWithSeries(b)}</p>
-                      <p style={{ fontSize:11, color:WOOD.textDim, fontStyle:"italic", marginBottom: pct !== null ? 5 : 0 }}>{b.author}</p>
+                  <div key={b.id} style={{ flexShrink:0, display:"flex", flexDirection:"column", alignItems:"stretch", gap:5, width:60 }}>
+                    <BookCoverThumb book={b} size="md" />
+                    <div style={{ height:4, background:"rgba(138,90,40,0.25)", borderRadius:2, overflow:"hidden" }}>
                       {pct !== null && (
-                        <>
-                          <div style={{ height:4, background:"rgba(138,90,40,0.15)", borderRadius:2, overflow:"hidden", marginBottom:3 }}>
-                            <div style={{ height:"100%", background:"#3a7a50", borderRadius:2, width:`${pct}%`, transition:"width 0.4s" }} />
-                          </div>
-                          <span style={{ fontSize:10, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif" }}>{pct}% · {(b.currentPage||0).toLocaleString()} / {b.pages.toLocaleString()} pages</span>
-                        </>
+                        <div style={{ height:"100%", background:"#3a7a50", borderRadius:2, width:`${pct}%`, transition:"width 0.4s" }} />
                       )}
-                      {pct === null && b.pages > 0 && <span style={{ fontSize:10, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif" }}>{b.pages.toLocaleString()} pages</span>}
                     </div>
                   </div>
                 );
               })}
             </div>
+            <img src="/discover-shelf.png" alt="" aria-hidden="true" style={{
+              position:"absolute", left:0, right:0, bottom:0,
+              width:"100%", height:12, display:"block",
+              objectFit:"cover", pointerEvents:"none",
+              filter:"drop-shadow(0 4px 6px rgba(0,0,0,0.32))",
+            }} />
           </div>
           </>
         );
