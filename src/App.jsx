@@ -7477,21 +7477,13 @@ function StatsTab({ books, characterAvatar, viewOnly = false, topBookIds = [], t
           ) : (
             <div>
               <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
-                {pickedAuthors.map((author, i) => (
+                {pickedAuthors.map(author => (
                   <div key={author} style={{
-                    display:"inline-flex", alignItems:"center", gap:6,
                     background:"rgba(255,235,195,0.85)", borderRadius:18,
-                    padding:"5px 12px 5px 5px",
+                    padding:"6px 14px",
                     border:`1px solid rgba(160,100,40,0.3)`,
-                  }}>
-                    <span style={{
-                      background: WOOD.amber, color:"#1a0900",
-                      borderRadius:"50%", width:22, height:22,
-                      display:"flex", alignItems:"center", justifyContent:"center",
-                      fontFamily:"'Crimson Pro',serif", fontWeight:700, fontSize:12,
-                    }}>{i + 1}</span>
-                    <span style={{ fontSize:13, color:WOOD.text, fontFamily:"'DM Sans',sans-serif", fontWeight:500 }}>{author}</span>
-                  </div>
+                    fontSize:13, color:WOOD.text, fontFamily:"'DM Sans',sans-serif", fontWeight:500,
+                  }}>{author}</div>
                 ))}
               </div>
               {!viewOnly && (
