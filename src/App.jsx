@@ -9663,6 +9663,9 @@ function ProfileModal({ session, onClose, onProfileChanged }) {
 // Bottom sheet showing every avatar in a grid. Tapping one picks it and closes.
 function AvatarsSheet({ currentUrl, onPick, onClose }) {
   const [brokenAvatars, setBrokenAvatars] = useState({});
+  // Track whether the current touch involved a scroll, so we don't fire
+  // onPick (which also closes the sheet) when the user is scrolling.
+  const touchMoved = useRef(false);
 
   return createPortal((
     <div onClick={onClose} style={{
@@ -9703,7 +9706,10 @@ function AvatarsSheet({ currentUrl, onPick, onClose }) {
               return (
                 <button
                   key={opt.file}
-                  {...tc(()=>onPick(opt.file))}
+                  onTouchStart={() => { touchMoved.current = false; }}
+                  onTouchMove={() => { touchMoved.current = true; }}
+                  onTouchEnd={e => { if (!touchMoved.current) { e.preventDefault(); onPick(opt.file); } }}
+                  onClick={() => onPick(opt.file)}
                   aria-label={`Choose avatar ${opt.label}`}
                   style={{
                     width:"100%", padding:0, cursor:"pointer",
