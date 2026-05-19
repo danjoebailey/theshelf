@@ -7357,12 +7357,12 @@ function StatsTab({ books, characterAvatar, viewOnly = false, topBookIds = [], t
                 const pct = b.pages > 0 && (b.currentPage || 0) > 0 ? Math.min(100, Math.round(((b.currentPage||0) / b.pages) * 100)) : null;
                 return (
                   <div key={b.id} style={{ flexShrink:0, display:"flex", flexDirection:"column", alignItems:"stretch", gap:5, width:60 }}>
-                    <BookCoverThumb book={b} size="md" />
                     <div style={{ height:4, background:"rgba(138,90,40,0.25)", borderRadius:2, overflow:"hidden" }}>
                       {pct !== null && (
                         <div style={{ height:"100%", background:"#3a7a50", borderRadius:2, width:`${pct}%`, transition:"width 0.4s" }} />
                       )}
                     </div>
+                    <BookCoverThumb book={b} size="md" />
                   </div>
                 );
               })}
