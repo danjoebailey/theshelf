@@ -4615,11 +4615,15 @@ function RecommendPage({ books, userId, onAddDirect, onBulkAddDirect, onAuthor, 
                 }}>
                   <img src={c.img} alt={c.label} style={{ width:100, height:100, objectFit:"contain", objectPosition: c.key === "browse" ? "bottom" : "center" }} />
                   <span style={{
-                    fontFamily:"'Crimson Pro',serif", fontSize:14,
-                    fontWeight: character===c.key ? 600 : 500,
-                    color:"rgba(255,235,195,0.95)", whiteSpace:"nowrap",
-                    textShadow:"0 1px 2px rgba(0,0,0,0.6)",
-                    transform:"translateY(-10px)",
+                    fontFamily:"'Crimson Pro',serif", fontSize:11,
+                    fontWeight: character===c.key ? 700 : 600,
+                    letterSpacing:"0.04em", textTransform:"uppercase",
+                    color:"#3a2410", whiteSpace:"nowrap",
+                    transform:"translateY(-8px)",
+                    padding:"2px 8px", borderRadius:3,
+                    background:"linear-gradient(180deg, #dcc09a 0%, #cba978 48%, #b58f5e 100%)",
+                    boxShadow:"inset 0 0 0 1px rgba(110,72,36,0.55), inset 0 1px 1px rgba(255,246,224,0.55), inset 0 -1px 2px rgba(74,46,18,0.45), 0 2px 3px rgba(0,0,0,0.4)",
+                    textShadow:"0 1px 0 rgba(255,246,224,0.45)",
                   }}>{c.label}</span>
                 </button>
               ))}
