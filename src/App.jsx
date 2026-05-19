@@ -3207,9 +3207,18 @@ function PaigeTab({ books, userId, onAddDirect, onBulkAddDirect, onEdit, onAddBo
 
   return (
     <div style={{ padding:"0 0 100px" }}>
-      {/* Header */}
-      <div style={{ padding:"16px 18px 8px" }}>
-        <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:14, color:"rgba(255,255,255,0.6)", textAlign:"center" }}>Recommendations built from your reading profile.</p>
+      {/* Header — torn paper note */}
+      <div style={{ padding:"2px 18px 12px", display:"flex", justifyContent:"center" }}>
+        <div style={{ position:"relative", width:"100%", maxWidth:380, filter:"drop-shadow(0 4px 6px rgba(0,0,0,0.38))" }}>
+          <img src="/torn-paper.png" alt="" aria-hidden="true" style={{ width:"100%", height:"auto", display:"block" }} />
+          <p style={{
+            position:"absolute", inset:0, margin:0,
+            display:"flex", alignItems:"center", justifyContent:"center",
+            textAlign:"center", padding:"0 11%",
+            color:"#2e2010", fontFamily:"'Caveat',cursive",
+            fontSize:26, fontWeight:600, lineHeight:1.15,
+          }}>Recommendations built from your reading profile.</p>
+        </div>
       </div>
 
       {!hasBooks ? (
@@ -3220,7 +3229,6 @@ function PaigeTab({ books, userId, onAddDirect, onBulkAddDirect, onEdit, onAddBo
         <>
           {/* Mode pills on shelf */}
           <div style={{ margin:"0 18px 16px" }}>
-            <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:10, fontWeight:700, color:"rgba(255,235,195,0.7)", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:10, textAlign:"center", textShadow:"0 1px 2px rgba(0,0,0,0.6)" }}>What kind of read?</p>
             <div style={{ display:"flex", justifyContent:"center", alignItems:"flex-end", gap:14 }}>
               {[["all"], ["popular","trending","hidden_gems"], ["comfort_read","challenge_me","new_to_me"]].map((stack, idx) => (
                 <div key={idx} style={{ display:"flex", flexDirection:"column", gap:2, alignItems:"stretch" }}>
@@ -3254,7 +3262,7 @@ function PaigeTab({ books, userId, onAddDirect, onBulkAddDirect, onEdit, onAddBo
               marginTop:2, objectFit:"cover", pointerEvents:"none",
               filter:"drop-shadow(0 4px 6px rgba(0,0,0,0.32))",
             }} />
-            {modeInfo && <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:"rgba(255,235,195,0.6)", marginTop:6, fontStyle:"italic", textAlign:"center" }}>{modeInfo.desc}</p>}
+            {modeInfo && <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:14, fontWeight:500, color:"rgba(255,238,205,0.96)", marginTop:10, fontStyle:"italic", textAlign:"center", textShadow:"0 1px 2px rgba(0,0,0,0.55)" }}>{modeInfo.desc}</p>}
           </div>
 
           {/* Filters */}
@@ -3451,7 +3459,20 @@ function ReedTab({ books, userId, onEdit, onShelfChange, onSaveScores, onAuthor 
   }
 
   return (
-    <div style={{ padding:"14px 16px", display:"flex", flexDirection:"column", gap:12 }}>
+    <div style={{ padding:"2px 16px 14px", display:"flex", flexDirection:"column", gap:12 }}>
+      {/* Header — torn paper note */}
+      <div style={{ display:"flex", justifyContent:"center" }}>
+        <div style={{ position:"relative", width:"100%", maxWidth:380, filter:"drop-shadow(0 4px 6px rgba(0,0,0,0.38))" }}>
+          <img src="/torn-paper.png" alt="" aria-hidden="true" style={{ width:"100%", height:"auto", display:"block" }} />
+          <p style={{
+            position:"absolute", inset:0, margin:0,
+            display:"flex", alignItems:"center", justifyContent:"center",
+            textAlign:"center", padding:"0 11%",
+            color:"#2e2010", fontFamily:"'Caveat',cursive",
+            fontSize:26, fontWeight:600, lineHeight:1.15,
+          }}>I'll settle this — here's what's next.</p>
+        </div>
+      </div>
       {/* Toggle */}
       <div style={{ display:"flex", gap:8, justifyContent:"center" }}>
         {[["list","The List"],["curious","Curious"],["recommended","Recommended"]].map(([key, label]) => (
@@ -3476,17 +3497,6 @@ function ReedTab({ books, userId, onEdit, onShelfChange, onSaveScores, onAuthor 
               : shelfBooks.length === 0
                 ? "No recommendations yet — they'll show up as Paige and Obi suggest books for you."
                 : `Only ${shelfBooks.length} recommendation${shelfBooks.length === 1 ? "" : "s"} so far — give me at least 20 to work with and I'll pick the ones worth your time.`}
-        </p>
-      )}
-
-      {/* Reed's intro note */}
-      {shelfBooks.length > 0 && !recsTooLight && (
-        <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, fontStyle:"italic", color:"rgba(255,235,195,0.55)", textAlign:"center", margin:"4px 0" }}>
-          {mode === "list"
-            ? "Your List is long and your time is precious. Leave it to me — I'll tell you exactly what to pick up next."
-            : mode === "curious"
-              ? "Sitting on the fence? I respect it. But I've made my decision. Here's what you're picking up next."
-              : "Recommendations piled up? I know what the others said. Trust me — these are the ones."}
         </p>
       )}
 
@@ -4949,8 +4959,21 @@ function ReikoTab({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook }) {
 
   return (
     <div style={{ padding: "0 0 100px" }}>
+      {/* Header — torn paper note */}
+      <div style={{ padding:"2px 18px 10px", display:"flex", justifyContent:"center" }}>
+        <div style={{ position:"relative", width:"100%", maxWidth:380, filter:"drop-shadow(0 4px 6px rgba(0,0,0,0.38))" }}>
+          <img src="/torn-paper.png" alt="" aria-hidden="true" style={{ width:"100%", height:"auto", display:"block" }} />
+          <p style={{
+            position:"absolute", inset:0, margin:0,
+            display:"flex", alignItems:"center", justifyContent:"center",
+            textAlign:"center", padding:"0 11%",
+            color:"#2e2010", fontFamily:"'Caveat',cursive",
+            fontSize:26, fontWeight:600, lineHeight:1.15,
+          }}>Tell me what you love. I'll find what's next.</p>
+        </div>
+      </div>
       {/* Mode toggle */}
-      <div style={{ padding: "16px 18px 0", display: "flex", justifyContent: "center", gap: 6 }}>
+      <div style={{ padding: "0 18px 0", display: "flex", justifyContent: "center", gap: 6 }}>
         {[["books", "Books"], ["authors", "Authors"]].map(([m, label]) => (
           <button key={m} onClick={() => { setReikoMode(m); setPickerCollapsed(false); setAuthorPickerCollapsed(false); }} style={{
             padding: "5px 14px", borderRadius: 20, border: "none", cursor: "pointer",
@@ -4960,14 +4983,6 @@ function ReikoTab({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook }) {
             transition: "all 0.15s",
           }}>{label}</button>
         ))}
-      </div>
-      {/* Header */}
-      <div style={{ padding: "10px 18px 8px" }}>
-        <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 14, color: "rgba(255,255,255,0.6)", textAlign:"center" }}>
-          {reikoMode === "books"
-            ? "Select up to 6 books you've loved — Reiko will find your next read."
-            : "Select authors you love — Reiko will find writers you haven't discovered yet."}
-        </p>
       </div>
 
       {!hasBooks ? (
@@ -10776,7 +10791,7 @@ export default function App() {
     <LibraryProfileContext.Provider value={libraryProfileSnapshot}>
     <div style={{ position:"fixed", inset:0, display:"flex", flexDirection:"column", overflow:"hidden" }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,300;0,400;1,400&family=DM+Sans:wght@300;400;500;600&family=Caveat:wght@500;600;700&display=swap');
         * { box-sizing:border-box; margin:0; padding:0; }
         html, body, #root { height:100%; width:100%; overflow:hidden; background:#3a2010; }
         ::-webkit-scrollbar { width:2px; }
