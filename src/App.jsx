@@ -10422,6 +10422,17 @@ export default function App() {
     }
   }, [session]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Guest-first onboarding: a visitor with no session and no guest flag is
+  // dropped straight into guest mode instead of a sign-in wall. Sign-in is
+  // still reachable in-app via Account → "Sign in to save your books".
+  useEffect(() => {
+    if (!authLoading && !session && !guestMode) {
+      localStorage.setItem(GUEST_ACTIVE_KEY, "1");
+      setGuestMode(true);
+      track("guest_auto_started");
+    }
+  }, [authLoading, session, guestMode]);
+
   // Sync books to localStorage in guest mode
   useEffect(() => {
     if (!guestMode || session) return;
@@ -10572,13 +10583,13 @@ export default function App() {
     if (filtered.length > 0) setLibraryProfileSnapshot(filtered);
   }, [books, libraryProfileSnapshot.length]);
 
-  if (authLoading) return (
+  // Show the loader during auth resolution AND the brief tick before the
+  // guest-first effect flips guestMode on — avoids a sign-in-wall flash.
+  if (authLoading || (!session && !guestMode)) return (
     <div style={{ width:"100%", height:"100dvh", background:"#3a2010", display:"flex", alignItems:"center", justifyContent:"center" }}>
       <div style={{ width:28, height:28, border:`3px solid ${WOOD.amber}`, borderTopColor:"transparent", borderRadius:"50%", animation:"spin 0.8s linear infinite" }} />
     </div>
   );
-
-  if (!session && !guestMode) return <LoginScreen onGuest={() => { localStorage.setItem(GUEST_ACTIVE_KEY, "1"); setGuestMode(true); track("guest_started"); }} />;
 
   function addBook(form) {
     if (books.some(b => normBookKey(b.title) === normBookKey(form.title) && (b.author||"").toLowerCase() === (form.author||"").toLowerCase())) return;
