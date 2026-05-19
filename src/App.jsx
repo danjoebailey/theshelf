@@ -8627,9 +8627,35 @@ async function dbDeleteBook(bookId, userId) {
 const GUEST_BOOKS_KEY = "guest_books";
 const GUEST_OBI_KEY = "guest_obi_count";
 const GUEST_ACTIVE_KEY = "guest_active";
+// Set only when a guest explicitly clicks "Sign in to save your books".
+// Survives the OAuth page reload. Gates the post-sign-in migration so a
+// stale guest_books blob on a shared browser can NEVER auto-merge into an
+// existing account — migration requires this deliberate intent flag.
+const MIGRATE_GUEST_KEY = "theshelf:migrate_guest";
 function guestSaveBooks(books) { localStorage.setItem(GUEST_BOOKS_KEY, JSON.stringify(books)); }
 function guestLoadBooks() { try { return JSON.parse(localStorage.getItem(GUEST_BOOKS_KEY) || "[]"); } catch { return []; } }
 function guestClearAll() { localStorage.removeItem(GUEST_BOOKS_KEY); localStorage.removeItem(GUEST_OBI_KEY); localStorage.removeItem(GUEST_ACTIVE_KEY); }
+
+// Migrate guest books into the just-signed-in account — but ONLY when the
+// migrate-intent flag is set. Dedupes by normalized title against whatever
+// the account already has, so a re-run (or a partial-failure retry) can't
+// create duplicates and an existing account is never polluted by accident.
+// On insert failure the flag + guest data are left in place so the next
+// load retries; on success (or nothing to do) everything is cleared.
+async function migrateGuestBooksIfPending(userId, accountBooks) {
+  if (!localStorage.getItem(MIGRATE_GUEST_KEY)) return null;
+  let guestBooks = [];
+  try { guestBooks = JSON.parse(localStorage.getItem(GUEST_BOOKS_KEY) || "[]"); } catch {}
+  const existing = new Set((accountBooks || []).map(b => normBookKey(b.title)));
+  const fresh = guestBooks.filter(b => b.title && !existing.has(normBookKey(b.title)));
+  if (fresh.length) {
+    const { error } = await supabase.from("books").insert(fresh.map(b => bookToRow(b, userId)));
+    if (error) { console.error("guest migration insert:", error); return null; }
+  }
+  localStorage.removeItem(MIGRATE_GUEST_KEY);
+  guestClearAll();
+  return fresh.length ? fresh : null;
+}
 
 function mapSubjectsToGenre(subjects = []) {
   const joined = subjects.slice(0, 30).join(" ").toLowerCase();
@@ -10385,10 +10411,13 @@ export default function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // If a real session arrives while guestMode is stuck on (stale localStorage), clear it
+  // If a real session arrives while guestMode is stuck on (stale localStorage),
+  // exit guest UI. Only wipe guest data here when NO migration is pending —
+  // otherwise the books-load effect's migration owns the cleanup so we don't
+  // destroy the guest library before it's copied into the account.
   useEffect(() => {
     if (session && guestMode) {
-      guestClearAll();
+      if (!localStorage.getItem(MIGRATE_GUEST_KEY)) guestClearAll();
       setGuestMode(false);
     }
   }, [session]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -10503,17 +10532,26 @@ export default function App() {
               }
             }));
           }
+          // Merge guest books into the existing account (only if the user
+          // explicitly chose "Sign in to save"). Deduped against loaded books.
+          const migratedGuest = await migrateGuestBooksIfPending(userId, loadedBooks);
+          if (migratedGuest) setBooks(prev => [...prev, ...migratedGuest]);
         } else {
-          // Migrate from localStorage on first sign-in
+          // Migrate from legacy localStorage key on first sign-in
+          let legacyBooks = [];
           try {
             const stored = localStorage.getItem(STORAGE_KEY);
-            const localBooks = stored ? JSON.parse(stored) : [];
-            if (localBooks.length > 0) {
+            legacyBooks = stored ? JSON.parse(stored) : [];
+            if (legacyBooks.length > 0) {
               localStorage.removeItem(STORAGE_KEY); // clear before insert to prevent re-run
-              supabase.from("books").insert(localBooks.map(b => bookToRow(b, userId)));
-              setBooks(localBooks);
+              supabase.from("books").insert(legacyBooks.map(b => bookToRow(b, userId)));
+              setBooks(legacyBooks);
             }
-          } catch {}
+          } catch { legacyBooks = []; }
+          // Then merge any pending guest books (new account = no dupes expected,
+          // but dedupe against the legacy set just in case).
+          const migratedGuest = await migrateGuestBooksIfPending(userId, legacyBooks);
+          if (migratedGuest) setBooks(prev => [...prev, ...migratedGuest]);
         }
       });
   }, [session]);
@@ -11077,7 +11115,7 @@ export default function App() {
                     Fetch missing covers
                   </button>}
                   {guestMode
-                    ? <button {...tc(async ()=>{ setShowProfileMenu(false); guestClearAll(); setGuestMode(false); track("guest_signed_in"); await supabase.auth.signInWithOAuth({ provider:"google", options:{ redirectTo: window.location.origin } }); })} style={{
+                    ? <button {...tc(async ()=>{ setShowProfileMenu(false); localStorage.setItem(MIGRATE_GUEST_KEY, "1"); setGuestMode(false); track("guest_signed_in"); await supabase.auth.signInWithOAuth({ provider:"google", options:{ redirectTo: window.location.origin } }); })} style={{
                         display:"flex", alignItems:"center", gap:10,
                         width:"100%", padding:"12px 16px", textAlign:"left",
                         background:"transparent", border:"none", borderTop:"1px solid rgba(138,90,40,0.15)", cursor:"pointer",
