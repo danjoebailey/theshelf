@@ -3417,31 +3417,42 @@ function PaigeTab({ books, userId, onAddDirect, onBulkAddDirect, onEdit, onAddBo
 }
 
 function ReedTab({ books, userId, onEdit, onShelfChange, onSaveScores, onAuthor }) {
-  const [mode, setMode] = useState("list");
+  const [mode, setMode] = useState("list");          // shelf: list | curious | recommended
+  const [pickMode, setPickMode] = useState("all");   // within a shelf: all | pick
   const [picks, setPicks] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [pickSelected, setPickSelected] = useState([]); // book ids, scoped to the current shelf
+  const pickTouchMoved = useRef(false); // scroll-vs-tap guard for the pick list
 
+  const isPick = pickMode === "pick";
   const shelfName = mode === "list" ? "The List" : mode === "curious" ? "Curious" : "Recommended";
-  const shelfBooks = books.filter(b => b.shelf === shelfName);
+  const currentShelf = books.filter(b => b.shelf === shelfName);
+  const shelfBooks = isPick
+    ? currentShelf.filter(b => pickSelected.includes(b.id))
+    : currentShelf;
   const library = books.filter(b => b.rating > 0).map(b => ({ title:b.title, author:b.author, genre:b.genre, rating:b.rating }));
   // Recommended is curated-on-curated (Paige/Reiko/Obi push books onto this
   // shelf already), so Reed only kicks in once the pile is deep enough that
-  // re-ranking adds real signal.
-  const recsTooLight = mode === "recommended" && shelfBooks.length < 20;
+  // re-ranking adds real signal. Doesn't apply when the reader hand-picks.
+  const recsTooLight = mode === "recommended" && !isPick && currentShelf.length < 20;
 
   // Match pick titles back to actual book objects
   const pickedBooks = picks
     ? picks.map(p => shelfBooks.find(b => b.title.toLowerCase() === p.title.toLowerCase() && b.author.toLowerCase() === p.author.toLowerCase())).filter(Boolean)
     : null;
 
+  // Selection is scoped to the chosen shelf — reset it when the shelf changes.
+  useEffect(() => { setPickSelected([]); }, [mode]);
+
   useEffect(() => {
     setPicks(null);
-    if (!userId || userId === "guest") return;
+    // Pick mode has no stable cache — the selected set changes every ask.
+    if (isPick || !userId || userId === "guest") return;
     supabase.from("obi_verdicts").select("verdict").eq("user_id", userId).eq("book_key", `reed:${mode}`).single()
       .then(({ data }) => {
         try { if (data?.verdict) setPicks(JSON.parse(data.verdict)); } catch {}
       });
-  }, [mode, userId]);
+  }, [mode, pickMode, userId]);
 
   async function generate(refresh = false) {
     if (!shelfBooks.length) return;
@@ -3450,7 +3461,7 @@ function ReedTab({ books, userId, onEdit, onShelfChange, onSaveScores, onAuthor 
       const res = await fetch("/api/ask-reed", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode, shelfBooks: shelfBooks.map(b => ({ title:b.title, author:b.author, genre:b.genre })), library, userId, refresh }),
+        body: JSON.stringify({ mode: isPick ? "custom" : mode, shelfBooks: shelfBooks.map(b => ({ title:b.title, author:b.author, genre:b.genre })), library, userId, refresh }),
       });
       const data = await res.json();
       if (data.picks) setPicks(data.picks);
@@ -3473,7 +3484,7 @@ function ReedTab({ books, userId, onEdit, onShelfChange, onSaveScores, onAuthor 
           }}>I'll settle this — here's what's next.</p>
         </div>
       </div>
-      {/* Toggle */}
+      {/* Shelf toggle */}
       <div style={{ display:"flex", gap:8, justifyContent:"center" }}>
         {[["list","The List"],["curious","Curious"],["recommended","Recommended"]].map(([key, label]) => (
           <button key={key} {...tc(() => setMode(key))} style={{
@@ -3487,21 +3498,80 @@ function ReedTab({ books, userId, onEdit, onShelfChange, onSaveScores, onAuthor 
         ))}
       </div>
 
+      {/* All | Pick sub-toggle (within the selected shelf) */}
+      {currentShelf.length > 0 && (
+        <div style={{ display:"flex", gap:6, justifyContent:"center" }}>
+          {[["all","All"],["pick","Pick"]].map(([key, label]) => (
+            <button key={key} {...tc(() => setPickMode(key))} style={{
+              padding:"3px 14px", borderRadius:16,
+              border:`1px solid ${pickMode===key ? WOOD.amber : "rgba(120,70,20,0.3)"}`,
+              backdropFilter:"blur(4px)", cursor:"pointer", transition:"all 0.15s",
+              background: pickMode===key ? WOOD.amber : "rgba(15,8,2,0.55)",
+              color: pickMode===key ? "#1a0900" : "#fff",
+              fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600,
+            }}>{label}</button>
+          ))}
+        </div>
+      )}
+
+      {/* Pick mode — hand-pick a contender set from this shelf */}
+      {isPick && currentShelf.length > 0 && (
+          <>
+            <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:13, color:"rgba(255,235,195,0.7)", textAlign:"center", margin:"0 0 2px" }}>
+              Pick the contenders — I'll tell you which to read next.{pickSelected.length ? `  (${pickSelected.length} selected)` : ""}
+            </p>
+            <div style={{ display:"flex", flexDirection:"column", gap:6, maxHeight:300, overflowY:"auto", padding:"4px 2px", scrollbarWidth:"none" }}>
+              {currentShelf.map(b => {
+                const sel = pickSelected.includes(b.id);
+                const toggle = () => setPickSelected(s => sel ? s.filter(x => x !== b.id) : [...s, b.id]);
+                return (
+                  <button key={b.id}
+                    onTouchStart={() => { pickTouchMoved.current = false; }}
+                    onTouchMove={() => { pickTouchMoved.current = true; }}
+                    onTouchEnd={e => { e.preventDefault(); if (!pickTouchMoved.current) toggle(); }}
+                    onClick={toggle}
+                    style={{
+                      display:"flex", alignItems:"center", gap:10, textAlign:"left", width:"100%",
+                      padding:"6px 10px", borderRadius:10, cursor:"pointer",
+                      background: sel ? "rgba(184,104,0,0.22)" : "rgba(15,8,2,0.4)",
+                      border:`1px solid ${sel ? WOOD.amber : "rgba(120,70,20,0.3)"}`,
+                      transition:"all 0.12s",
+                    }}>
+                    <BookCoverThumb book={b} size="sm" />
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:14, color:"#fff", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{b.title}</p>
+                      <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:11, color:"rgba(255,235,195,0.6)", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{b.author}</p>
+                    </div>
+                    <div style={{
+                      width:20, height:20, borderRadius:"50%", flexShrink:0,
+                      border:`2px solid ${sel ? WOOD.amber : "rgba(255,235,195,0.4)"}`,
+                      background: sel ? WOOD.amber : "transparent",
+                      display:"flex", alignItems:"center", justifyContent:"center",
+                    }}>
+                      {sel && <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#1a0900" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </>
+      )}
+
       {/* Empty shelf or below-threshold Recommended */}
-      {(shelfBooks.length === 0 || recsTooLight) && (
+      {(currentShelf.length === 0 || recsTooLight) && (
         <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, fontStyle:"italic", color:"rgba(255,235,195,0.4)", textAlign:"center", padding:"32px 0" }}>
           {mode === "list"
             ? "Your List is empty — add some books you plan to read and I'll tell you where to start."
             : mode === "curious"
               ? "Nothing in Curious yet — add books you're on the fence about and I'll help you decide."
-              : shelfBooks.length === 0
+              : currentShelf.length === 0
                 ? "No recommendations yet — they'll show up as Paige and Obi suggest books for you."
-                : `Only ${shelfBooks.length} recommendation${shelfBooks.length === 1 ? "" : "s"} so far — give me at least 20 to work with and I'll pick the ones worth your time.`}
+                : `Only ${currentShelf.length} recommendation${currentShelf.length === 1 ? "" : "s"} so far — give me at least 20 to work with and I'll pick the ones worth your time.`}
         </p>
       )}
 
       {/* Generate / Refresh button */}
-      {shelfBooks.length > 0 && !recsTooLight && (
+      {((isPick && shelfBooks.length >= 2) || (!isPick && shelfBooks.length > 0 && !recsTooLight)) && (
         <div style={{ display:"flex", justifyContent:"center" }}>
           <button {...tc(() => generate(!!picks))} style={{
             padding:"5px 18px", borderRadius:20, background: loading ? "rgba(184,104,0,0.45)" : WOOD.amber,
