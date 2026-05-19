@@ -3422,6 +3422,7 @@ function ReedTab({ books, userId, onEdit, onShelfChange, onSaveScores, onAuthor 
   const [picks, setPicks] = useState(null);
   const [loading, setLoading] = useState(false);
   const [pickSelected, setPickSelected] = useState([]); // book ids, scoped to the current shelf
+  const [pickSearch, setPickSearch] = useState("");
   const pickTouchMoved = useRef(false); // scroll-vs-tap guard for the pick list
 
   const isPick = pickMode === "pick";
@@ -3442,7 +3443,7 @@ function ReedTab({ books, userId, onEdit, onShelfChange, onSaveScores, onAuthor 
     : null;
 
   // Selection is scoped to the chosen shelf — reset it when the shelf changes.
-  useEffect(() => { setPickSelected([]); }, [mode]);
+  useEffect(() => { setPickSelected([]); setPickSearch(""); }, [mode]);
 
   useEffect(() => {
     setPicks(null);
@@ -3520,8 +3521,44 @@ function ReedTab({ books, userId, onEdit, onShelfChange, onSaveScores, onAuthor 
             <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:13, color:"rgba(255,235,195,0.7)", textAlign:"center", margin:"0 0 2px" }}>
               Pick the contenders — I'll tell you which to read next.{pickSelected.length ? `  (${pickSelected.length} selected)` : ""}
             </p>
+            {currentShelf.length > 8 && (
+              <div style={{ position:"relative", margin:"2px 0 6px" }}>
+                <input
+                  value={pickSearch}
+                  onChange={e => setPickSearch(e.target.value)}
+                  placeholder="Search this shelf…"
+                  style={{
+                    width:"100%", boxSizing:"border-box",
+                    padding:"8px 34px 8px 12px", borderRadius:10,
+                    border:`1px solid ${WOOD.border}`,
+                    background:"#fff", color:WOOD.text,
+                    fontFamily:"'DM Sans',sans-serif", fontSize:13, outline:"none",
+                  }}
+                />
+                {pickSearch && (
+                  <button {...tc(() => setPickSearch(""))} aria-label="Clear search" style={{
+                    position:"absolute", top:"50%", right:8, transform:"translateY(-50%)",
+                    width:22, height:22, borderRadius:"50%", border:"none",
+                    background:"rgba(120,70,20,0.18)", color:WOOD.textDim,
+                    cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center",
+                  }}>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                  </button>
+                )}
+              </div>
+            )}
             <div style={{ display:"flex", flexDirection:"column", gap:6, maxHeight:300, overflowY:"auto", padding:"4px 2px", scrollbarWidth:"none" }}>
-              {currentShelf.map(b => {
+              {(() => {
+                const q = pickSearch.trim().toLowerCase();
+                const list = q
+                  ? currentShelf.filter(b => (b.title||"").toLowerCase().includes(q) || (b.author||"").toLowerCase().includes(q))
+                  : currentShelf;
+                if (list.length === 0) return (
+                  <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:12, color:"rgba(255,235,195,0.5)", textAlign:"center", padding:"12px 0" }}>No matches.</p>
+                );
+                return list.map(b => {
                 const sel = pickSelected.includes(b.id);
                 const toggle = () => setPickSelected(s => sel ? s.filter(x => x !== b.id) : [...s, b.id]);
                 return (
@@ -3552,7 +3589,8 @@ function ReedTab({ books, userId, onEdit, onShelfChange, onSaveScores, onAuthor 
                     </div>
                   </button>
                 );
-              })}
+                });
+              })()}
             </div>
           </>
       )}
