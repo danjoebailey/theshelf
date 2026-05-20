@@ -7113,7 +7113,7 @@ function TopPicksPickerSheet({ mode, title, library, currentIds, onSave, onClose
   ), document.body);
 }
 
-function StatsTab({ books, characterAvatar, viewOnly = false, topBookIds = [], topAuthors = [], onSaveTopBooks, onSaveTopAuthors }) {
+function StatsTab({ books, characterAvatar, viewOnly = false, topBookIds = [], topAuthors = [], onSaveTopBooks, onSaveTopAuthors, onEdit }) {
   const [timeline, setTimeline] = useState("All");
   const [filterMonth, setFilterMonth] = useState(null);
   const [filterOpen, setFilterOpen] = useState(false);
@@ -7124,6 +7124,18 @@ function StatsTab({ books, characterAvatar, viewOnly = false, topBookIds = [], t
   const [exporting, setExporting] = useState(false);
   const [showBooksPicker, setShowBooksPicker] = useState(false);
   const [showAuthorsPicker, setShowAuthorsPicker] = useState(false);
+  // Shared scroll-vs-tap guard for the clickable cover wrappers. tapBook
+  // works in BOTH own-breakdown (onEdit=setEditBook) and friend-breakdown
+  // (onEdit=open viewer with friend baked in). Gated only on onEdit being
+  // provided — viewOnly alone no longer disables the tap.
+  const coverTouchMoved = useRef(false);
+  const tapBook = b => (!onEdit) ? {} : ({
+    onTouchStart: () => { coverTouchMoved.current = false; },
+    onTouchMove: () => { coverTouchMoved.current = true; },
+    onTouchEnd: e => { e.preventDefault(); if (!coverTouchMoved.current) onEdit(b); },
+    onClick: () => onEdit(b),
+  });
+  const canTapCover = !!onEdit;
 
   const MONTH_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
@@ -7435,7 +7447,12 @@ function StatsTab({ books, characterAvatar, viewOnly = false, topBookIds = [], t
           {!groupBy ? (
             <div style={{ position:"relative" }}>
               <div style={{ display:"flex", gap:6, overflowX:"auto", padding:"16px 16px 12px", scrollbarWidth:"none" }}>
-                {filteredBooks.map(b => <BookCoverThumb key={b.id} book={b} />)}
+                {filteredBooks.map(b => (
+                  <button key={b.id} {...tapBook(b)} style={{
+                    background:"transparent", border:"none", padding:0, margin:0,
+                    cursor: canTapCover ? "pointer" : "default", flexShrink:0,
+                  }}><BookCoverThumb book={b} /></button>
+                ))}
               </div>
               <img src="/discover-shelf.png" alt="" aria-hidden="true" style={{
                 position:"absolute", left:0, right:0, bottom:0,
@@ -7456,7 +7473,12 @@ function StatsTab({ books, characterAvatar, viewOnly = false, topBookIds = [], t
                 </div>
                 <div style={{ position:"relative" }}>
                   <div style={{ display:"flex", gap:6, overflowX:"auto", padding:"2px 16px 10px", scrollbarWidth:"none" }}>
-                    {groupBooks.map(b => <BookCoverThumb key={b.id} book={b} />)}
+                    {groupBooks.map(b => (
+                      <button key={b.id} {...tapBook(b)} style={{
+                        background:"transparent", border:"none", padding:0, margin:0,
+                        cursor: canTapCover ? "pointer" : "default", flexShrink:0,
+                      }}><BookCoverThumb book={b} /></button>
+                    ))}
                   </div>
                   <img src="/discover-shelf.png" alt="" aria-hidden="true" style={{
                     position:"absolute", left:0, right:0, bottom:0,
@@ -7528,14 +7550,18 @@ function StatsTab({ books, characterAvatar, viewOnly = false, topBookIds = [], t
               {readingBooks.map(b => {
                 const pct = b.pages > 0 && (b.currentPage || 0) > 0 ? Math.min(100, Math.round(((b.currentPage||0) / b.pages) * 100)) : null;
                 return (
-                  <div key={b.id} style={{ flexShrink:0, display:"flex", flexDirection:"column", alignItems:"stretch", gap:5, width:60 }}>
+                  <button key={b.id} {...tapBook(b)} style={{
+                    background:"transparent", border:"none", padding:0, margin:0,
+                    cursor: canTapCover ? "pointer" : "default",
+                    flexShrink:0, display:"flex", flexDirection:"column", alignItems:"stretch", gap:5, width:60,
+                  }}>
                     <div style={{ height:4, background:"rgba(138,90,40,0.25)", borderRadius:2, overflow:"hidden" }}>
                       {pct !== null && (
                         <div style={{ height:"100%", background:"#3a7a50", borderRadius:2, width:`${pct}%`, transition:"width 0.4s" }} />
                       )}
                     </div>
                     <BookCoverThumb book={b} size="md" />
-                  </div>
+                  </button>
                 );
               })}
             </div>
@@ -7616,9 +7642,12 @@ function StatsTab({ books, characterAvatar, viewOnly = false, topBookIds = [], t
               <div style={{ position:"relative", marginLeft:-16, marginRight:-16 }}>
                 <div style={{ display:"flex", gap:10, overflowX:"auto", padding:"16px 16px 12px", justifyContent:"center", scrollbarWidth:"none" }}>
                   {pickedBooks.map(b => (
-                    <div key={b.id} style={{ flexShrink:0 }}>
+                    <button key={b.id} {...tapBook(b)} style={{
+                      background:"transparent", border:"none", padding:0, margin:0,
+                      cursor: canTapCover ? "pointer" : "default", flexShrink:0,
+                    }}>
                       <BookCoverThumb book={b} size="md" />
-                    </div>
+                    </button>
                   ))}
                 </div>
                 <img src="/discover-shelf.png" alt="" aria-hidden="true" style={{
@@ -8114,7 +8143,11 @@ function IsbnScanModal({ onDetect, onClose }) {
   );
 }
 
-function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onAuthor, onRemove, libraryProfile = [], userId, initialTab, onShelfChange, isDraft = false, guestMode = false }) {
+function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onAuthor, onRemove, libraryProfile = [], userId, initialTab, onShelfChange, isDraft = false, guestMode = false, viewer = null, onAddToLibrary }) {
+  // viewer mode = viewing a friend's book read-only. Hide edit affordances,
+  // default to details tab, swap the shelf pill for a read-only friend label,
+  // surface an "Add to my library" CTA that pre-fills the AddSheet draft.
+  const isViewer = !!viewer;
   // Match BookCard: prefer the session-stable LibraryProfileContext snapshot
   // so Obi calls from the modal hit the same prompt-cache key as calls from
   // the card. Falls back to the prop only when the context isn't populated.
@@ -8154,7 +8187,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [book.title, book.author]);
-  const defaultTab = initialTab || ((book.shelf === "Read" || book.shelf === "Reading") ? "edit" : "details");
+  const defaultTab = isViewer ? "details" : (initialTab || ((book.shelf === "Read" || book.shelf === "Reading") ? "edit" : "details"));
   const [activeTab, setActiveTab] = useState(defaultTab);
   const [detailPanel, setDetailPanel] = useState(null); // "about" | "prose" | "scores"
   const [description, setDescription] = useState(book.description || null);
@@ -8307,7 +8340,9 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
     setObiLoading(false);
   }
 
-  const tabs = [
+  const tabs = isViewer ? [
+    { key:"details",  label:"Details",  icon:<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.4"/><path d="M8 7v5M8 5.5v.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg> },
+  ] : [
     { key:"edit",     label:"Edit",     icon:<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M11 2l3 3-8 8H3v-3l8-8z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"/></svg> },
     { key:"details",  label:"Details",  icon:<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.4"/><path d="M8 7v5M8 5.5v.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg> },
     { key:"rankings", label:"Rankings", icon:<svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 12V9M8 12V5M13 12V7" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg> },
@@ -8358,6 +8393,28 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
                 "DNF":         { bg:"rgba(160,50,50,0.55)",  color:"#fff", border:"rgba(160,50,50,0.4)" },
                 "Recommended": { bg:"rgba(140,80,180,0.6)",  color:"#fff", border:"rgba(140,80,180,0.45)"},
               };
+              if (isViewer) {
+                const m = SHELF_META[book.shelf] || SHELF_META["Read"];
+                return (
+                  <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                    <span style={{
+                      background: m.bg, color: m.color, border:`1px solid ${m.border}`,
+                      borderRadius:"20px", padding:"3px 10px", fontSize:9,
+                      fontFamily:"'DM Sans',sans-serif", fontWeight:700,
+                      textTransform:"uppercase", letterSpacing:"0.08em", lineHeight:1, display:"inline-block",
+                    }}>{viewer.username}: {book.shelf}{book.rating ? `  ·  ${book.rating}★` : ""}</span>
+                    {onAddToLibrary && (
+                      <button {...tc(() => onAddToLibrary(book), true)} style={{
+                        background: WOOD.amber, color:"#1a0900", border:"none",
+                        borderRadius:20, padding:"4px 12px",
+                        fontFamily:"'DM Sans',sans-serif", fontSize:10, fontWeight:700,
+                        textTransform:"uppercase", letterSpacing:"0.05em",
+                        cursor:"pointer", lineHeight:1,
+                      }}>+ My library</button>
+                    )}
+                  </div>
+                );
+              }
               const showAdd = isDraft && !shelfTouched;
               const meta = SHELF_META[shelf] || SHELF_META["Read"];
               return (
@@ -9970,7 +10027,7 @@ function AvatarsSheet({ currentUrl, onPick, onClose }) {
 
 // Friends list + add-friend flow + tap-through to friend's breakdown.
 // Lives behind the Account → Friends menu item. Requires a username (gated CTA).
-function FriendsModal({ session, currentUsername, onClose, onProfileChanged, onOpenProfile }) {
+function FriendsModal({ session, currentUsername, onClose, onProfileChanged, onOpenProfile, onOpenBookInViewer }) {
   const user = session?.user;
   const meId = user?.id;
   const [friendships, setFriendships] = useState([]);
@@ -10165,6 +10222,7 @@ function FriendsModal({ session, currentUsername, onClose, onProfileChanged, onO
         <FriendBreakdownModal
           friend={viewingFriend}
           onClose={()=>setViewingFriend(null)}
+          onOpenBook={onOpenBookInViewer ? (book) => onOpenBookInViewer(book, viewingFriend) : undefined}
         />
       )}
     </div>
@@ -10172,7 +10230,7 @@ function FriendsModal({ session, currentUsername, onClose, onProfileChanged, onO
 }
 
 // Renders a friend's reading breakdown (view-only, full-screen).
-function FriendBreakdownModal({ friend, onClose }) {
+function FriendBreakdownModal({ friend, onClose, onOpenBook }) {
   const [books, setBooks] = useState(null);
   const [error, setError] = useState(null);
 
@@ -10224,7 +10282,7 @@ function FriendBreakdownModal({ friend, onClose }) {
       <div style={{ flex:1, overflow:"hidden", position:"relative" }}>
         {error && <p style={{ padding:20, color:"#fff", fontFamily:"'DM Sans',sans-serif" }}>Couldn't load: {error}</p>}
         {!books && !error && <p style={{ padding:20, color:"#fff", fontFamily:"'DM Sans',sans-serif" }}>Loading…</p>}
-        {books && !error && <StatsTab books={books} characterAvatar={characterAvatar} viewOnly={true} topBookIds={friend?.top_book_ids || []} topAuthors={friend?.top_authors || []} />}
+        {books && !error && <StatsTab books={books} characterAvatar={characterAvatar} viewOnly={true} topBookIds={friend?.top_book_ids || []} topAuthors={friend?.top_authors || []} onEdit={onOpenBook} />}
       </div>
     </div>
   );
@@ -10583,6 +10641,11 @@ export default function App() {
   const [toast, setToast] = useState(null);
   const toastTimer = useRef(null);
   const [editBook, setEditBook] = useState(null);
+  // Friend's-book read-only modal — stores { book, friend } so the modal
+  // header can show "On {friend}'s shelf" and the Add-to-my-library CTA
+  // knows the source. Separate from editBook (which is own-edit) so the
+  // EditSheet renders in a distinct viewer-mode branch.
+  const [viewerBook, setViewerBook] = useState(null);
   const [scrollY, setScrollY] = useState(0);
   const [showImport, setShowImport] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -11064,6 +11127,7 @@ export default function App() {
                   if (error) console.error("save top authors:", error);
                   setProfileRefresh(n => n + 1);
                 }}
+                onEdit={setEditBook}
               />
           }
           {showAdd && <AddSheet onSave={addBook} onClose={()=>setShowAdd(false)} />}
@@ -11119,7 +11183,40 @@ export default function App() {
           {authorModal && <AuthorModal author={typeof authorModal === "string" ? authorModal : authorModal.name} initialTab={typeof authorModal === "object" ? authorModal.tab : undefined} books={books} onClose={()=>setAuthorModal(null)} onEdit={book=>{ setAuthorModal(null); setEditBook(book); }} onAdd={draft=>{ setAuthorModal(null); setEditBook(null); setAddBookDraft({ id:Date.now(), title:draft.title, author:draft.author, genre:draft.genre||"Fiction", pages:draft.pages||0, rating:0, shelf:"Read", coverUrl:draft.coverUrl||null, coverId:null, date:todayLocal(), description:"", scores:null, notes:"", _fromRecs:true }); }} onDirectAdd={draft=>{ addBook({ title:draft.title, author:draft.author, genre:draft.genre||"Fiction", pages:draft.pages||0, rating:0, shelf:draft.shelf, coverUrl:draft.coverUrl||null, coverId:null, description:"", scores:null, notes:"" }); }} userId={userId} />}
           {showImport && <GoodreadsImportSheet onImport={importBooks} onClose={()=>setShowImport(false)} />}
           {showProfile && <ProfileModal session={session} onClose={()=>setShowProfile(false)} onProfileChanged={()=>setProfileRefresh(n=>n+1)} />}
-          {showFriends && <FriendsModal session={session} currentUsername={currentUsername} onClose={()=>setShowFriends(false)} onProfileChanged={()=>setProfileRefresh(n=>n+1)} onOpenProfile={()=>setShowProfile(true)} />}
+          {showFriends && <FriendsModal session={session} currentUsername={currentUsername} onClose={()=>setShowFriends(false)} onProfileChanged={()=>setProfileRefresh(n=>n+1)} onOpenProfile={()=>setShowProfile(true)} onOpenBookInViewer={(book, friend) => setViewerBook({ book, friend })} />}
+          {viewerBook && (
+            <EditSheet
+              key={`viewer-${viewerBook.book.id}-${viewerBook.friend?.id}`}
+              book={viewerBook.book}
+              viewer={{ username: viewerBook.friend?.username || "Friend", avatarUrl: viewerBook.friend?.avatar_url || null }}
+              onClose={() => setViewerBook(null)}
+              onAddToLibrary={(b) => {
+                setViewerBook(null);
+                setAddBookDraft({
+                  id: Date.now(),
+                  title: b.title, author: b.author,
+                  genre: normalizeGenre(b.genre),
+                  pages: parseInt(b.pages) || 0,
+                  rating: 0, shelf: "Read",
+                  coverUrl: b.coverUrl || null,
+                  coverId: b.coverId || null,
+                  isbn: b.isbn || null,
+                  publishYear: b.publishYear || null,
+                  date: todayLocal(),
+                  description: b.description || "",
+                  scores: null, notes: "",
+                  _fromRecs: true,
+                });
+              }}
+              onSave={() => {}}
+              onSaveDescription={() => {}}
+              onSaveScores={() => {}}
+              onAuthor={setAuthorModal}
+              libraryProfile={books.filter(b => b.shelf === "Read" || b.shelf === "DNF")}
+              userId={userId}
+              guestMode={guestMode}
+            />
+          )}
           {toast && (
             <div style={{
               position:"fixed", bottom:90, left:0, right:0,
