@@ -1736,6 +1736,14 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
   const [detectingSeriesLoading, setDetectingSeriesLoading] = useState(false);
   const searchTimer = useRef(null);
   const searchAbort = useRef(null);
+  // Stop any pending /api/search-books fetch + debounce timer. Used by every
+  // path that clears the search input (X button, picking a result, etc.) so
+  // a late-arriving response can't repopulate apiResults after we've cleared
+  // search — which would re-open the dropdown with no X visible to dismiss it.
+  function cancelInflightSearch() {
+    clearTimeout(searchTimer.current);
+    if (searchAbort.current) { searchAbort.current.abort(); searchAbort.current = null; }
+  }
   const [isbnScanOpen, setIsbnScanOpen] = useState(false);
   const [isbnLooking, setIsbnLooking] = useState(false);
 
@@ -1932,7 +1940,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
               onTouchEnd={e=>{ e.stopPropagation(); e.currentTarget.focus(); }}
               style={{ width:"100%", boxSizing:"border-box", padding:"10px 36px 10px 12px", border:"1px solid #d1d5db", borderRadius:8, fontSize:15, fontFamily:"'DM Sans',sans-serif", outline:"none", background:"#fff", color:"#111" }}/>
             {apiSearching && <span style={{ position:"absolute", right:10, top:"50%", transform:"translateY(-50%)", fontSize:12, color:"#999", fontFamily:"'DM Sans',sans-serif" }}>Searching…</span>}
-            {search && !apiSearching && <button onClick={()=>{ setSearch(""); setApiResults([]); }} style={{ position:"absolute", right:8, top:"50%", transform:"translateY(-50%)", background:"transparent", color:"#999", fontSize:13, border:"none", cursor:"pointer" }}>✕</button>}
+            {search && !apiSearching && <button onClick={()=>{ cancelInflightSearch(); setSearch(""); setApiResults([]); }} style={{ position:"absolute", right:8, top:"50%", transform:"translateY(-50%)", background:"transparent", color:"#999", fontSize:13, border:"none", cursor:"pointer" }}>✕</button>}
             {!search && !apiSearching && (
               <button onClick={()=>setIsbnScanOpen(true)} title="Scan ISBN" style={{ position:"absolute", right:6, top:"50%", transform:"translateY(-50%)", background:"transparent", color: isbnLooking ? WOOD.amber : "#999", border:"none", cursor:"pointer", padding:4, display:"flex", alignItems:"center", justifyContent:"center" }}>
                 {isbnLooking ? (
@@ -1966,7 +1974,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
               maxHeight:320, overflowY:"auto",
             }}>
               {localMatches.map((book, i) => (
-                <button key={`local-${book.id}`} onClick={() => { setSearch(""); setApiResults([]); setShowApiResults(true); onEdit && onEdit(book); }} style={{
+                <button key={`local-${book.id}`} onClick={() => { cancelInflightSearch(); setSearch(""); setApiResults([]); setShowApiResults(true); onEdit && onEdit(book); }} style={{
                   background:"rgba(138,90,40,0.05)",
                   border:"none", borderBottom:"1px solid #f3f4f6",
                   padding:"10px 14px", textAlign:"left", cursor:"pointer",
@@ -1984,7 +1992,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
                 </button>
               ))}
               {searchMode !== "Authors" && newApiResults.map((book, i) => (
-                <button key={i} onClick={() => { setSearch(""); setApiResults([]); setShowApiResults(true); onAddBook({ ...book, _fromRecs: true }); }} style={{
+                <button key={i} onClick={() => { cancelInflightSearch(); setSearch(""); setApiResults([]); setShowApiResults(true); onAddBook({ ...book, _fromRecs: true }); }} style={{
                   background:"transparent",
                   border:"none", borderBottom: i < newApiResults.length-1 ? "1px solid #f3f4f6" : "none",
                   padding:"10px 14px", textAlign:"left", cursor:"pointer",
@@ -2011,7 +2019,7 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
                         const normA = s => (s||"").toLowerCase().replace(/[^a-z\s]/g,"").replace(/\s+/g," ").trim();
                         const na = normA(author);
                         const libMatch = books.find(b => normA(b.author) === na || normA(b.author).startsWith(na) || na.startsWith(normA(b.author)));
-                        setSearch(""); setApiResults([]); setShowApiResults(true); onAuthor && onAuthor(libMatch?.author || author);
+                        cancelInflightSearch(); setSearch(""); setApiResults([]); setShowApiResults(true); onAuthor && onAuthor(libMatch?.author || author);
                       }, true)} style={{
                         display:"flex", alignItems:"center", gap:10, width:"100%",
                         padding:"9px 14px", background:"transparent", border:"none",
