@@ -4,18 +4,17 @@ import react from '@vitejs/plugin-react'
 // @vercel/analytics v2 reads process.env.NODE_ENV at boot to decide
 // between the production tracker (/_vercel/insights/script.js) and the
 // debug-only tracker (va.vercel-scripts.com/v1/script.debug.js, which
-// logs to console and never reports). Vite is supposed to replace
-// process.env.NODE_ENV automatically for production builds, but the
-// replacement wasn't reaching the @vercel/analytics module in our
-// Vercel builds — the bundle was shipping with NODE_ENV="development"
-// baked in, silently dropping all analytics events.
+// only logs to console). Vite's automatic NODE_ENV replacement wasn't
+// reaching the dependency in our Vercel builds, so the bundle shipped
+// with NODE_ENV="development" baked in — silently dropping every event.
 //
-// Explicit define overrides whatever default Vite is (or isn't) doing.
-// Uses the runtime NODE_ENV at build time, defaulting to "production"
-// so `npm run build` and Vercel prod builds always bake in production.
-export default defineConfig({
+// Tie the define to Vite's own `mode` (always "production" for
+// `vite build`) instead of the runtime process.env.NODE_ENV, so the
+// replacement is bulletproof regardless of how Vercel's build runner
+// happens to set environment variables.
+export default defineConfig(({ mode }) => ({
   plugins: [react()],
   define: {
-    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
+    'process.env.NODE_ENV': JSON.stringify(mode === 'production' ? 'production' : 'development'),
   },
-})
+}))
