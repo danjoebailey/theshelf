@@ -3622,22 +3622,40 @@ function ReedTab({ books, userId, onEdit, onShelfChange, onSaveScores, onAuthor 
       )}
 
       {/* Picks */}
-      {pickedBooks && pickedBooks.map((book, i) => (
-        <div key={`${book.id}_${i}`} style={{ display:"flex", alignItems:"stretch", gap:0 }}>
-          <div style={{ flex:1, minWidth:0 }}>
-          <BookCard
-            book={book} index={i}
-            onRemove={() => {}} onEdit={onEdit}
-            onShelfChange={onShelfChange} onOpenShelfPicker={() => {}}
-            onSaveScores={onSaveScores} onSaveDescription={() => {}}
-            onSaveProgress={() => {}} onSavePages={() => {}} onSaveAspects={() => {}}
-            onAuthor={onAuthor}
-            libraryProfile={books.filter(b => b.shelf === "Read" || b.shelf === "DNF")}
-            userId={userId}
-          />
+      {pickedBooks && pickedBooks.map((book, i) => {
+        const topPick = isPick && i === 0;
+        return (
+          <div key={`${book.id}_${i}`} style={{ display:"flex", flexDirection:"column", gap:6 }}>
+            {topPick && (
+              <p style={{
+                fontFamily:"'Caveat',cursive", fontSize:24, fontWeight:600,
+                color:WOOD.amber, textAlign:"center", margin:"0 0 -2px",
+                textShadow:"0 1px 2px rgba(0,0,0,0.45)",
+              }}>Read this next.</p>
+            )}
+            <div style={{
+              display:"flex", alignItems:"stretch", gap:0,
+              ...(topPick ? {
+                borderRadius:14,
+                boxShadow:`0 0 0 2px ${WOOD.amber}, 0 0 18px rgba(184,104,0,0.45)`,
+              } : null),
+            }}>
+              <div style={{ flex:1, minWidth:0 }}>
+              <BookCard
+                book={book} index={i}
+                onRemove={() => {}} onEdit={onEdit}
+                onShelfChange={onShelfChange} onOpenShelfPicker={() => {}}
+                onSaveScores={onSaveScores} onSaveDescription={() => {}}
+                onSaveProgress={() => {}} onSavePages={() => {}} onSaveAspects={() => {}}
+                onAuthor={onAuthor}
+                libraryProfile={books.filter(b => b.shelf === "Read" || b.shelf === "DNF")}
+                userId={userId}
+              />
+              </div>
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
