@@ -7491,10 +7491,17 @@ function StatsTab({ books, characterAvatar, viewOnly = false, topBookIds = [], t
         if (readingBooks.length === 0) return null;
         return (
           <>
-          <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
-            <div style={{ flex:1, height:1, background:"rgba(255,255,255,0.35)" }}/>
-            <span style={{ fontSize:13, color:"#fff", textTransform:"uppercase", letterSpacing:"0.18em", fontFamily:"'Crimson Pro',serif", fontWeight:700, whiteSpace:"nowrap" }}>Currently Reading</span>
-            <div style={{ flex:1, height:1, background:"rgba(255,255,255,0.35)" }}/>
+          <div style={{ display:"flex", justifyContent:"center", marginBottom:6 }}>
+            <div style={{ position:"relative", width:"100%", maxWidth:185, filter:"drop-shadow(0 3px 5px rgba(0,0,0,0.35))" }}>
+              <img src="/torn-paper.png" alt="" aria-hidden="true" style={{ width:"100%", height:"auto", display:"block" }} />
+              <p style={{
+                position:"absolute", inset:0, margin:0,
+                display:"flex", alignItems:"center", justifyContent:"center",
+                textAlign:"center", padding:"0 11%",
+                color:"#2e2010", fontFamily:"'Caveat',cursive",
+                fontSize:22, fontWeight:600, lineHeight:1.15,
+              }}>Currently Reading</p>
+            </div>
           </div>
           <div style={{ position:"relative", marginLeft:-16, marginRight:-16, marginBottom:10 }}>
             <div style={{ display:"flex", gap:10, overflowX:"auto", padding:"16px 16px 12px", justifyContent:"center", scrollbarWidth:"none" }}>
@@ -7523,10 +7530,17 @@ function StatsTab({ books, characterAvatar, viewOnly = false, topBookIds = [], t
         );
       })()}
 
-      <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
-        <div style={{ flex:1, height:1, background:"rgba(255,255,255,0.35)" }}/>
-        <span style={{ fontSize:13, color:"#fff", textTransform:"uppercase", letterSpacing:"0.18em", fontFamily:"'Crimson Pro',serif", fontWeight:700, whiteSpace:"nowrap" }}>Genre Breakdown</span>
-        <div style={{ flex:1, height:1, background:"rgba(255,255,255,0.35)" }}/>
+      <div style={{ display:"flex", justifyContent:"center", marginBottom:6 }}>
+        <div style={{ position:"relative", width:"100%", maxWidth:185, filter:"drop-shadow(0 3px 5px rgba(0,0,0,0.35))" }}>
+          <img src="/torn-paper.png" alt="" aria-hidden="true" style={{ width:"100%", height:"auto", display:"block" }} />
+          <p style={{
+            position:"absolute", inset:0, margin:0,
+            display:"flex", alignItems:"center", justifyContent:"center",
+            textAlign:"center", padding:"0 11%",
+            color:"#2e2010", fontFamily:"'Caveat',cursive",
+            fontSize:22, fontWeight:600, lineHeight:1.15,
+          }}>Genre Breakdown</p>
+        </div>
       </div>
       <div style={{ ...card, padding:16, marginBottom:10 }}>
         {topGenres.length===0
@@ -7549,10 +7563,17 @@ function StatsTab({ books, characterAvatar, viewOnly = false, topBookIds = [], t
       {/* Top 5 Books */}
       {(!viewOnly || pickedBooks.length > 0) && (
         <div style={{ marginBottom: 16 }}>
-          <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
-            <div style={{ flex:1, height:1, background:"rgba(255,255,255,0.35)" }}/>
-            <span style={{ fontSize:13, color:"#fff", textTransform:"uppercase", letterSpacing:"0.18em", fontFamily:"'Crimson Pro',serif", fontWeight:700, whiteSpace:"nowrap" }}>Top 5 Books</span>
-            <div style={{ flex:1, height:1, background:"rgba(255,255,255,0.35)" }}/>
+          <div style={{ display:"flex", justifyContent:"center", marginBottom:6 }}>
+            <div style={{ position:"relative", width:"100%", maxWidth:185, filter:"drop-shadow(0 3px 5px rgba(0,0,0,0.35))" }}>
+              <img src="/torn-paper.png" alt="" aria-hidden="true" style={{ width:"100%", height:"auto", display:"block" }} />
+              <p style={{
+                position:"absolute", inset:0, margin:0,
+                display:"flex", alignItems:"center", justifyContent:"center",
+                textAlign:"center", padding:"0 11%",
+                color:"#2e2010", fontFamily:"'Caveat',cursive",
+                fontSize:22, fontWeight:600, lineHeight:1.15,
+              }}>Top 5 Books</p>
+            </div>
           </div>
           {pickedBooks.length === 0 ? (
             <div style={{
@@ -7604,10 +7625,17 @@ function StatsTab({ books, characterAvatar, viewOnly = false, topBookIds = [], t
       {/* Top 5 Authors */}
       {(!viewOnly || pickedAuthors.length > 0) && (
         <div style={{ marginBottom: 16 }}>
-          <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:10 }}>
-            <div style={{ flex:1, height:1, background:"rgba(255,255,255,0.35)" }}/>
-            <span style={{ fontSize:13, color:"#fff", textTransform:"uppercase", letterSpacing:"0.18em", fontFamily:"'Crimson Pro',serif", fontWeight:700, whiteSpace:"nowrap" }}>Top 5 Authors</span>
-            <div style={{ flex:1, height:1, background:"rgba(255,255,255,0.35)" }}/>
+          <div style={{ display:"flex", justifyContent:"center", marginBottom:6 }}>
+            <div style={{ position:"relative", width:"100%", maxWidth:185, filter:"drop-shadow(0 3px 5px rgba(0,0,0,0.35))" }}>
+              <img src="/torn-paper.png" alt="" aria-hidden="true" style={{ width:"100%", height:"auto", display:"block" }} />
+              <p style={{
+                position:"absolute", inset:0, margin:0,
+                display:"flex", alignItems:"center", justifyContent:"center",
+                textAlign:"center", padding:"0 11%",
+                color:"#2e2010", fontFamily:"'Caveat',cursive",
+                fontSize:22, fontWeight:600, lineHeight:1.15,
+              }}>Top 5 Authors</p>
+            </div>
           </div>
           {pickedAuthors.length === 0 ? (
             <div style={{
