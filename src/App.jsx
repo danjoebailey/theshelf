@@ -4187,8 +4187,18 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAdd
 
   return (
     <div style={{ padding:"0 0 100px" }}>
-      <div style={{ padding:"16px 18px 8px" }}>
-        <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:14, color:"rgba(255,255,255,0.6)", textAlign:"center" }}>Snap any shelf — get a list of what's on it, then ask Obi which ones to read.</p>
+      {/* Header — torn paper note */}
+      <div style={{ padding:"2px 18px 12px", display:"flex", justifyContent:"center" }}>
+        <div style={{ position:"relative", width:"100%", maxWidth:380, filter:"drop-shadow(0 4px 6px rgba(0,0,0,0.38))" }}>
+          <img src="/torn-paper.png" alt="" aria-hidden="true" style={{ width:"100%", height:"auto", display:"block" }} />
+          <p style={{
+            position:"absolute", inset:0, margin:0,
+            display:"flex", alignItems:"center", justifyContent:"center",
+            textAlign:"center", padding:"0 11%",
+            color:"#2e2010", fontFamily:"'Caveat',cursive",
+            fontSize:26, fontWeight:600, lineHeight:1.15,
+          }}>Snap any shelf — Obi'll tell you which to read.</p>
+        </div>
       </div>
 
       {/* Upload zone or preview */}
@@ -4542,8 +4552,18 @@ function BrowseTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAddDir
 
   return (
     <div style={{ padding:"0 0 100px" }}>
-      <div style={{ padding:"16px 18px 8px" }}>
-        <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:14, color:"rgba(255,255,255,0.6)", textAlign:"center" }}>Browse the full catalog by tone, craft, and genre.</p>
+      {/* Header — torn paper note */}
+      <div style={{ padding:"2px 18px 12px", display:"flex", justifyContent:"center" }}>
+        <div style={{ position:"relative", width:"100%", maxWidth:380, filter:"drop-shadow(0 4px 6px rgba(0,0,0,0.38))" }}>
+          <img src="/torn-paper.png" alt="" aria-hidden="true" style={{ width:"100%", height:"auto", display:"block" }} />
+          <p style={{
+            position:"absolute", inset:0, margin:0,
+            display:"flex", alignItems:"center", justifyContent:"center",
+            textAlign:"center", padding:"0 11%",
+            color:"#2e2010", fontFamily:"'Caveat',cursive",
+            fontSize:26, fontWeight:600, lineHeight:1.15,
+          }}>Browse the full catalog by tone, craft, and genre.</p>
+        </div>
       </div>
 
       {/* Filter row — same controls as Paige */}
