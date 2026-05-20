@@ -8599,7 +8599,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
                     {icon}{label}
                   </button>
                 ))}
-                {(!["Read","DNF"].includes(shelf) || book._fromRecs) && (
+                {(isViewer || !["Read","DNF"].includes(shelf) || book._fromRecs) && (
                   <button {...tc(fetchObi)} style={{ display:"flex", alignItems:"center", gap:5, padding:"6px 12px", borderRadius:20, border:detailPanel==="obi" ? "none" : `1px solid ${CR.border}`, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:500, transition:"all 0.15s", background:detailPanel==="obi" ? CR.text : "#fff", color:detailPanel==="obi" ? CR.bg : CR.textDim }}>
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/></svg>
                     Ask Obi
