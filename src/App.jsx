@@ -10487,7 +10487,7 @@ function GoodreadsImportSheet({ onImport, onClose }) {
 
   return (
     <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.7)", zIndex:50, display:"flex", flexDirection:"column", justifyContent:"flex-end", animation:"fadeIn 0.15s ease" }}
-      onClick={onClose}>
+      onClick={()=>{ if(!enriching) onClose(); }}>
       <div onTouchEnd={e=>e.stopPropagation()} onClick={e=>e.stopPropagation()} style={{
         background:"linear-gradient(180deg, #ddb870 0%, #c89850 100%)",
         borderRadius:"20px 20px 0 0",
@@ -10571,6 +10571,14 @@ function GoodreadsImportSheet({ onImport, onClose }) {
               ? enrichPhase === "genres" ? "Classifying genres with AI…" : `Fetching covers… ${enrichProgress}%`
               : `Import ${totalCount} books`}
           </button>
+        )}
+
+        {enriching && (
+          <div style={{ marginTop:10, padding:"10px 12px", borderRadius:10, background:"rgba(160,82,20,0.15)", border:"1px solid rgba(138,90,40,0.35)" }}>
+            <p style={{ fontSize:12.5, color:WOOD.text, textAlign:"center", fontWeight:600, fontFamily:"'DM Sans',sans-serif", lineHeight:1.45 }}>
+              ⏳ Import in progress — please keep this screen open until it finishes.
+            </p>
+          </div>
         )}
       </div>
     </div>
