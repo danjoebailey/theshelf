@@ -11412,7 +11412,7 @@ export default function App() {
                       }}>{pendingRequestCount > 9 ? "9+" : pendingRequestCount}</span>
                     )}
                   </button>}
-                  {!guestMode && <button {...tc(()=>{ setShowProfileMenu(false); setShowImport(true); })} style={{
+                  <button {...tc(()=>{ setShowProfileMenu(false); setShowImport(true); })} style={{
                     display:"flex", alignItems:"center", gap:10,
                     width:"100%", padding:"12px 16px", textAlign:"left",
                     background:"transparent", border:"none", borderTop:"1px solid rgba(138,90,40,0.15)", cursor:"pointer",
@@ -11422,7 +11422,7 @@ export default function App() {
                       <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
                     </svg>
                     Import from Goodreads
-                  </button>}
+                  </button>
                   {!guestMode && <button {...tc(fetchMissingCovers)} disabled={!!coverFetchProgress} style={{
                     display:"flex", alignItems:"center", gap:10,
                     width:"100%", padding:"12px 16px", textAlign:"left",
