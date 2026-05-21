@@ -4054,6 +4054,7 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAdd
 
       const enriched = await enrichScannedBooks(deduped);
       setScannedBooks(enriched);
+      track("shelf_scan", { count: enriched.length, deep: useDeepScan });
       setTruncated(anyTruncated);
       setScanFailures(aggFailedRows > 0 ? { failed: aggFailedRows, total: aggTotalRows } : null);
       setProgress({ step: "", pct: 100 });
