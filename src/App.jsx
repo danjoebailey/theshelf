@@ -7006,9 +7006,9 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, seriesTier
               </div>
               <div style={{ flex:1, minWidth:0 }}>
                 {viewMode === "row"
-                  ? <BookRow key={bookObj.id} book={bookObj} index={i} onEdit={matched ? onEdit : null} onRemove={null} onShelfChange={matched ? onShelfChange : ()=>{}} onAdd={matched ? undefined : (s) => onAddDirect({ title:item.title, author:item.author, genre: resolvedGenre, pages:0, rating:0, coverUrl:item.coverUrl||null }, s)} />
+                  ? <BookRow key={item.title} book={bookObj} index={i} onEdit={matched ? onEdit : null} onRemove={null} onShelfChange={matched ? onShelfChange : ()=>{}} onAdd={matched ? undefined : (s) => onAddDirect({ title:item.title, author:item.author, genre: resolvedGenre, pages:0, rating:0, coverUrl:item.coverUrl||null }, s)} />
                   : <BookCard
-                      key={bookObj.id}
+                      key={item.title}
                       book={bookObj}
                       index={i}
                       onRemove={()=>{}} onEdit={matched ? onEdit : (b)=>onAddBook(b)} onShelfChange={()=>{}} onOpenShelfPicker={()=>{}}
