@@ -1698,7 +1698,7 @@ function AuthorsView({ allBooks, allUserBooks, authorSort, authorTiers, onSetAut
   );
 }
 
-function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelfChange, onImport, onSaveScores, onSaveDescription, onSaveProgress, onSavePages, onSaveAspects, hideControls=false, onAuthor, userId, guestMode = false, onBatchDetectSeries, seriesTiers = {}, onSetSeriesTier, authorTiers = {}, onSetAuthorTier, onSetSeriesTotal }) {
+function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelfChange, onImport, onScanShelf, onSaveScores, onSaveDescription, onSaveProgress, onSavePages, onSaveAspects, hideControls=false, onAuthor, userId, guestMode = false, onBatchDetectSeries, seriesTiers = {}, onSetSeriesTier, authorTiers = {}, onSetAuthorTier, onSetSeriesTotal }) {
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("date");
   const [sortAsc, setSortAsc] = useState(false);
@@ -2289,6 +2289,42 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
                         <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
                       </svg>
                       Import
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Scan Your Shelf card */}
+            <div
+              style={{
+                background:WOOD.card, backdropFilter:"blur(6px)", borderRadius:12,
+                padding:"14px 16px", borderTop:"6px solid #8a5a28", borderLeft:"6px solid #8a5a28",
+                borderBottom:"6px solid #8a5a28", borderRight:"none",
+                boxShadow:"0 2px 8px rgba(0,0,0,0.15)", touchAction:"manipulation",
+                animation:"fadeUp 0.28s ease 0.1s both",
+              }}
+            >
+              <div style={{ display:"flex", gap:14, alignItems:"stretch" }}>
+                <div style={{ flexShrink:0, display:"flex" }}>
+                  <img src="/spine-reader.png" alt="The Spine Reader" style={{ width:53, height:80, objectFit:"cover" }} />
+                </div>
+                <div style={{ flex:1, minWidth:0, display:"flex", flexDirection:"column", justifyContent:"space-between" }}>
+                  <div>
+                    <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:21, color:WOOD.text, lineHeight:1.2, marginBottom:1, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>Scan Your Shelf</p>
+                    <p style={{ fontSize:12, color:WOOD.textDim, fontStyle:"italic", marginBottom:2 }}>The Spine Reader</p>
+                  </div>
+                  <div style={{ display:"flex", gap:7, alignItems:"center", justifyContent:"flex-end" }}>
+                    <button {...tc(onScanShelf, true)} style={{
+                      display:"flex", alignItems:"center", gap:6,
+                      background:WOOD.amber, borderRadius:20, padding:"5px 14px",
+                      border:"none", cursor:"pointer",
+                      fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600, color:"#1a0900",
+                    }}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>
+                      </svg>
+                      Scan
                     </button>
                   </div>
                 </div>
@@ -4699,8 +4735,8 @@ function BrowseTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAddDir
   );
 }
 
-function RecommendPage({ books, userId, onAddDirect, onBulkAddDirect, onAuthor, onEdit, onAddBook, onShelfChange, onSaveScores }) {
-  const [character, setCharacter] = useState("paige");
+function RecommendPage({ books, userId, onAddDirect, onBulkAddDirect, onAuthor, onEdit, onAddBook, onShelfChange, onSaveScores, initialCharacter, onConsumeInitialCharacter }) {
+  const [character, setCharacter] = useState(initialCharacter || "paige");
   const scrollerRef = useRef(null);
   const contentRef = useRef(null);
   const touchStartXRef = useRef(0);
@@ -4708,6 +4744,10 @@ function RecommendPage({ books, userId, onAddDirect, onBulkAddDirect, onAuthor, 
   const [showRightArrow, setShowRightArrow] = useState(true);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [atTop, setAtTop] = useState(true);
+
+  // Consume the one-shot deep-link character (set when a Shelf onboarding card
+  // jumps straight here) so a later normal Discover visit starts on Paige.
+  useEffect(() => { if (initialCharacter) onConsumeInitialCharacter?.(); }, []);
 
   // Reset to "at top" state when switching characters so the shelf reappears.
   useEffect(() => { setAtTop(true); contentRef.current?.scrollTo?.({ top: 0 }); }, [character]);
@@ -10671,6 +10711,9 @@ export default function App() {
   // (login/logout) and on next page load (always, since it's session state).
   const [libraryProfileSnapshot, setLibraryProfileSnapshot] = useState([]);
   const [tab, setTab] = useState("shelf");
+  // Deep-link target character for the Discover page (RecommendPage). Set when
+  // the Shelf onboarding "Scan Your Shelf" card jumps straight to Shelf Scan.
+  const [recInitialCharacter, setRecInitialCharacter] = useState(null);
   useEffect(() => { track("tab_viewed", { tab }); }, [tab]);
   const [showAdd, setShowAdd] = useState(false);
   const [addBookDraft, setAddBookDraft] = useState(null);
@@ -11114,9 +11157,9 @@ export default function App() {
         {/* content */}
         <div style={{ flex:1, overflow:"hidden", position:"relative" }}>
           {tab==="shelf"
-            ? <ShelfTab books={books} onAdd={()=>setShowAdd(true)} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:todayLocal(), description:"", scores:null, notes:"", _fromRecs:book._fromRecs||false }); }} onRemove={id=>{ setBooks(prev => prev.filter(b=>b.id!==id)); track("book_removed"); if (!guestMode) dbDeleteBook(id, userId); }} onEdit={setEditBook} onScroll={setScrollY} onShelfChange={changeShelf} onImport={()=>setShowImport(true)} onSaveScores={saveScores} onSaveDescription={saveDescription} onSaveProgress={saveProgress} onSavePages={savePages} onSaveAspects={saveAspects} hideControls={!!editBook} onAuthor={setAuthorModal} userId={userId} guestMode={guestMode} onBatchDetectSeries={batchDetectSeries} seriesTiers={seriesTiers} onSetSeriesTier={async (seriesName, tier) => { const next = { ...seriesTiers }; if (tier) next[seriesName] = tier; else delete next[seriesName]; setSeriesTiers(next); if (!guestMode) { if (tier) await supabase.from("series_tiers").upsert({ user_id: userId, series_name: seriesName, tier }, { onConflict: "user_id,series_name" }); else await supabase.from("series_tiers").delete().eq("user_id", userId).eq("series_name", seriesName); } }} authorTiers={authorTiers} onSetAuthorTier={async (authorName, tier) => { const next = { ...authorTiers }; if (tier) next[authorName] = tier; else delete next[authorName]; setAuthorTiers(next); if (!guestMode) { if (tier) await supabase.from("author_tiers").upsert({ user_id: userId, author_name: authorName, tier }, { onConflict: "user_id,author_name" }); else await supabase.from("author_tiers").delete().eq("user_id", userId).eq("author_name", authorName); } }} onSetSeriesTotal={(seriesName, total) => { const updated = books.map(b => b.series === seriesName ? { ...b, seriesTotal: total } : b); setBooks(updated); if (!guestMode) updated.filter(b => b.series === seriesName).forEach(b => dbUpdateBook(b, userId)); }} />
+            ? <ShelfTab books={books} onAdd={()=>setShowAdd(true)} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:todayLocal(), description:"", scores:null, notes:"", _fromRecs:book._fromRecs||false }); }} onRemove={id=>{ setBooks(prev => prev.filter(b=>b.id!==id)); track("book_removed"); if (!guestMode) dbDeleteBook(id, userId); }} onEdit={setEditBook} onScroll={setScrollY} onShelfChange={changeShelf} onImport={()=>setShowImport(true)} onScanShelf={()=>{ setRecInitialCharacter("scan"); setTab("reiko"); }} onSaveScores={saveScores} onSaveDescription={saveDescription} onSaveProgress={saveProgress} onSavePages={savePages} onSaveAspects={saveAspects} hideControls={!!editBook} onAuthor={setAuthorModal} userId={userId} guestMode={guestMode} onBatchDetectSeries={batchDetectSeries} seriesTiers={seriesTiers} onSetSeriesTier={async (seriesName, tier) => { const next = { ...seriesTiers }; if (tier) next[seriesName] = tier; else delete next[seriesName]; setSeriesTiers(next); if (!guestMode) { if (tier) await supabase.from("series_tiers").upsert({ user_id: userId, series_name: seriesName, tier }, { onConflict: "user_id,series_name" }); else await supabase.from("series_tiers").delete().eq("user_id", userId).eq("series_name", seriesName); } }} authorTiers={authorTiers} onSetAuthorTier={async (authorName, tier) => { const next = { ...authorTiers }; if (tier) next[authorName] = tier; else delete next[authorName]; setAuthorTiers(next); if (!guestMode) { if (tier) await supabase.from("author_tiers").upsert({ user_id: userId, author_name: authorName, tier }, { onConflict: "user_id,author_name" }); else await supabase.from("author_tiers").delete().eq("user_id", userId).eq("author_name", authorName); } }} onSetSeriesTotal={(seriesName, total) => { const updated = books.map(b => b.series === seriesName ? { ...b, seriesTotal: total } : b); setBooks(updated); if (!guestMode) updated.filter(b => b.series === seriesName).forEach(b => dbUpdateBook(b, userId)); }} />
             : tab==="reiko"
-            ? <RecommendPage books={books} userId={userId} onAddDirect={(book, shelf) => { const existing = books.find(x => normBookKey(x.title) === normBookKey(book.title)); if (existing) { changeShelf(existing.id, shelf); return; } const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, rating:0, date:todayLocal() }; setBooks(prev => [...prev, b]); if (!guestMode) dbAddBook(b, userId); track("book_added", { shelf, genre: b.genre }); }} onBulkAddDirect={(items, shelf) => { if (!items?.length) return; const today = todayLocal(); const baseId = Date.now(); const ownedKeys = new Set(books.map(x => normBookKey(x.title))); const newBooks = items.filter(it => it?.title && !ownedKeys.has(normBookKey(it.title))).map((it, idx) => ({ id: baseId + idx, title: it.title, author: it.author || "Unknown", genre: normalizeGenre(it.genre), pages: parseInt(it.pages) || 0, rating: 0, shelf, coverUrl: it.coverUrl || null, coverId: null, date: today, publishYear: it.publishYear || null })); if (!newBooks.length) return; setBooks(prev => [...prev, ...newBooks]); if (!guestMode) newBooks.forEach(b => dbAddBook(b, userId)); track("bulk_add", { count: newBooks.length, shelf }); clearTimeout(toastTimer.current); setToast({ title: `${newBooks.length} ${newBooks.length === 1 ? "book" : "books"}`, shelf }); toastTimer.current = setTimeout(() => setToast(null), 3000); }} onAuthor={setAuthorModal} onEdit={setEditBook} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:todayLocal(), description:"", scores:null, notes:"", _fromRecs:true }); }} onShelfChange={changeShelf} onSaveScores={saveScores} />
+            ? <RecommendPage books={books} userId={userId} initialCharacter={recInitialCharacter} onConsumeInitialCharacter={()=>setRecInitialCharacter(null)} onAddDirect={(book, shelf) => { const existing = books.find(x => normBookKey(x.title) === normBookKey(book.title)); if (existing) { changeShelf(existing.id, shelf); return; } const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, rating:0, date:todayLocal() }; setBooks(prev => [...prev, b]); if (!guestMode) dbAddBook(b, userId); track("book_added", { shelf, genre: b.genre }); }} onBulkAddDirect={(items, shelf) => { if (!items?.length) return; const today = todayLocal(); const baseId = Date.now(); const ownedKeys = new Set(books.map(x => normBookKey(x.title))); const newBooks = items.filter(it => it?.title && !ownedKeys.has(normBookKey(it.title))).map((it, idx) => ({ id: baseId + idx, title: it.title, author: it.author || "Unknown", genre: normalizeGenre(it.genre), pages: parseInt(it.pages) || 0, rating: 0, shelf, coverUrl: it.coverUrl || null, coverId: null, date: today, publishYear: it.publishYear || null })); if (!newBooks.length) return; setBooks(prev => [...prev, ...newBooks]); if (!guestMode) newBooks.forEach(b => dbAddBook(b, userId)); track("bulk_add", { count: newBooks.length, shelf }); clearTimeout(toastTimer.current); setToast({ title: `${newBooks.length} ${newBooks.length === 1 ? "book" : "books"}`, shelf }); toastTimer.current = setTimeout(() => setToast(null), 3000); }} onAuthor={setAuthorModal} onEdit={setEditBook} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:todayLocal(), description:"", scores:null, notes:"", _fromRecs:true }); }} onShelfChange={changeShelf} onSaveScores={saveScores} />
             : tab==="rankings"
             ? <RankingsTab books={books} onSaveScores={saveScores} userId={userId} authorTiers={authorTiers} seriesTiers={seriesTiers} onAddBook={book=>{ setAddBookDraft({ id:Date.now(), title:book.title, author:book.author, genre:normalizeGenre(book.genre), pages:parseInt(book.pages)||0, rating:0, shelf:"Read", coverUrl:book.coverUrl||null, coverId:book.coverId||null, date:todayLocal(), description:"", scores:null, notes:"", _fromRecs:true }); }} onAddDirect={(book, shelf) => { const b = { id:Date.now(), ...book, genre:normalizeGenre(book.genre), shelf, date:todayLocal() }; setBooks(prev => [...prev, b]); if (!guestMode) dbAddBook(b, userId); track("book_added", { shelf, genre: b.genre }); }} onShelfChange={changeShelf} onEdit={setEditBook} onAuthor={setAuthorModal} />
             : <StatsTab
