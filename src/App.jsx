@@ -1407,7 +1407,6 @@ function SeriesCard({ seriesName, books, seriesTotal, onEdit, onRemove, onShelfC
                 border:"1px solid rgba(138,90,40,0.3)", borderRadius:20,
                 padding:"3px 9px",
               }}>{countStr}</span>
-          }
           <TierBadge tier={tier} onSetTier={onSetTier} />
           <svg width="10" height="6" viewBox="0 0 10 6" fill="none" style={{ transition:"transform 0.2s", transform: expanded ? "rotate(180deg)" : "rotate(0deg)" }}>
             <path d="M1 1l4 4 4-4" stroke={WOOD.textFaint} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -10461,6 +10460,8 @@ function GoodreadsImportSheet({ onImport, onClose }) {
   const [enrichPhase, setEnrichPhase] = useState("covers");
   const fileRef = useRef(null);
 
+  useEffect(() => { track("goodreads_import_started"); }, []);
+
   function handleFile(e) {
     const file = e.target.files[0];
     if (!file) return;
@@ -10469,7 +10470,7 @@ function GoodreadsImportSheet({ onImport, onClose }) {
       try {
         const text = ev.target.result;
         const counts = getGoodreadsShelfCounts(text);
-        if (!Object.keys(counts).length) { setError("No books found — make sure this is a Goodreads export CSV."); setCsvText(null); return; }
+        if (!Object.keys(counts).length) { track("goodreads_import_failed", { reason: "not_goodreads_csv" }); setError("No books found — make sure this is a Goodreads export CSV."); setCsvText(null); return; }
         const mapping = {};
         for (const gr of Object.keys(counts)) mapping[gr] = DEFAULT_GR_SHELF_MAP[gr] || "Read";
         setCsvText(text);
@@ -10477,7 +10478,7 @@ function GoodreadsImportSheet({ onImport, onClose }) {
         setShelfMapping(mapping);
         setTotalCount(Object.values(counts).reduce((a,b)=>a+b,0));
         setError("");
-      } catch { setError("Couldn't parse the file. Please use the Goodreads export CSV."); }
+      } catch { track("goodreads_import_failed", { reason: "parse_error" }); setError("Couldn't parse the file. Please use the Goodreads export CSV."); }
     };
     reader.readAsText(file);
   }
@@ -10580,6 +10581,7 @@ function LoginScreen({ onGuest }) {
   const [loading, setLoading] = useState(false);
   async function signIn() {
     setLoading(true);
+    track("signed_in");
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: window.location.origin },
@@ -10642,6 +10644,7 @@ export default function App() {
   // (login/logout) and on next page load (always, since it's session state).
   const [libraryProfileSnapshot, setLibraryProfileSnapshot] = useState([]);
   const [tab, setTab] = useState("shelf");
+  useEffect(() => { track("tab_viewed", { tab }); }, [tab]);
   const [showAdd, setShowAdd] = useState(false);
   const [addBookDraft, setAddBookDraft] = useState(null);
   const [authorModal, setAuthorModal] = useState(null);
@@ -11025,6 +11028,7 @@ export default function App() {
   async function importBooks(imported) {
     const existing = new Set(books.map(b => normBookKey(b.title)));
     const newBooks = imported.filter(b => !existing.has(normBookKey(b.title))).map(b => ({ ...b, genre: normalizeGenre(b.genre) }));
+    track("goodreads_import", { count: newBooks.length, total: imported.length });
     if (!newBooks.length) return;
     setBooks(prev => [...prev, ...newBooks]);
     if (guestMode) return;
