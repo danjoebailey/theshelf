@@ -554,7 +554,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
     if (obiVerdict) return;
     if (guestMode) {
       const count = parseInt(localStorage.getItem(GUEST_OBI_KEY) || "0");
-      if (count >= 3) {
+      if (count >= 10) {
         setObiVerdict("Sign in to unlock unlimited Obi.");
         track("obi_capped");
         return;
@@ -3096,6 +3096,11 @@ function PaigeTab({ books, userId, onAddDirect, onBulkAddDirect, onEdit, onAddBo
   async function curateWithObi() {
     const all = [...(recs[mode] || []), ...(reserve[mode] || [])].slice(0, 100);
     if (all.length === 0) return;
+    if (!userId || userId === "guest") {
+      const used = parseInt(localStorage.getItem(GUEST_PAIGE_OBI_KEY) || "0");
+      if (used >= 3) { track("bulk_obi_capped", { feature: "paige" }); alert("You've used your 3 free bulk Obi picks here. Sign in to unlock unlimited Obi."); return; }
+      localStorage.setItem(GUEST_PAIGE_OBI_KEY, String(used + 1));
+    }
     setObiCurateLoading(true);
     // Cheap fingerprint: title list joined
     const fingerprint = all.map(b => `${b.title}|${b.author}`).join("\n");
@@ -3999,6 +4004,11 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAdd
 
   async function scan() {
     if (!imageUrl || scanning) return;
+    if (!userId || userId === "guest") {
+      const used = parseInt(localStorage.getItem(GUEST_SCAN_KEY) || "0");
+      if (used >= 5) { track("scan_capped"); setError("Guests can run 5 shelf scans. Sign in to unlock unlimited scanning."); return; }
+      localStorage.setItem(GUEST_SCAN_KEY, String(used + 1));
+    }
     setScanning(true); setError(null);
     setScannedBooks([]); setObiPicks(null); setObiSubstitutions([]); setTruncated(false); setScanFailures(null);
     try {
@@ -4082,6 +4092,11 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAdd
 
   async function askObi() {
     if (!scannedBooks.length || obiLoading) return;
+    if (!userId || userId === "guest") {
+      const used = parseInt(localStorage.getItem(GUEST_SCAN_OBI_KEY) || "0");
+      if (used >= 3) { track("bulk_obi_capped", { feature: "scan" }); alert("You've used your 3 free bulk Obi picks here. Sign in to unlock unlimited Obi."); return; }
+      localStorage.setItem(GUEST_SCAN_OBI_KEY, String(used + 1));
+    }
     setObiLoading(true);
     try {
       // Exclude books the user has already read (or DNF'd) — no point asking
@@ -4515,6 +4530,11 @@ function BrowseTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAddDir
   // (regardless of how many are paginated visibly), send to bulk_filter, apply
   // series resolution, narrow displayed results to the picks.
   async function curateWithObi() {
+    if (!userId || userId === "guest") {
+      const used = parseInt(localStorage.getItem(GUEST_BROWSE_OBI_KEY) || "0");
+      if (used >= 3) { track("bulk_obi_capped", { feature: "browse" }); alert("You've used your 3 free bulk Obi picks here. Sign in to unlock unlimited Obi."); return; }
+      localStorage.setItem(GUEST_BROWSE_OBI_KEY, String(used + 1));
+    }
     setObiCurateLoading(true);
     try {
       // Match Obi's pool to whatever sort the user is currently viewing —
@@ -8353,7 +8373,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
     if (obiVerdict) return;
     if (guestMode) {
       const count = parseInt(localStorage.getItem(GUEST_OBI_KEY) || "0");
-      if (count >= 3) {
+      if (count >= 10) {
         setObiVerdict("Sign in to unlock unlimited Obi.");
         track("obi_capped");
         return;
@@ -8924,6 +8944,12 @@ async function dbDeleteBook(bookId, userId) {
 
 const GUEST_BOOKS_KEY = "guest_books";
 const GUEST_OBI_KEY = "guest_obi_count";
+// Per-feature guest caps for the bulk Obi operations (3 each).
+const GUEST_PAIGE_OBI_KEY = "guest_paige_obi_count";
+const GUEST_BROWSE_OBI_KEY = "guest_browse_obi_count";
+const GUEST_SCAN_OBI_KEY = "guest_scan_obi_count";
+// Guest cap on full photo shelf scans (5).
+const GUEST_SCAN_KEY = "guest_scan_count";
 const GUEST_ACTIVE_KEY = "guest_active";
 // Set only when a guest explicitly clicks "Sign in to save your books".
 // Survives the OAuth page reload. Gates the post-sign-in migration so a
@@ -8932,7 +8958,7 @@ const GUEST_ACTIVE_KEY = "guest_active";
 const MIGRATE_GUEST_KEY = "theshelf:migrate_guest";
 function guestSaveBooks(books) { localStorage.setItem(GUEST_BOOKS_KEY, JSON.stringify(books)); }
 function guestLoadBooks() { try { return JSON.parse(localStorage.getItem(GUEST_BOOKS_KEY) || "[]"); } catch { return []; } }
-function guestClearAll() { localStorage.removeItem(GUEST_BOOKS_KEY); localStorage.removeItem(GUEST_OBI_KEY); localStorage.removeItem(GUEST_ACTIVE_KEY); }
+function guestClearAll() { localStorage.removeItem(GUEST_BOOKS_KEY); localStorage.removeItem(GUEST_OBI_KEY); localStorage.removeItem(GUEST_PAIGE_OBI_KEY); localStorage.removeItem(GUEST_BROWSE_OBI_KEY); localStorage.removeItem(GUEST_SCAN_OBI_KEY); localStorage.removeItem(GUEST_SCAN_KEY); localStorage.removeItem(GUEST_ACTIVE_KEY); }
 
 // Migrate guest books into the just-signed-in account — but ONLY when the
 // migrate-intent flag is set. Dedupes by normalized title against whatever
