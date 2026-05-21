@@ -9064,44 +9064,59 @@ async function enrichBooksFromOpenLibrary(books, onProgress) {
 
 const DEFAULT_GR_SHELF_MAP = { "read": "Read", "to-read": "The List", "currently-reading": "Reading" };
 
-function parseLine(line) {
-  const fields = [];
-  let cur = "", inQ = false;
-  for (let i = 0; i < line.length; i++) {
-    const c = line[i];
-    if (c === '"') {
-      if (inQ && line[i+1] === '"') { cur += '"'; i++; }
-      else inQ = !inQ;
-    } else if (c === ',' && !inQ) {
-      fields.push(cur); cur = "";
-    } else cur += c;
+// Tokenize a whole CSV into rows of fields. Quoted fields may contain commas
+// AND embedded newlines — Goodreads exports do exactly this for multi-line "My
+// Review" and "Private Notes" cells — so we scan the entire text rather than
+// splitting on newlines first (which fragments any row with a paragraph break
+// inside a review and corrupts the import).
+function parseCSV(text) {
+  if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);  // strip UTF-8 BOM
+  const rows = [];
+  let row = [], cur = "", inQ = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQ) {
+      if (c === '"') {
+        if (text[i + 1] === '"') { cur += '"'; i++; }  // "" → escaped quote
+        else inQ = false;
+      } else cur += c;
+    } else if (c === '"') {
+      inQ = true;
+    } else if (c === ',') {
+      row.push(cur); cur = "";
+    } else if (c === '\n') {
+      row.push(cur); cur = ""; rows.push(row); row = [];
+    } else if (c === '\r') {
+      // CRLF: let the following \n close the row. Lone \r: close it here.
+      if (text[i + 1] !== '\n') { row.push(cur); cur = ""; rows.push(row); row = []; }
+    } else {
+      cur += c;
+    }
   }
-  fields.push(cur);
-  return fields;
+  if (cur !== "" || row.length) { row.push(cur); rows.push(row); }
+  return rows;
 }
 
 function getGoodreadsShelfCounts(text) {
-  const lines = text.split(/\r?\n/);
-  if (lines.length < 2) return {};
-  const headers = parseLine(lines[0]).map(h => h.trim());
+  const rows = parseCSV(text);
+  if (rows.length < 2) return {};
+  const headers = rows[0].map(h => h.trim());
   const shelfIdx = headers.indexOf("Exclusive Shelf");
   if (shelfIdx === -1) return {};
   const counts = {};
-  for (const line of lines.slice(1)) {
-    if (!line.trim()) continue;
-    const shelf = (parseLine(line)[shelfIdx] || "").trim().toLowerCase();
+  for (const row of rows.slice(1)) {
+    const shelf = (row[shelfIdx] || "").trim().toLowerCase();
     if (shelf) counts[shelf] = (counts[shelf] || 0) + 1;
   }
   return counts;
 }
 
 function parseGoodreadsCSV(text, shelfMap = DEFAULT_GR_SHELF_MAP) {
-  const lines = text.split(/\r?\n/);
-  if (lines.length < 2) return [];
-  const headers = parseLine(lines[0]).map(h => h.trim());
+  const rows = parseCSV(text);
+  if (rows.length < 2) return [];
+  const headers = rows[0].map(h => h.trim());
   const idx = k => headers.indexOf(k);
-  return lines.slice(1).filter(l => l.trim()).map(line => {
-    const f = parseLine(line);
+  return rows.slice(1).map(f => {
     const get = k => (f[idx(k)] || "").trim();
     const grShelf = get("Exclusive Shelf").toLowerCase();
     const dateRaw = get("Date Read") || get("Date Added");
