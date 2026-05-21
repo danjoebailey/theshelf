@@ -10560,6 +10560,23 @@ function GoodreadsImportSheet({ onImport, onClose }) {
               setEnrichPhase(phase);
               if (phase === "covers") setEnrichProgress(Math.round(done/total*100));
             });
+            // Final pass: upgrade every book that lacks a clean cover URL. The main
+            // fetch leaves many books with only an Open Library coverId, which renders
+            // dim/faded — so re-run the stronger /api/fetch-cover engine and take ONLY
+            // iTunes / Google Books art (skip Open Library scans; see commit 4b2e92e).
+            const needCovers = enriched.filter(b => !b.coverUrl);
+            if (needCovers.length) {
+              setEnrichPhase("fillcovers"); setEnrichProgress(0);
+              const coverBatch = 4;
+              for (let i = 0; i < needCovers.length; i += coverBatch) {
+                await Promise.all(needCovers.slice(i, i + coverBatch).map(async book => {
+                  const result = await fetchCoverForBook(book);
+                  const clean = (result.options || []).find(o => /^(iTunes|Google Books)/.test(o.source));
+                  if (clean) book.coverUrl = clean.coverUrl;
+                }));
+                setEnrichProgress(Math.round(Math.min(i + coverBatch, needCovers.length) / needCovers.length * 100));
+              }
+            }
             onImport(enriched); onClose();
           }} disabled={enriching} style={{
             width:"100%", padding:"13px", borderRadius:12, cursor: enriching ? "default" : "pointer",
@@ -10568,7 +10585,9 @@ function GoodreadsImportSheet({ onImport, onClose }) {
             opacity: enriching ? 0.8 : 1,
           }}>
             {enriching
-              ? enrichPhase === "genres" ? "Classifying genres with AI…" : `Fetching covers… ${enrichProgress}%`
+              ? enrichPhase === "genres" ? "Classifying genres with AI…"
+                : enrichPhase === "fillcovers" ? `Filling in missing covers… ${enrichProgress}%`
+                : `Fetching covers… ${enrichProgress}%`
               : `Import ${totalCount} books`}
           </button>
         )}
@@ -10669,7 +10688,6 @@ export default function App() {
   const [showImport, setShowImport] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
-  const [coverFetchProgress, setCoverFetchProgress] = useState(null); // null | { done, total, found }
   const loadedUserRef = useRef(null);
 
   useEffect(() => {
@@ -11007,30 +11025,6 @@ export default function App() {
     setBooks(next);
     track("shelf_changed", { shelf });
     if (!guestMode) dbUpdateBook(next.find(b => b.id === id), userId);
-  }
-
-  async function fetchMissingCovers() {
-    const missing = books;
-    if (!missing.length) return;
-    setShowProfileMenu(false);
-    let found = 0;
-    setCoverFetchProgress({ done: 0, total: missing.length, found: 0 });
-    const batchSize = 4;
-    for (let i = 0; i < missing.length; i += batchSize) {
-      const batch = missing.slice(i, i + batchSize);
-      await Promise.all(batch.map(async book => {
-        const { coverUrl, coverId } = await fetchCoverForBook(book);
-        if (coverUrl || coverId) {
-          if (coverUrl) found++;
-          const updated = { ...book, coverUrl: coverUrl || book.coverUrl, coverId: book.coverId || coverId };
-          setBooks(prev => prev.map(b => b.id === book.id ? updated : b));
-          if (!guestMode) dbUpdateBook(updated, userId);
-        }
-      }));
-      setCoverFetchProgress({ done: Math.min(i + batchSize, missing.length), total: missing.length, found });
-    }
-    setCoverFetchProgress({ done: missing.length, total: missing.length, found, complete: true });
-    setTimeout(() => setCoverFetchProgress(null), 4000);
   }
 
   async function importBooks(imported) {
@@ -11423,18 +11417,6 @@ export default function App() {
                     </svg>
                     Import from Goodreads
                   </button>
-                  {!guestMode && <button {...tc(fetchMissingCovers)} disabled={!!coverFetchProgress} style={{
-                    display:"flex", alignItems:"center", gap:10,
-                    width:"100%", padding:"12px 16px", textAlign:"left",
-                    background:"transparent", border:"none", borderTop:"1px solid rgba(138,90,40,0.15)", cursor: coverFetchProgress ? "default" : "pointer",
-                    fontFamily:"'DM Sans',sans-serif", fontSize:14, color:WOOD.text, fontWeight:400,
-                    opacity: coverFetchProgress ? 0.6 : 1,
-                  }}>
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={WOOD.textDim} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
-                    </svg>
-                    Fetch missing covers
-                  </button>}
                   {guestMode
                     ? <button {...tc(async ()=>{ setShowProfileMenu(false); localStorage.setItem(MIGRATE_GUEST_KEY, "1"); setGuestMode(false); track("guest_signed_in"); await supabase.auth.signInWithOAuth({ provider:"google", options:{ redirectTo: window.location.origin } }); })} style={{
                         display:"flex", alignItems:"center", gap:10,
@@ -11464,19 +11446,6 @@ export default function App() {
             )}
           </div>
         </div>
-        {coverFetchProgress && (
-          <div style={{
-            position:"fixed", bottom:24, left:"50%", transform:"translateX(-50%)",
-            background:"#2a1505", color:"#f5e8d0", borderRadius:12, padding:"12px 20px",
-            fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:500,
-            boxShadow:"0 4px 20px rgba(0,0,0,0.5)", zIndex:200,
-            animation:"slideUp 0.2s ease", whiteSpace:"nowrap",
-          }}>
-            {coverFetchProgress.complete
-              ? `Done — ${coverFetchProgress.found} cover${coverFetchProgress.found !== 1 ? "s" : ""} updated out of ${coverFetchProgress.total} checked`
-              : `Fetching covers… ${coverFetchProgress.done}/${coverFetchProgress.total}`}
-          </div>
-        )}
     </div>
     </LibraryProfileContext.Provider>
   );
