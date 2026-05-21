@@ -2565,6 +2565,12 @@ function RecCard({ rec, coverUrl, ownedBook, onAddDirect, onEdit, onAddBook, ind
     if (showObi) { setShowObi(false); return; }
     setShowDescription(false); setShowProse(false); setShowScores(false); setShowObi(true);
     if (obiVerdict) return;
+    if (!userId || userId === "guest") {
+      const count = parseInt(localStorage.getItem(GUEST_OBI_KEY) || "0");
+      if (count >= 10) { setObiVerdict("Sign in to unlock unlimited Obi."); track("obi_capped"); return; }
+      localStorage.setItem(GUEST_OBI_KEY, String(count + 1));
+    }
+    track("obi_used");
     setObiLoading(true);
     try {
       const res = await fetch("/api/ask-obi", {
@@ -2664,12 +2670,10 @@ function RecCard({ rec, coverUrl, ownedBook, onAddDirect, onEdit, onAddBook, ind
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
               Scores
             </button>
-            {userId && userId !== "guest" && (
-              <button {...tc(fetchObi, true)} style={{ display:"flex", alignItems:"center", gap:5, background:showObi?WOOD.amber:"rgba(138,90,40,0.12)", borderRadius:20, padding:"5px 12px", border:`1px solid ${showObi?WOOD.amber:"rgba(138,90,40,0.25)"}`, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, color:showObi?"#1a0900":WOOD.textDim }}>
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v.01"/><path d="M12 12a2 2 0 0 0-2-2 2 2 0 1 1 2-2"/></svg>
-                Ask Obi
-              </button>
-            )}
+            <button {...tc(fetchObi, true)} style={{ display:"flex", alignItems:"center", gap:5, background:showObi?WOOD.amber:"rgba(138,90,40,0.12)", borderRadius:20, padding:"5px 12px", border:`1px solid ${showObi?WOOD.amber:"rgba(138,90,40,0.25)"}`, cursor:"pointer", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, color:showObi?"#1a0900":WOOD.textDim }}>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v.01"/><path d="M12 12a2 2 0 0 0-2-2 2 2 0 1 1 2-2"/></svg>
+              Ask Obi
+            </button>
           </div>
           {showDescription && (
             <div style={{ animation:"fadeIn 0.18s ease" }}>
