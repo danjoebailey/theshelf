@@ -10949,16 +10949,19 @@ export default function App() {
   // run unconditionally (Rules of Hooks: hook count must be stable per render).
   const userId = session?.user.id ?? "guest";
 
-  // Capture profile snapshot the first time books loads with Read/DNF data.
-  // Stays stable across the session so Obi's prompt cache hits warmly.
-  // Reset on userId change so logging in as a different user re-snapshots.
+  // Capture the profile snapshot once the library has a usable profile — 3+
+  // Read/DNF books, the minimum Obi needs. Capturing at the first single book
+  // froze a thin 1-2 book snapshot for the whole session, so Obi kept seeing
+  // "bare shelves" even after the reader shelved more. Once captured it stays
+  // stable so Obi's prompt cache hits warmly; resets on userId change so a
+  // different login re-snapshots.
   useEffect(() => {
     setLibraryProfileSnapshot([]);
   }, [userId]);
   useEffect(() => {
     if (libraryProfileSnapshot.length > 0) return;
     const filtered = books.filter(b => b.shelf === "Read" || b.shelf === "DNF");
-    if (filtered.length > 0) setLibraryProfileSnapshot(filtered);
+    if (filtered.length >= 3) setLibraryProfileSnapshot(filtered);
   }, [books, libraryProfileSnapshot.length]);
 
   // Show the loader during auth resolution AND the brief tick before the
