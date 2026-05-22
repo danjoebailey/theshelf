@@ -260,6 +260,30 @@ function RusticSpine({ book, index, w, h, tilt }) {
   );
 }
 
+// Decorative wood shelf-edge strip. Tiles discover-shelf.png by mirroring
+// every other copy via an SVG <pattern>, so the plank's left/right edges
+// always meet their own reflection — seamless at any width, and no extra
+// download (reuses the existing PNG).
+let shelfEdgeIdSeq = 0;
+function ShelfEdge({ height = 12, style }) {
+  const id = useRef(null);
+  if (!id.current) id.current = "shelfEdge" + (shelfEdgeIdSeq++);
+  const tileW = 1292 * height / 40;
+  return (
+    <svg aria-hidden="true" width="100%" height={height} preserveAspectRatio="none"
+      style={{ display:"block", pointerEvents:"none", filter:"drop-shadow(0 4px 6px rgba(0,0,0,0.32))", ...style }}>
+      <defs>
+        <pattern id={id.current} patternUnits="userSpaceOnUse" width={tileW * 2} height={height}>
+          <image href="/discover-shelf.png" width={tileW} height={height} preserveAspectRatio="none" />
+          <image href="/discover-shelf.png" width={tileW} height={height} preserveAspectRatio="none"
+            transform={`matrix(-1 0 0 1 ${tileW * 2} 0)`} />
+        </pattern>
+      </defs>
+      <rect width="100%" height={height} fill={`url(#${id.current})`} />
+    </svg>
+  );
+}
+
 function DecorativeShelf({ books }) {
   const shelfH = 72;
   const ledgeH = 10;
@@ -285,13 +309,7 @@ function DecorativeShelf({ books }) {
         <img src="/shelf-nav-books.png" alt="books" style={{ height:58, width:"auto", flexShrink:0, objectFit:"contain", objectPosition:"bottom", alignSelf:"flex-end", transform:"translateY(4px)" }} />
         <img src="/knight.png" alt="knight" style={{ height:72, width:"auto", flexShrink:0, filter:"drop-shadow(2px 4px 6px rgba(0,0,0,0.5))", objectFit:"contain", alignSelf:"flex-end", transform:"translateY(4px)" }} />
       </div>
-      <div aria-hidden="true" style={{
-        position:"absolute", left:0, right:0, bottom:0, height:9,
-        pointerEvents:"none",
-        backgroundImage:"url(/discover-shelf.png)",
-        backgroundRepeat:"repeat-x", backgroundSize:"auto 100%",
-        filter:"drop-shadow(0 4px 6px rgba(0,0,0,0.32))",
-      }}/>
+      <ShelfEdge height={9} style={{ position:"absolute", left:0, right:0, bottom:0 }} />
     </div>
   );
 }
@@ -3311,12 +3329,7 @@ function PaigeTab({ books, userId, onAddDirect, onBulkAddDirect, onEdit, onAddBo
                 </div>
               ))}
             </div>
-            <div aria-hidden="true" style={{
-              height:12, marginTop:2, pointerEvents:"none",
-              backgroundImage:"url(/discover-shelf.png)",
-              backgroundRepeat:"repeat-x", backgroundSize:"auto 100%",
-              filter:"drop-shadow(0 4px 6px rgba(0,0,0,0.32))",
-            }} />
+            <ShelfEdge height={12} style={{ marginTop:2 }} />
             {modeInfo && <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:14, fontWeight:500, color:"rgba(255,238,205,0.96)", marginTop:10, fontStyle:"italic", textAlign:"center", textShadow:"0 1px 2px rgba(0,0,0,0.55)" }}>{modeInfo.desc}</p>}
           </div>
 
@@ -4865,13 +4878,7 @@ function RecommendPage({ books, userId, onAddDirect, onBulkAddDirect, onAuthor, 
             content width so it always extends edge-to-edge. Sits at the bottom
             of the wrapper so character labels (sitting near the bottom of the
             scroller area via paddingBottom) read over the shelf surface. */}
-        <div aria-hidden="true" style={{
-          position:"absolute", left:0, right:0, bottom:10,
-          height:18, pointerEvents:"none", zIndex:1,
-          backgroundImage:"url(/discover-shelf.png)",
-          backgroundRepeat:"repeat-x", backgroundSize:"auto 100%",
-          filter:"drop-shadow(0 4px 6px rgba(0,0,0,0.32))",
-        }} />
+        <ShelfEdge height={18} style={{ position:"absolute", left:0, right:0, bottom:10, zIndex:1 }} />
         {showLeftArrow && (
           <button onClick={() => scrollBy(-1)} aria-label="Previous" style={{
             position:"absolute", left:4, top:"50%", transform:"translateY(-50%)",
@@ -7529,14 +7536,7 @@ function StatsTab({ books, characterAvatar, viewOnly = false, topBookIds = [], t
                   }}><BookCoverThumb book={b} /></button>
                 ))}
               </div>
-              <div aria-hidden="true" style={{
-                position:"absolute", left:0, right:0, bottom:0,
-                height:12, pointerEvents:"none",
-                backgroundImage:"url(/discover-shelf.png)",
-                backgroundRepeat:"repeat-x",
-                backgroundSize:"auto 100%",
-                filter:"drop-shadow(0 4px 6px rgba(0,0,0,0.32))",
-              }} />
+              <ShelfEdge height={12} style={{ position:"absolute", left:0, right:0, bottom:0 }} />
             </div>
           ) : (
             groupedBooks.map(([groupKey, groupBooks]) => (
@@ -7557,13 +7557,7 @@ function StatsTab({ books, characterAvatar, viewOnly = false, topBookIds = [], t
                       }}><BookCoverThumb book={b} /></button>
                     ))}
                   </div>
-                  <div aria-hidden="true" style={{
-                    position:"absolute", left:0, right:0, bottom:0,
-                    height:12, pointerEvents:"none",
-                    backgroundImage:"url(/discover-shelf.png)",
-                    backgroundRepeat:"repeat-x", backgroundSize:"auto 100%",
-                    filter:"drop-shadow(0 4px 6px rgba(0,0,0,0.32))",
-                  }} />
+                  <ShelfEdge height={12} style={{ position:"absolute", left:0, right:0, bottom:0 }} />
                 </div>
               </div>
             ))
@@ -7643,13 +7637,7 @@ function StatsTab({ books, characterAvatar, viewOnly = false, topBookIds = [], t
                 );
               })}
             </div>
-            <div aria-hidden="true" style={{
-              position:"absolute", left:0, right:0, bottom:0,
-              height:12, pointerEvents:"none",
-              backgroundImage:"url(/discover-shelf.png)",
-              backgroundRepeat:"repeat-x", backgroundSize:"auto 100%",
-              filter:"drop-shadow(0 4px 6px rgba(0,0,0,0.32))",
-            }} />
+            <ShelfEdge height={12} style={{ position:"absolute", left:0, right:0, bottom:0 }} />
           </div>
           </>
         );
@@ -7729,13 +7717,7 @@ function StatsTab({ books, characterAvatar, viewOnly = false, topBookIds = [], t
                     </button>
                   ))}
                 </div>
-                <div aria-hidden="true" style={{
-                  position:"absolute", left:0, right:0, bottom:0,
-                  height:12, pointerEvents:"none",
-                  backgroundImage:"url(/discover-shelf.png)",
-                  backgroundRepeat:"repeat-x", backgroundSize:"auto 100%",
-                  filter:"drop-shadow(0 4px 6px rgba(0,0,0,0.32))",
-                }} />
+                <ShelfEdge height={12} style={{ position:"absolute", left:0, right:0, bottom:0 }} />
               </div>
               {!viewOnly && (
                 <div style={{ textAlign:"right", marginTop:4 }}>
