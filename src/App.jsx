@@ -285,9 +285,11 @@ function DecorativeShelf({ books }) {
         <img src="/shelf-nav-books.png" alt="books" style={{ height:58, width:"auto", flexShrink:0, objectFit:"contain", objectPosition:"bottom", alignSelf:"flex-end", transform:"translateY(4px)" }} />
         <img src="/knight.png" alt="knight" style={{ height:72, width:"auto", flexShrink:0, filter:"drop-shadow(2px 4px 6px rgba(0,0,0,0.5))", objectFit:"contain", alignSelf:"flex-end", transform:"translateY(4px)" }} />
       </div>
-      <img src="/discover-shelf.png" alt="" aria-hidden="true" style={{
-        position:"absolute", left:0, right:0, bottom:0, width:"100%", height:9,
-        display:"block", objectFit:"cover", pointerEvents:"none",
+      <div aria-hidden="true" style={{
+        position:"absolute", left:0, right:0, bottom:0, height:9,
+        pointerEvents:"none",
+        backgroundImage:"url(/discover-shelf.png)",
+        backgroundRepeat:"repeat-x", backgroundSize:"auto 100%",
         filter:"drop-shadow(0 4px 6px rgba(0,0,0,0.32))",
       }}/>
     </div>
@@ -3309,9 +3311,10 @@ function PaigeTab({ books, userId, onAddDirect, onBulkAddDirect, onEdit, onAddBo
                 </div>
               ))}
             </div>
-            <img src="/discover-shelf.png" alt="" aria-hidden="true" style={{
-              display:"block", width:"100%", height:12,
-              marginTop:2, objectFit:"cover", pointerEvents:"none",
+            <div aria-hidden="true" style={{
+              height:12, marginTop:2, pointerEvents:"none",
+              backgroundImage:"url(/discover-shelf.png)",
+              backgroundRepeat:"repeat-x", backgroundSize:"auto 100%",
               filter:"drop-shadow(0 4px 6px rgba(0,0,0,0.32))",
             }} />
             {modeInfo && <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:14, fontWeight:500, color:"rgba(255,238,205,0.96)", marginTop:10, fontStyle:"italic", textAlign:"center", textShadow:"0 1px 2px rgba(0,0,0,0.55)" }}>{modeInfo.desc}</p>}
@@ -4862,11 +4865,11 @@ function RecommendPage({ books, userId, onAddDirect, onBulkAddDirect, onAuthor, 
             content width so it always extends edge-to-edge. Sits at the bottom
             of the wrapper so character labels (sitting near the bottom of the
             scroller area via paddingBottom) read over the shelf surface. */}
-        <img src="/discover-shelf.png" alt="" aria-hidden="true" style={{
+        <div aria-hidden="true" style={{
           position:"absolute", left:0, right:0, bottom:10,
-          width:"100%", height:18, display:"block",
-          objectFit:"cover", objectPosition:"top",
-          pointerEvents:"none", zIndex:1,
+          height:18, pointerEvents:"none", zIndex:1,
+          backgroundImage:"url(/discover-shelf.png)",
+          backgroundRepeat:"repeat-x", backgroundSize:"auto 100%",
           filter:"drop-shadow(0 4px 6px rgba(0,0,0,0.32))",
         }} />
         {showLeftArrow && (
@@ -7526,10 +7529,12 @@ function StatsTab({ books, characterAvatar, viewOnly = false, topBookIds = [], t
                   }}><BookCoverThumb book={b} /></button>
                 ))}
               </div>
-              <img src="/discover-shelf.png" alt="" aria-hidden="true" style={{
+              <div aria-hidden="true" style={{
                 position:"absolute", left:0, right:0, bottom:0,
-                width:"100%", height:12, display:"block",
-                objectFit:"cover", pointerEvents:"none",
+                height:12, pointerEvents:"none",
+                backgroundImage:"url(/discover-shelf.png)",
+                backgroundRepeat:"repeat-x",
+                backgroundSize:"auto 100%",
                 filter:"drop-shadow(0 4px 6px rgba(0,0,0,0.32))",
               }} />
             </div>
@@ -7552,10 +7557,11 @@ function StatsTab({ books, characterAvatar, viewOnly = false, topBookIds = [], t
                       }}><BookCoverThumb book={b} /></button>
                     ))}
                   </div>
-                  <img src="/discover-shelf.png" alt="" aria-hidden="true" style={{
+                  <div aria-hidden="true" style={{
                     position:"absolute", left:0, right:0, bottom:0,
-                    width:"100%", height:12, display:"block",
-                    objectFit:"cover", pointerEvents:"none",
+                    height:12, pointerEvents:"none",
+                    backgroundImage:"url(/discover-shelf.png)",
+                    backgroundRepeat:"repeat-x", backgroundSize:"auto 100%",
                     filter:"drop-shadow(0 4px 6px rgba(0,0,0,0.32))",
                   }} />
                 </div>
@@ -7637,10 +7643,11 @@ function StatsTab({ books, characterAvatar, viewOnly = false, topBookIds = [], t
                 );
               })}
             </div>
-            <img src="/discover-shelf.png" alt="" aria-hidden="true" style={{
+            <div aria-hidden="true" style={{
               position:"absolute", left:0, right:0, bottom:0,
-              width:"100%", height:12, display:"block",
-              objectFit:"cover", pointerEvents:"none",
+              height:12, pointerEvents:"none",
+              backgroundImage:"url(/discover-shelf.png)",
+              backgroundRepeat:"repeat-x", backgroundSize:"auto 100%",
               filter:"drop-shadow(0 4px 6px rgba(0,0,0,0.32))",
             }} />
           </div>
@@ -7722,10 +7729,11 @@ function StatsTab({ books, characterAvatar, viewOnly = false, topBookIds = [], t
                     </button>
                   ))}
                 </div>
-                <img src="/discover-shelf.png" alt="" aria-hidden="true" style={{
+                <div aria-hidden="true" style={{
                   position:"absolute", left:0, right:0, bottom:0,
-                  width:"100%", height:12, display:"block",
-                  objectFit:"cover", pointerEvents:"none",
+                  height:12, pointerEvents:"none",
+                  backgroundImage:"url(/discover-shelf.png)",
+                  backgroundRepeat:"repeat-x", backgroundSize:"auto 100%",
                   filter:"drop-shadow(0 4px 6px rgba(0,0,0,0.32))",
                 }} />
               </div>
@@ -10554,17 +10562,16 @@ function GoodreadsImportSheet({ onImport, onClose }) {
     const reader = new FileReader();
     reader.onload = ev => {
       try {
-        const text = ev.target.result;
-        const counts = getGoodreadsShelfCounts(text);
-        if (!Object.keys(counts).length) { track("goodreads_import_failed", { reason: "not_goodreads_csv" }); setError("No books found — make sure this is a Goodreads export CSV."); setCsvText(null); return; }
+        const counts = getGoodreadsShelfCounts(ev.target.result);
+        if (!Object.keys(counts).length) { track("goodreads_import_failed", { reason: "not_goodreads_csv" }); setError("No books found — make sure this is the Goodreads export CSV."); setCsvText(null); return; }
         const mapping = {};
         for (const gr of Object.keys(counts)) mapping[gr] = DEFAULT_GR_SHELF_MAP[gr] || "Read";
-        setCsvText(text);
+        setCsvText(ev.target.result);
         setGrShelfCounts(counts);
         setShelfMapping(mapping);
         setTotalCount(Object.values(counts).reduce((a,b)=>a+b,0));
         setError("");
-      } catch { track("goodreads_import_failed", { reason: "parse_error" }); setError("Couldn't parse the file. Please use the Goodreads export CSV."); }
+      } catch { track("goodreads_import_failed", { reason: "parse_error" }); setError("Couldn't read that file. Make sure it's the Goodreads export CSV."); }
     };
     reader.readAsText(file);
   }
@@ -10588,22 +10595,36 @@ function GoodreadsImportSheet({ onImport, onClose }) {
           <div style={{ width:34, height:4, background:"rgba(100,60,20,0.5)", borderRadius:2 }}/>
         </div>
 
-        <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:22, fontWeight:300, marginBottom:6, color:WOOD.text }}>Import from Goodreads</p>
-        <p style={{ fontSize:13, color:WOOD.textDim, marginBottom:18, lineHeight:1.5 }}>
-          In Goodreads, go to <strong>My Books → Import/Export → Export Library</strong>. Then upload the downloaded CSV file below.
-        </p>
+        <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:22, fontWeight:300, marginBottom:14, color:WOOD.text }}>Import from Goodreads</p>
 
-        <button onClick={()=>fileRef.current.click()} style={{
-          width:"100%", padding:"12px", borderRadius:10, cursor:"pointer",
-          background:"rgba(255,245,220,0.85)", border:"2px dashed rgba(138,90,40,0.4)",
-          fontFamily:"'DM Sans',sans-serif", fontSize:14, color:WOOD.textDim,
-          marginBottom:12, textAlign:"center",
-        }}>
-          {csvText ? `✓ ${totalCount} books loaded — tap to change` : "Choose CSV file"}
-        </button>
-        <input ref={fileRef} type="file" accept=".csv" onChange={handleFile} style={{ display:"none" }}/>
+        {error && <p style={{ fontSize:13, color:"#c0392b", margin:"0 0 14px", textAlign:"center", lineHeight:1.5 }}>{error}</p>}
 
-        {error && <p style={{ fontSize:13, color:"#c0392b", marginBottom:12, textAlign:"center" }}>{error}</p>}
+        {!csvText && (
+          <>
+            <p style={{ fontSize:13, color:WOOD.textDim, marginBottom:10, lineHeight:1.5 }}>
+              Goodreads only lets you export from its website — here's the quickest path:
+            </p>
+            <ol style={{ fontSize:13, color:WOOD.textDim, lineHeight:1.85, margin:"0 0 14px", paddingLeft:20 }}>
+              <li>Open your <a href="https://www.goodreads.com/review/import" target="_blank" rel="noopener noreferrer" style={{ color:"#7a4a1a", fontWeight:700 }}>Goodreads export page&nbsp;↗</a></li>
+              <li>Tap <strong>Export Library</strong> — wait a few seconds for the file to build, then a download link appears</li>
+              <li>Download it, then come back and choose it below</li>
+            </ol>
+            <button onClick={()=>fileRef.current.click()} style={{
+              width:"100%", padding:"13px", borderRadius:10, cursor:"pointer",
+              background:"rgba(255,245,220,0.85)", border:"2px dashed rgba(138,90,40,0.4)",
+              fontFamily:"'DM Sans',sans-serif", fontSize:14, color:WOOD.textDim, textAlign:"center",
+            }}>Choose CSV file</button>
+            <input ref={fileRef} type="file" accept=".csv" onChange={handleFile} style={{ display:"none" }}/>
+          </>
+        )}
+
+        {csvText && !enriching && (
+          <button onClick={()=>{ setCsvText(null); setError(""); }} style={{
+            width:"100%", padding:"12px", borderRadius:10, cursor:"pointer",
+            background:"rgba(255,245,220,0.85)", border:"1px solid rgba(138,90,40,0.4)",
+            fontFamily:"'DM Sans',sans-serif", fontSize:14, color:WOOD.textDim, marginBottom:14, textAlign:"center",
+          }}>✓ {totalCount} books loaded — tap to choose a different file</button>
+        )}
 
         {csvText && (
           <div style={{ background:"rgba(255,245,220,0.85)", borderRadius:10, padding:"12px 14px", marginBottom:16, border:"1px solid rgba(200,160,80,0.3)" }}>
@@ -10646,10 +10667,8 @@ function GoodreadsImportSheet({ onImport, onClose }) {
               setEnrichPhase(phase);
               if (phase === "covers") setEnrichProgress(Math.round(done/total*100));
             });
-            // Final pass: upgrade every book that lacks a clean cover URL. The main
-            // fetch leaves many books with only an Open Library coverId, which renders
-            // dim/faded — so re-run the stronger /api/fetch-cover engine and take ONLY
-            // iTunes / Google Books art (skip Open Library scans; see commit 4b2e92e).
+            // Final pass: fill any still-missing covers via the stronger
+            // /api/fetch-cover engine — iTunes / Google Books only, no OL scans.
             const needCovers = enriched.filter(b => !b.coverUrl);
             if (needCovers.length) {
               setEnrichPhase("fillcovers"); setEnrichProgress(0);
