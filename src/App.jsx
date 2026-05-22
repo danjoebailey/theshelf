@@ -2295,8 +2295,8 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
                 </div>
                 <div style={{ flex:1, minWidth:0, display:"flex", flexDirection:"column", justifyContent:"space-between" }}>
                   <div>
-                    <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:21, color:WOOD.text, lineHeight:1.2, marginBottom:1, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>Import from Goodreads</p>
-                    <p style={{ fontSize:12, color:WOOD.textDim, fontStyle:"italic", marginBottom:2 }}>The Lore Wanderer</p>
+                    <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:21, color:WOOD.text, lineHeight:1.2, marginBottom:1, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>Import Your Library</p>
+                    <p style={{ fontSize:12, color:WOOD.textDim, fontStyle:"italic", marginBottom:2 }}>Goodreads or StoryGraph</p>
                   </div>
                   <div style={{ display:"flex", gap:7, alignItems:"center", justifyContent:"flex-end" }}>
                     <button {...tc(onImport, true)} style={{
@@ -9084,6 +9084,7 @@ async function enrichBooksFromOpenLibrary(books, onProgress) {
 }
 
 const DEFAULT_GR_SHELF_MAP = { "read": "Read", "to-read": "The List", "currently-reading": "Reading" };
+const DEFAULT_SG_STATUS_MAP = { "read": "Read", "to-read": "The List", "to-be-read": "The List", "currently-reading": "Reading", "did-not-finish": "DNF" };
 
 // Tokenize a whole CSV into rows of fields. Quoted fields may contain commas
 // AND embedded newlines — Goodreads exports do exactly this for multi-line "My
@@ -9118,16 +9119,29 @@ function parseCSV(text) {
   return rows;
 }
 
-function getGoodreadsShelfCounts(text) {
+// Sniff which export a CSV is by its identifying header column.
+// Goodreads has "Exclusive Shelf"; StoryGraph has "Read Status".
+function detectCSVFormat(text) {
+  const rows = parseCSV(text);
+  if (rows.length < 2) return null;
+  const headers = rows[0].map(h => h.trim());
+  if (headers.includes("Exclusive Shelf")) return "goodreads";
+  if (headers.includes("Read Status")) return "storygraph";
+  return null;
+}
+
+// Count books per shelf/status value — feeds the import mapping screen.
+// Works for both formats; caller passes the relevant column name.
+function getImportStatusCounts(text, statusCol) {
   const rows = parseCSV(text);
   if (rows.length < 2) return {};
   const headers = rows[0].map(h => h.trim());
-  const shelfIdx = headers.indexOf("Exclusive Shelf");
-  if (shelfIdx === -1) return {};
+  const idx = headers.indexOf(statusCol);
+  if (idx === -1) return {};
   const counts = {};
   for (const row of rows.slice(1)) {
-    const shelf = (row[shelfIdx] || "").trim().toLowerCase();
-    if (shelf) counts[shelf] = (counts[shelf] || 0) + 1;
+    const v = (row[idx] || "").trim().toLowerCase();
+    if (v) counts[v] = (counts[v] || 0) + 1;
   }
   return counts;
 }
@@ -9154,6 +9168,35 @@ function parseGoodreadsCSV(text, shelfMap = DEFAULT_GR_SHELF_MAP) {
       date,
       shelf: shelfMap[grShelf] || "Read",
       isbn: isbn || null,
+    };
+  }).filter(b => b.title);
+}
+
+// StoryGraph export: different columns from Goodreads, and no page count.
+// Star Rating is a 0–5 decimal (quarter-stars allowed) — rounded to the
+// nearest half so it lands on The Shelf's rating scale.
+function parseStoryGraphCSV(text, statusMap = DEFAULT_SG_STATUS_MAP) {
+  const rows = parseCSV(text);
+  if (rows.length < 2) return [];
+  const headers = rows[0].map(h => h.trim());
+  const idx = k => headers.indexOf(k);
+  return rows.slice(1).map(f => {
+    const get = k => (f[idx(k)] || "").trim();
+    const status = get("Read Status").toLowerCase();
+    const dateRaw = get("Last Date Read") || get("Date Added");
+    const date = dateRaw ? dateRaw.replace(/\//g, "-") : todayLocal();
+    const isbn = get("ISBN/UID").replace(/[^0-9X]/gi, "");
+    const rawRating = parseFloat(get("Star Rating")) || 0;
+    return {
+      id: Date.now() + Math.random(),
+      title: get("Title"),
+      author: (get("Authors").split(",")[0] || "").trim(),
+      genre: "Other",
+      pages: 0,
+      rating: Math.round(rawRating * 2) / 2,
+      date,
+      shelf: statusMap[status] || "Read",
+      isbn: (isbn.length === 10 || isbn.length === 13) ? isbn : null,
     };
   }).filter(b => b.title);
 }
@@ -10525,8 +10568,9 @@ function FriendAvatarCircle({ url, username, size = 36 }) {
   );
 }
 
-function GoodreadsImportSheet({ onImport, onClose }) {
+function ImportSheet({ onImport, onClose }) {
   const [csvText, setCsvText] = useState(null);
+  const [format, setFormat] = useState(null);   // "goodreads" | "storygraph"
   const [totalCount, setTotalCount] = useState(0);
   const [grShelfCounts, setGrShelfCounts] = useState({});
   const [shelfMapping, setShelfMapping] = useState({});
@@ -10544,21 +10588,27 @@ function GoodreadsImportSheet({ onImport, onClose }) {
     const reader = new FileReader();
     reader.onload = ev => {
       try {
-        const counts = getGoodreadsShelfCounts(ev.target.result);
-        if (!Object.keys(counts).length) { track("goodreads_import_failed", { reason: "not_goodreads_csv" }); setError("No books found — make sure this is the Goodreads export CSV."); setCsvText(null); return; }
+        const text = ev.target.result;
+        const fmt = detectCSVFormat(text);
+        if (!fmt) { track("goodreads_import_failed", { reason: "unrecognized_csv" }); setError("This doesn't look like a Goodreads or StoryGraph export. Make sure you picked the CSV file you downloaded."); setCsvText(null); return; }
+        const statusCol = fmt === "storygraph" ? "Read Status" : "Exclusive Shelf";
+        const defaultMap = fmt === "storygraph" ? DEFAULT_SG_STATUS_MAP : DEFAULT_GR_SHELF_MAP;
+        const counts = getImportStatusCounts(text, statusCol);
+        if (!Object.keys(counts).length) { track("goodreads_import_failed", { reason: "empty_csv" }); setError("No books found in that file."); setCsvText(null); return; }
         const mapping = {};
-        for (const gr of Object.keys(counts)) mapping[gr] = DEFAULT_GR_SHELF_MAP[gr] || "Read";
-        setCsvText(ev.target.result);
+        for (const k of Object.keys(counts)) mapping[k] = defaultMap[k] || "Read";
+        setFormat(fmt);
+        setCsvText(text);
         setGrShelfCounts(counts);
         setShelfMapping(mapping);
         setTotalCount(Object.values(counts).reduce((a,b)=>a+b,0));
         setError("");
-      } catch { track("goodreads_import_failed", { reason: "parse_error" }); setError("Couldn't read that file. Make sure it's the Goodreads export CSV."); }
+      } catch { track("goodreads_import_failed", { reason: "parse_error" }); setError("Couldn't read that file. Make sure it's the CSV you exported."); }
     };
     reader.readAsText(file);
   }
 
-  const GR_LABEL = { "read": "Read", "to-read": "To Read", "currently-reading": "Currently Reading" };
+  const STATUS_LABEL = { "read": "Read", "to-read": "To Read", "to-be-read": "To Read", "currently-reading": "Currently Reading", "did-not-finish": "Did Not Finish" };
 
   return (
     <div style={{ position:"absolute", inset:0, background:"rgba(0,0,0,0.7)", zIndex:50, display:"flex", flexDirection:"column", justifyContent:"flex-end", animation:"fadeIn 0.15s ease" }}
@@ -10567,30 +10617,47 @@ function GoodreadsImportSheet({ onImport, onClose }) {
         background:"linear-gradient(180deg, #ddb870 0%, #c89850 100%)",
         borderRadius:"20px 20px 0 0",
         padding:"0 18px 30px",
-        maxHeight:"90%", overflowY:"auto",
+        maxHeight:"90%", overflowY:"auto", position:"relative",
         borderTop:"1px solid rgba(220,180,100,0.5)",
         boxShadow:"0 -8px 32px rgba(0,0,0,0.3)",
         animation:"slideUp 0.25s cubic-bezier(0.34,1.56,0.64,1)",
       }}>
+        <button {...tc(()=>{ if(!enriching) onClose(); })} aria-label="Close" style={{
+          position:"absolute", top:10, right:12, width:30, height:30,
+          borderRadius:15, display:"flex", alignItems:"center", justifyContent:"center",
+          background:"rgba(100,60,20,0.12)", border:"none", zIndex:2,
+          cursor: enriching ? "default" : "pointer", opacity: enriching ? 0.4 : 1,
+        }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={WOOD.text} strokeWidth="2.5" strokeLinecap="round">
+            <line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/>
+          </svg>
+        </button>
         <div style={{ height:3, background:"linear-gradient(90deg, rgba(0,0,0,0.3), rgba(255,200,100,0.1) 40%, rgba(0,0,0,0.3))" }}/>
         <div style={{ display:"flex", justifyContent:"center", paddingTop:12, marginBottom:14 }}>
           <div style={{ width:34, height:4, background:"rgba(100,60,20,0.5)", borderRadius:2 }}/>
         </div>
 
-        <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:22, fontWeight:300, marginBottom:14, color:WOOD.text }}>Import from Goodreads</p>
+        <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:22, fontWeight:300, marginBottom:14, color:WOOD.text }}>Import Your Library</p>
 
         {error && <p style={{ fontSize:13, color:"#c0392b", margin:"0 0 14px", textAlign:"center", lineHeight:1.5 }}>{error}</p>}
 
         {!csvText && (
           <>
-            <p style={{ fontSize:13, color:WOOD.textDim, marginBottom:10, lineHeight:1.5 }}>
-              Goodreads only lets you export from its website — here's the quickest path:
+            <p style={{ fontSize:13, color:WOOD.textDim, marginBottom:12, lineHeight:1.5 }}>
+              Export your library from Goodreads or StoryGraph, then choose the CSV file below — it figures out which one automatically.
             </p>
-            <ol style={{ fontSize:13, color:WOOD.textDim, lineHeight:1.85, margin:"0 0 14px", paddingLeft:20 }}>
-              <li>Open your <a href="https://www.goodreads.com/review/import" target="_blank" rel="noopener noreferrer" style={{ color:"#7a4a1a", fontWeight:700 }}>Goodreads export page&nbsp;↗</a></li>
-              <li>Tap <strong>Export Library</strong> — wait a few seconds for the file to build, then a download link appears</li>
-              <li>Download it, then come back and choose it below</li>
-            </ol>
+            <div style={{ marginBottom:14 }}>
+              <p style={{ fontSize:12, color:WOOD.text, fontWeight:700, fontFamily:"'DM Sans',sans-serif", marginBottom:3 }}>From Goodreads</p>
+              <ol style={{ fontSize:13, color:WOOD.textDim, lineHeight:1.7, margin:"0 0 12px", paddingLeft:20 }}>
+                <li>Open your <a href="https://www.goodreads.com/review/import" target="_blank" rel="noopener noreferrer" style={{ color:"#7a4a1a", fontWeight:700 }}>Goodreads export page&nbsp;↗</a></li>
+                <li>Tap <strong>Export Library</strong>, wait a moment, then download the file</li>
+              </ol>
+              <p style={{ fontSize:12, color:WOOD.text, fontWeight:700, fontFamily:"'DM Sans',sans-serif", marginBottom:3 }}>From StoryGraph</p>
+              <ol style={{ fontSize:13, color:WOOD.textDim, lineHeight:1.7, margin:"0", paddingLeft:20 }}>
+                <li>On the StoryGraph website, open <strong>Manage Account</strong> and scroll to the <strong>Manage Your Data</strong> section</li>
+                <li>Tap <strong>Export StoryGraph Library</strong>, then download the CSV</li>
+              </ol>
+            </div>
             <button onClick={()=>fileRef.current.click()} style={{
               width:"100%", padding:"13px", borderRadius:10, cursor:"pointer",
               background:"rgba(255,245,220,0.85)", border:"2px dashed rgba(138,90,40,0.4)",
@@ -10615,7 +10682,7 @@ function GoodreadsImportSheet({ onImport, onClose }) {
               <div key={grShelf} style={{ marginBottom:10 }}>
                 <div style={{ display:"flex", justifyContent:"space-between", alignItems:"baseline", marginBottom:5 }}>
                   <span style={{ fontSize:13, color:WOOD.text, fontFamily:"'DM Sans',sans-serif", fontWeight:500 }}>
-                    {GR_LABEL[grShelf] || grShelf}
+                    {STATUS_LABEL[grShelf] || grShelf}
                   </span>
                   <span style={{ fontSize:11, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif" }}>{count} books</span>
                 </div>
@@ -10644,7 +10711,7 @@ function GoodreadsImportSheet({ onImport, onClose }) {
         {csvText && (
           <button onClick={async ()=>{
             setEnriching(true); setEnrichProgress(0); setEnrichPhase("covers");
-            const parsed = parseGoodreadsCSV(csvText, shelfMapping);
+            const parsed = (format === "storygraph" ? parseStoryGraphCSV : parseGoodreadsCSV)(csvText, shelfMapping);
             const enriched = await enrichBooksFromOpenLibrary(parsed, (done, total, phase) => {
               setEnrichPhase(phase);
               if (phase === "covers") setEnrichProgress(Math.round(done/total*100));
@@ -11288,7 +11355,7 @@ export default function App() {
             );
           })()}
           {authorModal && <AuthorModal author={typeof authorModal === "string" ? authorModal : authorModal.name} initialTab={typeof authorModal === "object" ? authorModal.tab : undefined} books={books} onClose={()=>setAuthorModal(null)} onEdit={book=>{ setAuthorModal(null); setEditBook(book); }} onAdd={draft=>{ setAuthorModal(null); setEditBook(null); setAddBookDraft({ id:Date.now(), title:draft.title, author:draft.author, genre:draft.genre||"Fiction", pages:draft.pages||0, rating:0, shelf:"Read", coverUrl:draft.coverUrl||null, coverId:null, date:todayLocal(), description:"", scores:null, notes:"", _fromRecs:true }); }} onDirectAdd={draft=>{ addBook({ title:draft.title, author:draft.author, genre:draft.genre||"Fiction", pages:draft.pages||0, rating:0, shelf:draft.shelf, coverUrl:draft.coverUrl||null, coverId:null, description:"", scores:null, notes:"" }); }} userId={userId} />}
-          {showImport && <GoodreadsImportSheet onImport={importBooks} onClose={()=>setShowImport(false)} />}
+          {showImport && <ImportSheet onImport={importBooks} onClose={()=>setShowImport(false)} />}
           {showProfile && <ProfileModal session={session} onClose={()=>setShowProfile(false)} onProfileChanged={()=>setProfileRefresh(n=>n+1)} />}
           {showFriends && <FriendsModal session={session} currentUsername={currentUsername} onClose={()=>setShowFriends(false)} onProfileChanged={()=>setProfileRefresh(n=>n+1)} onOpenProfile={()=>setShowProfile(true)} onOpenBookInViewer={(book, friend) => setViewerBook({ book, friend })} />}
           {viewerBook && (
@@ -11508,7 +11575,7 @@ export default function App() {
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={WOOD.textDim} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
                     </svg>
-                    Import from Goodreads
+                    Import Your Library
                   </button>
                   {guestMode
                     ? <button {...tc(async ()=>{ setShowProfileMenu(false); localStorage.setItem(MIGRATE_GUEST_KEY, "1"); setGuestMode(false); track("guest_signed_in"); await supabase.auth.signInWithOAuth({ provider:"google", options:{ redirectTo: window.location.origin } }); })} style={{
