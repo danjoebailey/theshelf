@@ -7058,10 +7058,12 @@ function TopPicksPickerSheet({ mode, title, library, currentIds, onSave, onClose
     .map(id => library.find(item => getId(item) === String(id)))
     .filter(Boolean);
   const availableItems = library.filter(item => !picks.some(id => String(id) === getId(item)));
-  const filteredAvailable = search.trim()
+  const q = search.trim().toLowerCase();
+  const filteredAvailable = q
     ? availableItems.filter(item => {
-        const q = search.trim().toLowerCase();
-        return getDisplay(item).toLowerCase().includes(q) || (getSubDisplay(item) || "").toLowerCase().includes(q);
+        const title = String(getDisplay(item) ?? "").toLowerCase();
+        const sub = String(getSubDisplay(item) ?? "").toLowerCase();
+        return title.includes(q) || sub.includes(q);
       })
     : availableItems;
 
@@ -8945,6 +8947,8 @@ const GUEST_SCAN_OBI_KEY = "guest_scan_obi_count";
 // Guest cap on full photo shelf scans (5).
 const GUEST_SCAN_KEY = "guest_scan_count";
 const GUEST_ACTIVE_KEY = "guest_active";
+const GUEST_TOP_BOOKS_KEY = "guest_top_book_ids";
+const GUEST_TOP_AUTHORS_KEY = "guest_top_authors";
 // Set only when a guest explicitly clicks "Sign in to save your books".
 // Survives the OAuth page reload. Gates the post-sign-in migration so a
 // stale guest_books blob on a shared browser can NEVER auto-merge into an
@@ -8952,7 +8956,7 @@ const GUEST_ACTIVE_KEY = "guest_active";
 const MIGRATE_GUEST_KEY = "theshelf:migrate_guest";
 function guestSaveBooks(books) { localStorage.setItem(GUEST_BOOKS_KEY, JSON.stringify(books)); }
 function guestLoadBooks() { try { return JSON.parse(localStorage.getItem(GUEST_BOOKS_KEY) || "[]"); } catch { return []; } }
-function guestClearAll() { localStorage.removeItem(GUEST_BOOKS_KEY); localStorage.removeItem(GUEST_OBI_KEY); localStorage.removeItem(GUEST_PAIGE_OBI_KEY); localStorage.removeItem(GUEST_BROWSE_OBI_KEY); localStorage.removeItem(GUEST_SCAN_OBI_KEY); localStorage.removeItem(GUEST_SCAN_KEY); localStorage.removeItem(GUEST_ACTIVE_KEY); }
+function guestClearAll() { localStorage.removeItem(GUEST_BOOKS_KEY); localStorage.removeItem(GUEST_OBI_KEY); localStorage.removeItem(GUEST_PAIGE_OBI_KEY); localStorage.removeItem(GUEST_BROWSE_OBI_KEY); localStorage.removeItem(GUEST_SCAN_OBI_KEY); localStorage.removeItem(GUEST_SCAN_KEY); localStorage.removeItem(GUEST_ACTIVE_KEY); localStorage.removeItem(GUEST_TOP_BOOKS_KEY); localStorage.removeItem(GUEST_TOP_AUTHORS_KEY); }
 
 // Migrate guest books into the just-signed-in account — but ONLY when the
 // migrate-intent flag is set. Dedupes by normalized title against whatever
@@ -10889,9 +10893,27 @@ export default function App() {
     guestSaveBooks(books);
   }, [books, guestMode, session]);
 
-  // Fetch current user's profile (re-runs when something bumps profileRefresh)
+  // Fetch current user's profile (re-runs when something bumps profileRefresh).
+  // Guests read their Top 5 picks from localStorage so they persist across sessions.
   useEffect(() => {
-    if (!session?.user?.id) { setCurrentUsername(null); setCurrentTopBookIds([]); setCurrentTopAuthors([]); return; }
+    if (!session?.user?.id) {
+      setCurrentUsername(null);
+      if (guestMode) {
+        try {
+          const ids = JSON.parse(localStorage.getItem(GUEST_TOP_BOOKS_KEY) || "[]");
+          const authors = JSON.parse(localStorage.getItem(GUEST_TOP_AUTHORS_KEY) || "[]");
+          setCurrentTopBookIds(Array.isArray(ids) ? ids : []);
+          setCurrentTopAuthors(Array.isArray(authors) ? authors : []);
+        } catch {
+          setCurrentTopBookIds([]);
+          setCurrentTopAuthors([]);
+        }
+      } else {
+        setCurrentTopBookIds([]);
+        setCurrentTopAuthors([]);
+      }
+      return;
+    }
     let cancelled = false;
     supabase.from("profiles").select("username, top_book_ids, top_authors").eq("id", session.user.id).maybeSingle()
       .then(({ data }) => {
@@ -10901,7 +10923,7 @@ export default function App() {
         setCurrentTopAuthors(Array.isArray(data?.top_authors) ? data.top_authors : []);
       });
     return () => { cancelled = true; };
-  }, [session?.user?.id, profileRefresh]);
+  }, [session?.user?.id, profileRefresh, guestMode]);
 
   // Pending-friend-request count for the Account-icon badge
   const [pendingRequestCount, setPendingRequestCount] = useState(0);
@@ -11288,14 +11310,26 @@ export default function App() {
                 topBookIds={currentTopBookIds}
                 topAuthors={currentTopAuthors}
                 onSaveTopBooks={async (newIds) => {
-                  if (!session?.user?.id) return;
+                  if (!session?.user?.id) {
+                    if (guestMode) {
+                      setCurrentTopBookIds(newIds);
+                      try { localStorage.setItem(GUEST_TOP_BOOKS_KEY, JSON.stringify(newIds)); } catch {}
+                    }
+                    return;
+                  }
                   setCurrentTopBookIds(newIds);
                   const { error } = await supabase.from("profiles").update({ top_book_ids: newIds }).eq("id", session.user.id);
                   if (error) console.error("save top books:", error);
                   setProfileRefresh(n => n + 1);
                 }}
                 onSaveTopAuthors={async (newAuthors) => {
-                  if (!session?.user?.id) return;
+                  if (!session?.user?.id) {
+                    if (guestMode) {
+                      setCurrentTopAuthors(newAuthors);
+                      try { localStorage.setItem(GUEST_TOP_AUTHORS_KEY, JSON.stringify(newAuthors)); } catch {}
+                    }
+                    return;
+                  }
                   setCurrentTopAuthors(newAuthors);
                   const { error } = await supabase.from("profiles").update({ top_authors: newAuthors }).eq("id", session.user.id);
                   if (error) console.error("save top authors:", error);
