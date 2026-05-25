@@ -9696,6 +9696,7 @@ const AVATAR_OPTIONS = [
   { file: "sweetie.png",   label: "Sweetie",   color: "#d4a060" },
   { file: "pip.png",       label: "Pip",       color: "#7d4f1f" },
   { file: "aelinor.png",   label: "Aelinor",   color: "#9b6b3a" },
+  { file: "birch.png",     label: "Birch",     color: "#b08858" },
 ];
 const FEATURED_AVATARS = AVATAR_OPTIONS.slice(0, 3);
 
