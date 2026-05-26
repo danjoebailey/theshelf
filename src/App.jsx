@@ -5197,7 +5197,7 @@ function ReikoTab({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook }) {
             textAlign:"center", padding:"0 11%",
             color:"#2e2010", fontFamily:"'Caveat',cursive",
             fontSize:26, fontWeight:600, lineHeight:1.15,
-          }}>Tell me what you love. I'll find what's next.</p>
+          }}>Tell me what you love. I'll find similar books and authors.</p>
         </div>
       </div>
       {/* Mode toggle */}
