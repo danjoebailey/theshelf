@@ -3550,7 +3550,7 @@ function ReedTab({ books, userId, onEdit, onShelfChange, onSaveScores, onAuthor 
             textAlign:"center", padding:"0 11%",
             color:"#2e2010", fontFamily:"'Caveat',cursive",
             fontSize:26, fontWeight:600, lineHeight:1.15,
-          }}>I'll settle this — here's what's next.</p>
+          }}>I'll settle this — here's what you should read next.</p>
         </div>
       </div>
       {/* Shelf toggle */}
