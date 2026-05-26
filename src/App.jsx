@@ -10069,6 +10069,57 @@ function ProfileModal({ session, onClose, onProfileChanged }) {
   );
 }
 
+function AboutModal({ onClose }) {
+  const linkStyle = { color: WOOD.amber, textDecoration: "none", fontWeight: 600 };
+  const rowStyle = {
+    display:"flex", alignItems:"center", justifyContent:"space-between",
+    padding:"14px 16px", background:"rgba(138,90,40,0.08)",
+    border:"1px solid rgba(138,90,40,0.2)", borderRadius:10,
+    fontFamily:"'DM Sans',sans-serif", fontSize:14, color:WOOD.text,
+    textDecoration:"none", marginBottom:8,
+  };
+  return (
+    <div {...tc(onClose)} style={{
+      position:"fixed", inset:0, background:"rgba(0,0,0,0.6)", zIndex:200,
+      display:"flex", alignItems:"flex-end", justifyContent:"center",
+      padding:0, animation:"fadeIn 0.15s ease",
+    }}>
+      <div onClick={e=>e.stopPropagation()} onTouchEnd={e=>e.stopPropagation()} style={{
+        background:"#f5e8d0", width:"100%", maxWidth:520,
+        borderRadius:"16px 16px 0 0", padding:"24px 22px 36px",
+        position:"relative", maxHeight:"90vh", overflowY:"auto",
+      }}>
+        <button {...tc(onClose, true)} style={{
+          position:"absolute", top:14, right:14, background:"transparent", border:"none",
+          width:30, height:30, cursor:"pointer", color:WOOD.textDim, fontSize:16,
+        }}>✕</button>
+
+        <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:28, color:WOOD.text, lineHeight:1.1, marginBottom:6 }}>About The Shelf</p>
+        <p style={{ fontSize:12, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif", marginBottom:18 }}>A reading companion by Flos Artis</p>
+
+        <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:16, color:WOOD.text, lineHeight:1.65, marginBottom:22 }}>
+          The Shelf is a personal library for tracking what you've read, want to read, and loved.
+          Get recommendations tuned to your taste, browse curated lists, and scan your bookcase
+          to digitize it. Built with care, not algorithms.
+        </p>
+
+        <a href="/privacy.html" target="_blank" rel="noopener" style={rowStyle}>
+          <span>Privacy Policy</span>
+          <span style={{ color:WOOD.textFaint, fontSize:16 }}>↗</span>
+        </a>
+        <a href="/terms.html" target="_blank" rel="noopener" style={rowStyle}>
+          <span>Terms of Service</span>
+          <span style={{ color:WOOD.textFaint, fontSize:16 }}>↗</span>
+        </a>
+        <a href="mailto:flosartiscreative@gmail.com" style={rowStyle}>
+          <span>Contact</span>
+          <span style={{ color:WOOD.textFaint, fontSize:12, fontFamily:"'DM Sans',sans-serif" }}>flosartiscreative@gmail.com</span>
+        </a>
+      </div>
+    </div>
+  );
+}
+
 // Bottom sheet showing every avatar in a grid. Tapping one picks it and closes.
 function AvatarsSheet({ currentUrl, onPick, onClose }) {
   const [brokenAvatars, setBrokenAvatars] = useState({});
@@ -10851,6 +10902,7 @@ export default function App() {
   const [showImport, setShowImport] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [showAbout, setShowAbout] = useState(false);
   const loadedUserRef = useRef(null);
 
   useEffect(() => {
@@ -11393,6 +11445,7 @@ export default function App() {
           {authorModal && <AuthorModal author={typeof authorModal === "string" ? authorModal : authorModal.name} initialTab={typeof authorModal === "object" ? authorModal.tab : undefined} books={books} onClose={()=>setAuthorModal(null)} onEdit={book=>{ setAuthorModal(null); setEditBook(book); }} onAdd={draft=>{ setAuthorModal(null); setEditBook(null); setAddBookDraft({ id:Date.now(), title:draft.title, author:draft.author, genre:draft.genre||"Fiction", pages:draft.pages||0, rating:0, shelf:"Read", coverUrl:draft.coverUrl||null, coverId:null, date:todayLocal(), description:"", scores:null, notes:"", _fromRecs:true }); }} onDirectAdd={draft=>{ addBook({ title:draft.title, author:draft.author, genre:draft.genre||"Fiction", pages:draft.pages||0, rating:0, shelf:draft.shelf, coverUrl:draft.coverUrl||null, coverId:null, description:"", scores:null, notes:"" }); }} userId={userId} />}
           {showImport && <ImportSheet onImport={importBooks} onClose={()=>setShowImport(false)} />}
           {showProfile && <ProfileModal session={session} onClose={()=>setShowProfile(false)} onProfileChanged={()=>setProfileRefresh(n=>n+1)} />}
+          {showAbout && <AboutModal onClose={()=>setShowAbout(false)} />}
           {showFriends && <FriendsModal session={session} currentUsername={currentUsername} onClose={()=>setShowFriends(false)} onProfileChanged={()=>setProfileRefresh(n=>n+1)} onOpenProfile={()=>setShowProfile(true)} onOpenBookInViewer={(book, friend) => setViewerBook({ book, friend })} />}
           {viewerBook && (
             <EditSheet
@@ -11612,6 +11665,17 @@ export default function App() {
                       <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
                     </svg>
                     Import Your Library
+                  </button>
+                  <button {...tc(()=>{ setShowProfileMenu(false); setShowAbout(true); })} style={{
+                    display:"flex", alignItems:"center", gap:10,
+                    width:"100%", padding:"12px 16px", textAlign:"left",
+                    background:"transparent", border:"none", borderTop:"1px solid rgba(138,90,40,0.15)", cursor:"pointer",
+                    fontFamily:"'DM Sans',sans-serif", fontSize:14, color:WOOD.text, fontWeight:400,
+                  }}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={WOOD.textDim} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+                    </svg>
+                    About
                   </button>
                   {guestMode
                     ? <button {...tc(async ()=>{ setShowProfileMenu(false); localStorage.setItem(MIGRATE_GUEST_KEY, "1"); setGuestMode(false); track("guest_signed_in"); await supabase.auth.signInWithOAuth({ provider:"google", options:{ redirectTo: window.location.origin } }); })} style={{
