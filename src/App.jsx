@@ -4793,6 +4793,8 @@ function RecommendPage({ books, userId, onAddDirect, onBulkAddDirect, onAuthor, 
   // Reset to "at top" state when switching characters so the shelf reappears.
   useEffect(() => { setAtTop(true); contentRef.current?.scrollTo?.({ top: 0 }); }, [character]);
 
+  useEffect(() => { track("character_viewed", { character }); }, [character]);
+
   const characters = [
     { key:"paige",  label:"Paige Turner", img:"/page-turner.png" },
     { key:"reiko",  label:"Reiko Mend",   img:"/reiko-mend.png" },
