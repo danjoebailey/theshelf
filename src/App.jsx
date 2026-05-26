@@ -4276,7 +4276,7 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAdd
             textAlign:"center", padding:"0 11%",
             color:"#2e2010", fontFamily:"'Caveat',cursive",
             fontSize:26, fontWeight:600, lineHeight:1.15,
-          }}>Snap any shelf — Obi'll tell you which to read.</p>
+          }}>Snap a shelf — browse it, add books, or ask Obi for picks.</p>
         </div>
       </div>
 
