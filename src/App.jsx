@@ -3498,7 +3498,7 @@ function ReedTab({ books, userId, onEdit, onShelfChange, onSaveScores, onAuthor 
   const [loading, setLoading] = useState(false);
   const [pickSelected, setPickSelected] = useState([]); // book ids, scoped to the current shelf
   const [pickSearch, setPickSearch] = useState("");
-  const [genreFilter, setGenreFilter] = useState(null); // null = All; otherwise genre name
+  const [genreFilter, setGenreFilter] = useState("All"); // "All" or a genre name
   const pickTouchMoved = useRef(false); // scroll-vs-tap guard for the pick list
 
   const isPick = pickMode === "pick";
@@ -3508,7 +3508,7 @@ function ReedTab({ books, userId, onEdit, onShelfChange, onSaveScores, onAuthor 
     () => Array.from(new Set(currentShelf.map(b => b.genre).filter(Boolean))).sort(),
     [currentShelf]
   );
-  const genreFilteredShelf = genreFilter
+  const genreFilteredShelf = genreFilter !== "All"
     ? currentShelf.filter(b => b.genre === genreFilter)
     : currentShelf;
   // Pick mode is a hand-curated set; ignore the genre filter so the user's picks
@@ -3529,13 +3529,13 @@ function ReedTab({ books, userId, onEdit, onShelfChange, onSaveScores, onAuthor 
     : null;
 
   // Selection + genre filter are scoped to the chosen shelf — reset on shelf change.
-  useEffect(() => { setPickSelected([]); setPickSearch(""); setGenreFilter(null); }, [mode]);
+  useEffect(() => { setPickSelected([]); setPickSearch(""); setGenreFilter("All"); }, [mode]);
 
   useEffect(() => {
     setPicks(null);
     // Pick mode + genre-filtered queries have no stable cache (their input pool varies),
     // so we only look up the cached verdict for the plain "all books in shelf" case.
-    if (isPick || genreFilter || !userId || userId === "guest") return;
+    if (isPick || genreFilter !== "All" || !userId || userId === "guest") return;
     supabase.from("obi_verdicts").select("verdict").eq("user_id", userId).eq("book_key", `reed:${mode}`).single()
       .then(({ data }) => {
         try { if (data?.verdict) setPicks(JSON.parse(data.verdict)); } catch {}
@@ -3604,20 +3604,12 @@ function ReedTab({ books, userId, onEdit, onShelfChange, onSaveScores, onAuthor 
 
       {/* Genre filter — narrow the contender pool to a single genre */}
       {!isPick && availableGenres.length > 1 && (
-        <div style={{ display:"flex", gap:5, justifyContent:"center", flexWrap:"wrap", padding:"0 6px" }}>
-          {[null, ...availableGenres].map(g => {
-            const active = genreFilter === g;
-            return (
-              <button key={g || "all"} {...tc(() => setGenreFilter(g))} style={{
-                padding:"2px 10px", borderRadius:14,
-                border:`1px solid ${active ? WOOD.amber : "rgba(120,70,20,0.3)"}`,
-                background: active ? WOOD.amber : "rgba(15,8,2,0.55)",
-                color: active ? "#1a0900" : "rgba(255,235,195,0.85)",
-                fontFamily:"'DM Sans',sans-serif", fontSize:10, fontWeight:600,
-                cursor:"pointer", transition:"all 0.15s",
-              }}>{g || "All"}</button>
-            );
-          })}
+        <div style={{ display:"flex", justifyContent:"center" }}>
+          <PillDropdown
+            value={genreFilter}
+            onChange={setGenreFilter}
+            options={["All", ...availableGenres]}
+          />
         </div>
       )}
 
@@ -3702,7 +3694,7 @@ function ReedTab({ books, userId, onEdit, onShelfChange, onSaveScores, onAuthor 
       )}
 
       {/* Genre filter yielded an empty pool — shelf has books, just none in this genre */}
-      {!isPick && genreFilter && genreFilteredShelf.length === 0 && currentShelf.length > 0 && (
+      {!isPick && genreFilter !== "All" && genreFilteredShelf.length === 0 && currentShelf.length > 0 && (
         <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, fontStyle:"italic", color:"rgba(255,235,195,0.5)", textAlign:"center", padding:"16px 0 0" }}>
           Nothing in {shelfName} tagged {genreFilter}. Try another genre or All.
         </p>
