@@ -36,12 +36,13 @@ function buildProfileLines(profile) {
     .join("\n");
 }
 
-function bookKey(title, author) {
+function bookKey(title, author, profile) {
   const norm = s => (s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-  // v3 — invalidates v2 entries that may contain hallucinated claims about
-  // the reader's history (e.g. "You DNF'd X" for books not in the library).
-  // v3 prompt forbids inventing reader history; old caches drop and regen.
-  return `verdict::v3::${norm(title)}::${norm(author)}`;
+  // v4 — adds a profile fingerprint so cached verdicts invalidate when the
+  // reader's Read/DNF library changes. v3 entries (no fingerprint) drop and
+  // regen on next ask. Pairs with recommend cache v7 — same scheme.
+  const fp = profileFingerprint(profile);
+  return `verdict::v4::${norm(title)}::${norm(author)}::${fp}`;
 }
 
 function recommendKey(author, profile) {
@@ -231,7 +232,7 @@ Name one specific title and explain in 2–3 sentences why it's the best startin
     return res.json({ verdict: "Your shelves are still pretty bare — add some books you've loved (and a few you've abandoned) and I'll have a lot more to work with.", call: null });
   }
 
-  const key = bookKey(book.title, book.author);
+  const key = bookKey(book.title, book.author, profile);
   const cached = await getCached(userId, key);
   if (cached) {
     const parsed = parseVerdict(cached);
