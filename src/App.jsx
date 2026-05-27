@@ -3498,14 +3498,25 @@ function ReedTab({ books, userId, onEdit, onShelfChange, onSaveScores, onAuthor 
   const [loading, setLoading] = useState(false);
   const [pickSelected, setPickSelected] = useState([]); // book ids, scoped to the current shelf
   const [pickSearch, setPickSearch] = useState("");
+  const [genreFilter, setGenreFilter] = useState(null); // null = All; otherwise genre name
   const pickTouchMoved = useRef(false); // scroll-vs-tap guard for the pick list
 
   const isPick = pickMode === "pick";
   const shelfName = mode === "list" ? "The List" : mode === "curious" ? "Curious" : "Recommended";
   const currentShelf = books.filter(b => b.shelf === shelfName);
+  const availableGenres = useMemo(
+    () => Array.from(new Set(currentShelf.map(b => b.genre).filter(Boolean))).sort(),
+    [currentShelf]
+  );
+  const genreFilteredShelf = genreFilter
+    ? currentShelf.filter(b => b.genre === genreFilter)
+    : currentShelf;
+  // Pick mode is a hand-curated set; ignore the genre filter so the user's picks
+  // are sent exactly as chosen (and the hidden-in-pick-mode filter can't silently
+  // narrow the contender pool).
   const shelfBooks = isPick
     ? currentShelf.filter(b => pickSelected.includes(b.id))
-    : currentShelf;
+    : genreFilteredShelf;
   const library = books.filter(b => b.rating > 0).map(b => ({ title:b.title, author:b.author, genre:b.genre, rating:b.rating }));
   // Recommended is curated-on-curated (Paige/Reiko/Obi push books onto this
   // shelf already), so Reed only kicks in once the pile is deep enough that
@@ -3517,18 +3528,19 @@ function ReedTab({ books, userId, onEdit, onShelfChange, onSaveScores, onAuthor 
     ? picks.map(p => shelfBooks.find(b => b.title.toLowerCase() === p.title.toLowerCase() && b.author.toLowerCase() === p.author.toLowerCase())).filter(Boolean)
     : null;
 
-  // Selection is scoped to the chosen shelf — reset it when the shelf changes.
-  useEffect(() => { setPickSelected([]); setPickSearch(""); }, [mode]);
+  // Selection + genre filter are scoped to the chosen shelf — reset on shelf change.
+  useEffect(() => { setPickSelected([]); setPickSearch(""); setGenreFilter(null); }, [mode]);
 
   useEffect(() => {
     setPicks(null);
-    // Pick mode has no stable cache — the selected set changes every ask.
-    if (isPick || !userId || userId === "guest") return;
+    // Pick mode + genre-filtered queries have no stable cache (their input pool varies),
+    // so we only look up the cached verdict for the plain "all books in shelf" case.
+    if (isPick || genreFilter || !userId || userId === "guest") return;
     supabase.from("obi_verdicts").select("verdict").eq("user_id", userId).eq("book_key", `reed:${mode}`).single()
       .then(({ data }) => {
         try { if (data?.verdict) setPicks(JSON.parse(data.verdict)); } catch {}
       });
-  }, [mode, pickMode, userId]);
+  }, [mode, pickMode, userId, genreFilter]);
 
   async function generate(refresh = false) {
     if (!shelfBooks.length) return;
@@ -3587,6 +3599,25 @@ function ReedTab({ books, userId, onEdit, onShelfChange, onSaveScores, onAuthor 
               fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600,
             }}>{label}</button>
           ))}
+        </div>
+      )}
+
+      {/* Genre filter — narrow the contender pool to a single genre */}
+      {!isPick && availableGenres.length > 1 && (
+        <div style={{ display:"flex", gap:5, justifyContent:"center", flexWrap:"wrap", padding:"0 6px" }}>
+          {[null, ...availableGenres].map(g => {
+            const active = genreFilter === g;
+            return (
+              <button key={g || "all"} {...tc(() => setGenreFilter(g))} style={{
+                padding:"2px 10px", borderRadius:14,
+                border:`1px solid ${active ? WOOD.amber : "rgba(120,70,20,0.3)"}`,
+                background: active ? WOOD.amber : "rgba(15,8,2,0.55)",
+                color: active ? "#1a0900" : "rgba(255,235,195,0.85)",
+                fontFamily:"'DM Sans',sans-serif", fontSize:10, fontWeight:600,
+                cursor:"pointer", transition:"all 0.15s",
+              }}>{g || "All"}</button>
+            );
+          })}
         </div>
       )}
 
@@ -3668,6 +3699,13 @@ function ReedTab({ books, userId, onEdit, onShelfChange, onSaveScores, onAuthor 
               })()}
             </div>
           </>
+      )}
+
+      {/* Genre filter yielded an empty pool — shelf has books, just none in this genre */}
+      {!isPick && genreFilter && genreFilteredShelf.length === 0 && currentShelf.length > 0 && (
+        <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, fontStyle:"italic", color:"rgba(255,235,195,0.5)", textAlign:"center", padding:"16px 0 0" }}>
+          Nothing in {shelfName} tagged {genreFilter}. Try another genre or All.
+        </p>
       )}
 
       {/* Empty shelf or below-threshold Recommended */}
