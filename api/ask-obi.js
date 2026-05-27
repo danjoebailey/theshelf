@@ -44,11 +44,31 @@ function bookKey(title, author) {
   return `verdict::v3::${norm(title)}::${norm(author)}`;
 }
 
-function recommendKey(author) {
+function recommendKey(author, profile) {
   const norm = s => (s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-  // v6 — adds the same anti-hallucination grounding rule used in verdict
-  // mode (v3): only cite books/authors actually in the reader's library.
-  return `recommend::v6::${norm(author)}`;
+  // v7 — includes a profile fingerprint so the cached rec invalidates when
+  // the reader's Read/DNF library changes. Earlier versions kept serving the
+  // same author-rec forever, even after the reader had finished the picked
+  // book or grown their library enough to warrant a different starting point.
+  // Fingerprint = djb2-style hash over sorted normalized "title|author"
+  // entries from the profile sent to the prompt — same surface Obi sees.
+  const fp = profileFingerprint(profile);
+  return `recommend::v7::${norm(author)}::${fp}`;
+}
+
+function profileFingerprint(profile) {
+  if (!Array.isArray(profile) || profile.length === 0) return "empty";
+  const norm = s => (s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  const tokens = profile
+    .map(b => `${norm(b.title)}|${norm(b.author)}`)
+    .sort();
+  const joined = tokens.join("\n");
+  let hash = 0;
+  for (let i = 0; i < joined.length; i++) {
+    hash = ((hash << 5) - hash) + joined.charCodeAt(i);
+    hash &= hash;
+  }
+  return Math.abs(hash).toString(36);
 }
 
 async function getCached(userId, key) {
@@ -146,7 +166,7 @@ Example: [1, 3, 4, 7, 12, 15, 18, 23]`;
     const { author, bibliography, queued = [], profile } = req.body;
     if (!author || !bibliography?.length) return res.status(400).json({ error: "Missing data" });
 
-    const key = recommendKey(author);
+    const key = recommendKey(author, profile);
     const cached = await getCached(userId, key);
     if (cached) return res.json({ verdict: cached });
 

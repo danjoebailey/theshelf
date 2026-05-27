@@ -572,7 +572,7 @@ function BookCard({ book, index, onRemove, onEdit, onShelfChange, onOpenShelfPic
     if (showObi) { setShowObi(false); return; }
     setShowProse(false); setShowScores(false); setShowDescription(false); setShowObi(true);
     if (obiVerdict) return;
-    if (guestMode) {
+    if (!userId || userId === "guest") {
       const count = parseInt(localStorage.getItem(GUEST_OBI_KEY) || "0");
       if (count >= 10) {
         setObiVerdict("Sign in to unlock unlimited Obi.");
@@ -3141,6 +3141,7 @@ function PaigeTab({ books, userId, onAddDirect, onBulkAddDirect, onEdit, onAddBo
       hash &= hash;
     }
     const listFingerprint = `${mode}::${all.length}::${Math.abs(hash).toString(36)}`;
+    const profileForObi = obiProfileSnapshot && obiProfileSnapshot.length > 0 ? obiProfileSnapshot : profile;
     try {
       const res = await fetch("/api/ask-obi", {
         method: "POST",
@@ -3148,16 +3149,44 @@ function PaigeTab({ books, userId, onAddDirect, onBulkAddDirect, onEdit, onAddBo
         body: JSON.stringify({
           mode: "bulk_filter",
           books: all.map(b => ({ title: b.title, author: b.author, genre: b.genre })),
-          profile: obiProfileSnapshot && obiProfileSnapshot.length > 0 ? obiProfileSnapshot : profile,
+          profile: profileForObi,
           userId,
           listFingerprint,
         }),
       });
       const data = await res.json();
-      if (data.picks?.length) {
+      // Second pass: run each bulk pick through the stricter per-book verdict
+      // so Paige curate matches Shelf scan's two-pass behavior. Verdicts cache
+      // server-side per (user, title, author) so re-runs are free.
+      let confirmedPicks = data.picks || [];
+      if (confirmedPicks.length) {
+        const candByTitle = new Map(all.map(b => [b.title.toLowerCase(), b]));
+        const passes = await Promise.all(confirmedPicks.map(async title => {
+          const book = candByTitle.get(title.toLowerCase());
+          if (!book) return title;
+          try {
+            const vres = await fetch("/api/ask-obi", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                mode: "verdict",
+                book: { title: book.title, author: book.author, genre: book.genre || null, description: book.description || null },
+                profile: profileForObi,
+                userId,
+              }),
+            });
+            const vdata = await vres.json();
+            return vdata.call === "yes" ? title : null;
+          } catch {
+            return title;
+          }
+        }));
+        confirmedPicks = passes.filter(Boolean);
+      }
+      if (confirmedPicks.length) {
         // Series resolution: dedup by series, swap mid-series picks for the
         // first unread book so users get entry points, not book #5.
-        const resolved = await resolveSeriesPicks(data.picks, books);
+        const resolved = await resolveSeriesPicks(confirmedPicks, books);
         const finalTitles = resolved.map(r => r.title);
         const substitutions = resolved.filter(r => r.book).map(r => r.book);
         setObiSubstitutions(substitutions);
@@ -3181,6 +3210,10 @@ function PaigeTab({ books, userId, onAddDirect, onBulkAddDirect, onEdit, onAddBo
           }
           if (items.length) onBulkAddDirect(items, "Recommended");
         }
+      } else {
+        // Bulk returned picks but verdict pass rejected them all — explicit zero-state.
+        setObiPicks(new Set());
+        setObiSubstitutions([]);
       }
     } catch (e) {
       console.error("[curate]", e);
@@ -4626,8 +4659,35 @@ function BrowseTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAddDir
         }),
       });
       const data = await res.json();
-      if (data.picks?.length) {
-        const resolved = await resolveSeriesPicks(data.picks, books);
+      // Second pass: run each bulk pick through the stricter per-book verdict
+      // so Browse curate matches Shelf scan's two-pass behavior.
+      let confirmedPicks = data.picks || [];
+      if (confirmedPicks.length) {
+        const candByTitle = new Map(pool.items.map(b => [b.title.toLowerCase(), b]));
+        const passes = await Promise.all(confirmedPicks.map(async title => {
+          const book = candByTitle.get(title.toLowerCase());
+          if (!book) return title;
+          try {
+            const vres = await fetch("/api/ask-obi", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                mode: "verdict",
+                book: { title: book.title, author: book.author, genre: book.genre || null, description: book.description || null },
+                profile: profileForObi,
+                userId,
+              }),
+            });
+            const vdata = await vres.json();
+            return vdata.call === "yes" ? title : null;
+          } catch {
+            return title;
+          }
+        }));
+        confirmedPicks = passes.filter(Boolean);
+      }
+      if (confirmedPicks.length) {
+        const resolved = await resolveSeriesPicks(confirmedPicks, books);
         const finalTitles = resolved.map(r => r.title);
         const substitutions = resolved.filter(r => r.book).map(r => r.book);
         const pickSet = new Set(finalTitles.map(t => t.toLowerCase()));
@@ -4668,6 +4728,10 @@ function BrowseTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAddDir
           }
           if (itemsForAdd.length) onBulkAddDirect(itemsForAdd, "Recommended");
         }
+      } else {
+        // Bulk returned picks but verdict pass rejected them all — zero-state.
+        setObiPicks(new Set());
+        setObiSubstitutions([]);
       }
     } catch (e) {
       console.error("[browse-curate]", e);
@@ -5443,7 +5507,7 @@ function ReikoTab({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook }) {
               <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 12 }}>Recommended for you</p>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {[...new Map(recs.map(r => [r.title.toLowerCase(), r])).values()].map((rec, i) => (
-                  <RecCard key={i} index={i} rec={rec} coverUrl={recCovers[rec.title] || findOwnedBook(rec, books)?.coverUrl || null} ownedBook={findOwnedBook(rec, books)} onAddDirect={onAddDirect} onEdit={onEdit} onAddBook={onAddBook} />
+                  <RecCard key={i} index={i} rec={rec} coverUrl={recCovers[rec.title] || findOwnedBook(rec, books)?.coverUrl || null} ownedBook={findOwnedBook(rec, books)} onAddDirect={onAddDirect} onEdit={onEdit} onAddBook={onAddBook} userId={userId} libraryProfile={books.filter(b => b.shelf === "Read" || b.shelf === "DNF")} />
                 ))}
               </div>
             </div>
@@ -8424,7 +8488,7 @@ function EditSheet({ book, onSave, onClose, onSaveDescription, onSaveScores, onA
     if (detailPanel === "obi") { setDetailPanel(null); return; }
     setDetailPanel("obi");
     if (obiVerdict) return;
-    if (guestMode) {
+    if (!userId || userId === "guest") {
       const count = parseInt(localStorage.getItem(GUEST_OBI_KEY) || "0");
       if (count >= 10) {
         setObiVerdict("Sign in to unlock unlimited Obi.");
@@ -9001,6 +9065,7 @@ const GUEST_OBI_KEY = "guest_obi_count";
 const GUEST_PAIGE_OBI_KEY = "guest_paige_obi_count";
 const GUEST_BROWSE_OBI_KEY = "guest_browse_obi_count";
 const GUEST_SCAN_OBI_KEY = "guest_scan_obi_count";
+const GUEST_AUTHOR_OBI_KEY = "guest_author_obi_count";
 // Guest cap on full photo shelf scans (5).
 const GUEST_SCAN_KEY = "guest_scan_count";
 const GUEST_ACTIVE_KEY = "guest_active";
@@ -9013,7 +9078,7 @@ const GUEST_TOP_AUTHORS_KEY = "guest_top_authors";
 const MIGRATE_GUEST_KEY = "theshelf:migrate_guest";
 function guestSaveBooks(books) { localStorage.setItem(GUEST_BOOKS_KEY, JSON.stringify(books)); }
 function guestLoadBooks() { try { return JSON.parse(localStorage.getItem(GUEST_BOOKS_KEY) || "[]"); } catch { return []; } }
-function guestClearAll() { localStorage.removeItem(GUEST_BOOKS_KEY); localStorage.removeItem(GUEST_OBI_KEY); localStorage.removeItem(GUEST_PAIGE_OBI_KEY); localStorage.removeItem(GUEST_BROWSE_OBI_KEY); localStorage.removeItem(GUEST_SCAN_OBI_KEY); localStorage.removeItem(GUEST_SCAN_KEY); localStorage.removeItem(GUEST_ACTIVE_KEY); localStorage.removeItem(GUEST_TOP_BOOKS_KEY); localStorage.removeItem(GUEST_TOP_AUTHORS_KEY); }
+function guestClearAll() { localStorage.removeItem(GUEST_BOOKS_KEY); localStorage.removeItem(GUEST_OBI_KEY); localStorage.removeItem(GUEST_PAIGE_OBI_KEY); localStorage.removeItem(GUEST_BROWSE_OBI_KEY); localStorage.removeItem(GUEST_SCAN_OBI_KEY); localStorage.removeItem(GUEST_AUTHOR_OBI_KEY); localStorage.removeItem(GUEST_SCAN_KEY); localStorage.removeItem(GUEST_ACTIVE_KEY); localStorage.removeItem(GUEST_TOP_BOOKS_KEY); localStorage.removeItem(GUEST_TOP_AUTHORS_KEY); }
 
 // Migrate guest books into the just-signed-in account — but ONLY when the
 // migrate-intent flag is set. Dedupes by normalized title against whatever
@@ -9286,6 +9351,11 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd, userI
     if (showObiRec) { setShowObiRec(false); return; }
     setShowObiRec(true);
     if (obiRec) return;
+    if (!userId || userId === "guest") {
+      const used = parseInt(localStorage.getItem(GUEST_AUTHOR_OBI_KEY) || "0");
+      if (used >= 3) { track("bulk_obi_capped", { feature: "author" }); setObiRec("Sign in to unlock unlimited Obi."); return; }
+      localStorage.setItem(GUEST_AUTHOR_OBI_KEY, String(used + 1));
+    }
     setObiRecLoading(true);
     try {
       const profile = (profileSnapshot && profileSnapshot.length > 0)
