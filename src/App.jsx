@@ -3160,12 +3160,16 @@ function PaigeTab({ books, userId, onAddDirect, onBulkAddDirect, onEdit, onAddBo
       // Second pass: run each bulk pick through the stricter per-book verdict
       // so Paige curate matches Shelf scan's two-pass behavior. Verdicts cache
       // server-side per (user, title, author) so re-runs are free.
-      let confirmedPicks = data.picks || [];
+      // Picks now arrive as {title, author} objects; normalize legacy string
+      // form in case a cached v4 entry or in-flight client hits this path.
+      let confirmedPicks = (data.picks || []).map(p => typeof p === "string" ? { title: p, author: "" } : p);
       if (confirmedPicks.length) {
-        const candByTitle = new Map(all.map(b => [b.title.toLowerCase(), b]));
-        const passes = await Promise.all(confirmedPicks.map(async title => {
-          const book = candByTitle.get(title.toLowerCase());
-          if (!book) return title;
+        const candByKey = new Map(all.map(b => [obiBookKey(b.title, b.author), b]));
+        const candByTitleFallback = new Map(all.map(b => [b.title.toLowerCase(), b]));
+        const passes = await Promise.all(confirmedPicks.map(async pick => {
+          const book = candByKey.get(obiBookKey(pick.title, pick.author))
+            || (pick.author ? null : candByTitleFallback.get(pick.title.toLowerCase()));
+          if (!book) return pick;
           try {
             const vres = await fetch("/api/ask-obi", {
               method: "POST",
@@ -3178,9 +3182,9 @@ function PaigeTab({ books, userId, onAddDirect, onBulkAddDirect, onEdit, onAddBo
               }),
             });
             const vdata = await vres.json();
-            return vdata.call === "yes" ? title : null;
+            return vdata.call === "yes" ? { title: book.title, author: book.author } : null;
           } catch {
-            return title;
+            return pick;
           }
         }));
         confirmedPicks = passes.filter(Boolean);
@@ -3189,13 +3193,12 @@ function PaigeTab({ books, userId, onAddDirect, onBulkAddDirect, onEdit, onAddBo
         // Series resolution: dedup by series, swap mid-series picks for the
         // first unread book so users get entry points, not book #5.
         const resolved = await resolveSeriesPicks(confirmedPicks, books);
-        const finalTitles = resolved.map(r => r.title);
         const substitutions = resolved.filter(r => r.book).map(r => r.book);
         setObiSubstitutions(substitutions);
-        const pickSet = new Set(finalTitles.map(t => t.toLowerCase()));
+        const pickSet = new Set(resolved.map(r => obiBookKey(r.title, r.author)));
         setObiPicks(pickSet);
         // Fetch covers for promoted reserve books AND any new substitutions.
-        const promoted = [...(reserve[mode] || []), ...substitutions].filter(r => pickSet.has(r.title.toLowerCase()));
+        const promoted = [...(reserve[mode] || []), ...substitutions].filter(r => pickSet.has(obiBookKey(r.title, r.author)));
         if (promoted.length) await fetchCoversForRecs(promoted, mode);
         // Auto-route Obi's picks to Recommended (skip already-owned).
         if (onBulkAddDirect) {
@@ -3204,7 +3207,7 @@ function PaigeTab({ books, userId, onAddDirect, onBulkAddDirect, onEdit, onAddBo
           const seen = new Set();
           const items = [];
           for (const r of pool) {
-            const k = r.title.toLowerCase();
+            const k = obiBookKey(r.title, r.author);
             if (!pickSet.has(k) || seen.has(k)) continue;
             if (ownedKeys.has(normBookKey(r.title))) continue;
             seen.add(k);
@@ -3332,7 +3335,7 @@ function PaigeTab({ books, userId, onAddDirect, onBulkAddDirect, onEdit, onAddBo
             textAlign:"center", padding:"0 11%",
             color:"#2e2010", fontFamily:"'Caveat',cursive",
             fontSize:26, fontWeight:600, lineHeight:1.15,
-          }}>Recommendations built from your reading profile.</p>
+          }}>Books tuned to your reading profile.</p>
         </div>
       </div>
 
@@ -3446,8 +3449,8 @@ function PaigeTab({ books, userId, onAddDirect, onBulkAddDirect, onEdit, onAddBo
               display:"flex", alignItems:"center", justifyContent:"center", gap:8, transition:"all 0.2s",
             }}>
               {loading
-                ? <><span style={{ width:16, height:16, border:"2px solid rgba(26,9,0,0.3)", borderTopColor:"#1a0900", borderRadius:"50%", display:"inline-block", animation:"spin 0.7s linear infinite" }} />Finding books…</>
-                : <><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.3L12 17 5.8 21.2l2.4-7.3L2 9.4h7.6z"/></svg>Get Recommendations</>
+                ? <><span style={{ width:16, height:16, border:"2px solid rgba(26,9,0,0.3)", borderTopColor:"#1a0900", borderRadius:"50%", display:"inline-block", animation:"spin 0.7s linear infinite" }} />Building List…</>
+                : <><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.3L12 17 5.8 21.2l2.4-7.3L2 9.4h7.6z"/></svg>Build My List</>
               }
             </button>
           </div>
@@ -3468,21 +3471,24 @@ function PaigeTab({ books, userId, onAddDirect, onBulkAddDirect, onEdit, onAddBo
             const sourcePool = obiPicks
               ? [...currentRecs, ...(reserve[mode] || []), ...obiSubstitutions]
               : currentRecs;
-            const deduped = [...new Map(sourcePool.map(r => [r.title.toLowerCase(), r])).values()];
+            // Key dedup by title+author — different books share titles in the
+            // catalog (243 collisions: e.g. "The Stranger" by Camus, Coben,
+            // Läckberg), so title-only dedup silently dropped legitimate picks.
+            const deduped = [...new Map(sourcePool.map(r => [`${r.title.toLowerCase()}|${(r.author||"").toLowerCase()}`, r])).values()];
             const baseFiltered = deduped.filter(r => {
               if (filterGenre && r.genre !== filterGenre) return false;
               if (hideOnShelf && findOwnedBook(r, books)) return false;
               return true;
             });
             const filtered = obiPicks
-              ? baseFiltered.filter(r => obiPicks.has(r.title.toLowerCase()))
+              ? baseFiltered.filter(r => obiPicks.has(obiBookKey(r.title, r.author)))
               : baseFiltered;
             const trueTotal = totalMatches[mode];
             const headerLabel = obiPicks
               ? `Obi-curated · ${filtered.length}`
               : (typeof trueTotal === "number" && trueTotal > filtered.length)
-                ? `Recommended for you · ${filtered.length} of ${trueTotal}`
-                : `Recommended for you · ${filtered.length}`;
+                ? `My List · ${filtered.length} of ${trueTotal}`
+                : `My List · ${filtered.length}`;
             return (
             <div style={{ padding:"0 18px" }}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12, gap:8, flexWrap:"wrap" }}>
@@ -4240,10 +4246,15 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAdd
         // literary fiction); bulk alone reaches across genre identity.
         // Verdicts cache server-side per (user, title, author), so the
         // first scan eats the cost and re-scans / re-clicks are free.
-        const candByTitle = new Map(scannedBooks.map(b => [b.title.toLowerCase(), b]));
-        const passes = await Promise.all(data.picks.map(async title => {
-          const book = candByTitle.get(title.toLowerCase());
-          if (!book) return title;  // pick doesn't map to a candidate — keep
+        // Picks now arrive as {title, author} objects; normalize legacy
+        // string form so older cached entries don't crash this path.
+        const normalizedPicks = data.picks.map(p => typeof p === "string" ? { title: p, author: "" } : p);
+        const candByKey = new Map(scannedBooks.map(b => [obiBookKey(b.title, b.author), b]));
+        const candByTitleFallback = new Map(scannedBooks.map(b => [b.title.toLowerCase(), b]));
+        const passes = await Promise.all(normalizedPicks.map(async pick => {
+          const book = candByKey.get(obiBookKey(pick.title, pick.author))
+            || (pick.author ? null : candByTitleFallback.get(pick.title.toLowerCase()));
+          if (!book) return pick;  // pick doesn't map to a candidate — keep
           try {
             const vres = await fetch("/api/ask-obi", {
               method: "POST",
@@ -4264,9 +4275,9 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAdd
             // Keep only confident "yes" verdicts. Drop "pass", "maybe", and
             // parse failures — bulk picks should surface real endorsements,
             // not uncertain ones or unreadable responses.
-            return vdata.call === "yes" ? title : null;
+            return vdata.call === "yes" ? { title: book.title, author: book.author } : null;
           } catch {
-            return title;  // network error — fail open, keep the pick
+            return pick;  // network error — fail open, keep the pick
           }
         }));
         const filteredPicks = passes.filter(Boolean);
@@ -4276,10 +4287,9 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAdd
           setObiSubstitutions([]);
         } else {
         const resolved = await resolveSeriesPicks(filteredPicks, books);
-        const finalTitles = resolved.map(r => r.title);
         const substitutions = resolved.filter(r => r.book).map(r => r.book);
         setObiSubstitutions(substitutions);
-        const pickSet = new Set(finalTitles.map(t => t.toLowerCase()));
+        const pickSet = new Set(resolved.map(r => obiBookKey(r.title, r.author)));
         setObiPicks(pickSet);
         // Fetch covers for substitutions if any
         const covMap = { ...covers };
@@ -4298,7 +4308,7 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAdd
           const seen = new Set();
           const itemsForAdd = [];
           for (const r of pool) {
-            const k = r.title.toLowerCase();
+            const k = obiBookKey(r.title, r.author);
             if (!pickSet.has(k) || seen.has(k)) continue;
             if (ownedKeys.has(normBookKey(r.title))) continue;
             seen.add(k);
@@ -4323,7 +4333,7 @@ function ShelfScanTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAdd
       const merged = [...scannedBooks, ...obiSubstitutions];
       const seen = new Set();
       base = merged.filter(b => {
-        const k = b.title.toLowerCase();
+        const k = obiBookKey(b.title, b.author);
         if (seen.has(k) || !obiPicks.has(k)) return false;
         seen.add(k);
         return true;
@@ -4661,12 +4671,16 @@ function BrowseTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAddDir
       const data = await res.json();
       // Second pass: run each bulk pick through the stricter per-book verdict
       // so Browse curate matches Shelf scan's two-pass behavior.
-      let confirmedPicks = data.picks || [];
+      // Picks now arrive as {title, author} objects; normalize legacy string
+      // form so older cached entries don't crash this path.
+      let confirmedPicks = (data.picks || []).map(p => typeof p === "string" ? { title: p, author: "" } : p);
       if (confirmedPicks.length) {
-        const candByTitle = new Map(pool.items.map(b => [b.title.toLowerCase(), b]));
-        const passes = await Promise.all(confirmedPicks.map(async title => {
-          const book = candByTitle.get(title.toLowerCase());
-          if (!book) return title;
+        const candByKey = new Map(pool.items.map(b => [obiBookKey(b.title, b.author), b]));
+        const candByTitleFallback = new Map(pool.items.map(b => [b.title.toLowerCase(), b]));
+        const passes = await Promise.all(confirmedPicks.map(async pick => {
+          const book = candByKey.get(obiBookKey(pick.title, pick.author))
+            || (pick.author ? null : candByTitleFallback.get(pick.title.toLowerCase()));
+          if (!book) return pick;
           try {
             const vres = await fetch("/api/ask-obi", {
               method: "POST",
@@ -4679,24 +4693,23 @@ function BrowseTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAddDir
               }),
             });
             const vdata = await vres.json();
-            return vdata.call === "yes" ? title : null;
+            return vdata.call === "yes" ? { title: book.title, author: book.author } : null;
           } catch {
-            return title;
+            return pick;
           }
         }));
         confirmedPicks = passes.filter(Boolean);
       }
       if (confirmedPicks.length) {
         const resolved = await resolveSeriesPicks(confirmedPicks, books);
-        const finalTitles = resolved.map(r => r.title);
         const substitutions = resolved.filter(r => r.book).map(r => r.book);
-        const pickSet = new Set(finalTitles.map(t => t.toLowerCase()));
+        const pickSet = new Set(resolved.map(r => obiBookKey(r.title, r.author)));
         // Make sure all picks (from the 100 pool, plus substitutions) are in
         // the displayed items list — items might only have first-page results.
-        const picksFromPool = pool.items.filter(b => pickSet.has(b.title.toLowerCase()));
+        const picksFromPool = pool.items.filter(b => pickSet.has(obiBookKey(b.title, b.author)));
         const allObiBooks = [...picksFromPool, ...substitutions];
-        const itemsByTitle = new Map(items.map(i => [i.title.toLowerCase(), i]));
-        const newToShow = allObiBooks.filter(b => !itemsByTitle.has(b.title.toLowerCase()));
+        const itemsByKey = new Map(items.map(i => [obiBookKey(i.title, i.author), i]));
+        const newToShow = allObiBooks.filter(b => !itemsByKey.has(obiBookKey(b.title, b.author)));
         if (newToShow.length) {
           setItems(prev => [...prev, ...newToShow]);
           // Fetch covers for the newly added
@@ -4720,7 +4733,7 @@ function BrowseTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAddDir
           const seen = new Set();
           const itemsForAdd = [];
           for (const r of allObiBooks) {
-            const k = r.title.toLowerCase();
+            const k = obiBookKey(r.title, r.author);
             if (seen.has(k)) continue;
             if (ownedKeys.has(normBookKey(r.title))) continue;
             seen.add(k);
@@ -4829,7 +4842,7 @@ function BrowseTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAddDir
       {/* Results */}
       {items.length > 0 && (() => {
         const displayed = obiPicks
-          ? items.filter(r => obiPicks.has(r.title.toLowerCase()))
+          ? items.filter(r => obiPicks.has(obiBookKey(r.title, r.author)))
           : items;
         const headerLabel = obiPicks
           ? `Obi-curated · ${displayed.length}`
@@ -5521,7 +5534,7 @@ function ReikoTab({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook }) {
             <div style={{ padding: "0 18px" }}>
               <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 12 }}>Recommended for you</p>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {[...new Map(recs.map(r => [r.title.toLowerCase(), r])).values()].map((rec, i) => (
+                {[...new Map(recs.map(r => [`${r.title.toLowerCase()}|${(r.author||"").toLowerCase()}`, r])).values()].map((rec, i) => (
                   <RecCard key={i} index={i} rec={rec} coverUrl={recCovers[rec.title] || findOwnedBook(rec, books)?.coverUrl || null} ownedBook={findOwnedBook(rec, books)} onAddDirect={onAddDirect} onEdit={onEdit} onAddBook={onAddBook} userId={userId} libraryProfile={books.filter(b => b.shelf === "Read" || b.shelf === "DNF")} />
                 ))}
               </div>
@@ -8922,6 +8935,17 @@ function normBookKey(title) {
     .toLowerCase()
     .replace(/[^\w]/g, '')
     .replace(/colour/g,'color').replace(/honour/g,'honor').replace(/favour/g,'favor').replace(/behaviour/g,'behavior').replace(/neighbour/g,'neighbor');
+}
+
+// Composite key for Obi's bulk-curate flow. The catalog has 243 title
+// collisions across distinct authors (e.g. The Stranger by Camus / Coben /
+// L\u00e4ckberg), so any Map or Set keyed on title alone silently loses the
+// non-first instance \u2014 which means Obi's "yes" can land on the wrong book
+// after series resolution or the verdict pass. Pairing title+author keeps
+// each distinct book addressable. Simple lowercase (no The/An stripping)
+// to match the wire format Obi returns.
+function obiBookKey(title, author) {
+  return `${(title || "").toLowerCase().trim()}|${(author || "").toLowerCase().trim()}`;
 }
 
 // Levenshtein edit distance for short strings.

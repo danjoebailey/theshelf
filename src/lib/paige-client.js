@@ -352,9 +352,16 @@ export async function enrichScannedBooks(scannedBooks) {
 //   2. Substitute with first unread — if Obi picked book #5 of a series but
 //      the reader hasn't read books #1-4, swap to the earliest unread book
 //      so they get the entry point, not a mid-series pick.
-// Returns [{ title, book? }] in original order. `book` is the substituted
+// Accepts picks as [{title, author}, ...] (object form) and returns
+// [{ title, author, book? }] in original order. `book` is the substituted
 // catalog entry when a swap happened — caller can add it to the display pool.
-export async function resolveSeriesPicks(pickTitles, userBooks) {
+// Author-aware so collision titles (e.g. The Stranger by Camus vs Coben)
+// resolve to the right catalog entry.
+//
+// Backward-compat: a pick passed as a bare string falls back to title-only
+// matching against the catalog (silently picks whichever same-title book
+// happens to be indexed first) so any in-flight callers still work.
+export async function resolveSeriesPicks(picks, userBooks) {
   await ensureLoaded();
   // Only Read+DNF count as 'past this book' for substitution purposes —
   // a book on Curious/Currently Reading still represents intent to read,
@@ -378,11 +385,18 @@ export async function resolveSeriesPicks(pickTitles, userBooks) {
 
   const seenSeries = new Set();
   const resolved = [];
-  for (const pickTitle of pickTitles) {
+  for (const pick of picks) {
+    const pickTitle = typeof pick === "string" ? pick : pick.title;
+    const pickAuthor = typeof pick === "string" ? "" : (pick.author || "");
     const normPick = normalize(pickTitle);
-    const book = allBooks.find(b => normalize(b.title) === normPick);
+    const normAuthor = normalize(pickAuthor);
+    // Match by title AND author when author is known; fall back to title-only
+    // for legacy callers passing bare title strings.
+    const book = pickAuthor
+      ? allBooks.find(b => normalize(b.title) === normPick && normalize(b.author || "") === normAuthor)
+      : allBooks.find(b => normalize(b.title) === normPick);
     if (!book?.series?.name) {
-      resolved.push({ title: pickTitle, book: null });
+      resolved.push({ title: pickTitle, author: pickAuthor || (book?.author || ""), book: null });
       continue;
     }
     const seriesKey = book.series.name.toLowerCase();
@@ -397,6 +411,7 @@ export async function resolveSeriesPicks(pickTitles, userBooks) {
       const isFirstInSeries = (firstUnread.series.order || 0) === 1;
       resolved.push({
         title: firstUnread.title,
+        author: firstUnread.author,
         book: {
           title: firstUnread.title,
           author: firstUnread.author,
@@ -410,7 +425,7 @@ export async function resolveSeriesPicks(pickTitles, userBooks) {
         },
       });
     } else {
-      resolved.push({ title: pickTitle, book: null });
+      resolved.push({ title: pickTitle, author: pickAuthor || book.author || "", book: null });
     }
   }
   return resolved;

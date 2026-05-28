@@ -107,12 +107,12 @@ export default async function handler(req, res) {
     const { books, profile, listFingerprint } = req.body;
     if (!Array.isArray(books) || !books.length) return res.status(400).json({ error: "No books" });
 
-    // v4 cache key — bumped during a prompt-tightening experiment that was
-    // reverted after one questionable rec turned out to be too thin a signal
-    // to act on. Leaving v4 in place keeps invalidated cache entries dead,
-    // so the next call recomputes fresh under the (restored) inclusive prompt.
-    // that anchored on 'at most 10' + 'be strict' and missed obvious yeses.
-    const cacheKey = `bulk::v4::${listFingerprint || ""}`;
+    // v5 cache key — bumped when picks shape changed from title strings to
+    // {title, author} objects so the client can disambiguate collision titles
+    // (e.g. The Stranger by Camus vs Coben vs Läckberg). Old v4 entries hold
+    // bare title strings, which would crash the new consumer; bumping
+    // invalidates them so the next call repopulates in the new shape.
+    const cacheKey = `bulk::v5::${listFingerprint || ""}`;
     if (listFingerprint) {
       const cached = await getCached(userId, cacheKey);
       if (cached) {
@@ -122,7 +122,7 @@ export default async function handler(req, res) {
 
     // Without a meaningful profile, just pass through the original order.
     if ((profile || []).length < 3) {
-      return res.json({ picks: books.slice(0, 10).map(b => b.title) });
+      return res.json({ picks: books.slice(0, 10).map(b => ({ title: b.title, author: b.author })) });
     }
 
     const cachedProfile = `You are Obi, a sharp and candid literary companion. Use this reader's library to identify which books from a candidate list they'd most genuinely love.
@@ -154,7 +154,10 @@ Example: [1, 3, 4, 7, 12, 15, 18, 23]`;
       const match = response.match(/\[[\d,\s]+\]/);
       if (!match) throw new Error(`No JSON array in Obi response: ${response.slice(0, 100)}`);
       const indices = JSON.parse(match[0]);
-      const picks = indices.map(i => books[i - 1]?.title).filter(Boolean).slice(0, 25);
+      const picks = indices.map(i => {
+        const b = books[i - 1];
+        return b ? { title: b.title, author: b.author } : null;
+      }).filter(Boolean).slice(0, 25);
       if (listFingerprint) await saveCache(userId, cacheKey, JSON.stringify(picks));
       return res.json({ picks });
     } catch (e) {
