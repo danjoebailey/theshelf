@@ -7513,7 +7513,7 @@ function StatsTab({ books, characterAvatar, viewOnly = false, topBookIds = [], t
     // footer
     ctx.fillStyle = "rgba(245,201,122,0.55)";
     ctx.font = "12px 'Georgia', serif";
-    ctx.fillText("theshelf.vercel.app", PAD, canvasH - 10);
+    ctx.fillText("theshelf.flosartis.com", PAD, canvasH - 10);
 
     canvas.toBlob(blob => {
       const a = document.createElement("a");
