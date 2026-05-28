@@ -3110,7 +3110,13 @@ function PaigeTab({ books, userId, onAddDirect, onBulkAddDirect, onEdit, onAddBo
   useEffect(() => { setPaigePage(1); }, [mode, filterGenre, hideOnShelf]);
   const pageStartIdx = (paigePage - 1) * PAIGE_PAGE_SIZE;
   const pageEndIdx = pageStartIdx + PAIGE_PAGE_SIZE;
-  const currentPageRecs = (recs[mode] || []).slice(pageStartIdx, pageEndIdx);
+  // Cap the visible pool at trueTotal so older saved state with sub-quality
+  // overshoot (e.g. 161 books when trueTotal=125) self-heals on render
+  // instead of waiting for a regenerate.
+  const cappedRecs = typeof totalMatches[mode] === "number"
+    ? (recs[mode] || []).slice(0, totalMatches[mode])
+    : (recs[mode] || []);
+  const currentPageRecs = cappedRecs.slice(pageStartIdx, pageEndIdx);
 
   // Load saved recs from DB on mount
   useEffect(() => {
@@ -3283,8 +3289,11 @@ function PaigeTab({ books, userId, onAddDirect, onBulkAddDirect, onEdit, onAddBo
       const readKeys = new Set(readBooks.map(b => normBookKey(b.title)));
       // Generator returns ~115 with this filter accounted for; trim back to
       // 100 after the article-stripping read-book filter so the displayed
-      // page lands at 100 instead of 95–99.
-      const results = (data.recommendations || []).filter(r => !readKeys.has(normBookKey(r.title))).slice(0, 100);
+      // page lands at 100 instead of 95–99. Also bound by trueTotal so
+      // tiny-library users (e.g. 50 viable matches) don't get padded with
+      // sub-quality picks below the match-quality floor.
+      const trueTotal = typeof data.totalMatches === "number" ? data.totalMatches : Infinity;
+      const results = (data.recommendations || []).filter(r => !readKeys.has(normBookKey(r.title))).slice(0, Math.min(100, trueTotal));
       const res2 = (data.reserve || []).filter(r => !readKeys.has(normBookKey(r.title)));
       setRecs(prev => ({ ...prev, [mode]: results }));
       setReserve(prev => ({ ...prev, [mode]: res2 }));
@@ -3321,9 +3330,12 @@ function PaigeTab({ books, userId, onAddDirect, onBulkAddDirect, onEdit, onAddBo
       const data = await generatePaigeRecs(books, mode, exclude, filterGenre || null, authorLimit, qualifiers);
       const readKeys = new Set(readBooks.map(b => normBookKey(b.title)));
       const seenKeys = new Set(exclude.map(normBookKey));
-      // Same 115→100 trim as generate(): the post-filter strips potential
-      // article-collision duplicates; slice keeps the next-page batch at 100.
-      const newResults = (data.recommendations || []).filter(r => !readKeys.has(normBookKey(r.title)) && !seenKeys.has(normBookKey(r.title))).slice(0, 100);
+      // Same 115→100 trim as generate(), plus cap to (trueTotal − already-
+      // shown) so a small viable pool (e.g. 125) can't grow past itself with
+      // sub-quality picks the scorer returned to fill the slice.
+      const trueTotal = totalMatches[mode];
+      const remaining = typeof trueTotal === "number" ? Math.max(0, trueTotal - existing.length) : 100;
+      const newResults = (data.recommendations || []).filter(r => !readKeys.has(normBookKey(r.title)) && !seenKeys.has(normBookKey(r.title))).slice(0, Math.min(100, remaining));
       const newReserve = (data.reserve || []).filter(r => !readKeys.has(normBookKey(r.title)) && !seenKeys.has(normBookKey(r.title)));
       const combined = [...existing, ...newResults];
       setRecs(prev => ({ ...prev, [mode]: combined }));
@@ -3508,6 +3520,9 @@ function PaigeTab({ books, userId, onAddDirect, onBulkAddDirect, onEdit, onAddBo
             // Obi shows its curated count. Empty when no recs yet.
             const pageRangeStart = pageStartIdx + 1;
             const pageRangeEnd = pageStartIdx + filtered.length;
+            const reachedEnd = typeof trueTotal === "number"
+              ? (pageStartIdx + filtered.length) >= trueTotal
+              : (recs[mode] || []).length <= pageEndIdx;
             const headerLabel = obiPicks
               ? `Obi-curated · ${filtered.length}`
               : (typeof trueTotal === "number" && trueTotal > filtered.length)
@@ -3547,7 +3562,7 @@ function PaigeTab({ books, userId, onAddDirect, onBulkAddDirect, onEdit, onAddBo
               </div>
               {/* Pagination — hidden when Obi-curate is active (curated set
                   isn't paginated; user dismisses Obi with the link above). */}
-              {!obiPicks && (
+              {!obiPicks && (paigePage > 1 || !reachedEnd) && (
                 <div style={{ display:"flex", gap:10, marginTop:16 }}>
                   {paigePage > 1 && (
                     <button onClick={() => { setPaigePage(p => Math.max(1, p - 1)); scrollToTop && scrollToTop(); }} style={{
@@ -3558,25 +3573,27 @@ function PaigeTab({ books, userId, onAddDirect, onBulkAddDirect, onEdit, onAddBo
                       display:"flex", alignItems:"center", justifyContent:"center", gap:8,
                     }}>← Back</button>
                   )}
-                  <button onClick={async () => {
-                    const nextPage = paigePage + 1;
-                    const haveEnough = (recs[mode] || []).length >= nextPage * PAIGE_PAGE_SIZE;
-                    if (!haveEnough) await generateNext();
-                    setPaigePage(nextPage);
-                    scrollToTop && scrollToTop();
-                  }} disabled={nextLoading} style={{
-                    flex:1, padding:"13px 0",
-                    background: nextLoading ? "rgba(138,90,40,0.15)" : `linear-gradient(135deg,${WOOD.amber},#c8883a)`,
-                    border:"none", borderRadius:12, cursor: nextLoading ? "default" : "pointer",
-                    fontFamily:"'DM Sans',sans-serif", fontSize:15, fontWeight:700,
-                    color: nextLoading ? WOOD.textFaint : "#1a0900",
-                    display:"flex", alignItems:"center", justifyContent:"center", gap:8, transition:"all 0.2s",
-                  }}>
-                    {nextLoading
-                      ? <><span style={{ width:16, height:16, border:"2px solid rgba(26,9,0,0.3)", borderTopColor:"#1a0900", borderRadius:"50%", display:"inline-block", animation:"spin 0.7s linear infinite" }} />Loading…</>
-                      : <>Next 100 →</>
-                    }
-                  </button>
+                  {!reachedEnd && (
+                    <button onClick={async () => {
+                      const nextPage = paigePage + 1;
+                      const haveEnough = (recs[mode] || []).length >= nextPage * PAIGE_PAGE_SIZE;
+                      if (!haveEnough) await generateNext();
+                      setPaigePage(nextPage);
+                      scrollToTop && scrollToTop();
+                    }} disabled={nextLoading} style={{
+                      flex:1, padding:"13px 0",
+                      background: nextLoading ? "rgba(138,90,40,0.15)" : `linear-gradient(135deg,${WOOD.amber},#c8883a)`,
+                      border:"none", borderRadius:12, cursor: nextLoading ? "default" : "pointer",
+                      fontFamily:"'DM Sans',sans-serif", fontSize:15, fontWeight:700,
+                      color: nextLoading ? WOOD.textFaint : "#1a0900",
+                      display:"flex", alignItems:"center", justifyContent:"center", gap:8, transition:"all 0.2s",
+                    }}>
+                      {nextLoading
+                        ? <><span style={{ width:16, height:16, border:"2px solid rgba(26,9,0,0.3)", borderTopColor:"#1a0900", borderRadius:"50%", display:"inline-block", animation:"spin 0.7s linear infinite" }} />Loading…</>
+                        : <>Next 100 →</>
+                      }
+                    </button>
+                  )}
                 </div>
               )}
             </div>
