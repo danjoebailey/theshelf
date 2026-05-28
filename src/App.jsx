@@ -2628,7 +2628,7 @@ function RecCard({ rec, coverUrl, ownedBook, onAddDirect, onEdit, onAddBook, ind
         style={{ padding: "14px 16px", cursor: "pointer" }}>
         <div style={{ display: "flex", gap: 12, alignItems: "stretch" }}>
           <div style={{ height: 80, width: 53, borderRadius: 4, flexShrink: 0, position: "relative", background: GENRE_COLORS[rec.genre] || GENRE_COLORS["Other"], boxShadow: "2px 2px 8px rgba(0,0,0,0.35)" }}>
-            {coverUrl && <img src={coverUrl} alt={rec.title} style={{ position:"absolute", inset:0, height:80, width:53, objectFit:"cover", borderRadius:4, boxShadow:"2px 2px 8px rgba(0,0,0,0.35)" }} onError={e => { e.target.style.display = "none"; }} />}
+            {coverUrl && <img src={coverUrl} alt={rec.title} loading="lazy" style={{ position:"absolute", inset:0, height:80, width:53, objectFit:"cover", borderRadius:4, boxShadow:"2px 2px 8px rgba(0,0,0,0.35)" }} onError={e => { e.target.style.display = "none"; }} />}
           </div>
           <div style={{ flex: 1, minWidth: 0, display:"flex", flexDirection:"column", justifyContent:"space-between" }}>
             <div>
@@ -3125,7 +3125,9 @@ function PaigeTab({ books, userId, onAddDirect, onBulkAddDirect, onEdit, onAddBo
   useEffect(() => { setObiPicks(null); setObiSubstitutions([]); }, [mode]);
 
   async function curateWithObi() {
-    const all = [...(recs[mode] || []), ...(reserve[mode] || [])].slice(0, 100);
+    // Pull the current page (last 100) so Obi judges what the reader is
+    // looking at right now, not page 1 if they've already paged forward.
+    const all = [...(recs[mode] || []), ...(reserve[mode] || [])].slice(-100);
     if (all.length === 0) return;
     if (!userId || userId === "guest") {
       const used = parseInt(localStorage.getItem(GUEST_PAIGE_OBI_KEY) || "0");
@@ -3282,10 +3284,11 @@ function PaigeTab({ books, userId, onAddDirect, onBulkAddDirect, onEdit, onAddBo
     const currentReserve = reserve[mode] || [];
     setNextLoading(true); setError(null);
 
-    // Drain reserve first
+    // Drain reserve first (legacy cached reserves from before the 100-per-page
+    // bump can still drain here; new generations leave reserve empty).
     if (currentReserve.length > 0) {
-      const nextBatch = currentReserve.slice(0, 10);
-      const remainingReserve = currentReserve.slice(10);
+      const nextBatch = currentReserve.slice(0, 100);
+      const remainingReserve = currentReserve.slice(100);
       const combined = [...existing, ...nextBatch];
       setRecs(prev => ({ ...prev, [mode]: combined }));
       setReserve(prev => ({ ...prev, [mode]: remainingReserve }));
@@ -3512,7 +3515,7 @@ function PaigeTab({ books, userId, onAddDirect, onBulkAddDirect, onEdit, onAddBo
               }}>
                 {nextLoading
                   ? <><span style={{ width:16, height:16, border:"2px solid rgba(26,9,0,0.3)", borderTopColor:"#1a0900", borderRadius:"50%", display:"inline-block", animation:"spin 0.7s linear infinite" }} />Loading…</>
-                  : <>Next 10 →</>
+                  : <>Next 100 →</>
                 }
               </button>
             </div>
@@ -4562,7 +4565,7 @@ function BrowseTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAddDir
     setLoading(true);
     setObiPicks(null); setObiSubstitutions([]); setCurrentSort("random");
     try {
-      const data = await browseCatalog(books, { genre: filterGenre, qualifiers, sort: "random", offset: 0, limit: 30 });
+      const data = await browseCatalog(books, { genre: filterGenre, qualifiers, sort: "random", offset: 0, limit: 100 });
       setItems(data.items);
       setTotal(data.total);
       setHasMore(data.hasMore);
@@ -4593,7 +4596,7 @@ function BrowseTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAddDir
     if (reset) { setObiPicks(null); setObiSubstitutions([]); setCurrentSort("tier"); }
     try {
       const offset = reset ? 0 : items.length;
-      const data = await browseCatalog(books, { genre: filterGenre, qualifiers, sort: "tier", offset, limit: 30 });
+      const data = await browseCatalog(books, { genre: filterGenre, qualifiers, sort: "tier", offset, limit: 100 });
       const next = reset ? data.items : [...items, ...data.items];
       setItems(next);
       setTotal(data.total);
@@ -4620,9 +4623,10 @@ function BrowseTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAddDir
     setLoading(false);
   }
 
-  // Obi-curate: fetch up to 100 books from the catalog with current filters
-  // (regardless of how many are paginated visibly), send to bulk_filter, apply
-  // series resolution, narrow displayed results to the picks.
+  // Obi-curate: judge the current page (last 100 displayed items) so what the
+  // reader sees IS Obi's input pool. Avoids the prior re-fetch which silently
+  // re-rolled a different random sample under Randomize, and means paging
+  // forward then asking Obi curates *this* page, not page 1.
   async function curateWithObi() {
     if (!userId || userId === "guest") {
       const used = parseInt(localStorage.getItem(GUEST_BROWSE_OBI_KEY) || "0");
@@ -4631,11 +4635,7 @@ function BrowseTab({ books, userId, onEdit, onAddBook, onAddDirect, onBulkAddDir
     }
     setObiCurateLoading(true);
     try {
-      // Match Obi's pool to whatever sort the user is currently viewing —
-      // tier-sort gives Obi the acclaimed top 100; Randomize gives Obi a
-      // random sample so it can surface hidden-gem picks from across the
-      // long tail rather than always favoring tier-1.
-      const pool = await browseCatalog(books, { genre: filterGenre, qualifiers, sort: currentSort, offset: 0, limit: 100 });
+      const pool = { items: items.slice(-100) };
       if (!pool.items?.length) { setObiCurateLoading(false); return; }
       const fingerprint = pool.items.map(b => `${b.title}|${b.author}`).join("\n");
       let hash = 0;

@@ -617,12 +617,12 @@ export async function generatePaigeRecs(userBooks, mode, exclude = [], genre = n
     });
   })() : scored;
 
-  const top = capped.slice(0, 10);
-  // Reserve carries 90 books (rounding to a 100-book pool) so the bulk Obi
-  // curate has plenty to work with on the very first generation. Display
-  // still shows the top 10 with "Next 10" pagination — reserve is just a
-  // bigger buffer behind the scenes. Costs nothing (client-side scoring).
-  const reservePool = capped.slice(10, 100);
+  // Display the full 100-book pool on one page so what the reader sees IS
+  // what bulk Obi curates against — no hidden mismatch between visible recs
+  // and Obi's input. Reserve is left empty; "Next 100" generates fresh with
+  // exclusions.
+  const top = capped.slice(0, 100);
+  const reservePool = [];
 
   const recommendations = top.map(({ book, score, tagEntry }) => ({
     title: book.title,
