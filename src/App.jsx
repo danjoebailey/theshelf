@@ -4964,6 +4964,7 @@ function RecommendPage({ books, userId, onAddDirect, onBulkAddDirect, onAuthor, 
                   onTouchEnd={e => { e.preventDefault(); if (!touchMovedRef.current) setCharacter(c.key); }}
                   onClick={() => setCharacter(c.key)}
                   style={{
+                  position:"relative",
                   display:"flex", flexDirection:"column", alignItems:"center", gap:6,
                   background:"transparent", border:"none", cursor:"pointer",
                   paddingBottom:4, transition:"all 0.15s",
@@ -4972,6 +4973,7 @@ function RecommendPage({ books, userId, onAddDirect, onBulkAddDirect, onAuthor, 
                 }}>
                   <img src={c.img} alt={c.label} style={{ width:100, height:100, objectFit:"contain", objectPosition: c.key === "browse" ? "bottom" : "center" }} />
                   <span style={{
+                    display:"inline-block", position:"relative",
                     fontFamily:"'Crimson Pro',serif", fontSize:11,
                     fontWeight: character===c.key ? 700 : 600,
                     letterSpacing:"0.04em", textTransform:"uppercase",
@@ -4981,7 +4983,20 @@ function RecommendPage({ books, userId, onAddDirect, onBulkAddDirect, onAuthor, 
                     background:"linear-gradient(180deg, #dcc09a 0%, #cba978 48%, #b58f5e 100%)",
                     boxShadow:"inset 0 0 0 1px rgba(110,72,36,0.55), inset 0 1px 1px rgba(255,246,224,0.55), inset 0 -1px 2px rgba(74,46,18,0.45), 0 2px 3px rgba(0,0,0,0.4)",
                     textShadow:"0 1px 0 rgba(255,246,224,0.45)",
-                  }}>{c.label}</span>
+                  }}>
+                    {c.label}
+                    {character===c.key && (
+                      <span style={{
+                        position:"absolute",
+                        left:0, right:0,
+                        bottom:-6,
+                        height:2,
+                        background:"#fff",
+                        borderRadius:1,
+                        boxShadow:"0 0 6px rgba(255,255,255,0.65)",
+                      }} />
+                    )}
+                  </span>
                 </button>
               ))}
             </div>
