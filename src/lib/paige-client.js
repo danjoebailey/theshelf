@@ -632,11 +632,13 @@ export async function generatePaigeRecs(userBooks, mode, exclude = [], genre = n
     });
   })() : scored;
 
-  // Display the full 100-book pool on one page so what the reader sees IS
-  // what bulk Obi curates against — no hidden mismatch between visible recs
-  // and Obi's input. Reserve is left empty; "Next 100" generates fresh with
-  // exclusions.
-  const top = capped.slice(0, 100);
+  // Display target is 100 on one page so what the reader sees IS what bulk
+  // Obi curates against — no hidden mismatch between visible recs and Obi's
+  // input. Oversize the pool slightly (115) so the consumer's secondary
+  // read-book filter (normBookKey, which strips The/An/A) can trim 1–5
+  // potential duplicates and still leave 100. Consumer slices back to 100.
+  // Reserve is left empty; "Next 100" generates fresh with exclusions.
+  const top = capped.slice(0, 115);
   const reservePool = [];
 
   const recommendations = top.map(({ book, score, tagEntry }) => ({

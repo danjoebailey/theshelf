@@ -3058,7 +3058,7 @@ function AutoFitText({ text, maxFont = 13, minFont = 9, step = 0.5 }) {
   return <span ref={ref} style={{ display:"block", whiteSpace:"nowrap", overflow:"hidden", width:"100%", textAlign:"center" }}>{text}</span>;
 }
 
-function PaigeTab({ books, userId, onAddDirect, onBulkAddDirect, onEdit, onAddBook }) {
+function PaigeTab({ books, userId, onAddDirect, onBulkAddDirect, onEdit, onAddBook, scrollToTop }) {
   const [mode, setMode] = useState("popular");
   const [loading, setLoading] = useState(false);
   const [recs, setRecs] = useState({});       // { [mode]: [...items] }
@@ -3101,6 +3101,16 @@ function PaigeTab({ books, userId, onAddDirect, onBulkAddDirect, onEdit, onAddBo
   const hasBooks = readBooks.length > 0;
   const currentRecs = recs[mode] || null;
   const currentCovers = covers[mode] || {};
+  // True pagination — page replaces what's visible instead of appending. The
+  // generated rec pool (recs[mode]) keeps growing as the user advances pages
+  // so going back to an earlier page doesn't refetch. Reset on mode change
+  // and on filter changes so the page index can't point into stale data.
+  const PAIGE_PAGE_SIZE = 100;
+  const [paigePage, setPaigePage] = useState(1);
+  useEffect(() => { setPaigePage(1); }, [mode, filterGenre, hideOnShelf]);
+  const pageStartIdx = (paigePage - 1) * PAIGE_PAGE_SIZE;
+  const pageEndIdx = pageStartIdx + PAIGE_PAGE_SIZE;
+  const currentPageRecs = (recs[mode] || []).slice(pageStartIdx, pageEndIdx);
 
   // Load saved recs from DB on mount
   useEffect(() => {
@@ -3125,9 +3135,9 @@ function PaigeTab({ books, userId, onAddDirect, onBulkAddDirect, onEdit, onAddBo
   useEffect(() => { setObiPicks(null); setObiSubstitutions([]); }, [mode]);
 
   async function curateWithObi() {
-    // Pull the current page (last 100) so Obi judges what the reader is
-    // looking at right now, not page 1 if they've already paged forward.
-    const all = [...(recs[mode] || []), ...(reserve[mode] || [])].slice(-100);
+    // Pull the books on the page the reader is currently viewing so Obi
+    // judges exactly what's on screen — works for page 1 and any later page.
+    const all = currentPageRecs;
     if (all.length === 0) return;
     if (!userId || userId === "guest") {
       const used = parseInt(localStorage.getItem(GUEST_PAIGE_OBI_KEY) || "0");
@@ -3263,6 +3273,7 @@ function PaigeTab({ books, userId, onAddDirect, onBulkAddDirect, onEdit, onAddBo
     if (!readBooks.length) return;
     setLoading(true); setError(null);
     setObiPicks(null); setObiSubstitutions([]);  // new list invalidates Obi's previous curation
+    setPaigePage(1);  // fresh list always starts on page 1
     setRecs(prev => ({ ...prev, [mode]: null }));
     setReserve(prev => ({ ...prev, [mode]: [] }));
     setCovers(prev => ({ ...prev, [mode]: {} }));
@@ -3270,7 +3281,10 @@ function PaigeTab({ books, userId, onAddDirect, onBulkAddDirect, onEdit, onAddBo
       const data = await generatePaigeRecs(books, mode, [], filterGenre || null, authorLimit, qualifiers);
       if (typeof data.totalMatches === "number") setTotalMatches(prev => ({ ...prev, [mode]: data.totalMatches }));
       const readKeys = new Set(readBooks.map(b => normBookKey(b.title)));
-      const results = (data.recommendations || []).filter(r => !readKeys.has(normBookKey(r.title)));
+      // Generator returns ~115 with this filter accounted for; trim back to
+      // 100 after the article-stripping read-book filter so the displayed
+      // page lands at 100 instead of 95–99.
+      const results = (data.recommendations || []).filter(r => !readKeys.has(normBookKey(r.title))).slice(0, 100);
       const res2 = (data.reserve || []).filter(r => !readKeys.has(normBookKey(r.title)));
       setRecs(prev => ({ ...prev, [mode]: results }));
       setReserve(prev => ({ ...prev, [mode]: res2 }));
@@ -3307,7 +3321,9 @@ function PaigeTab({ books, userId, onAddDirect, onBulkAddDirect, onEdit, onAddBo
       const data = await generatePaigeRecs(books, mode, exclude, filterGenre || null, authorLimit, qualifiers);
       const readKeys = new Set(readBooks.map(b => normBookKey(b.title)));
       const seenKeys = new Set(exclude.map(normBookKey));
-      const newResults = (data.recommendations || []).filter(r => !readKeys.has(normBookKey(r.title)) && !seenKeys.has(normBookKey(r.title)));
+      // Same 115→100 trim as generate(): the post-filter strips potential
+      // article-collision duplicates; slice keeps the next-page batch at 100.
+      const newResults = (data.recommendations || []).filter(r => !readKeys.has(normBookKey(r.title)) && !seenKeys.has(normBookKey(r.title))).slice(0, 100);
       const newReserve = (data.reserve || []).filter(r => !readKeys.has(normBookKey(r.title)) && !seenKeys.has(normBookKey(r.title)));
       const combined = [...existing, ...newResults];
       setRecs(prev => ({ ...prev, [mode]: combined }));
@@ -3464,13 +3480,14 @@ function PaigeTab({ books, userId, onAddDirect, onBulkAddDirect, onEdit, onAddBo
 
           {/* Results */}
           {currentRecs && currentRecs.length > 0 && (() => {
-            // When Obi-curate is active, look across recs+reserve+substitutions
-            // since Obi may have promoted reserve books into the picks AND
-            // series resolution may have substituted in entry-point books that
-            // weren't in Paige's display pool.
+            // Default browsing paginates by 100 (true pagination — page N
+            // replaces page N-1). Obi-curate ignores pagination and shows
+            // every pick across recs+reserve+substitutions since Obi may
+            // have promoted reserve books and series resolution may have
+            // substituted in entry-point books outside the visible page.
             const sourcePool = obiPicks
               ? [...currentRecs, ...(reserve[mode] || []), ...obiSubstitutions]
-              : currentRecs;
+              : currentPageRecs;
             // Key dedup by title+author — different books share titles in the
             // catalog (243 collisions: e.g. "The Stranger" by Camus, Coben,
             // Läckberg), so title-only dedup silently dropped legitimate picks.
@@ -3484,15 +3501,33 @@ function PaigeTab({ books, userId, onAddDirect, onBulkAddDirect, onEdit, onAddBo
               ? baseFiltered.filter(r => obiPicks.has(obiBookKey(r.title, r.author)))
               : baseFiltered;
             const trueTotal = totalMatches[mode];
+            // Count renders inside a torn-paper note (same image as the
+            // tagline above) so the scope is visible without competing with
+            // the Ask Obi button next to it. Default state shows the page
+            // range against the total pool (e.g. "101–200 of 4961 books"),
+            // Obi shows its curated count. Empty when no recs yet.
+            const pageRangeStart = pageStartIdx + 1;
+            const pageRangeEnd = pageStartIdx + filtered.length;
             const headerLabel = obiPicks
               ? `Obi-curated · ${filtered.length}`
               : (typeof trueTotal === "number" && trueTotal > filtered.length)
-                ? `My List · ${filtered.length} of ${trueTotal}`
-                : `My List · ${filtered.length}`;
+                ? `${pageRangeStart}–${pageRangeEnd} of ${trueTotal} books`
+                : filtered.length > 0 ? `${filtered.length} books` : "";
             return (
             <div style={{ padding:"0 18px" }}>
               <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:12, gap:8, flexWrap:"wrap" }}>
-                <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:10, fontWeight:700, color:"rgba(255,255,255,0.6)", textTransform:"uppercase", letterSpacing:"0.1em" }}>{headerLabel}</p>
+                {headerLabel
+                  ? <div style={{ position:"relative", flexShrink:0, filter:"drop-shadow(0 2px 4px rgba(0,0,0,0.3))" }}>
+                      <img src="/torn-paper.png" alt="" aria-hidden="true" style={{ height:36, width:"auto", display:"block" }} />
+                      <p style={{
+                        position:"absolute", inset:0, margin:0,
+                        display:"flex", alignItems:"center", justifyContent:"center",
+                        textAlign:"center", padding:"0 14%",
+                        color:"#2e2010", fontFamily:"'Caveat',cursive",
+                        fontSize:16, fontWeight:600, lineHeight:1.1, whiteSpace:"nowrap",
+                      }}>{headerLabel}</p>
+                    </div>
+                  : <span />}
                 {obiPicks
                   ? <button onClick={() => setObiPicks(null)} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(255,235,195,0.7)", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, textDecoration:"underline" }}>Show Paige's full list</button>
                   : baseFiltered.length >= 10 && <button onClick={curateWithObi} disabled={obiCurateLoading} style={{ display:"flex", alignItems:"center", gap:5, background:"rgba(15,8,2,0.55)", color:"#fff", border:"1px solid rgba(120,70,20,0.3)", borderRadius:14, padding:"4px 10px", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, cursor: obiCurateLoading ? "default" : "pointer", backdropFilter:"blur(4px)" }}>
@@ -3510,20 +3545,40 @@ function PaigeTab({ books, userId, onAddDirect, onBulkAddDirect, onEdit, onAddBo
                   <RecCard key={i} index={i} rec={rec} coverUrl={currentCovers[rec.title] || null} ownedBook={findOwnedBook(rec, books)} onAddDirect={onAddDirect} onEdit={onEdit} onAddBook={onAddBook} userId={userId} libraryProfile={profile} />
                 ))}
               </div>
-              {/* Next 10 */}
-              <button onClick={generateNext} disabled={nextLoading} style={{
-                width:"100%", marginTop:16, padding:"13px 0",
-                background: nextLoading ? "rgba(138,90,40,0.15)" : `linear-gradient(135deg,${WOOD.amber},#c8883a)`,
-                border:"none", borderRadius:12, cursor: nextLoading ? "default" : "pointer",
-                fontFamily:"'DM Sans',sans-serif", fontSize:15, fontWeight:700,
-                color: nextLoading ? WOOD.textFaint : "#1a0900",
-                display:"flex", alignItems:"center", justifyContent:"center", gap:8, transition:"all 0.2s",
-              }}>
-                {nextLoading
-                  ? <><span style={{ width:16, height:16, border:"2px solid rgba(26,9,0,0.3)", borderTopColor:"#1a0900", borderRadius:"50%", display:"inline-block", animation:"spin 0.7s linear infinite" }} />Loading…</>
-                  : <>Next 100 →</>
-                }
-              </button>
+              {/* Pagination — hidden when Obi-curate is active (curated set
+                  isn't paginated; user dismisses Obi with the link above). */}
+              {!obiPicks && (
+                <div style={{ display:"flex", gap:10, marginTop:16 }}>
+                  {paigePage > 1 && (
+                    <button onClick={() => { setPaigePage(p => Math.max(1, p - 1)); scrollToTop && scrollToTop(); }} style={{
+                      flex:"0 1 auto", padding:"13px 20px",
+                      background:"rgba(138,90,40,0.18)", border:"1px solid rgba(138,90,40,0.4)", borderRadius:12, cursor:"pointer",
+                      fontFamily:"'DM Sans',sans-serif", fontSize:15, fontWeight:600,
+                      color:"rgba(255,235,195,0.85)",
+                      display:"flex", alignItems:"center", justifyContent:"center", gap:8,
+                    }}>← Back</button>
+                  )}
+                  <button onClick={async () => {
+                    const nextPage = paigePage + 1;
+                    const haveEnough = (recs[mode] || []).length >= nextPage * PAIGE_PAGE_SIZE;
+                    if (!haveEnough) await generateNext();
+                    setPaigePage(nextPage);
+                    scrollToTop && scrollToTop();
+                  }} disabled={nextLoading} style={{
+                    flex:1, padding:"13px 0",
+                    background: nextLoading ? "rgba(138,90,40,0.15)" : `linear-gradient(135deg,${WOOD.amber},#c8883a)`,
+                    border:"none", borderRadius:12, cursor: nextLoading ? "default" : "pointer",
+                    fontFamily:"'DM Sans',sans-serif", fontSize:15, fontWeight:700,
+                    color: nextLoading ? WOOD.textFaint : "#1a0900",
+                    display:"flex", alignItems:"center", justifyContent:"center", gap:8, transition:"all 0.2s",
+                  }}>
+                    {nextLoading
+                      ? <><span style={{ width:16, height:16, border:"2px solid rgba(26,9,0,0.3)", borderTopColor:"#1a0900", borderRadius:"50%", display:"inline-block", animation:"spin 0.7s linear infinite" }} />Loading…</>
+                      : <>Next 100 →</>
+                    }
+                  </button>
+                </div>
+              )}
             </div>
             );
           })()}
@@ -5042,7 +5097,7 @@ function RecommendPage({ books, userId, onAddDirect, onBulkAddDirect, onAuthor, 
            onScroll={e => setAtTop(e.currentTarget.scrollTop < 8)}
            style={{ flex:1, overflowY:"auto", overflowX:"hidden" }}>
         {character === "paige"
-          ? <PaigeTab books={books} userId={userId} onAddDirect={onAddDirectTagged} onBulkAddDirect={onBulkAddDirectTagged} onEdit={onEdit} onAddBook={onAddBook} />
+          ? <PaigeTab books={books} userId={userId} onAddDirect={onAddDirectTagged} onBulkAddDirect={onBulkAddDirectTagged} onEdit={onEdit} onAddBook={onAddBook} scrollToTop={() => contentRef.current?.scrollTo({ top: 0, behavior: "smooth" })} />
           : character === "reiko"
           ? <ReikoTab books={books} userId={userId} onAddDirect={onAddDirectTagged} onAuthor={onAuthor} onEdit={onEdit} onAddBook={onAddBook} />
           : character === "reed"
