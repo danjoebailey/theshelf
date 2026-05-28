@@ -11599,8 +11599,12 @@ export default function App() {
                     date: todayLocal(),
                     ...(shelf === "Reading" ? { dateStarted: todayLocal() } : {}),
                   };
-                  setBooks(prev => prev.some(b => normBookKey(b.title) === normBookKey(newBook.title)) ? prev : [...prev, newBook]);
-                  if (!guestMode) dbAddBook(newBook, userId);
+                  const alreadyOwned = books.some(b => normBookKey(b.title) === normBookKey(newBook.title));
+                  setBooks(prev => alreadyOwned ? prev : [...prev, newBook]);
+                  if (!alreadyOwned) {
+                    if (!guestMode) dbAddBook(newBook, userId);
+                    track("book_added", { shelf: newBook.shelf, genre: newBook.genre, source: addBookDraft._source || (addBookDraft._fromRecs ? "draft_modal" : "manual") });
+                  }
                   setAddBookDraft(null);
                   setEditBook(newBook);
                 }}
