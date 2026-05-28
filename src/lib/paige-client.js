@@ -340,6 +340,7 @@ export async function enrichScannedBooks(scannedBooks) {
       author: hasAuthor ? scanned.author : match.author,
       genre: scanned.genre || match.genre,
       series: scanned.series || match.series || null,
+      pages: scanned.pages || match.pageCount || 0,
       _inCatalog: true,
     };
   });

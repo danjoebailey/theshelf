@@ -11200,6 +11200,25 @@ export default function App() {
               updates.forEach(u => dbUpdateBook(u, userId));
             }
           }
+          // Backfill missing page counts from the static catalog. Shelf scans
+          // historically didn't carry pageCount through enrichment, so older
+          // scanned books all sit at pages: 0 even when the catalog has them.
+          {
+            await _staticReady;
+            const updates = [];
+            loadedBooks.forEach(book => {
+              if (book.pages && book.pages > 0) return;
+              const meta = staticBookMeta(book.title, book.author);
+              if (meta?.pages > 0) updates.push({ ...book, pages: meta.pages });
+            });
+            if (updates.length > 0) {
+              setBooks(prev => prev.map(b => {
+                const u = updates.find(u => u.id === b.id);
+                return u ? { ...b, pages: u.pages } : b;
+              }));
+              updates.forEach(u => dbUpdateBook(u, userId));
+            }
+          }
           // Silently fetch covers for books that don't have one
           const missing = loadedBooks.filter(b => !b.coverUrl);
           for (let i = 0; i < missing.length; i += 4) {
