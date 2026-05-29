@@ -10432,18 +10432,16 @@ function AboutModal({ onClose }) {
           to digitize it. Built with care, not algorithms.
         </p>
 
-        <a href="/privacy.html" target="_blank" rel="noopener" style={rowStyle}>
-          <span>Privacy Policy</span>
-          <span style={{ color:WOOD.textFaint, fontSize:16 }}>↗</span>
-        </a>
-        <a href="/terms.html" target="_blank" rel="noopener" style={rowStyle}>
-          <span>Terms of Service</span>
-          <span style={{ color:WOOD.textFaint, fontSize:16 }}>↗</span>
-        </a>
         <a href="mailto:flosartiscreative@gmail.com" style={rowStyle}>
           <span>Contact</span>
           <span style={{ color:WOOD.textFaint, fontSize:12, fontFamily:"'DM Sans',sans-serif" }}>flosartiscreative@gmail.com</span>
         </a>
+
+        <div style={{ marginTop:18, textAlign:"center" }}>
+          <a href="/privacy.html" target="_blank" rel="noopener" style={{ color:WOOD.textFaint, fontSize:12, fontFamily:"'DM Sans',sans-serif", textDecoration:"none" }}>Privacy Policy</a>
+          <span style={{ color:WOOD.textFaint, fontSize:12, margin:"0 8px" }}>·</span>
+          <a href="/terms.html" target="_blank" rel="noopener" style={{ color:WOOD.textFaint, fontSize:12, fontFamily:"'DM Sans',sans-serif", textDecoration:"none" }}>Terms of Service</a>
+        </div>
       </div>
     </div>
   );
