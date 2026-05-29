@@ -3609,11 +3609,16 @@ function PaigeTab({ books, userId, onAddDirect, onBulkAddDirect, onEdit, onAddBo
                   : <span />}
                 {obiPicks
                   ? <button onClick={() => setObiPicks(null)} style={{ background:"none", border:"none", cursor:"pointer", color:"rgba(255,235,195,0.7)", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, textDecoration:"underline" }}>Show Paige's full list</button>
-                  : baseFiltered.length >= 10 && <button onClick={curateWithObi} disabled={obiCurateLoading} style={{ display:"flex", alignItems:"center", gap:5, background:"rgba(15,8,2,0.55)", color:"#fff", border:"1px solid rgba(120,70,20,0.3)", borderRadius:14, padding:"4px 10px", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, cursor: obiCurateLoading ? "default" : "pointer", backdropFilter:"blur(4px)" }}>
-                      {obiCurateLoading
-                        ? <><span style={{ width:10, height:10, border:"1.5px solid rgba(255,255,255,0.3)", borderTopColor:"#fff", borderRadius:"50%", display:"inline-block", animation:"spin 0.7s linear infinite" }} />Obi…</>
-                        : <>Ask Obi</>}
-                    </button>
+                  : baseFiltered.length >= 10 && (
+                      <div style={{ display:"flex", alignItems:"center", gap:6 }}>
+                        <img src="/little-obi.png" alt="" aria-hidden="true" style={{ height:26, width:"auto", display:"block", filter:"drop-shadow(0 1px 2px rgba(0,0,0,0.35))" }} />
+                        <button onClick={curateWithObi} disabled={obiCurateLoading} style={{ display:"flex", alignItems:"center", gap:5, background:"rgba(15,8,2,0.55)", color:"#fff", border:"1px solid rgba(120,70,20,0.3)", borderRadius:14, padding:"4px 10px", fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:500, cursor: obiCurateLoading ? "default" : "pointer", backdropFilter:"blur(4px)" }}>
+                          {obiCurateLoading
+                            ? <><span style={{ width:10, height:10, border:"1.5px solid rgba(255,255,255,0.3)", borderTopColor:"#fff", borderRadius:"50%", display:"inline-block", animation:"spin 0.7s linear infinite" }} />Obi…</>
+                            : <>Ask Obi</>}
+                        </button>
+                      </div>
+                    )
                 }
               </div>
               {obiPicks && filtered.length === 0 && (
