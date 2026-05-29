@@ -8020,11 +8020,11 @@ function StatsTab({ books, characterAvatar, viewOnly = false, topBookIds = [], t
               </div>
               {!viewOnly && (
                 <div style={{ textAlign:"right", marginTop:4 }}>
-                  <button {...tc(()=>setShowBooksPicker(true))} style={{
-                    background:"transparent", border:"none",
-                    color:WOOD.amber, fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600,
-                    cursor:"pointer", textTransform:"uppercase", letterSpacing:"0.08em",
-                  }}>Edit</button>
+                  <button {...tc(()=>setShowBooksPicker(true))} aria-label="Edit" style={{
+                    background:"#fff", border:"none", borderRadius:"50%", width:20, height:20, padding:0,
+                    display:"inline-flex", alignItems:"center", justifyContent:"center",
+                    color:WOOD.text, cursor:"pointer",
+                  }}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></button>
                 </div>
               )}
             </div>
@@ -8081,25 +8081,28 @@ function StatsTab({ books, characterAvatar, viewOnly = false, topBookIds = [], t
                   }}>{author}</div>
                 );
                 return (
-                  <div style={{ display:"flex", flexDirection:"column", gap:5, alignItems:"center" }}>
-                    <div style={{ display:"flex", gap:5, justifyContent:"center", width:"100%" }}>
-                      {pickedAuthors.slice(0,2).map(box)}
-                    </div>
-                    {pickedAuthors.length > 2 && (
+                  <div style={{ position:"relative", marginLeft:-16, marginRight:-16 }}>
+                    <div style={{ display:"flex", flexDirection:"column", gap:5, alignItems:"center", padding:"0 16px 12px" }}>
                       <div style={{ display:"flex", gap:5, justifyContent:"center", width:"100%" }}>
-                        {pickedAuthors.slice(2,5).map(box)}
+                        {pickedAuthors.slice(0,2).map(box)}
                       </div>
-                    )}
+                      {pickedAuthors.length > 2 && (
+                        <div style={{ display:"flex", gap:5, justifyContent:"center", width:"100%" }}>
+                          {pickedAuthors.slice(2,5).map(box)}
+                        </div>
+                      )}
+                    </div>
+                    <ShelfEdge height={12} style={{ position:"absolute", left:0, right:0, bottom:0 }} />
                   </div>
                 );
               })()}
               {!viewOnly && (
                 <div style={{ textAlign:"right", marginTop:6 }}>
-                  <button {...tc(()=>setShowAuthorsPicker(true))} style={{
-                    background:"transparent", border:"none",
-                    color:WOOD.amber, fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600,
-                    cursor:"pointer", textTransform:"uppercase", letterSpacing:"0.08em",
-                  }}>Edit</button>
+                  <button {...tc(()=>setShowAuthorsPicker(true))} aria-label="Edit" style={{
+                    background:"#fff", border:"none", borderRadius:"50%", width:20, height:20, padding:0,
+                    display:"inline-flex", alignItems:"center", justifyContent:"center",
+                    color:WOOD.text, cursor:"pointer",
+                  }}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></button>
                 </div>
               )}
             </div>
