@@ -8065,21 +8065,34 @@ function StatsTab({ books, characterAvatar, viewOnly = false, topBookIds = [], t
             </div>
           ) : (
             <div>
-              {/* Five equal boxed cells in a single row. Names wrap inside
-                  each box; the 5-column track keeps widths uniform whether
-                  fewer than five are picked. */}
-              <div style={{ display:"grid", gridTemplateColumns:"repeat(5, 1fr)", gap:5 }}>
-                {pickedAuthors.map(author => (
+              {/* 2 over 3: two boxes centered on top, three below. Every box
+                  is one bottom-row cell wide (≈⅓ of the row) so all five match
+                  — roughly double the old 5-across width. */}
+              {(() => {
+                const box = author => (
                   <div key={author} style={{
+                    width:"calc((100% - 10px) / 3)", flex:"0 0 auto", boxSizing:"border-box",
                     background:"rgba(255,235,195,0.85)", borderRadius:10,
-                    padding:"8px 4px", minHeight:46,
+                    padding:"9px 6px", minHeight:50,
                     border:`1px solid rgba(160,100,40,0.3)`,
                     display:"flex", alignItems:"center", justifyContent:"center", textAlign:"center",
-                    fontSize:10.5, lineHeight:1.2, color:WOOD.text, fontFamily:"'DM Sans',sans-serif", fontWeight:600,
-                    wordBreak:"break-word", hyphens:"auto",
+                    fontSize:12.5, lineHeight:1.25, color:WOOD.text, fontFamily:"'DM Sans',sans-serif", fontWeight:600,
+                    wordBreak:"break-word",
                   }}>{author}</div>
-                ))}
-              </div>
+                );
+                return (
+                  <div style={{ display:"flex", flexDirection:"column", gap:5, alignItems:"center" }}>
+                    <div style={{ display:"flex", gap:5, justifyContent:"center", width:"100%" }}>
+                      {pickedAuthors.slice(0,2).map(box)}
+                    </div>
+                    {pickedAuthors.length > 2 && (
+                      <div style={{ display:"flex", gap:5, justifyContent:"center", width:"100%" }}>
+                        {pickedAuthors.slice(2,5).map(box)}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
               {!viewOnly && (
                 <div style={{ textAlign:"right", marginTop:6 }}>
                   <button {...tc(()=>setShowAuthorsPicker(true))} style={{
