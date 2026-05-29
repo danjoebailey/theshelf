@@ -4974,14 +4974,14 @@ function RecommendPage({ books, userId, onAddDirect, onBulkAddDirect, onAuthor, 
   const touchMovedRef = useRef(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
-  const [atTop, setAtTop] = useState(true);
 
   // Consume the one-shot deep-link character (set when a Shelf onboarding card
   // jumps straight here) so a later normal Discover visit starts on Paige.
   useEffect(() => { if (initialCharacter) onConsumeInitialCharacter?.(); }, []);
 
-  // Reset to "at top" state when switching characters so the shelf reappears.
-  useEffect(() => { setAtTop(true); contentRef.current?.scrollTo?.({ top: 0 }); }, [character]);
+  // Scroll to top when switching characters so the new tab opens at the start
+  // of its content instead of mid-page.
+  useEffect(() => { contentRef.current?.scrollTo?.({ top: 0 }); }, [character]);
 
   useEffect(() => { track("character_viewed", { character }); }, [character]);
 
@@ -5020,16 +5020,13 @@ function RecommendPage({ books, userId, onAddDirect, onBulkAddDirect, onAuthor, 
 
   return (
     <div style={{ height:"100%", display:"flex", flexDirection:"column", overflow:"hidden" }}>
-      {/* Character selector — horizontally scrollable; Browse hides off the
-          right edge by default so users discover it via the chevron arrow.
-          Hidden while the content area is scrolled so it only reveals at top. */}
+      {/* Content (character selector + active tab). Character selector sits
+          inside the scroll container so it scrolls with the page like any
+          other section — no sticky/collapse behavior, no bounce. */}
+      <div ref={contentRef}
+           style={{ flex:1, overflowY:"auto", overflowX:"hidden" }}>
       <div style={{
         position:"relative", flexShrink:0,
-        maxHeight: atTop ? 220 : 0,
-        opacity: atTop ? 1 : 0,
-        overflow:"hidden",
-        transition:"max-height 0.28s ease, opacity 0.2s ease",
-        pointerEvents: atTop ? "auto" : "none",
       }}>
         <div ref={scrollerRef} style={{
           overflowX:"auto", overflowY:"hidden",
@@ -5109,10 +5106,6 @@ function RecommendPage({ books, userId, onAddDirect, onBulkAddDirect, onAuthor, 
           }}>›</button>
         )}
       </div>
-      {/* Content */}
-      <div ref={contentRef}
-           onScroll={e => setAtTop(e.currentTarget.scrollTop < 8)}
-           style={{ flex:1, overflowY:"auto", overflowX:"hidden" }}>
         {character === "paige"
           ? <PaigeTab books={books} userId={userId} onAddDirect={onAddDirectTagged} onBulkAddDirect={onBulkAddDirectTagged} onEdit={onEdit} onAddBook={onAddBook} scrollToTop={() => contentRef.current?.scrollTo({ top: 0, behavior: "smooth" })} />
           : character === "reiko"
