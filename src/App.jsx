@@ -2995,20 +2995,30 @@ function SubgenrePanel({ qualifiers, setQualifiers, onClose }) {
   return (
     <div ref={ref} style={{ position:"fixed", top: topY ?? 80, right:12, visibility: topY != null ? "visible" : "hidden", background:"rgba(40,24,12,0.97)", border:"1px solid rgba(138,90,40,0.3)", borderRadius:10, padding:"10px 0 6px", zIndex:50, width:320, maxWidth:"calc(100vw - 24px)", maxHeight:"min(520px, calc(100vh - 160px))", overflowY:"auto", overflowX:"hidden", overscrollBehavior:"contain", boxShadow:"0 8px 24px rgba(0,0,0,0.5)" }}>
       <div style={{ padding:"4px 14px 8px" }}>
-        <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:10, color:"rgba(255,235,195,0.5)", textTransform:"uppercase", letterSpacing:"0.1em", margin:"6px 0" }}>{section.label}</p>
         {section.groups.map(group => (
-          <div key={group.label} style={{ marginBottom:8 }}>
-            <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:9, color:"rgba(255,235,195,0.4)", textTransform:"uppercase", letterSpacing:"0.08em", margin:"4px 0 5px" }}>{group.label}</p>
-            <div style={{ display:"flex", flexWrap:"wrap", gap:5 }}>
+          <div key={group.label} style={{ marginBottom:20 }}>
+            <div style={{ display:"flex", justifyContent:"center", margin:"12px 0 10px" }}>
+              <div style={{ position:"relative", flexShrink:0, filter:"drop-shadow(0 2px 3px rgba(0,0,0,0.3))" }}>
+                <img src="/torn-paper.png" alt="" aria-hidden="true" style={{ height:30, width:"auto", display:"block" }} />
+                <p style={{
+                  position:"absolute", inset:0, margin:0,
+                  display:"flex", alignItems:"center", justifyContent:"center",
+                  textAlign:"center", padding:"0 14%",
+                  color:"#2e2010", fontFamily:"'Caveat',cursive",
+                  fontSize:15, fontWeight:600, lineHeight:1.05, whiteSpace:"nowrap",
+                }}>{group.label}</p>
+              </div>
+            </div>
+            <div style={{ display:"flex", flexWrap:"wrap", gap:5, justifyContent:"center" }}>
               {group.options.map(opt => {
                 const active = Array.isArray(qualifiers._tags) && qualifiers._tags.includes(opt.tag);
                 return (
                   <button key={opt.tag} onClick={() => toggleTag(opt.tag)} style={{
-                    padding:"3px 9px", borderRadius:14, cursor:"pointer",
-                    border:`1px solid ${active ? WOOD.amber : "rgba(138,90,40,0.35)"}`,
-                    background: active ? WOOD.amber : "rgba(15,8,2,0.45)",
-                    color: active ? "#1a0900" : "rgba(255,235,195,0.75)",
-                    fontFamily:"'DM Sans',sans-serif", fontSize:10, fontWeight:600,
+                    padding:"4px 11px", borderRadius:14, cursor:"pointer",
+                    border:`1px solid ${active ? WOOD.amber : "rgba(232,201,138,0.4)"}`,
+                    background: active ? WOOD.amber : "rgba(245,225,180,0.1)",
+                    color: active ? "#1a0900" : "rgba(255,238,205,0.95)",
+                    fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600,
                     transition:"all 0.15s",
                   }}>{opt.label}</button>
                 );
@@ -3077,12 +3087,16 @@ function PaigeTab({ books, userId, onAddDirect, onBulkAddDirect, onEdit, onAddBo
   const [genreDropOpen, setGenreDropOpen] = useState(false);
   const [hideOnShelf, setHideOnShelf] = useState(false);
   const [authorLimit, setAuthorLimit] = useState(2);
-  const [authorLimitOpen, setAuthorLimitOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   // Per-query qualifiers: { axis: { min, max } } where 0..10. Only non-default
   // ranges are passed to the scorer so the filter skips axes with no constraint.
   const [qualifiers, setQualifiers] = useState({});
   const [qualifiersOpen, setQualifiersOpen] = useState(false);
-  const activeQualifierCount = Object.entries(qualifiers).filter(([k,r]) => k !== "_tags" && r && (r.min > 0 || r.max < 10)).length + (Array.isArray(qualifiers._tags) ? qualifiers._tags.length : 0);
+  const [subgenresOpen, setSubgenresOpen] = useState(false);
+  // Slider qualifiers only — subgenres count is tracked separately for the
+  // standalone Subgenres pill.
+  const activeQualifierCount = Object.entries(qualifiers).filter(([k,r]) => k !== "_tags" && r && (r.min > 0 || r.max < 10)).length;
+  const activeSubgenreCount = Array.isArray(qualifiers._tags) ? qualifiers._tags.length : 0;
   // Bulk Obi filter: when active, pickedTitles holds Obi's curated picks (title set).
   // results display narrows to that set; null = inactive (show Paige's full list).
   const [obiPicks, setObiPicks] = useState(null);
@@ -3427,21 +3441,29 @@ function PaigeTab({ books, userId, onAddDirect, onBulkAddDirect, onEdit, onAddBo
               </div>}
             </div>
             <div style={{ position:"relative" }}>
-              <button onClick={() => setAuthorLimitOpen(o => !o)} style={{
+              <button data-subgenre-toggle="1" onClick={() => setSubgenresOpen(o => !o)} style={{
                 padding:"5px 12px", borderRadius:20, fontSize:12, fontFamily:"'DM Sans',sans-serif", fontWeight:500,
-                cursor:"pointer", transition:"all 0.15s", display:"flex", alignItems:"center", gap:5,
-                background: "rgba(15,8,2,0.55)",
-                color: "#fff",
-                border: "1px solid rgba(120,70,20,0.3)",
-                backdropFilter: "blur(4px)",
-              }}>Max per author: {authorLimit === 0 ? "∞" : authorLimit}<span style={{ fontSize:10, color:"rgba(255,255,255,0.5)", display:"inline-block", transition:"transform 0.2s", transform: authorLimitOpen ? "rotate(180deg)" : "rotate(0deg)" }}>▾</span></button>
-              {authorLimitOpen && <div style={{ position:"absolute", top:"100%", left:0, marginTop:4, background:"rgba(40,24,12,0.97)", border:"1px solid rgba(138,90,40,0.3)", borderRadius:10, padding:"6px 0", zIndex:50, minWidth:130, boxShadow:"0 4px 16px rgba(0,0,0,0.4)" }}>
-                {[1, 2, 3, 5, 0].map(n => (
-                  <button key={n} onClick={() => { setAuthorLimit(n); setAuthorLimitOpen(false); }} style={{ display:"block", width:"100%", padding:"8px 16px", background: authorLimit === n ? "rgba(138,90,40,0.1)" : "transparent", border:"none", textAlign:"left", fontSize:12, fontFamily:"'DM Sans',sans-serif", fontWeight: authorLimit === n ? 600 : 400, color: authorLimit === n ? WOOD.amber : "rgba(255,235,195,0.7)", cursor:"pointer" }}>{n === 0 ? "No limit" : `${n} book${n > 1 ? "s" : ""}`}</button>
-                ))}
-              </div>}
+                cursor:"pointer", transition:"background 0.15s, color 0.15s", display:"flex", alignItems:"center", gap:5, maxWidth:"60vw",
+                background: activeSubgenreCount > 0 ? WOOD.amber : "rgba(15,8,2,0.55)",
+                color: activeSubgenreCount > 0 ? "#1a0900" : "#fff",
+                border: "1px solid rgba(120,70,20,0.3)", backdropFilter:"blur(4px)",
+              }}>
+                <span style={{ overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap", minWidth:0 }}>
+                  {(() => {
+                    const tags = Array.isArray(qualifiers._tags) ? qualifiers._tags : [];
+                    if (!tags.length) return "Subgenres";
+                    const section = QUALIFIER_SECTIONS.find(s => s.type === "tags");
+                    const labelByTag = new Map();
+                    section?.groups.forEach(g => g.options.forEach(o => labelByTag.set(o.tag, o.label)));
+                    const first = labelByTag.get(tags[0]) || tags[0];
+                    return tags.length === 1 ? first : `${first} +${tags.length - 1}`;
+                  })()}
+                </span>
+                <span style={{ fontSize:10, color: activeSubgenreCount > 0 ? "rgba(26,9,0,0.5)" : "rgba(255,255,255,0.5)", display:"inline-block", transition:"transform 0.2s", transform: subgenresOpen ? "rotate(180deg)" : "rotate(0deg)", flexShrink:0 }}>▾</span>
+              </button>
+              {subgenresOpen && <SubgenrePanel qualifiers={qualifiers} setQualifiers={setQualifiers} onClose={() => setSubgenresOpen(false)} />}
             </div>
-            <div style={{ position:"relative" }}>
+            <div style={{ position:"relative", marginLeft:"auto" }}>
               <button data-qualifier-toggle="1" onClick={() => setQualifiersOpen(o => !o)} style={{
                 padding:"5px 12px", borderRadius:20, fontSize:12, fontFamily:"'DM Sans',sans-serif", fontWeight:500,
                 cursor:"pointer", transition:"background 0.15s, color 0.15s", display:"flex", alignItems:"center", gap:5,
@@ -3455,15 +3477,57 @@ function PaigeTab({ books, userId, onAddDirect, onBulkAddDirect, onEdit, onAddBo
                 <span style={{ display:"inline-block", width:18, textAlign:"center", fontVariantNumeric:"tabular-nums" }}>{activeQualifierCount > 0 ? activeQualifierCount : ""}</span>
                 <span style={{ fontSize:10, color: activeQualifierCount > 0 ? "rgba(26,9,0,0.5)" : "rgba(255,255,255,0.5)", display:"inline-block", transition:"transform 0.2s", transform: qualifiersOpen ? "rotate(180deg)" : "rotate(0deg)" }}>▾</span>
               </button>
-              {qualifiersOpen && <QualifierPanel qualifiers={qualifiers} setQualifiers={setQualifiers} onClose={() => setQualifiersOpen(false)} />}
+              {qualifiersOpen && <QualifierPanel qualifiers={qualifiers} setQualifiers={setQualifiers} onClose={() => setQualifiersOpen(false)} hideSubgenres />}
             </div>
-            <button onClick={() => setHideOnShelf(h => !h)} style={{
-              padding:"6px 14px", borderRadius:20, fontSize:12, fontFamily:"'DM Sans',sans-serif", fontWeight:600,
-              cursor:"pointer", transition:"all 0.15s", border:"1px solid",
-              background: hideOnShelf ? WOOD.amber : "rgba(138,90,40,0.1)",
-              color: hideOnShelf ? "#1a0900" : "rgba(255,235,195,0.7)",
-              borderColor: hideOnShelf ? WOOD.amber : "rgba(138,90,40,0.3)",
-            }}>Hide on shelf</button>
+            <div style={{ position:"relative" }}>
+              <button onClick={() => setSettingsOpen(o => !o)} aria-label="Settings" style={{
+                padding:"5px 10px", borderRadius:20, fontSize:12, fontFamily:"'DM Sans',sans-serif", fontWeight:500,
+                cursor:"pointer", transition:"all 0.15s", display:"flex", alignItems:"center", justifyContent:"center",
+                background: (authorLimit !== 2 || hideOnShelf) ? WOOD.amber : "rgba(15,8,2,0.55)",
+                color: (authorLimit !== 2 || hideOnShelf) ? "#1a0900" : "#fff",
+                border: "1px solid rgba(120,70,20,0.3)",
+                backdropFilter: "blur(4px)",
+              }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+              </button>
+              {settingsOpen && (
+                <div style={{ position:"absolute", top:"100%", right:0, marginTop:4, background:"rgba(40,24,12,0.97)", border:"1px solid rgba(138,90,40,0.3)", borderRadius:10, padding:"10px 0 4px", zIndex:50, minWidth:220, boxShadow:"0 4px 16px rgba(0,0,0,0.4)" }}>
+                  {/* Max per author */}
+                  <div style={{ padding:"4px 14px 10px" }}>
+                    <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:10, fontWeight:700, color:"rgba(255,235,195,0.55)", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:7 }}>Max per author</p>
+                    <div style={{ display:"flex", gap:4 }}>
+                      {[1, 2, 3, 5, 0].map(n => (
+                        <button key={n} onClick={() => setAuthorLimit(n)} style={{
+                          flex:1, padding:"6px 0", borderRadius:6, fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:600,
+                          background: authorLimit === n ? WOOD.amber : "rgba(138,90,40,0.15)",
+                          color: authorLimit === n ? "#1a0900" : "rgba(255,235,195,0.7)",
+                          border: "1px solid " + (authorLimit === n ? WOOD.amber : "rgba(138,90,40,0.3)"),
+                          cursor:"pointer",
+                        }}>{n === 0 ? "∞" : n}</button>
+                      ))}
+                    </div>
+                  </div>
+                  <div style={{ height:1, background:"rgba(138,90,40,0.25)", margin:"2px 0" }} />
+                  {/* Hide on shelf */}
+                  <button onClick={() => setHideOnShelf(h => !h)} style={{
+                    display:"flex", alignItems:"center", justifyContent:"space-between", width:"100%",
+                    padding:"10px 14px", background:"transparent", border:"none", cursor:"pointer",
+                    color:"rgba(255,235,195,0.9)", fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:500,
+                  }}>
+                    <span>Hide books on my shelf</span>
+                    <span style={{
+                      width:32, height:18, borderRadius:9, background: hideOnShelf ? WOOD.amber : "rgba(138,90,40,0.3)",
+                      position:"relative", transition:"background 0.15s", flexShrink:0,
+                    }}>
+                      <span style={{
+                        position:"absolute", top:2, left: hideOnShelf ? 16 : 2, width:14, height:14, borderRadius:"50%",
+                        background:"#fff", transition:"left 0.15s",
+                      }} />
+                    </span>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Generate button */}
