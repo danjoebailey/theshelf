@@ -2132,7 +2132,6 @@ function ShelfTab({ books, onAdd, onAddBook, onRemove, onEdit, onScroll, onShelf
             {/* filter icon button */}
             <button {...tc(()=>{ setFilterOpen(o=>!o); setShelfDropOpen(false); }, true)} style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:4, background: hasFilters?WOOD.amber:"rgba(15,8,2,0.55)", borderRadius:20, padding:"5px 10px", border:`1px solid ${hasFilters?WOOD.amber:"rgba(120,70,20,0.3)"}`, backdropFilter:"blur(4px)", cursor:"pointer", color: hasFilters?"#1a0900":"#fff" }}>
               <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><path d="M1 2h10l-4 5v3l-2-1V7L1 2z"/></svg>
-              {hasFilters && (() => { const active=[filterYear,filterGenre,filterAuthor&&filterAuthor.split(" ").pop()].filter(Boolean); return <span style={{ fontSize:11, fontFamily:"'DM Sans',sans-serif", fontWeight:600 }}>{active.slice(0,2).join(" · ")}{active.length>2?` +${active.length-2}`:""}</span>; })()}
             </button>
             {/* shelf dropdown */}
             <button {...tc(()=>{ setShelfDropOpen(o=>!o); setFilterOpen(false); }, true)} style={{ display:"flex", alignItems:"center", gap:5, background:"rgba(15,8,2,0.55)", borderRadius:20, padding:"5px 12px", border:"1px solid rgba(120,70,20,0.3)", backdropFilter:"blur(4px)", cursor:"pointer", color:"#fff", fontFamily:"'DM Sans',sans-serif", fontSize:12, fontWeight:500 }}>
