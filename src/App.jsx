@@ -9520,7 +9520,6 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd, userI
   const [activeTab, setActiveTab] = useState(initialTab || "books");
   const [bio, setBio] = useState(null);
   const [bioLoading, setBioLoading] = useState(false);
-  const [wikiImage, setWikiImage] = useState(null);
   const [biblio, setBiblio] = useState(null);
   const [biblioLoading, setBiblioLoading] = useState(false);
   const [biblioError, setBiblioError] = useState(null);
@@ -9731,21 +9730,15 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd, userI
   useEffect(() => {
     if (activeTab === "bio" && !bio) {
       setBioLoading(true);
-      const q = encodeURIComponent(author);
-      Promise.all([
-        fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${q}`)
-          .then(r => r.json())
-          .then(data => { if (data.thumbnail?.source) setWikiImage(data.thumbnail.source); })
-          .catch(() => {}),
-        fetch("/api/author-bio", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ author }),
-        })
-          .then(r => r.json())
-          .then(data => { if (data.bio) setBio(data.bio); })
-          .catch(() => {}),
-      ]).finally(() => setBioLoading(false));
+      fetch("/api/author-bio", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ author }),
+      })
+        .then(r => r.json())
+        .then(data => { if (data.bio) setBio(data.bio); })
+        .catch(() => {})
+        .finally(() => setBioLoading(false));
     }
   }, [activeTab]);
 
@@ -9889,7 +9882,6 @@ function AuthorModal({ author, books, onClose, onEdit, onAdd, onDirectAdd, userI
           {activeTab === "bio" && (
             <div style={{ paddingTop:8 }}>
               {bioLoading && <p style={{ color:CR.textDim, textAlign:"center", paddingTop:40 }}>Loading…</p>}
-              {!bioLoading && wikiImage && <img src={wikiImage} alt={author} style={{ width:90, height:90, objectFit:"cover", borderRadius:8, float:"right", margin:"0 0 12px 12px" }} />}
               {!bioLoading && bio && <p style={{ fontSize:14, color:CR.text, lineHeight:1.75 }}>{bio}</p>}
             </div>
           )}
