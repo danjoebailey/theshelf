@@ -7862,7 +7862,7 @@ function StatsTab({ books, characterAvatar, viewOnly = false, topBookIds = [], t
       <div style={{
         display:"grid",
         gridTemplateColumns: characterAvatar ? "1fr 96px 1fr" : "1fr 1fr",
-        gap:8, marginBottom:12, alignItems:"stretch",
+        gap:8, marginBottom: characterAvatar ? 0 : 12, alignItems:"stretch",
       }}>
         {characterAvatar && (
           <div style={{
@@ -7893,6 +7893,11 @@ function StatsTab({ books, characterAvatar, viewOnly = false, topBookIds = [], t
           );
         })}
       </div>
+      {/* Experiment: stand the character avatar on a wooden shelf ledge,
+          same ShelfEdge used elsewhere on this page. Widen by 32px (16 per
+          side) and shift left so it bleeds past the 16px page padding to
+          reach both edges — a margin alone only shifts a width:100% SVG. */}
+      {characterAvatar && <ShelfEdge height={12} style={{ width:"calc(100% + 32px)", marginLeft:-16, marginBottom:12 }} />}
 
       {(() => {
         const readingBooks = books.filter(b => b.shelf === "Reading");
