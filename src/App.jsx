@@ -148,8 +148,14 @@ function staticBookMeta(title, author) {
 // Touch-click helper: fires action on touchEnd (no 300ms delay) and onClick (desktop).
 // stopProp=true also stops event propagation (for buttons inside click-to-close containers).
 function tc(action, stopProp = false) {
+  // Track finger travel between touchstart and touchend so a scroll drag that
+  // happens to end on a button isn't mistaken for a tap. Without this, swiping
+  // to scroll a list of tc() buttons (e.g. the filter panel) fires a selection.
+  let sx = 0, sy = 0, moved = false;
   return {
-    onTouchEnd: e => { if (stopProp) e.stopPropagation(); e.preventDefault(); action(); },
+    onTouchStart: e => { const t = e.touches[0]; if (t) { sx = t.clientX; sy = t.clientY; } moved = false; },
+    onTouchMove: e => { const t = e.touches[0]; if (t && (Math.abs(t.clientX - sx) > 10 || Math.abs(t.clientY - sy) > 10)) moved = true; },
+    onTouchEnd: e => { if (moved) return; if (stopProp) e.stopPropagation(); e.preventDefault(); action(); },
     onClick: stopProp ? (e => { e.stopPropagation(); action(); }) : action,
   };
 }
