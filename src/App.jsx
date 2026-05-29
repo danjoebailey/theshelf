@@ -8065,13 +8065,18 @@ function StatsTab({ books, characterAvatar, viewOnly = false, topBookIds = [], t
             </div>
           ) : (
             <div>
-              <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
+              {/* Five equal boxed cells in a single row. Names wrap inside
+                  each box; the 5-column track keeps widths uniform whether
+                  fewer than five are picked. */}
+              <div style={{ display:"grid", gridTemplateColumns:"repeat(5, 1fr)", gap:5 }}>
                 {pickedAuthors.map(author => (
                   <div key={author} style={{
-                    background:"rgba(255,235,195,0.85)", borderRadius:18,
-                    padding:"6px 14px",
+                    background:"rgba(255,235,195,0.85)", borderRadius:10,
+                    padding:"8px 4px", minHeight:46,
                     border:`1px solid rgba(160,100,40,0.3)`,
-                    fontSize:13, color:WOOD.text, fontFamily:"'DM Sans',sans-serif", fontWeight:500,
+                    display:"flex", alignItems:"center", justifyContent:"center", textAlign:"center",
+                    fontSize:10.5, lineHeight:1.2, color:WOOD.text, fontFamily:"'DM Sans',sans-serif", fontWeight:600,
+                    wordBreak:"break-word", hyphens:"auto",
                   }}>{author}</div>
                 ))}
               </div>
