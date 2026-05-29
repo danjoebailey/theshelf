@@ -6832,14 +6832,18 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, seriesTier
       .trim();
   }
 
-  const libTitleMap = useMemo(() => {
+  // Key by title+author — title-only matched Hamsun's "Hunger" to Strieber's
+  // "The Hunger" in the horror rankings (article-stripped normForMatch makes
+  // both collapse to "hunger"), so a user with one swapped covers, genres,
+  // and metadata for the other on the ranking page.
+  const libKeyMap = useMemo(() => {
     const m = new Map();
-    for (const b of books) m.set(normForMatch(b.title), b);
+    for (const b of books) m.set(`${normForMatch(b.title)}|${(b.author||"").toLowerCase().trim()}`, b);
     return m;
   }, [books]);
 
-  function findInLibrary(title) {
-    return libTitleMap.get(normForMatch(title)) || null;
+  function findInLibrary(title, author) {
+    return libKeyMap.get(`${normForMatch(title)}|${(author||"").toLowerCase().trim()}`) || null;
   }
 
   const rankBadgeStyle = (i) => ({
@@ -7215,7 +7219,7 @@ function RankingsTab({ books, onSaveScores, userId, authorTiers = {}, seriesTier
 
         {/* AI ranking list */}
         {entityType === "books" && mode === "ai" && generated && aiDisplayItems.map((item, i) => {
-          const matched = findInLibrary(item.title);
+          const matched = findInLibrary(item.title, item.author);
           const meta = matched ? null : staticBookMeta(item.title, item.author);
           const resolvedGenre = meta?.genre || item.genre || (genreFilter !== "All" ? genreFilter : "Other");
           const bookObj = (matched && !matched.coverUrl && item.coverUrl) ? { ...matched, coverUrl: item.coverUrl } : matched || {
