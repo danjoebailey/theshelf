@@ -5127,7 +5127,7 @@ function RecommendPage({ books, userId, onAddDirect, onBulkAddDirect, onAuthor, 
                   opacity: character===c.key ? 1 : 0.8,
                   touchAction:"manipulation", flexShrink:0,
                 }}>
-                  <img src={c.img} alt={c.label} style={{ width:100, height:100, objectFit:"contain", objectPosition: c.key === "browse" ? "bottom" : "center" }} />
+                  <img src={c.img} alt={c.label} style={{ width:100, height:100, objectFit:"contain", objectPosition: (c.key === "browse" || c.key === "paige") ? "bottom" : "center" }} />
                   <span style={{
                     display:"inline-block", position:"relative",
                     fontFamily:"'Crimson Pro',serif", fontSize:11,
