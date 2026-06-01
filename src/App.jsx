@@ -10399,6 +10399,7 @@ function ProfileModal({ session, onClose, onProfileChanged }) {
 }
 
 function AboutModal({ onClose }) {
+  const [showFeatures, setShowFeatures] = useState(false);
   const linkStyle = { color: WOOD.amber, textDecoration: "none", fontWeight: 600 };
   const rowStyle = {
     display:"flex", alignItems:"center", justifyContent:"space-between",
@@ -10432,6 +10433,13 @@ function AboutModal({ onClose }) {
           to digitize it. Built with care, not algorithms.
         </p>
 
+        {/* Features — opens its own sheet (FeaturesSheet). */}
+        <button {...tc(()=>setShowFeatures(true), true)} style={{ ...rowStyle, width:"100%", cursor:"pointer", textAlign:"left" }}>
+          <span>Features</span>
+          <span style={{ color:WOOD.textFaint, fontSize:18, lineHeight:1 }}>›</span>
+        </button>
+        {showFeatures && <FeaturesSheet onClose={()=>setShowFeatures(false)} />}
+
         <a href="mailto:flosartiscreative@gmail.com" style={rowStyle}>
           <span>Contact</span>
           <span style={{ color:WOOD.textFaint, fontSize:12, fontFamily:"'DM Sans',sans-serif" }}>flosartiscreative@gmail.com</span>
@@ -10445,6 +10453,89 @@ function AboutModal({ onClose }) {
       </div>
     </div>
   );
+}
+
+// Bottom sheet showcasing the app's features — Obi the reading wizard leads,
+// then supporting features. Opened from the About modal's Features row.
+function FeaturesSheet({ onClose }) {
+  return createPortal((
+    <div onClick={onClose} style={{
+      position:"fixed", inset:0, background:"rgba(0,0,0,0.7)", zIndex:9999,
+      display:"flex", alignItems:"flex-end", justifyContent:"center",
+      animation:"fadeIn 0.15s ease",
+    }}>
+      <div onClick={e=>e.stopPropagation()} style={{
+        background:"#f5e8d0", width:"100%", maxWidth:520,
+        borderRadius:"16px 16px 0 0",
+        padding:"24px 22px calc(24px + max(env(safe-area-inset-bottom, 0px), 50px))",
+        position:"relative",
+        maxHeight:"calc(100vh - 100px - env(safe-area-inset-top, 0px))",
+        overflowY:"auto",
+      }}>
+        <button {...tc(onClose)} aria-label="Close" style={{
+          position:"absolute", top:12, right:12, zIndex:5,
+          background:"rgba(138,90,40,0.15)", border:"none",
+          width:32, height:32, borderRadius:"50%", cursor:"pointer",
+          color:WOOD.textDim, display:"flex", alignItems:"center", justifyContent:"center",
+        }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+
+        <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:24, color:WOOD.text, marginBottom:18, paddingRight:36, lineHeight:1.1 }}>Features</p>
+
+        {/* Obi hero */}
+        <div style={{ display:"flex", gap:14, alignItems:"center", marginBottom:16 }}>
+          <div style={{ width:84, flexShrink:0, display:"flex", justifyContent:"center" }}>
+            <img src="/little-obi.png" alt="Obi" style={{ width:72, height:"auto", filter:"drop-shadow(0 1px 2px rgba(0,0,0,0.3))" }} />
+          </div>
+          <div>
+            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:19, fontWeight:600, color:WOOD.text, lineHeight:1.2, marginBottom:5 }}>Obi the Wizard</p>
+            <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:13, color:WOOD.textDim, lineHeight:1.55, margin:0 }}>Who is Obi? He's my little recommendation wizard, scattered across the app to guide your reading journey. Asking Obi uses your reading profile to answer the right question wherever you find him:</p>
+            <div style={{ marginTop:8, display:"flex", flexDirection:"column", gap:5 }}>
+              <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:13, color:WOOD.textDim, lineHeight:1.5, margin:0 }}><strong style={{ color:WOOD.text, fontWeight:700 }}>Individual books:</strong> "Should I read this?"</p>
+              <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:13, color:WOOD.textDim, lineHeight:1.5, margin:0 }}><strong style={{ color:WOOD.text, fontWeight:700 }}>Multiple books:</strong> "Which books would I like?"</p>
+              <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:13, color:WOOD.textDim, lineHeight:1.5, margin:0 }}><strong style={{ color:WOOD.text, fontWeight:700 }}>Author pages:</strong> "Where should I start?"</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Breakdown hero */}
+        <div style={{ display:"flex", gap:14, alignItems:"center", marginBottom:16 }}>
+          <div style={{ width:84, flexShrink:0, display:"flex", justifyContent:"center" }}>
+            <img src="/breakdown-character.png" alt="" aria-hidden="true" style={{ width:"auto", height:96, filter:"drop-shadow(0 1px 2px rgba(0,0,0,0.3))" }} />
+          </div>
+          <div>
+            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:19, fontWeight:600, color:WOOD.text, lineHeight:1.2, marginBottom:5 }}>Your Breakdown</p>
+            <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:13, color:WOOD.textDim, lineHeight:1.55, margin:0 }}>Your reading life at a glance: books read, pages turned, top books and authors. Find friends and see what lines their shelf.</p>
+          </div>
+        </div>
+
+        {/* Scan hero */}
+        <div style={{ display:"flex", gap:14, alignItems:"center", marginBottom:16 }}>
+          <div style={{ width:84, flexShrink:0, display:"flex", justifyContent:"center" }}>
+            <img src="/shelf-scan.png" alt="" aria-hidden="true" style={{ width:"auto", height:96, filter:"drop-shadow(0 1px 2px rgba(0,0,0,0.3))" }} />
+          </div>
+          <div>
+            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:19, fontWeight:600, color:WOOD.text, lineHeight:1.2, marginBottom:5 }}>Scan a bookcase</p>
+            <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:13, color:WOOD.textDim, lineHeight:1.55, margin:0 }}>Upload a photo of any shelf, see every book it spots, then add them to your shelves or ask Obi which ones you'd like.</p>
+          </div>
+        </div>
+
+        {/* Reed hero */}
+        <div style={{ display:"flex", gap:14, alignItems:"center", marginBottom:16 }}>
+          <div style={{ width:84, flexShrink:0, display:"flex", justifyContent:"center" }}>
+            <img src="/reed-morely.png" alt="" aria-hidden="true" style={{ width:"auto", height:96, filter:"drop-shadow(0 1px 2px rgba(0,0,0,0.3))" }} />
+          </div>
+          <div>
+            <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:19, fontWeight:600, color:WOOD.text, lineHeight:1.2, marginBottom:5 }}>Find your next read</p>
+            <p style={{ fontFamily:"'DM Sans',sans-serif", fontSize:13, color:WOOD.textDim, lineHeight:1.55, margin:0 }}>The discover hero Reed Morely studies your profile and tells you what to read next, either from an entire shelf or a small group of options.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  ), document.body);
 }
 
 // Bottom sheet showing every avatar in a grid. Tapping one picks it and closes.
