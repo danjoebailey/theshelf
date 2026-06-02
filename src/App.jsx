@@ -5304,6 +5304,8 @@ function ReikoTab({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook }) {
   }, [authorRecs?.length]);
   const [authorLoading, setAuthorLoading] = useState(false);
   const [authorError, setAuthorError] = useState(null);
+  const [pickerSearch, setPickerSearch] = useState("");
+  const [authorSearch, setAuthorSearch] = useState("");
   const [pickerCollapsed, setPickerCollapsed] = useState(false);
   const [authorPickerCollapsed, setAuthorPickerCollapsed] = useState(false);
   const [allCovers, setAllCovers] = useState({});
@@ -5328,6 +5330,11 @@ function ReikoTab({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook }) {
     books.filter(b => (b.shelf || "Read") === "Read" && b.author).forEach(b => { counts[b.author] = (counts[b.author] || 0) + 1; });
     return [...readAuthors].sort((a, b) => (counts[b] || 0) - (counts[a] || 0));
   }, [readAuthors, authorSort, books]);
+
+  const displayedAuthors = useMemo(() => {
+    const q = authorSearch.trim().toLowerCase();
+    return q ? sortedAuthors.filter(a => a.toLowerCase().includes(q)) : sortedAuthors;
+  }, [sortedAuthors, authorSearch]);
 
   // Load saved recommendations on mount
   useEffect(() => {
@@ -5374,6 +5381,7 @@ function ReikoTab({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook }) {
   }, [authorRecs]);
 
   const filteredPicker = useMemo(() => {
+    const q = pickerSearch.trim().toLowerCase();
     const filtered = books.filter(b => {
       if (filterShelf && (b.shelf || "Read") !== filterShelf) return false;
       if (filterGenres.length > 0 && !filterGenres.includes(b.genre)) return false;
@@ -5384,6 +5392,7 @@ function ReikoTab({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook }) {
         if (filterRating === 4 && r < 4) return false;
         if (filterRating === 3 && r < 3) return false;
       }
+      if (q && !((b.title || "").toLowerCase().includes(q) || (b.author || "").toLowerCase().includes(q))) return false;
       return true;
     });
     const seen = new Set();
@@ -5393,7 +5402,7 @@ function ReikoTab({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook }) {
       seen.add(key);
       return true;
     });
-  }, [books, filterShelf, filterGenres, filterYear, filterRating]);
+  }, [books, filterShelf, filterGenres, filterYear, filterRating, pickerSearch]);
 
   const activeFilterCount = [filterShelf, filterGenres.length > 0 ? true : null, filterRating, filterYear].filter(Boolean).length;
 
@@ -5492,9 +5501,11 @@ function ReikoTab({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook }) {
       <div style={{ padding: "0 18px 0", display: "flex", justifyContent: "center", gap: 6 }}>
         {[["books", "Books"], ["authors", "Authors"]].map(([m, label]) => (
           <button key={m} onClick={() => { setReikoMode(m); setPickerCollapsed(false); setAuthorPickerCollapsed(false); }} style={{
-            padding: "5px 14px", borderRadius: 20, border: "none", cursor: "pointer",
-            background: reikoMode===m ? WOOD.amber : "rgba(255,235,195,0.12)",
-            color: reikoMode===m ? "#1a0900" : "rgba(255,235,195,0.6)",
+            padding: "5px 14px", borderRadius: 20, cursor: "pointer",
+            border: `1px solid ${reikoMode===m ? WOOD.amber : "rgba(120,70,20,0.3)"}`,
+            background: reikoMode===m ? WOOD.amber : "rgba(15,8,2,0.55)",
+            backdropFilter: "blur(4px)",
+            color: reikoMode===m ? "#1a0900" : "#fff",
             fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 600,
             transition: "all 0.15s",
           }}>{label}</button>
@@ -5604,6 +5615,17 @@ function ReikoTab({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook }) {
               </div>
             )}
 
+            <input
+              value={pickerSearch}
+              onChange={e => setPickerSearch(e.target.value)}
+              placeholder="Search your books…"
+              style={{
+                width: "100%", boxSizing: "border-box", marginBottom: 10,
+                background: "#fff", border: "1px solid rgba(138,90,40,0.3)",
+                borderRadius: 20, padding: "7px 14px", color: WOOD.text,
+                fontFamily: "'DM Sans',sans-serif", fontSize: 13, outline: "none",
+              }}
+            />
             <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
               {filteredPicker.length === 0
                 ? <p style={{ fontFamily: "'Crimson Pro',serif", fontSize: 14, color: "rgba(255,255,255,0.5)", fontStyle: "italic" }}>No books match the current filters.</p>
@@ -5616,6 +5638,9 @@ function ReikoTab({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook }) {
                     padding: "6px 10px 6px 6px", borderRadius: 10,
                     background: WOOD.card,
                     border: `1.5px solid ${isOn ? WOOD.amber : "rgba(138,90,40,0.18)"}`,
+                    borderTop: "4px solid #8a5a28",
+                    borderLeft: "4px solid #8a5a28",
+                    borderBottom: "4px solid #8a5a28",
                     boxShadow: isOn ? "0 1px 6px rgba(0,0,0,0.13)" : "0 1px 3px rgba(0,0,0,0.08)",
                     cursor: "pointer", transition: "all 0.15s",
                     maxWidth: "calc(50% - 4px)", minWidth: 0, flex: "1 1 calc(50% - 4px)",
@@ -5713,8 +5738,19 @@ function ReikoTab({ books, userId, onAddDirect, onAuthor, onEdit, onAddBook }) {
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
               </button>}
             </div>
+            <input
+              value={authorSearch}
+              onChange={e => setAuthorSearch(e.target.value)}
+              placeholder="Search your authors…"
+              style={{
+                width: "100%", boxSizing: "border-box", marginBottom: 10,
+                background: "#fff", border: "1px solid rgba(138,90,40,0.3)",
+                borderRadius: 20, padding: "7px 14px", color: WOOD.text,
+                fontFamily: "'DM Sans',sans-serif", fontSize: 13, outline: "none",
+              }}
+            />
             <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
-              {sortedAuthors.map(author => {
+              {displayedAuthors.map(author => {
                 const isOn = selectedAuthors.includes(author);
                 return (
                   <button key={author} onClick={() => setSelectedAuthors(s => s.includes(author) ? s.filter(a => a !== author) : [...s, author])} style={{
