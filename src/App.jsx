@@ -7525,7 +7525,20 @@ function TopPicksPickerSheet({ mode, title, library, currentIds, onSave, onClose
   ), document.body);
 }
 
-function StatsTab({ books, characterAvatar, viewOnly = false, topBookIds = [], topAuthors = [], onSaveTopBooks, onSaveTopAuthors, onEdit }) {
+// Track viewport width so we can hide the reading companions on narrow
+// (mobile) screens when the Currently Reading shelf is already crowded.
+function useViewportWidth() {
+  const [w, setW] = useState(() => (typeof window !== "undefined" ? window.innerWidth : 1024));
+  useEffect(() => {
+    const onResize = () => setW(window.innerWidth);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+  return w;
+}
+
+function StatsTab({ books, characterAvatar, readingCharacterLeft, readingCharacterRight, viewOnly = false, topBookIds = [], topAuthors = [], onSaveTopBooks, onSaveTopAuthors, onEdit }) {
+  const viewportWidth = useViewportWidth();
   const [timeline, setTimeline] = useState("All");
   const [filterMonth, setFilterMonth] = useState(null);
   const [filterOpen, setFilterOpen] = useState(false);
@@ -7938,6 +7951,13 @@ function StatsTab({ books, characterAvatar, viewOnly = false, topBookIds = [], t
       {(() => {
         const readingBooks = books.filter(b => b.shelf === "Reading");
         if (readingBooks.length === 0) return null;
+        // On a narrow screen with a crowded shelf (3+ books) there's no room
+        // for both companions: keep only the left one, anchor the row to the
+        // left so it isn't clipped, and let the books scroll past it.
+        const crowded = viewportWidth < 640 && readingBooks.length >= 3;
+        // Size companions by height (not width) so a seated, wide character
+        // and a tall, narrow one still stand the same height on the shelf.
+        const companionStyle = { flexShrink:0, height:90, width:"auto", maxWidth:112, objectFit:"contain", objectPosition:"bottom", alignSelf:"flex-end", display:"block", pointerEvents:"none" };
         return (
           <>
           <div style={{ display:"flex", justifyContent:"center", marginBottom:6 }}>
@@ -7953,7 +7973,16 @@ function StatsTab({ books, characterAvatar, viewOnly = false, topBookIds = [], t
             </div>
           </div>
           <div style={{ position:"relative", marginLeft:-16, marginRight:-16, marginBottom:10 }}>
-            <div style={{ display:"flex", gap:10, overflowX:"auto", padding:"16px 16px 12px", justifyContent:"center", scrollbarWidth:"none" }}>
+            <div style={{ display:"flex", gap:10, overflowX:"auto", padding:"16px 16px 12px", justifyContent: crowded ? "flex-start" : "center", alignItems:"flex-end", scrollbarWidth:"none" }}>
+              {readingCharacterLeft && (
+                <img
+                  src={readingCharacterLeft}
+                  alt=""
+                  aria-hidden="true"
+                  onError={e => { e.currentTarget.style.display = "none"; }}
+                  style={companionStyle}
+                />
+              )}
               {readingBooks.map(b => {
                 const pct = b.pages > 0 && (b.currentPage || 0) > 0 ? Math.min(100, Math.round(((b.currentPage||0) / b.pages) * 100)) : null;
                 return (
@@ -7971,6 +8000,15 @@ function StatsTab({ books, characterAvatar, viewOnly = false, topBookIds = [], t
                   </button>
                 );
               })}
+              {!crowded && readingCharacterRight && (
+                <img
+                  src={readingCharacterRight}
+                  alt=""
+                  aria-hidden="true"
+                  onError={e => { e.currentTarget.style.display = "none"; }}
+                  style={companionStyle}
+                />
+              )}
             </div>
             <ShelfEdge height={12} style={{ position:"absolute", left:0, right:0, bottom:0 }} />
           </div>
@@ -10064,6 +10102,41 @@ const AVATAR_OPTIONS = [
 ];
 const FEATURED_AVATARS = AVATAR_OPTIONS.slice(0, 3);
 
+// Reading-pose characters that can stand beside the Breakdown's "Currently
+// Reading" shelf. Separate from the profile avatar above. Art lives in
+// /public/reading/<file> — add a row here for each one (no names shown; the
+// `color` is just the fallback tile shade if the image fails to load). Run
+// scripts/trim-reading-char.ps1 on new art to trim + downscale it first.
+const READING_CHARACTERS = [
+  { file: "reader-01.png", color: "#a07040" },
+  { file: "reader-02.png", color: "#c89850" },
+  { file: "reader-03.png", color: "#9b6b3a" },
+  { file: "reader-04.png", color: "#6b4423" },
+  { file: "reader-05.png", color: "#8a7a5a" },
+  { file: "reader-06.png", color: "#b08858" },
+  { file: "reader-07.png", color: "#7d4f1f" },
+  { file: "reader-08.png", color: "#a8702f" },
+  { file: "reader-09.png", color: "#a07040" },
+  { file: "reader-10.png", color: "#c89850" },
+  { file: "reader-11.png", color: "#9b6b3a" },
+  { file: "reader-12.png", color: "#6b4423" },
+  { file: "reader-13.png", color: "#8a7a5a" },
+  { file: "reader-14.png", color: "#b08858" },
+  { file: "reader-15.png", color: "#7d4f1f" },
+  { file: "reader-16.png", color: "#a8702f" },
+  { file: "reader-17.png", color: "#a07040" },
+  { file: "reader-18.png", color: "#c89850" },
+  { file: "reader-19.png", color: "#9b6b3a" },
+  { file: "reader-20.png", color: "#6b4423" },
+  { file: "reader-21.png", color: "#8a7a5a" },
+  { file: "reader-22.png", color: "#b08858" },
+  { file: "reader-23.png", color: "#7d4f1f" },
+];
+// The first few are quick-picks shown in the Profile picker (None + 5 fills two
+// tidy rows of three); the full roster lives behind the "More characters" sheet
+// (ReadingCharactersSheet).
+const FEATURED_READING = READING_CHARACTERS.slice(0, 5);
+
 // For character avatars in /avatars/, prefer the dedicated -head.png companion
 // at small sizes (corner menu, modal header). Google OAuth and other URLs pass through.
 function smallAvatarUrl(url) {
@@ -10085,6 +10158,8 @@ function ProfileModal({ session, onClose, onProfileChanged }) {
   const isGuest = !user;
   const GUEST_NAME_KEY = "theshelf:displayName";
   const GUEST_AVATAR_KEY = "theshelf:avatarUrl";
+  const GUEST_READING_LEFT_KEY = "theshelf:readingCharLeft";
+  const GUEST_READING_RIGHT_KEY = "theshelf:readingCharRight";
 
   const [name, setName] = useState(() => {
     if (isGuest) return localStorage.getItem(GUEST_NAME_KEY) || "";
@@ -10102,6 +10177,23 @@ function ProfileModal({ session, onClose, onProfileChanged }) {
   const [brokenAvatars, setBrokenAvatars] = useState({});
   const [headerBroken, setHeaderBroken] = useState(false);
   const [showMoreAvatars, setShowMoreAvatars] = useState(false);
+
+  // Currently-reading companions: reading-pose characters shown to the left
+  // and right of the Breakdown's "Currently Reading" shelf. Stored separately
+  // from the avatar, one slot each side.
+  const [readingLeft, setReadingLeft] = useState(() => {
+    if (isGuest) return localStorage.getItem(GUEST_READING_LEFT_KEY) || null;
+    return user?.user_metadata?.reading_character_left || null;
+  });
+  const [readingRight, setReadingRight] = useState(() => {
+    if (isGuest) return localStorage.getItem(GUEST_READING_RIGHT_KEY) || null;
+    return user?.user_metadata?.reading_character_right || null;
+  });
+  const [readingCharSavedAt, setReadingCharSavedAt] = useState(0);
+  const [readingCharError, setReadingCharError] = useState(null);
+  const [brokenReading, setBrokenReading] = useState({});
+  const [editSlot, setEditSlot] = useState("left"); // which side the grid edits
+  const [showMoreReading, setShowMoreReading] = useState(false);
 
   // Profile (username, etc.) — only for signed-in users
   const [profile, setProfile] = useState(null);
@@ -10220,9 +10312,89 @@ function ProfileModal({ session, onClose, onProfileChanged }) {
     }
   }
 
+  async function pickReadingChar(slot, url) {
+    const current = slot === "left" ? readingLeft : readingRight;
+    if (url === current) return;
+    setReadingCharError(null);
+    const guestKey = slot === "left" ? GUEST_READING_LEFT_KEY : GUEST_READING_RIGHT_KEY;
+    const metaKey = slot === "left" ? "reading_character_left" : "reading_character_right";
+    try {
+      if (isGuest) {
+        if (url) localStorage.setItem(guestKey, url);
+        else localStorage.removeItem(guestKey);
+      } else {
+        const { error: e } = await supabase.auth.updateUser({ data: { [metaKey]: url } });
+        if (e) throw e;
+      }
+      if (slot === "left") setReadingLeft(url); else setReadingRight(url);
+      setReadingCharSavedAt(Date.now());
+      const m = url?.match(/^\/reading\/([a-z0-9-]+?)\.(?:png|jpg|webp)$/);
+      track("reading_character_picked", { slot, character: m ? m[1] : (url ? "external" : "cleared") });
+    } catch (e) {
+      setReadingCharError(e?.message || "Couldn't save");
+    }
+  }
+
+  function readingGrid(slot, value) {
+    return (
+      // Key on slot+value so the grid fully rebuilds when the selection
+      // changes — prevents a previously-selected tile from keeping its ring.
+      <div key={`${slot}|${value}`} style={{ display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:10 }}>
+        {/* None */}
+        <button
+          {...tc(() => pickReadingChar(slot, null))}
+          aria-label={`No ${slot} reading companion`}
+          style={{ width:"100%", padding:0, cursor:"pointer", background:"transparent", border:"none", display:"flex", flexDirection:"column", alignItems:"center" }}
+        >
+          <div style={{
+            width:"100%", aspectRatio:"4 / 5", borderRadius:10,
+            background:"rgba(255,245,220,0.5)",
+            border: !value ? `2px solid ${WOOD.amber}` : `1px solid ${WOOD.border}`,
+            boxShadow: !value ? `0 0 0 3px ${WOOD.amber}33` : "none",
+            display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.15s",
+          }}>
+            <span style={{ fontSize:13, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif", textTransform:"uppercase", letterSpacing:"0.1em" }}>None</span>
+          </div>
+        </button>
+        {FEATURED_READING.map((opt, i) => {
+          const src = `/reading/${opt.file}`;
+          const selected = value === src;
+          const broken = brokenReading[opt.file];
+          return (
+            <button
+              key={opt.file}
+              {...tc(() => pickReadingChar(slot, src))}
+              aria-label={`Choose ${slot} reading companion ${i + 1}`}
+              style={{ width:"100%", padding:0, cursor:"pointer", background:"transparent", border:"none", display:"flex", flexDirection:"column", alignItems:"center" }}
+            >
+              <div style={{
+                width:"100%", aspectRatio:"4 / 5", borderRadius:10,
+                background: broken ? opt.color : "rgba(255,245,220,0.5)",
+                border: selected ? `2px solid ${WOOD.amber}` : `1px solid ${WOOD.border}`,
+                boxShadow: selected ? `0 0 0 3px ${WOOD.amber}33` : "none",
+                overflow:"hidden", transition:"all 0.15s",
+                display:"flex", alignItems:"flex-end", justifyContent:"center",
+              }}>
+                {!broken && (
+                  <img
+                    src={src}
+                    alt=""
+                    onError={() => setBrokenReading(b => ({ ...b, [opt.file]: true }))}
+                    style={{ width:"100%", height:"100%", objectFit:"contain", objectPosition:"bottom", display:"block" }}
+                  />
+                )}
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
+
   const headerName = name.trim() || profile?.username || (isGuest ? "Guest" : (email || "Reader"));
   const showSaved = savedAt > 0 && Date.now() - savedAt < 2000;
   const showAvatarSaved = avatarSavedAt > 0 && Date.now() - avatarSavedAt < 2000;
+  const showReadingCharSaved = readingCharSavedAt > 0 && Date.now() - readingCharSavedAt < 2000;
 
   return (
     <div onClick={onClose} style={{
@@ -10421,6 +10593,66 @@ function ProfileModal({ session, onClose, onProfileChanged }) {
             {avatarError && <p style={{ fontSize:11, color:"#c0392b", fontFamily:"'DM Sans',sans-serif" }}>{avatarError}</p>}
           </div>
         </div>
+
+        {/* Currently Reading companions — characters that stand to the left
+            and right of the "Currently Reading" shelf on your Breakdown.
+            Optional; "None" leaves a side empty. On mobile with 3+ books the
+            right one drops and books scroll past the left character. */}
+        <div style={{ marginTop:18 }}>
+          <p style={{ fontSize:11, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif", textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:4 }}>Reading companions</p>
+          <p style={{ fontSize:12, color:WOOD.textDim, fontFamily:"'DM Sans',sans-serif", marginBottom:12 }}>Characters that stand on either side of your Currently Reading shelf. Choose a side, then pick a character. On phones, when you're reading 3 or more books the right one steps aside and the books scroll past the left character.</p>
+
+          {/* Left / Right toggle — picks which side the grid below edits. Only
+              the active side is emphasized; the grid below highlights just that
+              side's currently-chosen character. */}
+          <div style={{ display:"flex", background:"rgba(138,90,40,0.10)", border:`1px solid ${WOOD.border}`, borderRadius:10, padding:3, marginBottom:14 }}>
+            {["left","right"].map(side => {
+              const active = editSlot === side;
+              return (
+                <button
+                  key={side}
+                  {...tc(() => setEditSlot(side))}
+                  style={{
+                    flex:1, padding:"7px 0", borderRadius:8, border:"none", cursor:"pointer",
+                    background: active ? WOOD.amber : "transparent",
+                    color: active ? "#1a0900" : WOOD.textDim,
+                    fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:600,
+                    transition:"all 0.15s",
+                  }}
+                >
+                  {side === "left" ? "Left" : "Right"}
+                </button>
+              );
+            })}
+          </div>
+
+          {readingGrid(editSlot, editSlot === "left" ? readingLeft : readingRight)}
+
+          <div style={{ display:"flex", justifyContent:"center", marginTop:10 }}>
+            <button {...tc(()=>setShowMoreReading(true))} style={{
+              background:"transparent", border:`1px solid ${WOOD.amber}`,
+              borderRadius:14, padding:"4px 14px",
+              color: WOOD.amber, fontFamily:"'DM Sans',sans-serif", fontSize:11, fontWeight:600,
+              cursor:"pointer", textTransform:"uppercase", letterSpacing:"0.08em",
+            }}>More characters</button>
+          </div>
+
+          <div style={{ minHeight:18, marginTop:8 }}>
+            {showReadingCharSaved && <p style={{ fontSize:11, color:"#3d7a4f", fontFamily:"'DM Sans',sans-serif" }}>Saved</p>}
+            {readingCharError && <p style={{ fontSize:11, color:"#c0392b", fontFamily:"'DM Sans',sans-serif" }}>{readingCharError}</p>}
+          </div>
+        </div>
+
+        {showMoreReading && (
+          <ReadingCharactersSheet
+            initialSlot={editSlot}
+            leftUrl={readingLeft}
+            rightUrl={readingRight}
+            onSlotChange={setEditSlot}
+            onPick={(slot, file) => pickReadingChar(slot, file ? `/reading/${file}` : null)}
+            onClose={()=>setShowMoreReading(false)}
+          />
+        )}
 
       </div>
       {showMoreAvatars && (
@@ -10652,6 +10884,130 @@ function AvatarsSheet({ currentUrl, onPick, onClose }) {
                     color: selected ? WOOD.text : WOOD.textDim,
                     fontWeight: selected ? 600 : 400,
                   }}>{opt.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  ), document.body);
+}
+
+// Bottom sheet listing the full reading-companion roster. Opened from the
+// Profile picker's "More characters" button. Tapping one sets it for the side
+// (left/right) currently selected in the picker. No names — just art tiles.
+function ReadingCharactersSheet({ initialSlot, leftUrl, rightUrl, onSlotChange, onPick, onClose }) {
+  const [broken, setBroken] = useState({});
+  const touchMoved = useRef(false);
+  const [slot, setSlot] = useState(initialSlot || "left");
+  const currentUrl = slot === "left" ? leftUrl : rightUrl;
+  const sideLabel = slot === "left" ? "left" : "right";
+  const selectSlot = (s) => { setSlot(s); onSlotChange?.(s); };
+
+  return createPortal((
+    <div onClick={onClose} style={{
+      position:"fixed", inset:0, background:"rgba(0,0,0,0.7)", zIndex:9999,
+      display:"flex", alignItems:"flex-end", justifyContent:"center",
+      animation:"fadeIn 0.15s ease",
+    }}>
+      <div onClick={e=>e.stopPropagation()} style={{
+        background:"#f5e8d0", width:"100%", maxWidth:520,
+        borderRadius:"16px 16px 0 0",
+        padding:"24px 22px calc(24px + max(env(safe-area-inset-bottom, 0px), 50px))",
+        position:"relative",
+        maxHeight:"calc(100vh - 100px - env(safe-area-inset-top, 0px))",
+        display:"flex", flexDirection:"column",
+      }}>
+        <button {...tc(onClose)} aria-label="Close" style={{
+          position:"absolute", top:12, right:12, zIndex:5,
+          background:"rgba(138,90,40,0.15)", border:"none",
+          width:32, height:32, borderRadius:"50%", cursor:"pointer",
+          color:WOOD.textDim, display:"flex", alignItems:"center", justifyContent:"center",
+        }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+
+        <p style={{ fontFamily:"'Crimson Pro',serif", fontSize:22, color:WOOD.text, marginBottom:6, paddingRight:36 }}>All characters</p>
+        <p style={{ fontSize:12, color:WOOD.textDim, marginBottom:12, fontFamily:"'DM Sans',sans-serif", lineHeight:1.4 }}>
+          Choose a side, then tap a character.
+        </p>
+
+        {/* Left / Right toggle — sets which side the picks below apply to. */}
+        <div style={{ display:"flex", background:"rgba(138,90,40,0.10)", border:`1px solid ${WOOD.border}`, borderRadius:10, padding:3, marginBottom:16 }}>
+          {["left","right"].map(s => {
+            const active = slot === s;
+            return (
+              <button
+                key={s}
+                {...tc(() => selectSlot(s))}
+                style={{
+                  flex:1, padding:"7px 0", borderRadius:8, border:"none", cursor:"pointer",
+                  background: active ? WOOD.amber : "transparent",
+                  color: active ? "#1a0900" : WOOD.textDim,
+                  fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:600,
+                  transition:"all 0.15s",
+                }}
+              >
+                {s === "left" ? "Left" : "Right"}
+              </button>
+            );
+          })}
+        </div>
+
+        <div style={{ flex:1, overflowY:"auto", marginLeft:-4, marginRight:-4, paddingLeft:4, paddingRight:4 }}>
+          <div key={`${slot}|${currentUrl}`} style={{ display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:12 }}>
+            {/* None */}
+            <button
+              onTouchStart={() => { touchMoved.current = false; }}
+              onTouchMove={() => { touchMoved.current = true; }}
+              onTouchEnd={e => { e.preventDefault(); if (!touchMoved.current) onPick(slot, null); }}
+              onClick={() => onPick(slot, null)}
+              aria-label={`No ${sideLabel} reading companion`}
+              style={{ width:"100%", padding:0, cursor:"pointer", background:"transparent", border:"none", display:"flex" }}
+            >
+              <div style={{
+                width:"100%", aspectRatio:"4 / 5", borderRadius:10,
+                background:"rgba(255,245,220,0.5)",
+                border: !currentUrl ? `2px solid ${WOOD.amber}` : `1px solid ${WOOD.border}`,
+                boxShadow: !currentUrl ? `0 0 0 3px ${WOOD.amber}33` : "none",
+                display:"flex", alignItems:"center", justifyContent:"center",
+              }}>
+                <span style={{ fontSize:13, color:WOOD.textFaint, fontFamily:"'DM Sans',sans-serif", textTransform:"uppercase", letterSpacing:"0.1em" }}>None</span>
+              </div>
+            </button>
+            {READING_CHARACTERS.map((opt, i) => {
+              const src = `/reading/${opt.file}`;
+              const selected = currentUrl === src;
+              const isBroken = broken[opt.file];
+              return (
+                <button
+                  key={opt.file}
+                  onTouchStart={() => { touchMoved.current = false; }}
+                  onTouchMove={() => { touchMoved.current = true; }}
+                  onTouchEnd={e => { e.preventDefault(); if (!touchMoved.current) onPick(slot, opt.file); }}
+                  onClick={() => onPick(slot, opt.file)}
+                  aria-label={`Choose ${sideLabel} reading companion ${i + 1}`}
+                  style={{ width:"100%", padding:0, cursor:"pointer", background:"transparent", border:"none", display:"flex" }}
+                >
+                  <div style={{
+                    width:"100%", aspectRatio:"4 / 5", borderRadius:10,
+                    background: isBroken ? opt.color : "rgba(255,245,220,0.5)",
+                    border: selected ? `2px solid ${WOOD.amber}` : `1px solid ${WOOD.border}`,
+                    boxShadow: selected ? `0 0 0 3px ${WOOD.amber}33` : "none",
+                    overflow:"hidden",
+                    display:"flex", alignItems:"flex-end", justifyContent:"center",
+                  }}>
+                    {!isBroken && (
+                      <img
+                        src={src} alt=""
+                        onError={() => setBroken(b => ({ ...b, [opt.file]: true }))}
+                        style={{ width:"100%", height:"100%", objectFit:"contain", objectPosition:"bottom", display:"block" }}
+                      />
+                    )}
+                  </div>
                 </button>
               );
             })}
@@ -11835,6 +12191,14 @@ export default function App() {
                 characterAvatar={(() => {
                   const picked = guestMode ? localStorage.getItem("theshelf:avatarUrl") : session?.user?.user_metadata?.avatar_url;
                   return picked?.startsWith("/avatars/") ? picked : null;
+                })()}
+                readingCharacterLeft={(() => {
+                  const picked = guestMode ? localStorage.getItem("theshelf:readingCharLeft") : session?.user?.user_metadata?.reading_character_left;
+                  return picked?.startsWith("/reading/") ? picked : null;
+                })()}
+                readingCharacterRight={(() => {
+                  const picked = guestMode ? localStorage.getItem("theshelf:readingCharRight") : session?.user?.user_metadata?.reading_character_right;
+                  return picked?.startsWith("/reading/") ? picked : null;
                 })()}
                 topBookIds={currentTopBookIds}
                 topAuthors={currentTopAuthors}
