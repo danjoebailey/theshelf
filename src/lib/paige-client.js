@@ -438,12 +438,23 @@ export async function browseCatalog(userBooks, { genre = null, qualifiers = null
   await ensureLoaded();
   const readSet = new Set((userBooks || []).map(b => normalize(b.title)));
   const all = [...primaryCatalog, ...recLibrary];
+  // A "slider" qualifier is any vibe/craft range narrowed from the default
+  // 0–10. Subgenre tag selection (_tags) is NOT score-dependent.
+  const sliderActive = !!qualifiers && Object.entries(qualifiers).some(
+    ([k, r]) => k !== "_tags" && r && ((r.min ?? 0) > 0 || (r.max ?? 10) < 10)
+  );
+  const subgenreActive = !!qualifiers && Array.isArray(qualifiers._tags) && qualifiers._tags.length > 0;
+  // Unscored books may surface ONLY when browsing by subgenre with no slider
+  // qualifier — a pure tag filter doesn't need scores. The moment a slider is
+  // applied (scores required) or there's no subgenre filter, scores are required.
+  const allowUnscored = subgenreActive && !sliderActive;
   const filtered = [];
   for (const book of all) {
     if (genre && book.genre !== genre) continue;
     if (readSet.has(normalize(book.title))) continue;
     const te = tagData[String(book.id)];
-    if (!te?.scores) continue;
+    if (!te) continue;                            // no metadata at all
+    if (!te.scores && !allowUnscored) continue;   // scores required unless pure-subgenre browse
     if (!passesQualifiers(te, qualifiers)) continue;
     filtered.push({ book, tagEntry: te });
   }

@@ -2,3 +2,7 @@ node_modules
 dist
 .env
 .env.local
+
+# Subgenre audit artifacts (bulky intermediate output + local data backup)
+scripts/subgenre-audit/
+public/book-tags.backup-pre-subgenre-audit.json
