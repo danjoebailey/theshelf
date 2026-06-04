@@ -6,3 +6,7 @@ dist
 # Subgenre audit artifacts (bulky intermediate output + local data backup)
 scripts/subgenre-audit/
 public/book-tags.backup-pre-subgenre-audit.json
+
+# Score audit artifacts
+scripts/score-audit/
+public/book-tags.backup-pre-score-audit.json
