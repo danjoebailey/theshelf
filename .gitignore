@@ -18,3 +18,6 @@ public/book-tags.backup-pre-rec-subgenre.json
 # Rec score audit artifacts
 scripts/score-audit-rec/
 public/book-tags.backup-pre-rec-score.json
+
+# Subgenre QA artifacts
+scripts/subgenre-qa-rec/
