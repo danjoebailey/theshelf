@@ -2826,7 +2826,6 @@ const QUALIFIER_SECTIONS = [
         { tag: "supernatural-horror", label: "Supernatural" },
         { tag: "folk-horror",         label: "Folk" },
         { tag: "body-horror",         label: "Body" },
-        { tag: "splatterpunk",        label: "Splatterpunk" },
         { tag: "quiet-horror",        label: "Quiet" },
       ]},
       { label: "Romance", options: [
