@@ -10,3 +10,7 @@ public/book-tags.backup-pre-subgenre-audit.json
 # Score audit artifacts
 scripts/score-audit/
 public/book-tags.backup-pre-score-audit.json
+
+# Rec-library subgenre audit artifacts
+scripts/subgenre-audit-rec/
+public/book-tags.backup-pre-rec-subgenre.json
