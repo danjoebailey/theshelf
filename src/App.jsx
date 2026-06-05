@@ -7536,8 +7536,178 @@ function useViewportWidth() {
   return w;
 }
 
-function StatsTab({ books, characterAvatar, readingCharacterLeft, readingCharacterRight, viewOnly = false, topBookIds = [], topAuthors = [], onSaveTopBooks, onSaveTopAuthors, onEdit }) {
+// Yearly reading-goal tracker for the Breakdown. Counts books finished this
+// calendar year (Read shelf + date) against a user-set target, with pace.
+// Goal persists in user_metadata (signed-in) or localStorage (guest).
+function ReadingGoalCard({ books, goal, onSaveGoal, inline = false }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(goal ? String(goal) : "");
+  const now = new Date();
+  const year = now.getFullYear();
+  const readThisYear = useMemo(
+    () => books.filter(b => (b.shelf || "Read") === "Read" && (b.date || "").startsWith(String(year))).length,
+    [books, year]
+  );
+  const startMs = new Date(year, 0, 1).getTime();
+  const dayOfYear = Math.floor((now.getTime() - startMs) / 86400000) + 1;
+  const daysInYear = ((year % 4 === 0 && year % 100 !== 0) || year % 400 === 0) ? 366 : 365;
+  const expected = goal ? goal * (dayOfYear / daysInYear) : 0;
+  const diff = readThisYear - expected;
+  const pct = goal ? Math.min(100, (readThisYear / goal) * 100) : 0;
+  const reached = goal && readThisYear >= goal;
+
+  function commit() {
+    const n = parseInt(draft, 10);
+    onSaveGoal(Number.isFinite(n) && n > 0 ? n : null);
+    setEditing(false);
+  }
+
+  // Torn-paper section header — matches "Currently Reading" elsewhere on the page.
+  const Header = (
+    <div style={{ display:"flex", justifyContent:"center", marginBottom:4 }}>
+      <div style={{ position:"relative", width:"100%", maxWidth:200, filter:"drop-shadow(0 3px 5px rgba(0,0,0,0.35))" }}>
+        <img src="/torn-paper.png" alt="" aria-hidden="true" style={{ width:"100%", height:"auto", display:"block" }} />
+        <p style={{ position:"absolute", inset:0, margin:0, display:"flex", alignItems:"center", justifyContent:"center", textAlign:"center", padding:"0 12%", color:"#2e2010", fontFamily:"'Caveat',cursive", fontSize:20, fontWeight:600, lineHeight:1.05 }}>{year} Reading Goal</p>
+      </div>
+    </div>
+  );
+
+  // Parchment panel behind the content.
+  const parchment = { background:"rgba(255,235,195,0.72)", backdropFilter:"blur(6px)", borderRadius:14, border:"1px solid rgba(160,100,40,0.3)", boxShadow:"0 2px 8px rgba(0,0,0,0.12)" };
+
+  // Edit pencil — same affordance as the Top 5 sections.
+  const pencilRow = (
+    <div style={{ textAlign:"right", marginTop:4 }}>
+      <button {...tc(() => { setDraft(String(goal)); setEditing(true); })} aria-label="Edit goal" style={{
+        background:"#fff", border:"none", borderRadius:"50%", width:20, height:20, padding:0,
+        display:"inline-flex", alignItems:"center", justifyContent:"center",
+        color:WOOD.text, cursor:"pointer",
+      }}><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg></button>
+    </div>
+  );
+
+  // Editing input (parchment panel, no shelf — transient form)
+  if (editing) {
+    return (
+      <div style={{ marginBottom: inline ? 0 : 12 }}>
+        {Header}
+        <div style={{ ...parchment, padding:"14px 16px" }}>
+          <div style={{ display:"flex", gap:8, alignItems:"center", justifyContent:"center", flexWrap:"wrap" }}>
+            <input autoFocus type="number" inputMode="numeric" min="1" value={draft}
+              onChange={e => setDraft(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter") commit(); if (e.key === "Escape") setEditing(false); }}
+              placeholder="40"
+              style={{ width:84, boxSizing:"border-box", padding:"9px 12px", border:`1px solid ${WOOD.border}`, borderRadius:8, fontFamily:"'DM Sans',sans-serif", fontSize:15, color:WOOD.text, background:"#fff", outline:"none" }} />
+            <span style={{ fontSize:14, color:WOOD.textDim, fontFamily:"'DM Sans',sans-serif" }}>books</span>
+            <button {...tc(commit)} style={{ background:WOOD.amber, color:"#1a0900", border:"none", borderRadius:8, padding:"9px 14px", fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:600, cursor:"pointer" }}>Save</button>
+            <button {...tc(() => setEditing(false))} style={{ background:"transparent", border:`1px solid ${WOOD.border}`, borderRadius:8, padding:"9px 12px", fontFamily:"'DM Sans',sans-serif", fontSize:13, color:WOOD.textDim, cursor:"pointer" }}>Cancel</button>
+          </div>
+          {goal ? <div style={{ textAlign:"center", marginTop:10 }}><button {...tc(() => { onSaveGoal(null); setEditing(false); })} style={{ background:"transparent", border:"none", color:WOOD.textFaint, fontSize:12, fontFamily:"'DM Sans',sans-serif", cursor:"pointer", textDecoration:"underline" }}>Remove goal</button></div> : null}
+        </div>
+      </div>
+    );
+  }
+
+  // Parchment panel — CTA when no goal, progress when set.
+  let panel;
+  if (!goal) {
+    panel = (
+      <div style={{ ...parchment, padding:"14px 16px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:12, flexWrap:"wrap" }}>
+        <span style={{ fontFamily:"'Crimson Pro',serif", fontSize:15, color:WOOD.textDim }}>You've read {readThisYear} {readThisYear === 1 ? "book" : "books"} this year.</span>
+        <button {...tc(() => { setDraft(""); setEditing(true); })} style={{ background:WOOD.amber, color:"#1a0900", border:"none", borderRadius:20, padding:"7px 16px", fontFamily:"'DM Sans',sans-serif", fontSize:13, fontWeight:600, cursor:"pointer", flexShrink:0 }}>Set a goal</button>
+      </div>
+    );
+  } else {
+    const paceText = reached ? "Goal reached! 🎉"
+      : diff >= 0.5 ? `${Math.round(diff)} ahead of pace`
+      : diff <= -0.5 ? `${Math.round(-diff)} behind pace`
+      : "right on pace";
+    const paceColor = reached || diff >= -0.5 ? "#3d7a4f" : WOOD.textDim;
+    panel = (
+      <div style={{ ...parchment, padding:"14px 18px" }}>
+        <div style={{ display:"flex", alignItems:"baseline", gap:6, marginBottom:8 }}>
+          <span style={{ fontFamily:"'Crimson Pro',serif", fontSize:32, fontWeight:600, color:WOOD.text, lineHeight:1 }}>{readThisYear}</span>
+          <span style={{ fontSize:15, color:WOOD.textDim, fontFamily:"'DM Sans',sans-serif" }}>/ {goal} books</span>
+          <span style={{ marginLeft:"auto", fontSize:12, fontWeight:600, color:paceColor, fontFamily:"'DM Sans',sans-serif" }}>{paceText}</span>
+        </div>
+        <div style={{ height:8, background:"rgba(138,90,40,0.18)", borderRadius:4, overflow:"hidden" }}>
+          <div style={{ height:"100%", width:`${pct}%`, background: reached ? "#3a7a50" : WOOD.amber, borderRadius:4, transition:"width 0.5s" }} />
+        </div>
+      </div>
+    );
+  }
+
+  // Inline (desktop dashboard): header + parchment only, so the card rests on
+  // the shared shelf. No pencil row (it would lift the card off the shelf) —
+  // the card itself is the edit target when a goal is set.
+  if (inline) {
+    return (
+      <div style={{ display:"flex", flexDirection:"column", height:"100%", justifyContent:"space-between" }}>
+        {Header}
+        <div {...(goal ? tc(() => { setDraft(String(goal)); setEditing(true); }) : {})} style={{ cursor: goal ? "pointer" : "default" }}>
+          {panel}
+        </div>
+      </div>
+    );
+  }
+
+  // Default (mobile / standalone): parchment resting on its own shelf.
+  return (
+    <div style={{ marginBottom:12 }}>
+      {Header}
+      <div style={{ position:"relative", marginLeft:-16, marginRight:-16 }}>
+        <div style={{ padding:"0 16px 12px" }}>{panel}</div>
+        <ShelfEdge height={12} style={{ position:"absolute", left:0, right:0, bottom:0 }} />
+      </div>
+      {goal ? pencilRow : null}
+    </div>
+  );
+}
+
+// Condensed top-5 genres for the desktop dashboard row — distinct from the full
+// Genre Breakdown lower down. Parchment + torn-paper label, no shelf (shares the
+// overview's shelf), so it slots in beside the stats and the goal.
+function TopGenresPanel({ entries, total, maxH }) {
+  const parchment = { background:"rgba(255,235,195,0.72)", backdropFilter:"blur(6px)", borderRadius:14, border:"1px solid rgba(160,100,40,0.3)", boxShadow:"0 2px 8px rgba(0,0,0,0.12)" };
+  return (
+    // Whole panel (label + table) capped to the character's height so the
+    // column never towers over it; the table clips to whatever fits.
+    <div style={{ display:"flex", flexDirection:"column", maxHeight: maxH ? maxH : undefined, overflow:"hidden" }}>
+      <div style={{ display:"flex", justifyContent:"center", marginBottom:4, flex:"0 0 auto" }}>
+        <div style={{ position:"relative", width:"100%", maxWidth:200, filter:"drop-shadow(0 3px 5px rgba(0,0,0,0.35))" }}>
+          <img src="/torn-paper.png" alt="" aria-hidden="true" style={{ width:"100%", height:"auto", display:"block" }} />
+          <p style={{ position:"absolute", inset:0, margin:0, display:"flex", alignItems:"center", justifyContent:"center", textAlign:"center", padding:"0 12%", color:"#2e2010", fontFamily:"'Caveat',cursive", fontSize:20, fontWeight:600, lineHeight:1.05 }}>Top Genres</p>
+        </div>
+      </div>
+      <div style={{ ...parchment, padding:"12px 14px", flex:"1 1 auto", minHeight:0, overflowY:"hidden" }}>
+        {entries.length === 0
+          ? <p style={{ color:WOOD.textFaint, fontSize:13, fontFamily:"'DM Sans',sans-serif", textAlign:"center", margin:0 }}>No data yet</p>
+          : <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", columnGap:18, rowGap:9 }}>
+            {entries.map(([genre, count]) => (
+              <div key={genre} style={{ minWidth:0 }}>
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"baseline", marginBottom:2, gap:6 }}>
+                  <span style={{ fontSize:12, fontWeight:600, color:WOOD.text, fontFamily:"'DM Sans',sans-serif", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{genre}</span>
+                  <span style={{ fontSize:11, color:WOOD.textDim, fontFamily:"'DM Sans',sans-serif", flexShrink:0 }}>{count}</span>
+                </div>
+                <div style={{ height:4, background:"rgba(100,60,20,0.15)", borderRadius:3, overflow:"hidden" }}>
+                  <div style={{ height:"100%", width:`${total ? (count / total) * 100 : 0}%`, background:GENRE_COLORS[genre] || "#94a3b8", borderRadius:3, transition:"width 0.6s" }} />
+                </div>
+              </div>
+            ))}
+          </div>}
+      </div>
+    </div>
+  );
+}
+
+function StatsTab({ books, characterAvatar, readingCharacterLeft, readingCharacterRight, readingGoal, onSaveReadingGoal, viewOnly = false, topBookIds = [], topAuthors = [], onSaveTopBooks, onSaveTopAuthors, onEdit }) {
   const viewportWidth = useViewportWidth();
+  // Fixed overview height so the layout is identical regardless of which avatar
+  // is chosen — the avatar is contained INSIDE this box rather than driving it.
+  // The desktop side panels are capped to the same height.
+  const OVERVIEW_H = 172;
+  const isDesktop = viewportWidth >= 720;  // reading goal + overview share a shelf
+  const isWide = viewportWidth >= 960;      // + Currently Reading joins the row
   const [timeline, setTimeline] = useState("All");
   const [filterMonth, setFilterMonth] = useState(null);
   const [filterOpen, setFilterOpen] = useState(false);
@@ -7907,49 +8077,117 @@ function StatsTab({ books, characterAvatar, readingCharacterLeft, readingCharact
         </div>
       )}
 
-      <div style={{
-        display:"grid",
-        gridTemplateColumns: characterAvatar ? "1fr 96px 1fr" : "1fr 1fr",
-        gap:8, marginBottom: characterAvatar ? 0 : 12, alignItems:"stretch",
-      }}>
-        {characterAvatar && (
+      {(() => {
+        const overviewGrid = (
           <div style={{
-            gridColumn:2, gridRow:"1 / 3",
-            display:"flex", alignItems:"flex-end", justifyContent:"center",
-            pointerEvents:"none",
+            display:"grid",
+            gridTemplateColumns: characterAvatar ? "1fr 96px 1fr" : "1fr 1fr",
+            gridTemplateRows: "1fr 1fr",
+            height: OVERVIEW_H,
+            gap:8, alignItems:"stretch",
           }}>
-            <img src={characterAvatar} alt="" style={{
-              maxWidth:"100%", maxHeight:"100%",
-              objectFit:"contain", objectPosition:"bottom", display:"block",
-            }} />
+            {characterAvatar && (
+              <div style={{
+                gridColumn:2, gridRow:"1 / 3",
+                display:"flex", alignItems:"flex-end", justifyContent:"center",
+                pointerEvents:"none",
+              }}>
+                <img src={characterAvatar} alt="" style={{
+                  maxWidth:"100%", maxHeight:"100%",
+                  objectFit:"contain", objectPosition:"bottom", display:"block",
+                }} />
+              </div>
+            )}
+            {[
+              { label:"Books Read", value:filteredBooks.length },
+              { label:"Pages Turned", value:stats.totalPages.toLocaleString() },
+              { label:"Avg Rating", value:stats.avgRating ? stats.avgRating.toFixed(2)+" ★" : "—" },
+              { label:"Genres", value:Object.keys(stats.genreMap).length },
+            ].map(({ label,value }, i)=>{
+              const placement = characterAvatar
+                ? { gridColumn: i % 2 === 0 ? 1 : 3, gridRow: Math.floor(i/2) + 1 }
+                : null;
+              return (
+                <div key={label} style={{ ...card, padding:"11px 12px", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:4, ...placement }}>
+                  <div style={{ fontFamily:"'Crimson Pro',serif", fontSize:28, fontWeight:400, color:WOOD.text, lineHeight:1 }}>{value}</div>
+                  <div style={{ fontSize:9, color:WOOD.textFaint, textTransform:"uppercase", letterSpacing:"0.12em" }}>{label}</div>
+                </div>
+              );
+            })}
           </div>
-        )}
-        {[
-          { label:"Books Read", value:filteredBooks.length, emoji:"📖" },
-          { label:"Pages Turned", value:stats.totalPages.toLocaleString(), emoji:"📄" },
-          { label:"Avg Rating", value:stats.avgRating ? stats.avgRating.toFixed(2)+" ★" : "—", emoji:"⭐" },
-          { label:"Genres", value:Object.keys(stats.genreMap).length, emoji:"🏷️" },
-        ].map(({ label,value }, i)=>{
-          const placement = characterAvatar
-            ? { gridColumn: i % 2 === 0 ? 1 : 3, gridRow: Math.floor(i/2) + 1 }
-            : null;
+        );
+
+        // Compact Currently Reading for the desktop dashboard's right slot —
+        // covers + progress, capped to the overview height (no companions here;
+        // the full-width version below carries those on its own shelf).
+        const readingNow = books.filter(b => b.shelf === "Reading");
+        const compactCompanion = { flexShrink:0, height:88, width:"auto", maxWidth:80, objectFit:"contain", objectPosition:"bottom", alignSelf:"flex-end", display:"block", pointerEvents:"none" };
+        const currentlyReadingPanel = (
+          <div style={{ display:"flex", flexDirection:"column", height:"100%", overflow:"hidden" }}>
+            <div style={{ display:"flex", justifyContent:"center", marginBottom:4, flex:"0 0 auto" }}>
+              <div style={{ position:"relative", width:"100%", maxWidth:200, filter:"drop-shadow(0 3px 5px rgba(0,0,0,0.35))" }}>
+                <img src="/torn-paper.png" alt="" aria-hidden="true" style={{ width:"100%", height:"auto", display:"block" }} />
+                <p style={{ position:"absolute", inset:0, margin:0, display:"flex", alignItems:"center", justifyContent:"center", textAlign:"center", padding:"0 12%", color:"#2e2010", fontFamily:"'Caveat',cursive", fontSize:19, fontWeight:600, lineHeight:1.05 }}>Currently Reading</p>
+              </div>
+            </div>
+            <div style={{ flex:"1 1 auto", minHeight:0, display:"flex", alignItems:"flex-end", justifyContent:"center", overflow:"hidden" }}>
+              {readingNow.length === 0
+                ? <p style={{ color:WOOD.textFaint, fontSize:13, fontFamily:"'DM Sans',sans-serif", textAlign:"center", margin:"auto 0", width:"100%" }}>Nothing in progress</p>
+                : <div style={{ display:"flex", gap:10, overflowX:"auto", scrollbarWidth:"none", width:"100%", alignItems:"flex-end", justifyContent: readingNow.length <= 2 ? "center" : "flex-start" }}>
+                    {readingCharacterLeft && <img src={readingCharacterLeft} alt="" aria-hidden="true" onError={e => { e.currentTarget.style.display = "none"; }} style={compactCompanion} />}
+                    {readingNow.map(b => {
+                      const pct = b.pages > 0 && (b.currentPage || 0) > 0 ? Math.min(100, Math.round(((b.currentPage || 0) / b.pages) * 100)) : null;
+                      return (
+                        <button key={b.id} {...tapBook(b)} style={{ background:"transparent", border:"none", padding:0, margin:0, cursor: canTapCover ? "pointer" : "default", flexShrink:0, display:"flex", flexDirection:"column", alignItems:"stretch", gap:5, width:60 }}>
+                          <div style={{ height:4, background:"rgba(138,90,40,0.25)", borderRadius:2, overflow:"hidden" }}>
+                            {pct !== null && <div style={{ height:"100%", background:"#3a7a50", borderRadius:2, width:`${pct}%` }} />}
+                          </div>
+                          <BookCoverThumb book={b} size="md" />
+                        </button>
+                      );
+                    })}
+                    {readingCharacterRight && <img src={readingCharacterRight} alt="" aria-hidden="true" onError={e => { e.currentTarget.style.display = "none"; }} style={compactCompanion} />}
+                  </div>}
+            </div>
+          </div>
+        );
+
+        // Desktop: reading goal (left) + overview (middle) + currently reading
+        // (right, at the wider breakpoint) on one shared shelf.
+        if (!viewOnly && isDesktop) {
           return (
-            <div key={label} style={{ ...card, padding:"11px 12px", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:4, ...placement }}>
-              <div style={{ fontFamily:"'Crimson Pro',serif", fontSize:28, fontWeight:400, color:WOOD.text, lineHeight:1 }}>{value}</div>
-              <div style={{ fontSize:9, color:WOOD.textFaint, textTransform:"uppercase", letterSpacing:"0.12em" }}>{label}</div>
+            <div style={{ marginBottom:12 }}>
+              <div style={{ position:"relative", marginLeft:-16, marginRight:-16 }}>
+                <div style={{ display:"flex", gap:16, alignItems:"stretch", padding:"0 16px 12px" }}>
+                  <div style={{ flex:"1 1 0", minWidth:0 }}>
+                    <ReadingGoalCard inline books={books} goal={readingGoal} onSaveGoal={onSaveReadingGoal} />
+                  </div>
+                  <div style={{ flex:"1 1 0", minWidth:0 }}>{overviewGrid}</div>
+                  {isWide && (
+                    <div style={{ flex:"1 1 0", minWidth:0 }}>{currentlyReadingPanel}</div>
+                  )}
+                </div>
+                <ShelfEdge height={12} style={{ position:"absolute", left:0, right:0, bottom:0 }} />
+              </div>
             </div>
           );
-        })}
-      </div>
-      {/* Experiment: stand the character avatar on a wooden shelf ledge,
-          same ShelfEdge used elsewhere on this page. Widen by 32px (16 per
-          side) and shift left so it bleeds past the 16px page padding to
-          reach both edges — a margin alone only shifts a width:100% SVG. */}
-      {characterAvatar && <ShelfEdge height={12} style={{ width:"calc(100% + 32px)", marginLeft:-16, marginBottom:12 }} />}
+        }
+
+        // Mobile / view-only: stacked, each on its own shelf.
+        return (
+          <>
+            <div style={{ marginBottom: characterAvatar ? 0 : 12 }}>{overviewGrid}</div>
+            {characterAvatar && <ShelfEdge height={12} style={{ width:"calc(100% + 32px)", marginLeft:-16, marginBottom:12 }} />}
+            {!viewOnly && <ReadingGoalCard books={books} goal={readingGoal} onSaveGoal={onSaveReadingGoal} />}
+          </>
+        );
+      })()}
 
       {(() => {
         const readingBooks = books.filter(b => b.shelf === "Reading");
         if (readingBooks.length === 0) return null;
+        // On wide desktop this is shown compact in the dashboard row above.
+        if (!viewOnly && isWide) return null;
         // On a narrow screen with a crowded shelf (3+ books) there's no room
         // for both companions: keep only the left one, anchor the row to the
         // left so it isn't clipped, and let the books scroll past it.
@@ -9352,6 +9590,7 @@ const GUEST_SCAN_KEY = "guest_scan_count";
 const GUEST_ACTIVE_KEY = "guest_active";
 const GUEST_TOP_BOOKS_KEY = "guest_top_book_ids";
 const GUEST_TOP_AUTHORS_KEY = "guest_top_authors";
+const GUEST_GOAL_KEY = "guest_reading_goal";
 // Set only when a guest explicitly clicks "Sign in to save your books".
 // Survives the OAuth page reload. Gates the post-sign-in migration so a
 // stale guest_books blob on a shared browser can NEVER auto-merge into an
@@ -9359,7 +9598,7 @@ const GUEST_TOP_AUTHORS_KEY = "guest_top_authors";
 const MIGRATE_GUEST_KEY = "theshelf:migrate_guest";
 function guestSaveBooks(books) { localStorage.setItem(GUEST_BOOKS_KEY, JSON.stringify(books)); }
 function guestLoadBooks() { try { return JSON.parse(localStorage.getItem(GUEST_BOOKS_KEY) || "[]"); } catch { return []; } }
-function guestClearAll() { localStorage.removeItem(GUEST_BOOKS_KEY); localStorage.removeItem(GUEST_OBI_KEY); localStorage.removeItem(GUEST_PAIGE_OBI_KEY); localStorage.removeItem(GUEST_BROWSE_OBI_KEY); localStorage.removeItem(GUEST_SCAN_OBI_KEY); localStorage.removeItem(GUEST_AUTHOR_OBI_KEY); localStorage.removeItem(GUEST_SCAN_KEY); localStorage.removeItem(GUEST_ACTIVE_KEY); localStorage.removeItem(GUEST_TOP_BOOKS_KEY); localStorage.removeItem(GUEST_TOP_AUTHORS_KEY); }
+function guestClearAll() { localStorage.removeItem(GUEST_BOOKS_KEY); localStorage.removeItem(GUEST_OBI_KEY); localStorage.removeItem(GUEST_PAIGE_OBI_KEY); localStorage.removeItem(GUEST_BROWSE_OBI_KEY); localStorage.removeItem(GUEST_SCAN_OBI_KEY); localStorage.removeItem(GUEST_AUTHOR_OBI_KEY); localStorage.removeItem(GUEST_SCAN_KEY); localStorage.removeItem(GUEST_ACTIVE_KEY); localStorage.removeItem(GUEST_TOP_BOOKS_KEY); localStorage.removeItem(GUEST_TOP_AUTHORS_KEY); localStorage.removeItem(GUEST_GOAL_KEY); }
 
 // Migrate guest books into the just-signed-in account — but ONLY when the
 // migrate-intent flag is set. Dedupes by normalized title against whatever
@@ -11673,6 +11912,7 @@ export default function App() {
   const [guestMode, setGuestMode] = useState(() => !!localStorage.getItem(GUEST_ACTIVE_KEY));
   const [currentUsername, setCurrentUsername] = useState(null);
   const [currentTopBookIds, setCurrentTopBookIds] = useState([]);
+  const [readingGoal, setReadingGoal] = useState(null);
   const [currentTopAuthors, setCurrentTopAuthors] = useState([]);
   const [profileRefresh, setProfileRefresh] = useState(0);
   const [showFriends, setShowFriends] = useState(false);
@@ -11787,6 +12027,19 @@ export default function App() {
       });
     return () => { cancelled = true; };
   }, [session?.user?.id, profileRefresh, guestMode]);
+
+  // Reading goal lives in user_metadata (signed-in) or localStorage (guest).
+  useEffect(() => {
+    if (session?.user) {
+      const g = session.user.user_metadata?.reading_goal;
+      setReadingGoal(typeof g === "number" && g > 0 ? g : null);
+    } else if (guestMode) {
+      const g = parseInt(localStorage.getItem(GUEST_GOAL_KEY) || "", 10);
+      setReadingGoal(Number.isFinite(g) && g > 0 ? g : null);
+    } else {
+      setReadingGoal(null);
+    }
+  }, [session?.user?.id, guestMode]);
 
   // Pending-friend-request count for the Account-icon badge
   const [pendingRequestCount, setPendingRequestCount] = useState(0);
@@ -12226,6 +12479,19 @@ export default function App() {
                   const { error } = await supabase.from("profiles").update({ top_authors: newAuthors }).eq("id", session.user.id);
                   if (error) console.error("save top authors:", error);
                   setProfileRefresh(n => n + 1);
+                }}
+                readingGoal={readingGoal}
+                onSaveReadingGoal={async (n) => {
+                  const val = (typeof n === "number" && n > 0) ? n : null;
+                  setReadingGoal(val);
+                  track("reading_goal_set", { goal: val });
+                  if (session?.user) {
+                    const { error } = await supabase.auth.updateUser({ data: { reading_goal: val } });
+                    if (error) console.error("save reading goal:", error);
+                  } else if (guestMode) {
+                    if (val) localStorage.setItem(GUEST_GOAL_KEY, String(val));
+                    else localStorage.removeItem(GUEST_GOAL_KEY);
+                  }
                 }}
                 onEdit={setEditBook}
               />
