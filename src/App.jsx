@@ -8081,9 +8081,12 @@ function StatsTab({ books, characterAvatar, readingCharacterLeft, readingCharact
         const overviewGrid = (
           <div style={{
             display:"grid",
-            gridTemplateColumns: characterAvatar ? "1fr 96px 1fr" : "1fr 1fr",
-            gridTemplateRows: "1fr 1fr",
-            height: OVERVIEW_H,
+            gridTemplateColumns: characterAvatar ? (isDesktop ? "1fr 116px 1fr" : "1fr 96px 1fr") : "1fr 1fr",
+            // Only the desktop dashboard pins a fixed height (for column
+            // alignment). On mobile the grid is natural — the avatar's capped
+            // height keeps it consistent without squishing the layout.
+            gridTemplateRows: isDesktop ? "1fr 1fr" : undefined,
+            height: isDesktop ? OVERVIEW_H : undefined,
             gap:8, alignItems:"stretch",
           }}>
             {characterAvatar && (
@@ -8093,7 +8096,7 @@ function StatsTab({ books, characterAvatar, readingCharacterLeft, readingCharact
                 pointerEvents:"none",
               }}>
                 <img src={characterAvatar} alt="" style={{
-                  maxWidth:"100%", maxHeight:"100%",
+                  maxWidth:"100%", maxHeight: isDesktop ? "100%" : 150,
                   objectFit:"contain", objectPosition:"bottom", display:"block",
                 }} />
               </div>
