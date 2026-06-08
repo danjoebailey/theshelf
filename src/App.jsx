@@ -36,7 +36,13 @@ const SHELVES = ["Read", "Reading", "The List", "Curious", "DNF", "Recommended"]
 let _staticBooks = null;
 let _staticByAuthor = null; // Map<normalizedAuthor, book[]>
 let _staticByTitle = null;  // Map<normalizedTitle, book[]>
-const _staticReady = fetch("/book-data.json").then(r => r.json()).then(data => {
+const _staticReady = Promise.all([
+  fetch("/book-data.json").then(r => r.json()),
+  fetch("/rec-library.json").then(r => r.json()),
+]).then(([_primary, _rec]) => {
+  // Phase B1: search + bibliographies + series tab now span BOTH libraries.
+  // Phase A guarantees 0 cross-library duplicates, so a plain concat is safe.
+  const data = [..._primary, ..._rec];
   _staticBooks = data;
   _staticByAuthor = new Map();
   _staticByTitle = new Map();
